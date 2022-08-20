@@ -2,14 +2,27 @@
   "name": "explorers-club",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "postinstall": "remix setup node"
+  },
   "private": true,
-  "dependencies": {},
+  "dependencies": {
+    "@nrwl/react": "^14.5.8",
+    "@nrwl/remix": "^14.4.2",
+    "@remix-run/react": "^1.0.6",
+    "@remix-run/serve": "^1.0.6",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "remix": "^1.0.6"
+  },
   "devDependencies": {
     "@nrwl/cli": "14.5.8",
     "@nrwl/js": "14.5.8",
     "@nrwl/nx-cloud": "latest",
     "@nrwl/workspace": "14.5.8",
+    "@remix-run/dev": "^1.0.6",
+    "@types/react": "^17.0.24",
+    "@types/react-dom": "^17.0.9",
     "nx": "14.5.8",
     "prettier": "^2.6.2",
     "typescript": "~4.7.2"
