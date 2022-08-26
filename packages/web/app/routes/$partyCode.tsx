@@ -1,7 +1,7 @@
-import { memo } from 'react';
 import { LoaderFunction, useLoaderData } from 'remix';
 import { json } from '@remix-run/node';
 import invariant from 'tiny-invariant';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 interface Party {
   code: string;
@@ -10,10 +10,13 @@ interface Party {
 type LoaderData = { party: Party };
 
 export const loader: LoaderFunction = async ({ params }) => {
-  invariant(params.partyCode, 'params.partyCode is required');
+  const { partyCode } = params;
+  invariant(partyCode, 'params.partyCode is required');
+
+  // TODO next; query via admin to see if the party code actually exists
 
   return json<LoaderData>({
-    party: { code: params.partyCode },
+    party: { code: partyCode },
   });
 };
 
