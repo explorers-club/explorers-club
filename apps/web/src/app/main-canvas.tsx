@@ -1,3 +1,4 @@
+import styled from 'styled-components';
 import { Environment, useTexture } from '@react-three/drei';
 import { Canvas, useLoader } from '@react-three/fiber';
 import { useControls } from 'leva';
@@ -24,29 +25,39 @@ export function MainCanvas() {
   // const envMap = useLoader(RGBELoader, "./assets/envmap.hdr");
 
   return (
-    <Canvas
-      gl={{ physicallyCorrectLights: true }}
-      camera={{ position: [0, 0, 50] }}
-    >
-      <color attach="background" args={['#FFEECC']} />
-      <pointLight
-        args={[color, 80, 200]}
-        position={[10, 20, 10]}
-        castShadow={true}
-      />
-      <Suspense fallback={null}>
-        <Environment preset="sunset" />
+    <Container>
+      <Canvas
+        gl={{ physicallyCorrectLights: true }}
+        camera={{ position: [0, 0, 50] }}
+      >
+        <color attach="background" args={['#FFEECC']} />
+        <pointLight
+          args={[color, 80, 200]}
+          position={[10, 20, 10]}
+          castShadow={true}
+        />
+        <Suspense fallback={null}>
+          <Environment preset="sunset" />
 
-        <Ship />
+          <Ship />
 
-        <Terrain />
-        <Sea />
-        <MapContainer />
-        <MapFloor />
-      </Suspense>
-    </Canvas>
+          <Terrain />
+          <Sea />
+          <MapContainer />
+          <MapFloor />
+        </Suspense>
+      </Canvas>
+    </Container>
   );
 }
+
+const Container = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+`;
 
 interface Point {
   x: number;
