@@ -2,9 +2,6 @@
   "$schema": "./node_modules/nx/schemas/workspace-schema.json",
   "version": 2,
   "projects": {
-    "core": "packages/core",
-    "game-server": "packages/game-server",
-    "party-server": "packages/party-server",
-    "web": "packages/web"
+    "web": "apps/web"
   }
 }
