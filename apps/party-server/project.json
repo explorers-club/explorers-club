@@ -17,6 +17,7 @@
           "optimization": true,
           "extractLicenses": true,
           "inspect": false,
+          "generatePackageJson": true,
           "fileReplacements": [
             {
               "replace": "apps/party-server/src/environments/environment.ts",
@@ -35,6 +36,12 @@
         "production": {
           "buildTarget": "party-server:build:production"
         }
+      }
+    },
+    "deploy": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "flyctl deploy --config ./apps/party-server/fly.toml"
       }
     },
     "lint": {

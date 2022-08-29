@@ -1,0 +1,9 @@
+# fly.toml file generated for party-server on 2022-08-28T15:34:20-07:00
+
+app = "party-server"
+kill_signal = "SIGINT"
+kill_timeout = 5
+processes = []
+
+[build]
+  dockerfile = "Dockerfile"
