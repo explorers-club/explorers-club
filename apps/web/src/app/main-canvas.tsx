@@ -1,9 +1,8 @@
-import styled from 'styled-components';
-import { Environment, useTexture } from '@react-three/drei';
-import { Canvas, useLoader } from '@react-three/fiber';
+import { Environment, OrbitControls, useTexture } from '@react-three/drei';
+import { Canvas } from '@react-three/fiber';
 import { useControls } from 'leva';
 import { Suspense, useMemo, useState } from 'react';
-
+import styled from 'styled-components';
 import {
   BoxGeometry,
   BufferGeometry,
@@ -13,12 +12,7 @@ import {
   SphereGeometry,
   Vector2,
 } from 'three';
-import {
-  mergeBufferGeometries,
-  OrbitControls,
-  // RGBELoader,
-  SimplexNoise,
-} from 'three-stdlib';
+import { mergeBufferGeometries, SimplexNoise } from 'three-stdlib';
 
 export function MainCanvas() {
   const color = useMemo(() => new Color('#FFCBBE').convertSRGBToLinear(), []);
@@ -45,6 +39,7 @@ export function MainCanvas() {
           <Sea />
           <MapContainer />
           <MapFloor />
+          <OrbitControls autoRotate autoRotateSpeed={0.6} enablePan={false} />
         </Suspense>
       </Canvas>
     </Container>

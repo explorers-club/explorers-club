@@ -6,10 +6,11 @@ export function MainUI() {
 
 const Container = styled.div`
   position: absolute;
-  top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  right: 0;
+  bottom: 0;
+  height: 120px;
+  background: white;
   z-index: 1;
 `;
 
