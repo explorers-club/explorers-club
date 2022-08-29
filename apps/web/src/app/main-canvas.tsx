@@ -92,7 +92,7 @@ const getTreeGeometry = (height: number, position: Point) => {
 const MAX_HEIGHT = 10;
 
 const useBoardRadius = () => {
-  return 15;
+  return 20;
 };
 
 const MapFloor = () => {
@@ -143,7 +143,7 @@ const Sea = () => {
   );
   const waterTexture = useTexture('./assets/water.jpeg');
   const { boardRadius } = useControls({
-    boardRadius: 15,
+    boardRadius: 20,
   });
 
   return (
