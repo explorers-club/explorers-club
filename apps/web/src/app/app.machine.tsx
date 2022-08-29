@@ -22,26 +22,14 @@ const appModel = createModel(
 export const appMachine = createMachine(
   {
     id: 'appMachine',
-    initial: 'Init',
+    initial: 'Lobby',
     context: appModel.initialContext,
     states: {
-      Init: {
-        invoke: {
-          src: 'initialize',
-        },
-      },
       Lobby: {},
       Game: {},
     },
   },
-  {
-    services: {
-      initialize: (context, event) => {
-        console.log('inintialize');
-        return Promise.resolve();
-      },
-    },
-  }
+  {}
 );
 
 export type AppContext = ContextFrom<typeof appModel>;
