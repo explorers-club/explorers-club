@@ -1,4 +1,10 @@
-import { ActorRefFrom, ContextFrom, createMachine, EventFrom } from 'xstate';
+import {
+  ActorRefFrom,
+  ContextFrom,
+  createMachine,
+  EventFrom,
+  StateFrom,
+} from 'xstate';
 import { createModel } from 'xstate/lib/model';
 
 const appModel = createModel(
@@ -41,5 +47,6 @@ export const appMachine = createMachine(
 export type AppContext = ContextFrom<typeof appModel>;
 export type AppEvent = EventFrom<typeof appModel>;
 export type AppActor = ActorRefFrom<typeof appMachine>;
+export type AppState = StateFrom<typeof appMachine>;
 
 export default appMachine;
