@@ -1,7 +1,27 @@
+import { useCallback, useContext } from 'react';
 import styled from 'styled-components';
+import { AppServiceContext } from './app.service';
 
 export function MainUI() {
-  return <Container>Hello, Worl UI</Container>;
+  const appService = useContext(AppServiceContext)
+
+  const handlePressStartParty = useCallback(() => {
+    appService.send("")
+  }, [])
+
+  return (
+    <Container>
+      <p>
+        <span>Enter your 4-digit code</span>
+        <input type="text" name="code" id="code" />
+        <button>Join Party</button>
+      </p>
+      <p>
+        <span>or</span>
+        <button onClick={handlePressStartParty}>Start Party</button>
+      </p>
+    </Container>
+  );
 }
 
 const Container = styled.div`
