@@ -32,9 +32,7 @@ export function MainCanvas() {
         />
         <Suspense fallback={null}>
           <Environment preset="sunset" />
-
           <Ship />
-
           <Terrain />
           <Sea />
           <MapContainer />
@@ -145,7 +143,7 @@ const Sea = () => {
   );
   const waterTexture = useTexture('./assets/water.jpeg');
   const { boardRadius } = useControls({
-    boardRadius: 30,
+    boardRadius: 15,
   });
 
   return (
