@@ -14,16 +14,29 @@ const file = createWriteStream(__dirname + '/test.webm');
   console.log('new page');
   const page = await browser.newPage();
   await page.goto('https://explorersclub.gg');
-  console.log('goto');
-  const stream = await getStream(page, { audio: true, video: true });
-  console.log('recording');
 
-  stream.pipe(file);
-  setTimeout(async () => {
-    await stream.destroy();
-    file.close();
-    console.log('finished');
-  }, 1000 * 10);
+  page.evaluate(() => {
+    const canvas = document.getElementsByTagName('canvas')[0];
+    const stream = canvas.captureStream(25);
+
+    const options = { mimeType: 'video/webm' };
+
+    const recorder = new MediaRecorder(stream, options);
+    recorder.ondataavailable = (e: { data: unknown }) => {
+      console.log(e.data);
+    };
+    recorder.start(1000);
+  });
+
+  // const stream = await getStream(page, { audio: true, video: true });
+  // console.log('recording');
+
+  // stream.pipe(file);
+  // setTimeout(async () => {
+  //   await stream.destroy();
+  //   file.close();
+  //   console.log('finished');
+  // }, 1000 * 10);
 })();
 
 // import { Logger } from '@nestjs/common';

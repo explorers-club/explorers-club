@@ -1,26 +1,32 @@
+import { useCallback, useRef, useState } from 'react';
+import { BottomSheet, BottomSheetRef } from 'react-spring-bottom-sheet';
+import 'react-spring-bottom-sheet/dist/style.css';
 import { Lobby } from '../ui/lobby';
-import styled from 'styled-components';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 export function MainUI() {
-  // TODO
-  // expose the height of the main container
-  // through a hook like useCamera
-  // so children can take control of it
+  const sheetRef = useRef<BottomSheetRef>(null);
+  const [open, setOpen] = useState(true);
+
+  const handleDismiss = useCallback(() => {
+    setOpen(false);
+  }, []);
+
   return (
-    <Container>
-      <Lobby />
-    </Container>
+    <BottomSheet
+      open={open}
+      onDismiss={handleDismiss}
+      blocking={false}
+      snapPoints={({ maxHeight }) => [maxHeight / 4, maxHeight * 0.6]}
+      ref={sheetRef}
+    >
+      <BrowserRouter>
+        <Routes>
+          <Route index element={<Lobby />} />
+        </Routes>
+      </BrowserRouter>
+    </BottomSheet>
   );
 }
-
-const Container = styled.div`
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 200px;
-  background: white;
-  z-index: 1;
-`;
 
 export default MainUI;
