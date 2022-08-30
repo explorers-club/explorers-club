@@ -19,6 +19,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-is": "18.2.0",
+    "react-router-dom": "^6.3.0",
     "react-spring-bottom-sheet": "3.5.0-alpha.0",
     "reflect-metadata": "^0.1.13",
     "regenerator-runtime": "0.13.7",
