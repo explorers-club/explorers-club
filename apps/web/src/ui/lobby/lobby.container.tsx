@@ -18,7 +18,7 @@ export function Lobby() {
 
   return (
     <LobbyServiceContext.Provider value={lobbyService}>
-      <LobbyComponent />;
+      <LobbyComponent />
     </LobbyServiceContext.Provider>
   );
 }

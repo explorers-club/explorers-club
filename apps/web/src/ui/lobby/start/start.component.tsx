@@ -1,12 +1,10 @@
-import { useSelector } from '@xstate/react';
 import { useCallback, useContext, useRef } from 'react';
 import styled from 'styled-components';
-import { lobbyModel } from './lobby.machine';
-import { LobbyServiceContext } from './lobby.service';
+import { lobbyModel } from '../lobby.machine';
+import { LobbyServiceContext } from '../lobby.service';
 
-export function LobbyComponent() {
+export function StartComponent() {
   const lobbyService = useContext(LobbyServiceContext);
-  const hello = useSelector(lobbyService, (state) => state.context.username);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handlePressJoinParty = useCallback(() => {
@@ -36,5 +34,4 @@ export function LobbyComponent() {
   );
 }
 
-const Container = styled.div`
-`;
+const Container = styled.div``;
