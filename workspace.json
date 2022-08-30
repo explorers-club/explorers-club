@@ -2,6 +2,7 @@
   "$schema": "./node_modules/nx/schemas/workspace-schema.json",
   "version": 2,
   "projects": {
+    "live-streaming-server": "apps/live-streaming-server",
     "party-server": "apps/party-server",
     "web": "apps/web"
   }
