@@ -1,26 +1,16 @@
+import { useRef } from 'react';
+import { BottomSheet, BottomSheetRef } from 'react-spring-bottom-sheet';
+import 'react-spring-bottom-sheet/dist/style.css';
 import { Lobby } from '../ui/lobby';
-import styled from 'styled-components';
 
 export function MainUI() {
-  // TODO
-  // expose the height of the main container
-  // through a hook like useCamera
-  // so children can take control of it
+  const sheetRef = useRef<BottomSheetRef>(null);
+
   return (
-    <Container>
+    <BottomSheet open ref={sheetRef}>
       <Lobby />
-    </Container>
+    </BottomSheet>
   );
 }
-
-const Container = styled.div`
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 200px;
-  background: white;
-  z-index: 1;
-`;
 
 export default MainUI;
