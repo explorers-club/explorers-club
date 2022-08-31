@@ -10,23 +10,37 @@ import { createModel } from 'xstate/lib/model';
 export const homeModel = createModel(
   {},
   {
-    events: {},
+    events: {
+      JOIN_PARTY: (code: string) => ({ code }),
+      START_PARTY: () => ({}),
+    },
   }
 );
 
-export const homeMachine = createMachine(
-  {
-    id: 'homeMachine',
-    initial: 'Init',
-    context: homeModel.initialContext,
-    states: {
-      Init: {},
+// NEXT... in this machine is where we actually do the logic
+// to spawn the party machine
+
+export const homeMachine = createMachine({
+  id: 'homeMachine',
+  initial: 'Idle',
+  context: homeModel.initialContext,
+  states: {
+    Idle: {
+      on: {
+        JOIN_PARTY: {
+          target: 'Complete',
+        },
+        START_PARTY: {
+          actions: "createNewParty",
+          target: 'Complete',
+        },
+      },
+    },
+    Complete: {
+      type: 'final' as const,
     },
   },
-  {
-    guards: {},
-  }
-);
+});
 
 export type HomeContext = ContextFrom<typeof homeModel>;
 export type HomeEvent = EventFrom<typeof homeModel>;
