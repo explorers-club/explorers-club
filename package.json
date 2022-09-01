@@ -23,6 +23,7 @@
     "react-spring-bottom-sheet": "3.5.0-alpha.0",
     "reflect-metadata": "^0.1.13",
     "regenerator-runtime": "0.13.7",
+    "reselect": "^4.1.6",
     "rxjs": "^7.0.0",
     "snakecase-keys": "^5.4.2",
     "styled-components": "5.3.5",

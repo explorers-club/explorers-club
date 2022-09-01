@@ -3,8 +3,8 @@ import styled from 'styled-components';
 import { HomeServiceContext } from './home.service';
 
 export function HomeComponent() {
-  const partyService = useContext(HomeServiceContext);
-  console.log(partyService);
+  const homeService = useContext(HomeServiceContext);
+  console.log(homeService);
 
   return (
     <Container>

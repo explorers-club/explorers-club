@@ -1,6 +1,6 @@
 import { Canvas } from '@react-three/fiber';
 import styled from 'styled-components';
-import LobbyScene from '../scenes/lobby/lobby.scene';
+import LobbyScene from './scenes/lobby/lobby.scene';
 
 export function MainCanvas() {
   return (

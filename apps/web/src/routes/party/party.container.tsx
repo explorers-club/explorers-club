@@ -1,14 +1,36 @@
-import { useInterpret } from '@xstate/react';
 import { PartyComponent } from './party.component';
-import partyMachine from './party.machine';
-import { PartyServiceContext } from './party.service';
+// import { createPartyMachine } from './party.machine';
+
+type RouteParams = {
+  code: string;
+};
+
+// const selectPartyActor = createSelector(
+//   selectAppContext,
+//   (context) => context.partyActorRef
+// );
 
 export function Party() {
-  const partyService = useInterpret(partyMachine);
+  // const appService = useContext(AppServiceContext);
+  // const partyActor = useSelector(appService, selectPartyActor);
+  // const { code } = useParams<RouteParams>() as RouteParams;
+  // useInterpret(appService)
 
-  return (
-    <PartyServiceContext.Provider value={partyService}>
-      <PartyComponent />
-    </PartyServiceContext.Provider>
-  );
+  // useEffect(() => {
+  //   console.log("sending join event")
+  //   partyActor.send(partyModel.events.JOIN(code));
+  // }, [partyActor, code]);
+
+  return <PartyComponent />;
+  // const authService = useContext(AuthServiceContext);
+  // const { code } = useParams<RouteParams>() as RouteParams;
+
+  // const machine = useMemo(() => createPartyMachine({ code }), [code]);
+  // const partyService = useInterpret(machine);
+
+  // return (
+  //   <PartyServiceContext.Provider value={partyService}>
+  //     <PartyComponent />
+  //   </PartyServiceContext.Provider>
+  // );
 }

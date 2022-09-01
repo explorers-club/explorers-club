@@ -6,13 +6,10 @@ import {
   StateFrom,
 } from 'xstate';
 import { createModel } from 'xstate/lib/model';
+import authMachine from './auth.machine';
+import partyMachine from './party.machine';
 
-const appModel = createModel(
-  {
-    userId: undefined as string | undefined,
-  },
-  {}
-);
+const appModel = createModel({}, {});
 
 /**
  * Holds the high-level state for the app.
@@ -22,14 +19,24 @@ const appModel = createModel(
 export const appMachine = createMachine(
   {
     id: 'appMachine',
-    initial: 'Lobby',
+    initial: 'Initializing',
+    invoke: [
+      {
+        id: 'authActor',
+        src: authMachine,
+      },
+      { id: 'partyActor', src: partyMachine },
+    ],
     context: appModel.initialContext,
     states: {
-      Lobby: {},
-      Game: {},
+      Initializing: {},
+      Loaded: {},
     },
   },
-  {}
+  {
+    guards: {},
+    services: {},
+  }
 );
 
 export type AppContext = ContextFrom<typeof appModel>;
