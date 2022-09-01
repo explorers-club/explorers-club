@@ -4,7 +4,7 @@ Welcome to your next adventure!
 
 ## Concept
 
-Imagine Explorers Club as the game [Destiny](https://www.google.com/search?q=destiny+2+map), but instead planets of, imagine islands—and each island is a different board, card, drawing, or other quick to learn games. Friends play together in a party from their phones, laptops, and/or TVs via Chromecast.
+Imagine Explorers Club as the game [Destiny](https://www.google.com/search?q=destiny+2+map), but instead of planets, imagine islands—and each island is a different board, card, drawing, or other quick to learn game. Friends can brow and play games together in a party from their phones, laptops, and/or TVs via Chromecast.
 
 ## Development
 
