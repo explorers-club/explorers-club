@@ -4,6 +4,7 @@ import 'react-spring-bottom-sheet/dist/style.css';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Home } from './routes/home';
 import { Party } from './routes/party';
+import { NewParty } from './routes/new-party';
 
 export function MainUI() {
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -24,6 +25,7 @@ export function MainUI() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="party/new" element={<NewParty />} />
           <Route path="party/:code" element={<Party />} />
         </Routes>
       </BrowserRouter>
