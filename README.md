@@ -1,6 +1,12 @@
 # Explorers Club
 
-Think of Explorers Club similar to the game Destiny, but replace planets with islands, and each island is a different board, card or drawing game. Players can join up to play together in a browser using 4-digit join codes.
+Welcome to your next adventure!
+
+## Concept
+
+Imagine Explorers Club as the game [Destiny](https://www.google.com/search?q=destiny+2+map), but instead planets of, imagine islands—and each island is a different board, card, drawing, or other quick to learn games. Friends play together in a party from their phones, laptops, and/or TVs via Chromecast.
+
+## Development
 
 Run the web app with `nx run web:serve`.
 
@@ -17,4 +23,15 @@ Run the web app with `nx run web:serve`.
 - github actions for CI
 
 ## Inspirations
-Boardgamearna.com, rocketcrab.com, Jagex, Destiny, Jackbox.
+
+- Rocketcrab.com
+- Destiny
+- Jackbox
+- Jagex
+- Boardgamearena.com
+- Tabletop Simulator
+- Mario Party
+
+## Contributing
+
+[Join our Discord](https://discord.gg/PUHsGxqBKt) if you are interested in helping build, testing, or have feedback!
