@@ -16,18 +16,20 @@ const authModel = createModel(
   },
   {
     events: {
-      CREATE_ANONYMOUS_USER: (alias: string) => ({ alias }),
-      //       REGISTER_ACCOUNT: (phone: string) => ({ phone }),
-      //       LOGIN: (phone: string) => ({ phone }),
       LOGOUT: () => ({}),
+      CREATE_ANONYMOUS_USER: (alias: string) => ({ alias }),
     },
   }
 );
 
-export const authMachine = authModel.createMachine(
+export type AuthContext = ContextFrom<typeof authModel>;
+export type AuthEvent = EventFrom<typeof authModel>;
+
+const authMachine = authModel.createMachine(
   {
     id: 'AuthMachine',
     initial: 'Initializing',
+    context: authModel.initialContext,
     states: {
       Initializing: {
         invoke: {
@@ -83,6 +85,7 @@ export const authMachine = authModel.createMachine(
         },
       },
     },
+    predictableActionArguments: true,
   },
   {
     actions: {
@@ -95,8 +98,8 @@ export const authMachine = authModel.createMachine(
     },
     services: {
       initialize: async (context, event) => {
-        const response = await supabaseClient.auth.getUser();
-        return response.data.user;
+        const response = await supabaseClient.auth.getSession();
+        return response.data.session?.user;
       },
       createAnonymousUser: async (context, event) => {
         const id = crypto.randomUUID();
@@ -115,9 +118,8 @@ export const authMachine = authModel.createMachine(
   }
 );
 
-export type AuthContext = ContextFrom<typeof authMachine>;
-export type AuthEvent = EventFrom<typeof authMachine>;
-export type AuthActorRef = ActorRefFrom<typeof authMachine>;
+export type AuthActor = ActorRefFrom<typeof authMachine>;
 export type AuthState = StateFrom<typeof authMachine>;
 
-export default authMachine;
+export const createAuthMachine = (context: AuthContext) =>
+  authMachine.withContext(context);

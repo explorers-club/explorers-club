@@ -34,4 +34,4 @@ Run the web app with `nx run web:serve`.
 
 ## Contributing
 
-[Join our Discord](https://discord.gg/PUHsGxqBKt) if you are interested in helping build, testing, or have feedback!
+[Join the Discord](https://discord.gg/PUHsGxqBKt) if you are interested in helping build, testing, or have feedback!

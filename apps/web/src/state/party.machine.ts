@@ -1,10 +1,9 @@
-import { User } from '@supabase/supabase-js';
 import {
   ActorRefFrom,
   ContextFrom,
   createMachine,
   EventFrom,
-  StateFrom,
+  StateFrom
 } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { supabaseClient } from '../lib/supabase';
@@ -25,7 +24,10 @@ export const partyModel = createModel(
   }
 );
 
-export const partyMachine = createMachine(
+export type PartyContext = ContextFrom<typeof partyModel>;
+export type PartyEvent = EventFrom<typeof partyModel>;
+
+const partyMachine = createMachine(
   {
     id: 'partyMachine',
     context: partyModel.initialContext,
@@ -98,9 +100,8 @@ export const partyMachine = createMachine(
   }
 );
 
-export type PartyContext = ContextFrom<typeof partyModel>;
-export type PartyEvent = EventFrom<typeof partyModel>;
 export type PartyActor = ActorRefFrom<typeof partyMachine>;
 export type PartyState = StateFrom<typeof partyMachine>;
 
-export default partyMachine;
+export const createPartyMachine = (context: PartyContext) =>
+  partyMachine.withContext(context);
