@@ -59,6 +59,7 @@ export const playerSetupMachine = playerSetupModel.createMachine(
         type: 'final' as const,
       },
     },
+    predictableActionArguments: true,
   },
   {
     guards: {

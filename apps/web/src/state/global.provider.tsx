@@ -2,7 +2,7 @@
 import { createContext, ReactNode, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BottomSheetRef } from 'react-spring-bottom-sheet';
-import { Actor, interpret } from 'xstate';
+import { Actor, interpret, State } from 'xstate';
 import { useCurrentRoute } from '../routes/route.hooks';
 import { AppActor, createAppMachine } from './app.machine';
 import { createAuthMachine } from './auth.machine';
@@ -57,6 +57,11 @@ export const GlobalStateProvider = ({ children }: { children: ReactNode }) => {
     partyActor.start();
     navigationActor.start();
 
+    appActor.subscribe(createLogger(appActor.id));
+    authActor.subscribe(createLogger(authActor.id));
+    partyActor.subscribe(createLogger(partyActor.id));
+    navigationActor.subscribe(createLogger(navigationActor.id));
+
     return () => {
       appActor.stop();
       authActor.stop();
@@ -66,10 +71,9 @@ export const GlobalStateProvider = ({ children }: { children: ReactNode }) => {
   }, [appActor, authActor, partyActor, navigationActor]);
 
   const sheetRef = useRef<BottomSheetRef>(null);
-  useActorLogger(appActor);
-  useActorLogger(partyActor);
-  useActorLogger(authActor as Actor); // Not sure why this type is failing
-  // useActorLogger(navigationActor);
+  // useActorLogger(appActor);
+  // useActorLogger(partyActor);
+  // useActorLogger(authActor as Actor); // Not sure why this type is failing
 
   return (
     <GlobalStateContext.Provider value={{ appActor, sheetRef }}>
@@ -77,6 +81,11 @@ export const GlobalStateProvider = ({ children }: { children: ReactNode }) => {
     </GlobalStateContext.Provider>
   );
 };
-function getRouteMatch(location: Location) {
-  throw new Error('Function not implemented.');
-}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const createLogger = (id: string) => {
+  return (state: any) => {
+    // TODO prod check
+    console.log(`[${id}]`, state.event.type, state.value, state.context);
+  };
+};
