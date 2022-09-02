@@ -1,11 +1,12 @@
-import { ActorRefFrom, ContextFrom, EventFrom } from 'xstate';
-import { createModel } from 'xstate/lib/model';
-import { AuthActor } from './auth.machine';
-import { PartyActor } from './party.machine';
 import { NavigateFunction } from 'react-router-dom';
+import { BottomSheetRef } from 'react-spring-bottom-sheet';
+import { ActorRefFrom, ContextFrom, StateFrom } from 'xstate';
+import { createModel } from 'xstate/lib/model';
 import { homeMachine } from '../routes/home/home.machine';
 import { playerSetupMachine } from '../routes/player-setup/player-setup.machine';
 import { Route } from '../routes/routes.constants';
+import { AuthActor } from './auth.machine';
+import { PartyActor } from './party.machine';
 
 const navigationModel = createModel(
   {
@@ -13,6 +14,7 @@ const navigationModel = createModel(
     partyActor: {} as PartyActor,
     authActor: {} as AuthActor,
     navigate: {} as NavigateFunction,
+    sheetRef: {} as React.RefObject<BottomSheetRef>,
   },
   {}
 );
@@ -29,6 +31,7 @@ export const createNavigationMachine = (context: NavigationContext) => {
         Home: {
           entry: 'navigateToHome',
           invoke: {
+            id: 'homeMachine',
             src: 'homeMachine',
             onDone: [
               {
@@ -96,3 +99,4 @@ export const createNavigationMachine = (context: NavigationContext) => {
 
 type NavigationMachine = ReturnType<typeof createNavigationMachine>;
 export type NavigationActor = ActorRefFrom<NavigationMachine>;
+// export type NavigationState = StateFrom<NavigationMachine>;

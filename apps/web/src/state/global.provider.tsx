@@ -2,24 +2,33 @@
 import { createContext, ReactNode, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BottomSheetRef } from 'react-spring-bottom-sheet';
-import { Actor, interpret, State } from 'xstate';
+import { interpret } from 'xstate';
 import { useCurrentRoute } from '../routes/route.hooks';
 import { AppActor, createAppMachine } from './app.machine';
-import { createAuthMachine } from './auth.machine';
-import { useActorLogger } from './logging-middleware';
-import { createNavigationMachine } from './navigation.machine';
-import { createPartyMachine } from './party.machine';
+import { createAuthMachine, AuthActor } from './auth.machine';
+import { createNavigationMachine, NavigationActor } from './navigation.machine';
+import { createPartyMachine, PartyActor } from './party.machine';
 
 interface GlobalStateContextType {
   appActor: AppActor;
   sheetRef: React.RefObject<BottomSheetRef>;
 }
 
+declare global {
+  interface Window {
+    $APP: AppActor;
+    $AUTH: AuthActor;
+    $PARTY: PartyActor;
+    $NAVIGATION: NavigationActor;
+  }
+}
+
 export const GlobalStateContext = createContext({} as GlobalStateContextType);
 
 export const GlobalStateProvider = ({ children }: { children: ReactNode }) => {
-  const { partyCode } = useParams();
+  const sheetRef = useRef<BottomSheetRef>(null);
   const route = useCurrentRoute();
+  const { partyCode } = useParams();
   const navigate = useNavigate();
 
   // Initialize the actor machines
@@ -37,6 +46,7 @@ export const GlobalStateProvider = ({ children }: { children: ReactNode }) => {
       authActor,
       navigate,
       currentRoute: route,
+      sheetRef,
     });
     const navigationActor = interpret(navigationMachine);
 
@@ -46,6 +56,14 @@ export const GlobalStateProvider = ({ children }: { children: ReactNode }) => {
       navigationActor,
     });
     const appActor = interpret(appMachine);
+
+    // Setup for debugging
+    if (window) {
+      window.$APP = appActor;
+      window.$AUTH = authActor;
+      window.$PARTY = partyActor;
+      window.$NAVIGATION = navigationActor;
+    }
 
     return { appActor, authActor, partyActor, navigationActor };
   });
@@ -70,11 +88,6 @@ export const GlobalStateProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [appActor, authActor, partyActor, navigationActor]);
 
-  const sheetRef = useRef<BottomSheetRef>(null);
-  // useActorLogger(appActor);
-  // useActorLogger(partyActor);
-  // useActorLogger(authActor as Actor); // Not sure why this type is failing
-
   return (
     <GlobalStateContext.Provider value={{ appActor, sheetRef }}>
       {children}
@@ -82,8 +95,8 @@ export const GlobalStateProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createLogger = (id: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (state: any) => {
     // TODO prod check
     console.log(
