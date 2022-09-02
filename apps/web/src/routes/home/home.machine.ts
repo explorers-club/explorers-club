@@ -54,6 +54,7 @@ export const homeMachine = homeModel.createMachine(
         type: 'final' as const,
       },
     },
+    predictableActionArguments: true,
   },
   {
     guards: {

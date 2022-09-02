@@ -3,7 +3,7 @@ import {
   ContextFrom,
   createMachine,
   EventFrom,
-  StateFrom
+  StateFrom,
 } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { supabaseClient } from '../lib/supabase';
@@ -60,6 +60,7 @@ const partyMachine = createMachine(
         },
       },
     },
+    predictableActionArguments: true,
   },
   {
     services: {

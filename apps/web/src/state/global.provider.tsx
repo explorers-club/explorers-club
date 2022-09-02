@@ -86,6 +86,10 @@ export const GlobalStateProvider = ({ children }: { children: ReactNode }) => {
 const createLogger = (id: string) => {
   return (state: any) => {
     // TODO prod check
-    console.log(`[${id}]`, state.event.type, state.value, state.context);
+    console.log(
+      `[${id}]`,
+      `[State: ${state.value}]`,
+      `[Event: ${state.event.type}]`
+    );
   };
 };
