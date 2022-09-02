@@ -1,4 +1,3 @@
-import { context } from '@react-three/fiber';
 import { createSelector } from 'reselect';
 import { selectAppContext } from './app.selectors';
 
@@ -16,12 +15,7 @@ const selectNavigationState = createSelector(selectNavigationActor, (actor) => {
   return snap;
 });
 
-const selectNavigationChildren = createSelector(
+export const selectNavigationChildren = createSelector(
   selectNavigationState,
   (state) => state.children
-);
-
-export const selectHomeActor = createSelector(
-  selectNavigationChildren,
-  (children) => children['homeMachine']
 );

@@ -1,7 +1,7 @@
 import { assign } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 
-export const homeModel = createModel(
+const homeModel = createModel(
   {
     partyCode: '' as string,
   },
@@ -14,6 +14,8 @@ export const homeModel = createModel(
   }
 );
 
+export const HOME_EVENTS = homeModel.events;
+
 export const homeMachine = homeModel.createMachine(
   {
     id: 'homeMachine',
@@ -24,7 +26,9 @@ export const homeMachine = homeModel.createMachine(
           INPUT_CHANGE_PARTY_CODE: {
             target: 'WaitingForInput',
             actions: assign({
-              partyCode: (_, event) => event.partyCode,
+              partyCode: (_, event) => {
+                return event.partyCode;
+              },
             }),
           },
           PRESS_JOIN_PARTY: {

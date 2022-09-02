@@ -3,6 +3,7 @@ import { createContext, ReactNode, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BottomSheetRef } from 'react-spring-bottom-sheet';
 import { interpret } from 'xstate';
+import { useActorLogger } from '../lib/logging';
 import { useCurrentRoute } from '../routes/route.hooks';
 import { AppActor, createAppMachine } from './app.machine';
 import { createAuthMachine, AuthActor } from './auth.machine';
@@ -75,11 +76,6 @@ export const GlobalStateProvider = ({ children }: { children: ReactNode }) => {
     partyActor.start();
     navigationActor.start();
 
-    appActor.subscribe(createLogger(appActor.id));
-    authActor.subscribe(createLogger(authActor.id));
-    partyActor.subscribe(createLogger(partyActor.id));
-    navigationActor.subscribe(createLogger(navigationActor.id));
-
     return () => {
       appActor.stop();
       authActor.stop();
@@ -88,21 +84,14 @@ export const GlobalStateProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [appActor, authActor, partyActor, navigationActor]);
 
+  useActorLogger(appActor);
+  useActorLogger(authActor);
+  useActorLogger(partyActor);
+  useActorLogger(navigationActor);
+
   return (
     <GlobalStateContext.Provider value={{ appActor, sheetRef }}>
       {children}
     </GlobalStateContext.Provider>
   );
-};
-
-const createLogger = (id: string) => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (state: any) => {
-    // TODO prod check
-    console.log(
-      `[${id}]`,
-      `[State: ${state.value}]`,
-      `[Event: ${state.event.type}]`
-    );
-  };
 };
