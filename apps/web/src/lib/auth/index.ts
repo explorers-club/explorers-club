@@ -12,6 +12,9 @@ export const createAnonymousUser = async () => {
   if (response.error) {
     throw new Error(response.error.message);
   }
+  if (!response.data.user) {
+    throw new Error('unknown error creating user');
+  }
 
   return response.data.user;
 };

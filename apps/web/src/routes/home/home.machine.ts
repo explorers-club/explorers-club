@@ -80,19 +80,26 @@ export const homeMachine = homeModel.createMachine(
       createParty: async (context, event) => {
         // TODO maybe a better way to check for being auth here
         // First create a user if you are not signed in...
-        const { data, error } = await supabaseClient.auth.getSession();
-        if (error) {
-          throw new Error(error.message);
+        const { data: getSessionData, error: getSessionError } =
+          await supabaseClient.auth.getSession();
+        if (getSessionError) {
+          throw new Error(getSessionError.message);
         }
 
-        if (!data.session) {
-          await createAnonymousUser();
+        let user = getSessionData.session?.user;
+        if (!user) {
+          user = await createAnonymousUser();
         }
+
+        const { data, error } = await supabaseClient
+          .from('profiles')
+          .update({ player_name: context.partyCode })
+          .eq('user_id', user.id);
 
         // const code = crypto.randomUUID().slice(0, 4);
         // const res = await supabaseClient.from('parties').insert({ code });
         // return res;
-        return 'cool!';
+        return data;
 
         // await supabaseClient.from('profiles').insert({ : 'Foo' });
 
