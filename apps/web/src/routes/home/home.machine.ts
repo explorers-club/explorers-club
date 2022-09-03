@@ -1,5 +1,7 @@
 import { assign } from 'xstate';
 import { createModel } from 'xstate/lib/model';
+import { createAnonymousUser } from '../../lib/auth';
+import { supabaseClient } from '../../lib/supabase';
 
 const homeModel = createModel(
   {
@@ -32,14 +34,24 @@ export const homeMachine = homeModel.createMachine(
             }),
           },
           PRESS_JOIN_PARTY: {
-            target: 'Connecting',
+            target: 'Fetching',
             cond: 'isJoinCodeValid',
+          },
+          PRESS_START_PARTY: {
+            target: 'Creating',
           },
         },
       },
-      Connecting: {
+      Creating: {
         invoke: {
-          src: 'connectToParty',
+          src: 'createParty',
+          onDone: 'Complete',
+          onError: 'Error',
+        },
+      },
+      Fetching: {
+        invoke: {
+          src: 'fetchParty',
           onDone: 'Complete',
           onError: 'Error',
         },
@@ -65,8 +77,44 @@ export const homeMachine = homeModel.createMachine(
       isJoinCodeValid: (context) => context.partyCode.length === 4,
     },
     services: {
-      connectToParty: async (context, event) => {
+      createParty: async (context, event) => {
+        // TODO maybe a better way to check for being auth here
+        // First create a user if you are not signed in...
+        const { data, error } = await supabaseClient.auth.getSession();
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        if (!data.session) {
+          await createAnonymousUser();
+        }
+
+        // const code = crypto.randomUUID().slice(0, 4);
+        // const res = await supabaseClient.from('parties').insert({ code });
+        // return res;
         return 'cool!';
+
+        // await supabaseClient.from('profiles').insert({ : 'Foo' });
+
+        // Generate a random code
+        // for now hope it's not currently in use
+        // In future have backend generate code.
+        // const code = crypto.randomUUID().slice(0, 4);
+        // const { data, error } = await supabaseClient
+        //   .from('parties')
+        //   .insert([{ code: code }]);
+        // console.log(data, error);
+        // if (error) {
+        //   throw new Error(error.message);
+        // }
+        // return data;
+      },
+      fetchparty: async (context, event) => {
+        return await supabaseClient
+          .from('parties')
+          .select('*')
+          .match({ code: context.partyCode })
+          .single();
       },
     },
   }

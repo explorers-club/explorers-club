@@ -1,0 +1,67 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/database/src",
+  "projectType": "library",
+  "targets": {
+    "start": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["supabase start"],
+        "cwd": "libs/database"
+      }
+    },
+    "stop": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["supabase stop"],
+        "cwd": "libs/database"
+      }
+    },
+    "status": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["supabase status"],
+        "cwd": "libs/database"
+      }
+    },
+    "create-migration": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["supabase db diff --use-migra -f"],
+        "cwd": "libs/database"
+      }
+    },
+    "reset": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["supabase db reset"],
+        "cwd": "libs/database"
+      }
+    },
+    "generate-local-types": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "supabase gen types typescript --local > src/DatabaseDefinitions.ts"
+        ],
+        "cwd": "libs/database"
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["libs/database/**/*.ts"]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/libs/database"],
+      "options": {
+        "jestConfig": "libs/database/jest.config.ts",
+        "passWithNoTests": true
+      }
+    }
+  },
+  "tags": []
+}

@@ -10,6 +10,7 @@ export const useActorLogger = (actor: ActorRef<never, any>) => {
       console.log(
         `[${actor.id}]`,
         state.event.type,
+        state.event.data,
         state.value,
         state.context
       );

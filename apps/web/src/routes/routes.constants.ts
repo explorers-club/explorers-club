@@ -1,4 +1,4 @@
-import { Home } from './home';
+import { Home } from './home/home.component';
 import { NewParty } from './new-party';
 import { Party } from './party';
 import { PlayerSetup } from './player-setup';
