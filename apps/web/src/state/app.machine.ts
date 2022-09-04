@@ -35,20 +35,7 @@ const appMachine = appModel.createMachine(
     guards: {},
     services: {
       initialize: async (context) => {
-        console.log('initializing supabase listener...');
-        supabaseClient
-          .channel('db-changes')
-          .on(
-            'postgres_changes',
-            { event: 'INSERT', schema: 'public', table: 'parties' },
-            (payload: unknown) => {
-              console.log('NEW EVENT!', payload);
-              // appService.run({ partyId: 'foo' });
-              // appService.stop({ partyId: 'foo' });
-            }
-          )
-          .subscribe();
-        return 'cool';
+        return 'todo';
       },
     },
   }

@@ -15,12 +15,14 @@ async function bootstrap() {
 
   console.log('Listening for new parties');
   supabaseAdmin
-    .channel('db-changes')
-    .on('postgres_changes', { event: '*', schema: '*' }, (payload) => {
-      console.log('NEW EVENT!', payload);
-      // appService.run({ partyId: 'foo' });
-      // appService.stop({ partyId: 'foo' });
-    })
+    .channel('public:parties')
+    .on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'parties' },
+      (payload: unknown) => {
+        console.log('new party', payload);
+      }
+    )
     .subscribe();
 }
 
