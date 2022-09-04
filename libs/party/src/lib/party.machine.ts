@@ -25,11 +25,26 @@ export const createPartyServerMachine = (context: PartyContext) => {
       initial: 'Initializing',
       context,
       states: {
-        Initializing: {},
+        Initializing: {
+          invoke: {
+            id: 'initialize',
+            src: 'initialize',
+            onDone: 'Initialized',
+            onError: 'Error',
+          },
+        },
+        Initialized: {},
+        Error: {},
       },
+      predictableActionArguments: true,
     },
     {
-      services: {},
+      services: {
+        initialize: async (context, event) => {
+          console.log('todo: setup supabase presence here');
+          return 'todo';
+        },
+      },
     }
   );
 };

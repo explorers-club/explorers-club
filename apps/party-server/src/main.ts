@@ -6,21 +6,31 @@
 import { NestFactory } from '@nestjs/core';
 
 import { AppModule } from './app/app.module';
-import { AppService } from './app/app.service';
+import { Database } from '@explorers-club/database';
 import { supabaseAdmin } from './lib/supabase';
+import { createPartyServerMachine } from '@explorers-club/party';
+import { interpret } from 'xstate';
+
+type PartyRow = Database['public']['Tables']['parties']['Row'];
 
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(AppModule);
   // const appService = app.get(AppService);
 
-  console.log('Listening for new parties');
   supabaseAdmin
     .channel('public:parties')
     .on(
       'postgres_changes',
       { event: 'INSERT', schema: 'public', table: 'parties' },
-      (payload: unknown) => {
-        console.log('new party', payload);
+      (payload: { record: PartyRow }) => {
+        // What to do from here?
+
+        const partyMachine = createPartyServerMachine({
+          id: payload.record.id,
+          playerIds: [],
+        });
+        const partyActor = interpret(partyMachine);
+        partyActor.start();
       }
     )
     .subscribe();
