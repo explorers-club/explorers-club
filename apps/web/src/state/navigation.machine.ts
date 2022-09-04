@@ -1,6 +1,6 @@
 import { NavigateFunction } from 'react-router-dom';
 import { BottomSheetRef } from 'react-spring-bottom-sheet';
-import { ActorRefFrom, ContextFrom, StateFrom } from 'xstate';
+import { ActorRefFrom, ContextFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { homeMachine } from '../routes/home/home.machine';
 import { playerSetupMachine } from '../routes/player-setup/player-setup.machine';

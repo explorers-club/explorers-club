@@ -18,7 +18,7 @@ export interface Database {
         };
         Insert: {
           id?: number;
-          user_id: string;
+          user_id?: string;
           created_at?: string;
           player_name?: string | null;
         };
@@ -27,6 +27,52 @@ export interface Database {
           user_id?: string;
           created_at?: string;
           player_name?: string | null;
+        };
+      };
+      parties: {
+        Row: {
+          id: string;
+          user_id: string;
+          join_code: string | null;
+          last_activity_at: string;
+          created_at: string;
+          is_public: boolean;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string;
+          join_code?: string | null;
+          last_activity_at?: string;
+          created_at?: string;
+          is_public?: boolean;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          join_code?: string | null;
+          last_activity_at?: string;
+          created_at?: string;
+          is_public?: boolean;
+        };
+      };
+      party_players: {
+        Row: {
+          party_id: string;
+          user_id: string;
+          connected: boolean;
+          created_at: string;
+        };
+        Insert: {
+          party_id: string;
+          user_id?: string;
+          connected?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          party_id?: string;
+          user_id?: string;
+          connected?: boolean;
+          created_at?: string;
         };
       };
     };

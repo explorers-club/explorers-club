@@ -1,5 +1,6 @@
 import { ActorRefFrom, ContextFrom, EventFrom, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
+import { supabaseClient } from '../lib/supabase';
 import { AuthActor } from './auth.machine';
 import { NavigationActor } from './navigation.machine';
 import { PartyActor } from './party.machine';
@@ -34,6 +35,19 @@ const appMachine = appModel.createMachine(
     guards: {},
     services: {
       initialize: async (context) => {
+        console.log('initializing supabase listener...');
+        supabaseClient
+          .channel('db-changes')
+          .on(
+            'postgres_changes',
+            { event: 'INSERT', schema: 'public', table: 'parties' },
+            (payload: unknown) => {
+              console.log('NEW EVENT!', payload);
+              // appService.run({ partyId: 'foo' });
+              // appService.stop({ partyId: 'foo' });
+            }
+          )
+          .subscribe();
         return 'cool';
       },
     },

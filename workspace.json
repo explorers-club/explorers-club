@@ -3,6 +3,7 @@
   "version": 2,
   "projects": {
     "database": "libs/database",
+    "party": "libs/party",
     "party-server": "apps/party-server",
     "web": "apps/web"
   }

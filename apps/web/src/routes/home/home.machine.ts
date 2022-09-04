@@ -92,9 +92,14 @@ export const homeMachine = homeModel.createMachine(
         }
 
         const { data, error } = await supabaseClient
-          .from('profiles')
-          .update({ player_name: context.partyCode })
-          .eq('user_id', user.id);
+          .from('parties')
+          .insert({ is_public: true });
+        console.log('INSERT!', data, error);
+
+        // const { data, error } = await supabaseClient
+        //   .from('profiles')
+        //   .update({ player_name: context.partyCode })
+        //   .eq('user_id', user.id);
 
         // const code = crypto.randomUUID().slice(0, 4);
         // const res = await supabaseClient.from('parties').insert({ code });
