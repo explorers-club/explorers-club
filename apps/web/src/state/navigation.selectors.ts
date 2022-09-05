@@ -6,16 +6,8 @@ const selectNavigationActor = createSelector(
   (context) => context.navigationActor
 );
 
-const selectNavigationState = createSelector(selectNavigationActor, (actor) => {
-  const snap = actor.getSnapshot();
-  if (!snap) {
-    // TODO better way to handle this?
-    throw new Error("Couldn't get actor");
-  }
-  return snap;
-});
-
 export const selectNavigationChildren = createSelector(
-  selectNavigationState,
-  (state) => state.children
+  selectNavigationActor,
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  (actor) => actor.getSnapshot()!.children
 );

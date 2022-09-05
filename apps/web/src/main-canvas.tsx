@@ -1,10 +1,13 @@
 import { Canvas } from '@react-three/fiber';
+import { Leva } from 'leva';
 import styled from 'styled-components';
 import LobbyScene from './scenes/lobby/lobby.scene';
 
 export function MainCanvas() {
   return (
     <Container>
+      {/* Configuration: https://github.com/pmndrs/leva/blob/main/docs/configuration.md */}
+      <Leva flat collapsed />
       <Canvas
         gl={{ physicallyCorrectLights: true }}
         camera={{ position: [0, 0, 50] }}

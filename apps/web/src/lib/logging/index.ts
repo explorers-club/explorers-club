@@ -9,10 +9,9 @@ export const useActorLogger = (actor: ActorRef<never, any>) => {
       // TODO only do in dev
       console.log(
         `[${actor.id}]`,
-        state.event.type,
-        state.event.data,
-        state.value,
-        state.context
+        `[type: ${state.event.type}]`,
+        `[next state: ${state.value}]`,
+        { event: state.event, context: state.context, actor }
       );
     });
     return () => {

@@ -1,5 +1,6 @@
 import { ActorRefFrom, ContextFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
+import type { ECSupabaseClient } from '@explorers-club/database';
 
 const partyModel = createModel(
   {
@@ -18,7 +19,10 @@ const partyModel = createModel(
 
 export type PartyContext = ContextFrom<typeof partyModel>;
 
-export const createPartyServerMachine = (context: PartyContext) => {
+export const createPartyServerMachine = (
+  context: PartyContext,
+  supabaseClient: ECSupabaseClient
+) => {
   return partyModel.createMachine(
     {
       id: `PartyServerMachine-${context.id}`,
@@ -40,7 +44,7 @@ export const createPartyServerMachine = (context: PartyContext) => {
     },
     {
       services: {
-        initialize: async (context, event) => {
+        initialize: async (context) => {
           console.log('todo: setup supabase presence here');
           return 'todo';
         },

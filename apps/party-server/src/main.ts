@@ -25,10 +25,13 @@ async function bootstrap() {
       (payload: { record: PartyRow }) => {
         // What to do from here?
 
-        const partyMachine = createPartyServerMachine({
-          id: payload.record.id,
-          playerIds: [],
-        });
+        const partyMachine = createPartyServerMachine(
+          {
+            id: payload.record.id,
+            playerIds: [],
+          },
+          supabaseAdmin
+        );
         const partyActor = interpret(partyMachine);
         partyActor.start();
       }

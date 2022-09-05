@@ -18,7 +18,7 @@ export function MainUI() {
       open={open}
       onDismiss={handleDismiss}
       blocking={false}
-      snapPoints={({ maxHeight }) => [maxHeight / 4, maxHeight * 0.6]}
+      snapPoints={({ minHeight }) => [minHeight + 96]}
       ref={sheetRef}
     >
       <RoutesContainer />

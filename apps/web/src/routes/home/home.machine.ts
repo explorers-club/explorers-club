@@ -1,4 +1,5 @@
-import { assign } from 'xstate';
+import { PartiesTable } from '@explorers-club/database';
+import { ActorRefFrom, assign, DoneInvokeEvent } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { createAnonymousUser } from '../../lib/auth';
 import { supabaseClient } from '../../lib/supabase';
@@ -6,6 +7,7 @@ import { supabaseClient } from '../../lib/supabase';
 const homeModel = createModel(
   {
     partyCode: '' as string,
+    partyRow: undefined as PartiesTable['Row'] | undefined,
   },
   {
     events: {
@@ -33,41 +35,66 @@ export const homeMachine = homeModel.createMachine(
               },
             }),
           },
-          PRESS_JOIN_PARTY: {
-            target: 'Fetching',
-            cond: 'isJoinCodeValid',
-          },
+          PRESS_JOIN_PARTY: [
+            {
+              target: 'Joining',
+              cond: 'isJoinCodeValid',
+            },
+            {
+              target: 'ValidationError',
+            },
+          ],
           PRESS_START_PARTY: {
-            target: 'Creating',
+            target: 'Starting',
           },
         },
       },
-      Creating: {
-        invoke: {
-          src: 'createParty',
-          onDone: 'Complete',
-          onError: 'Error',
-        },
-      },
-      Fetching: {
-        invoke: {
-          src: 'fetchParty',
-          onDone: 'Complete',
-          onError: 'Error',
-        },
-      },
-      Error: {
+      ValidationError: {
         on: {
+          // can refactor to dry up
           INPUT_CHANGE_PARTY_CODE: {
             target: 'WaitingForInput',
             actions: assign({
-              partyCode: (_, event) => event.partyCode,
+              partyCode: (_, event) => {
+                return event.partyCode;
+              },
             }),
+          },
+          PRESS_START_PARTY: {
+            target: 'Starting',
           },
         },
       },
+      Starting: {
+        invoke: {
+          src: 'startParty',
+          onDone: {
+            target: 'Complete',
+            actions: assign({
+              partyRow: (_, event: DoneInvokeEvent<PartiesTable['Row']>) =>
+                event.data,
+            }),
+          },
+          onError: 'NetworkError',
+        },
+      },
+      Joining: {
+        invoke: {
+          src: 'joinParty',
+          onDone: {
+            target: 'Complete',
+            actions: assign({
+              partyRow: (_, event: DoneInvokeEvent<PartiesTable['Row']>) =>
+                event.data,
+            }),
+          },
+          onError: 'NetworkError',
+        },
+      },
+      NetworkError: {},
       Complete: {
         type: 'final' as const,
+        data: (context) => context.partyRow,
       },
     },
     predictableActionArguments: true,
@@ -77,57 +104,49 @@ export const homeMachine = homeModel.createMachine(
       isJoinCodeValid: (context) => context.partyCode.length === 4,
     },
     services: {
-      createParty: async (context, event) => {
-        // TODO maybe a better way to check for being auth here
-        // First create a user if you are not signed in...
-        const { data: getSessionData, error: getSessionError } =
-          await supabaseClient.auth.getSession();
-        if (getSessionError) {
-          throw new Error(getSessionError.message);
-        }
-
-        let user = getSessionData.session?.user;
-        if (!user) {
-          user = await createAnonymousUser();
-        }
+      startParty: async (context, event) => {
+        await createUserIfNotExists();
 
         const { data, error } = await supabaseClient
           .from('parties')
-          .insert({ is_public: true });
-        console.log('INSERT!', data, error);
+          .insert({ is_public: true })
+          .select()
+          .single();
 
-        // const { data, error } = await supabaseClient
-        //   .from('profiles')
-        //   .update({ player_name: context.partyCode })
-        //   .eq('user_id', user.id);
+        if (error) {
+          throw new Error(error.message);
+        }
+        if (!data) {
+          throw new Error('unexpected no data');
+        }
 
-        // const code = crypto.randomUUID().slice(0, 4);
-        // const res = await supabaseClient.from('parties').insert({ code });
-        // return res;
         return data;
-
-        // await supabaseClient.from('profiles').insert({ : 'Foo' });
-
-        // Generate a random code
-        // for now hope it's not currently in use
-        // In future have backend generate code.
-        // const code = crypto.randomUUID().slice(0, 4);
-        // const { data, error } = await supabaseClient
-        //   .from('parties')
-        //   .insert([{ code: code }]);
-        // console.log(data, error);
-        // if (error) {
-        //   throw new Error(error.message);
-        // }
-        // return data;
       },
-      fetchparty: async (context, event) => {
-        return await supabaseClient
+      joinParty: async (context, event) => {
+        console.log(context.partyCode);
+        const party = await supabaseClient
           .from('parties')
           .select('*')
           .match({ code: context.partyCode })
           .single();
+
+        return party;
       },
     },
   }
 );
+
+const createUserIfNotExists = async () => {
+  const { data, error } = await supabaseClient.auth.getSession();
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  let user = data.session?.user;
+  if (!user) {
+    user = await createAnonymousUser();
+  }
+  return user;
+};
+
+export type HomeActor = ActorRefFrom<typeof homeMachine>;

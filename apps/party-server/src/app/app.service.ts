@@ -1,13 +1,17 @@
 import { createPartyServerMachine, PartyActor } from '@explorers-club/party';
 import { Injectable } from '@nestjs/common';
 import { interpret } from 'xstate';
+import { supabaseAdmin } from '../lib/supabase';
 
 @Injectable()
 export class AppService {
   private readonly partyActors: Map<string, PartyActor> = new Map();
 
   run({ partyId }: { partyId: string }): void {
-    const machine = createPartyServerMachine({ id: partyId, playerIds: [] });
+    const machine = createPartyServerMachine(
+      { id: partyId, playerIds: [] },
+      supabaseAdmin
+    );
     const actor = interpret(machine);
 
     console.log('Spawning actor', actor.id);

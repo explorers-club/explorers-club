@@ -2,6 +2,7 @@ create table "public"."parties" (
   id uuid not null default gen_random_uuid(),
   user_id uuid not null default auth.uid(),
   join_code character varying unique,
+  host_actor_id character varying,
   is_public boolean not null default true,
   last_activity_at timestamp with time zone not null default now(),
   created_at timestamp with time zone not null default now()
