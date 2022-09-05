@@ -8,6 +8,7 @@ const homeModel = createModel(
   {
     partyCode: '' as string,
     partyRow: undefined as PartiesTable['Row'] | undefined,
+    inputErrorMessage: '' as string,
   },
   {
     events: {
@@ -29,11 +30,7 @@ export const homeMachine = homeModel.createMachine(
         on: {
           INPUT_CHANGE_PARTY_CODE: {
             target: 'WaitingForInput',
-            actions: assign({
-              partyCode: (_, event) => {
-                return event.partyCode;
-              },
-            }),
+            actions: ['assignPartyCode', 'clearError'],
           },
           PRESS_JOIN_PARTY: [
             {
@@ -41,25 +38,10 @@ export const homeMachine = homeModel.createMachine(
               cond: 'isJoinCodeValid',
             },
             {
-              target: 'ValidationError',
+              target: 'WaitingForInput',
+              actions: 'setValidationError',
             },
           ],
-          PRESS_START_PARTY: {
-            target: 'Starting',
-          },
-        },
-      },
-      ValidationError: {
-        on: {
-          // can refactor to dry up
-          INPUT_CHANGE_PARTY_CODE: {
-            target: 'WaitingForInput',
-            actions: assign({
-              partyCode: (_, event) => {
-                return event.partyCode;
-              },
-            }),
-          },
           PRESS_START_PARTY: {
             target: 'Starting',
           },
@@ -100,6 +82,24 @@ export const homeMachine = homeModel.createMachine(
     predictableActionArguments: true,
   },
   {
+    actions: {
+      clearError: assign({
+        inputErrorMessage: (_) => '',
+      }),
+      setValidationError: assign({
+        inputErrorMessage: (_) => 'code must be 4 characters',
+      }),
+      assignPartyCode: assign({
+        partyCode: (_, event) => {
+          if (event.type !== 'INPUT_CHANGE_PARTY_CODE') {
+            throw new Error(
+              `unhandled event type in action assign party code ${event.type}`
+            );
+          }
+          return event.partyCode;
+        },
+      }),
+    },
     guards: {
       isJoinCodeValid: (context) => context.partyCode.length === 4,
     },

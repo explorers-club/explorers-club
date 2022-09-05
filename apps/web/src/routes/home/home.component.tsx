@@ -8,13 +8,10 @@ import { HOME_EVENTS } from './home.machine';
 export function Home() {
   const homeActor = useHomeActor();
   useActorLogger(homeActor);
-
-  const hasValidationError = useSelector(homeActor, (state) =>
-    state.matches('ValidationError')
+  const errorMessage = useSelector(
+    homeActor,
+    (state) => state.context.inputErrorMessage
   );
-
-  // const validationError = useSelector(appActor, selectHomeValidationError);
-  // console.log
 
   const partyCodeRef = useRef<HTMLInputElement>(null);
 
@@ -44,9 +41,7 @@ export function Home() {
       <h2>Join party</h2>
       <p>Enter 4-digit code</p>
       <form onSubmit={handleJoinParty}>
-        {hasValidationError && (
-          <ErrorMessage>Codes should be 4-digits and alpha-numeric.</ErrorMessage>
-        )}
+        {errorMessage !== '' && <ErrorMessage><strong>{errorMessage}</strong></ErrorMessage>}
         <input
           ref={partyCodeRef}
           type="text"
@@ -61,7 +56,7 @@ export function Home() {
   );
 }
 
-const ErrorMessage = styled.span`
+const ErrorMessage = styled.p`
   color: red;
 `;
 
