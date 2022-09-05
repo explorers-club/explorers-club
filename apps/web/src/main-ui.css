@@ -1,0 +1,18 @@
+/* https://github.com/stipsan/react-spring-bottom-sheet/tree/3cb57d11c9a1e3a23e4e855e9525abc380b527b2#customizing-the-css */
+/* :root {
+  --rsbs-backdrop-bg: rgba(0, 0, 0, 0.6);
+  --rsbs-bg: #31313a;
+  --rsbs-handle-bg: #31313a;
+  --rsbs-max-w: auto;
+  --rsbs-ml: env(safe-area-inset-left);
+  --rsbs-mr: env(safe-area-inset-right);
+  --rsbs-overlay-rounded: 16px;
+} */
+
+@media (min-width: 600px) {
+  :root {
+    --rsbs-max-w: 50%;
+    --rsbs-ml: auto;
+    --rsbs-mr: auto;
+  }
+}
