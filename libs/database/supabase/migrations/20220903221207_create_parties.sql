@@ -30,6 +30,26 @@ for insert
 to authenticated
 with check ((auth.uid() = user_id));
 
+-- Function/trigger to a join code on each new party
+-- These take the first 4 chars of the uuid, so we need to
+-- eventually change this to make sure we don't have collisions
+-- (probably maintain a table of claimable join codes)
+CREATE OR REPLACE FUNCTION public.generate_join_code()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  NEW.join_code := substr(NEW.id::text, 0, 5);
+  return NEW;
+end;
+$function$;
+
+create trigger on_party_created
+  before insert on parties
+  for each row execute procedure public.generate_join_code();
+
 -- Ensure users can only write to whitelisted fields
 REVOKE INSERT ON parties FROM public, anon, authenticated;
 GRANT INSERT (is_public) ON parties TO authenticated;

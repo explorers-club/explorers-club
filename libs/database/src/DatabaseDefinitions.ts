@@ -34,6 +34,7 @@ export interface Database {
           id: string;
           user_id: string;
           join_code: string | null;
+          host_actor_id: string | null;
           last_activity_at: string;
           created_at: string;
           is_public: boolean;
@@ -42,6 +43,7 @@ export interface Database {
           id?: string;
           user_id?: string;
           join_code?: string | null;
+          host_actor_id?: string | null;
           last_activity_at?: string;
           created_at?: string;
           is_public?: boolean;
@@ -50,6 +52,7 @@ export interface Database {
           id?: string;
           user_id?: string;
           join_code?: string | null;
+          host_actor_id?: string | null;
           last_activity_at?: string;
           created_at?: string;
           is_public?: boolean;

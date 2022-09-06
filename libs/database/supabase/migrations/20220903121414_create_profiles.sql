@@ -38,8 +38,7 @@ begin
   values (new.id::uuid);
   return new;
 end;
-$function$
-;
+$function$;
 
 
 create trigger on_auth_user_created

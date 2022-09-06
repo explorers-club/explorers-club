@@ -1,14 +1,18 @@
 // Inspired by https://stately.ai/blog/how-to-manage-global-state-with-xstate-and-react
+import {
+  ClientPartyActor,
+  createClientPartyMachine,
+} from '@explorers-club/party';
 import { createContext, ReactNode, useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { BottomSheetRef } from 'react-spring-bottom-sheet';
 import { interpret } from 'xstate';
 import { useActorLogger } from '../lib/logging';
+import { supabaseClient } from '../lib/supabase';
 import { useCurrentRoute } from '../routes/route.hooks';
 import { AppActor, createAppMachine } from './app.machine';
 import { createAuthMachine, AuthActor } from './auth.machine';
 import { createNavigationMachine, NavigationActor } from './navigation.machine';
-import { createPartyMachine, PartyActor } from './party.machine';
 
 interface GlobalStateContextType {
   appActor: AppActor;
@@ -19,7 +23,7 @@ declare global {
   interface Window {
     $APP: AppActor;
     $AUTH: AuthActor;
-    $PARTY: PartyActor;
+    $PARTY: ClientPartyActor;
     $NAVIGATION: NavigationActor;
   }
 }
@@ -29,13 +33,11 @@ export const GlobalStateContext = createContext({} as GlobalStateContextType);
 export const GlobalStateProvider = ({ children }: { children: ReactNode }) => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const route = useCurrentRoute();
-  const { partyCode } = useParams();
   const navigate = useNavigate();
 
   // Initialize the actor machines
   const [actorRefs] = useState(() => {
-    const partyMachine = createPartyMachine({ code: partyCode });
-
+    const partyMachine = createClientPartyMachine(supabaseClient);
     const partyActor = interpret(partyMachine);
 
     const user = null; // TODO initialize this

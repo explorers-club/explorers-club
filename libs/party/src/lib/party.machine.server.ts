@@ -1,8 +1,8 @@
+import type { ECSupabaseClient } from '@explorers-club/database';
 import { ActorRefFrom, ContextFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
-import type { ECSupabaseClient } from '@explorers-club/database';
 
-const partyModel = createModel(
+const serverPartyModel = createModel(
   {
     id: '' as string,
     playerIds: [] as string[],
@@ -17,15 +17,15 @@ const partyModel = createModel(
   }
 );
 
-export type PartyContext = ContextFrom<typeof partyModel>;
+export type ServerPartyContext = ContextFrom<typeof serverPartyModel>;
 
 export const createPartyServerMachine = (
-  context: PartyContext,
+  context: ServerPartyContext,
   supabaseClient: ECSupabaseClient
 ) => {
-  return partyModel.createMachine(
+  return serverPartyModel.createMachine(
     {
-      id: `PartyServerMachine-${context.id}`,
+      id: `PartyMachineServer-${context.id}`,
       initial: 'Initializing',
       context,
       states: {
@@ -53,18 +53,5 @@ export const createPartyServerMachine = (
   );
 };
 
-// export const createPartyClientMachine = (id: string) => {
-//   return partyModel.createMachine({
-//     id: `PartyClientMachine-${id}`,
-//     initial: 'Initializing',
-//     context: {
-//       id,
-//     },
-//     states: {
-//       Initializing: {},
-//     },
-//   });
-// };
-
-type PartyMachine = ReturnType<typeof createPartyServerMachine>;
-export type PartyActor = ActorRefFrom<PartyMachine>;
+type ServerPartyMachine = ReturnType<typeof createPartyServerMachine>;
+export type ServerPartyActor = ActorRefFrom<ServerPartyMachine>;

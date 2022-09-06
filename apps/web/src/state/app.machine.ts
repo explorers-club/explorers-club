@@ -1,12 +1,11 @@
+import { ClientPartyActor } from '@explorers-club/party';
 import { ActorRefFrom, ContextFrom, EventFrom, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
-import { supabaseClient } from '../lib/supabase';
 import { AuthActor } from './auth.machine';
 import { NavigationActor } from './navigation.machine';
-import { PartyActor } from './party.machine';
 
 const appModel = createModel({
-  partyActor: {} as PartyActor,
+  partyActor: {} as ClientPartyActor,
   authActor: {} as AuthActor,
   navigationActor: {} as NavigationActor,
 });
