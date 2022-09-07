@@ -29,7 +29,13 @@ const connectToParty = async (
   return 'todo!';
 };
 
-export const createClientPartyMachine = (supabaseClient: ECSupabaseClient) => {
+interface CreateClientPartyMachineProps {
+  supabaseClient: ECSupabaseClient;
+}
+
+export const createClientPartyMachine = ({
+  supabaseClient,
+}: CreateClientPartyMachineProps) => {
   return clientPartyModel.createMachine({
     id: 'ClientPartyMachine',
     initial: 'Uninitialized',

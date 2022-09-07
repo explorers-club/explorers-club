@@ -1,7 +1,7 @@
 // Inspired by https://stately.ai/blog/how-to-manage-global-state-with-xstate-and-react
 import {
   ClientPartyActor,
-  createClientPartyMachine,
+  createClientPartyMachine
 } from '@explorers-club/party';
 import { createContext, ReactNode, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -11,7 +11,7 @@ import { useActorLogger } from '../lib/logging';
 import { supabaseClient } from '../lib/supabase';
 import { useCurrentRoute } from '../routes/route.hooks';
 import { AppActor, createAppMachine } from './app.machine';
-import { createAuthMachine, AuthActor } from './auth.machine';
+import { AuthActor, createAuthMachine } from './auth.machine';
 import { createNavigationMachine, NavigationActor } from './navigation.machine';
 
 interface GlobalStateContextType {
@@ -37,7 +37,7 @@ export const GlobalStateProvider = ({ children }: { children: ReactNode }) => {
 
   // Initialize the actor machines
   const [actorRefs] = useState(() => {
-    const partyMachine = createClientPartyMachine(supabaseClient);
+    const partyMachine = createClientPartyMachine({ supabaseClient });
     const partyActor = interpret(partyMachine);
 
     const user = null; // TODO initialize this
@@ -45,11 +45,8 @@ export const GlobalStateProvider = ({ children }: { children: ReactNode }) => {
     const authActor = interpret(authMachine);
 
     const navigationMachine = createNavigationMachine({
-      partyActor,
-      authActor,
+      initial: route.state,
       navigate,
-      currentRoute: route,
-      sheetRef,
     });
     const navigationActor = interpret(navigationMachine);
 

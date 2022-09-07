@@ -3,7 +3,7 @@ import { FormEvent, useCallback, useRef } from 'react';
 import styled from 'styled-components';
 import { useActorLogger } from '../../lib/logging';
 import { useHomeActor } from './home.hooks';
-import { HOME_EVENTS } from './home.machine';
+import { HOME_ROUTE_EVENTS } from './home.machine';
 
 export function Home() {
   const homeActor = useHomeActor();
@@ -18,7 +18,9 @@ export function Home() {
   const handleChangePartyCode = useCallback(
     (e: FormEvent<HTMLInputElement>) => {
       homeActor.send(
-        HOME_EVENTS.INPUT_CHANGE_PARTY_CODE(partyCodeRef.current?.value || '')
+        HOME_ROUTE_EVENTS.INPUT_CHANGE_PARTY_CODE(
+          partyCodeRef.current?.value || ''
+        )
       );
     },
     [partyCodeRef, homeActor]
@@ -26,14 +28,14 @@ export function Home() {
 
   const handleJoinParty = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
-      homeActor.send(HOME_EVENTS.PRESS_JOIN_PARTY());
+      homeActor.send(HOME_ROUTE_EVENTS.PRESS_JOIN_PARTY());
       e.preventDefault();
     },
     [homeActor]
   );
 
   const handleStartParty = useCallback(() => {
-    homeActor.send(HOME_EVENTS.PRESS_START_PARTY());
+    homeActor.send(HOME_ROUTE_EVENTS.PRESS_START_PARTY());
   }, [homeActor]);
 
   return (
@@ -41,7 +43,11 @@ export function Home() {
       <h2>Join party</h2>
       <p>Enter 4-digit code</p>
       <form onSubmit={handleJoinParty}>
-        {errorMessage !== '' && <ErrorMessage><strong>{errorMessage}</strong></ErrorMessage>}
+        {errorMessage !== '' && (
+          <ErrorMessage>
+            <strong>{errorMessage}</strong>
+          </ErrorMessage>
+        )}
         <input
           ref={partyCodeRef}
           type="text"
