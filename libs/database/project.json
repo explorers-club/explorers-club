@@ -41,7 +41,14 @@
     "link": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": ["supabase link --project-ref azvuadhnieulelinfveb"],
+        "commands": ["supabase link"],
+        "cwd": "libs/database"
+      }
+    },
+    "push": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["supabase push"],
         "cwd": "libs/database"
       }
     },
