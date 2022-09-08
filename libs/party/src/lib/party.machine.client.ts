@@ -21,17 +21,16 @@ export const CLIENT_PARTY_EVENTS = clientPartyModel.events;
 
 export type ClientPartyContext = ContextFrom<typeof clientPartyModel>;
 
-function getRandomUser() {
-  const users = ['Alice', 'Bob', 'Mallory', 'Inian'];
-  return users[Math.floor(Math.random() * users.length)];
-}
-
 const connectToParty = async (
   joinCode: string,
   supabaseClient: ECSupabaseClient
 ) => {
+  const user = (await supabaseClient.auth.getUser()).data.user;
+  if (!user) {
+    throw new Error('trying to connect to party without user');
+  }
+
   const channel = supabaseClient.channel(`party-${joinCode}`);
-  const user = getRandomUser();
   channel
     .on('presence', { event: 'sync' }, () => {
       console.log(channel.presenceState());
@@ -45,7 +44,7 @@ const connectToParty = async (
     .subscribe(async (status: string) => {
       console.log({ status });
       if (status === 'SUBSCRIBED') {
-        await channel.track({ user });
+        await channel.track({ id: user.id });
       }
     });
 
