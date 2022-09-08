@@ -31,6 +31,20 @@
         "cwd": "libs/database"
       }
     },
+    "remote-commit": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["supabase db remote commit"],
+        "cwd": "libs/database"
+      }
+    },
+    "link": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["supabase link --project-ref azvuadhnieulelinfveb"],
+        "cwd": "libs/database"
+      }
+    },
     "reset": {
       "executor": "nx:run-commands",
       "options": {
