@@ -3,7 +3,7 @@
 
 export const environment = {
   production: false,
-  supabaseUrl: 'http://localhost:54321',
+  supabaseUrl: 'https://hkoplejdtogpagchomik.supabase.co',
   supabaseAnonKey:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24ifQ.625_WdcF3KHqz5amU0x2X5WWHP-OEs_4qj0ssLNHzTs',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhrb3BsZWpkdG9ncGFnY2hvbWlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NjI2MzcyNzQsImV4cCI6MTk3ODIxMzI3NH0.HvXjA2S-5fiH6b6ZkBBEvJt9Di7-b2m1cQ4JwLn1Moo',
 };
