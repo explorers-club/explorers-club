@@ -16,7 +16,7 @@ jobs:
           version: 1.0.0
 
       - name: Start Supabase local development setup
-        run: nx run database:start
+        run: npx nx run database:start
 
       # - name: Verify generated types are up-to-date
       #   run: |

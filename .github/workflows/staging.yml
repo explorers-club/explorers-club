@@ -23,5 +23,5 @@ jobs:
           version: 1.0.0
 
       - run: |
-          nx run database:link --project-ref $PRODUCTION_PROJECT_ID --password $PRODUCTION_DB_PASSWORD
-          nx run database:push
+          npx nx run database:link --project-ref $PRODUCTION_PROJECT_ID --password $PRODUCTION_DB_PASSWORD
+          npx nx run database:push
