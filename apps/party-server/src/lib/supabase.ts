@@ -4,5 +4,5 @@ import { environment } from '../environments/environment';
 
 export const supabaseAdmin = createClient<Database>(
   environment.supabaseURL,
-  environment.supabseServiceKey
+  environment.supabaseServiceKey
 );

@@ -12,74 +12,79 @@ export interface Database {
       profiles: {
         Row: {
           id: number;
+          player_name: string | null;
           user_id: string;
           created_at: string;
-          player_name: string | null;
         };
         Insert: {
           id?: number;
+          player_name?: string | null;
           user_id?: string;
           created_at?: string;
-          player_name?: string | null;
         };
         Update: {
           id?: number;
+          player_name?: string | null;
           user_id?: string;
           created_at?: string;
-          player_name?: string | null;
         };
       };
       parties: {
         Row: {
+          join_code: string | null;
           id: string;
           user_id: string;
-          join_code: string | null;
-          host_actor_id: string | null;
+          is_public: boolean;
           last_activity_at: string;
           created_at: string;
-          is_public: boolean;
+          actor_host_id: string | null;
         };
         Insert: {
+          join_code?: string | null;
           id?: string;
           user_id?: string;
-          join_code?: string | null;
-          host_actor_id?: string | null;
+          is_public?: boolean;
           last_activity_at?: string;
           created_at?: string;
-          is_public?: boolean;
+          actor_host_id?: string | null;
         };
         Update: {
+          join_code?: string | null;
           id?: string;
           user_id?: string;
-          join_code?: string | null;
-          host_actor_id?: string | null;
+          is_public?: boolean;
           last_activity_at?: string;
           created_at?: string;
-          is_public?: boolean;
+          actor_host_id?: string | null;
         };
       };
       party_players: {
         Row: {
           party_id: string;
           user_id: string;
-          connected: boolean;
-          created_at: string;
+          join_token: string;
         };
         Insert: {
           party_id: string;
-          user_id?: string;
-          connected?: boolean;
-          created_at?: string;
+          user_id: string;
+          join_token?: string;
         };
         Update: {
           party_id?: string;
           user_id?: string;
-          connected?: boolean;
-          created_at?: string;
+          join_token?: string;
         };
       };
     };
-    Functions: {};
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      [_ in never]: never;
+    };
+    Enums: {
+      [_ in never]: never;
+    };
   };
 }
 

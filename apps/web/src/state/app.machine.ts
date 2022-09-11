@@ -1,11 +1,11 @@
-import { ClientPartyActor } from '@explorers-club/party';
 import { ActorRefFrom, ContextFrom, EventFrom, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { AuthActor } from './auth.machine';
 import { NavigationActor } from './navigation.machine';
+import { PartyConnectionActor } from './party-connection.machine';
 
 const appModel = createModel({
-  partyActor: {} as ClientPartyActor,
+  partyConnectionActor: {} as PartyConnectionActor,
   authActor: {} as AuthActor,
   navigationActor: {} as NavigationActor,
 });

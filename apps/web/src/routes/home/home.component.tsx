@@ -3,11 +3,12 @@ import { FormEvent, useCallback, useRef } from 'react';
 import styled from 'styled-components';
 import { useActorLogger } from '../../lib/logging';
 import { useHomeActor } from './home.hooks';
-import { HOME_ROUTE_EVENTS } from './home.machine';
+import { HOME_EVENTS } from './home.machine';
 
 export function Home() {
   const homeActor = useHomeActor();
   useActorLogger(homeActor);
+  console.log({ homeActor });
   const errorMessage = useSelector(
     homeActor,
     (state) => state.context.inputErrorMessage
@@ -18,9 +19,7 @@ export function Home() {
   const handleChangePartyCode = useCallback(
     (e: FormEvent<HTMLInputElement>) => {
       homeActor.send(
-        HOME_ROUTE_EVENTS.INPUT_CHANGE_PARTY_CODE(
-          partyCodeRef.current?.value || ''
-        )
+        HOME_EVENTS.INPUT_CHANGE_PARTY_CODE(partyCodeRef.current?.value || '')
       );
     },
     [partyCodeRef, homeActor]
@@ -28,14 +27,14 @@ export function Home() {
 
   const handleJoinParty = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
-      homeActor.send(HOME_ROUTE_EVENTS.PRESS_JOIN_PARTY());
+      homeActor.send(HOME_EVENTS.PRESS_JOIN_PARTY());
       e.preventDefault();
     },
     [homeActor]
   );
 
   const handleStartParty = useCallback(() => {
-    homeActor.send(HOME_ROUTE_EVENTS.PRESS_START_PARTY());
+    homeActor.send(HOME_EVENTS.PRESS_START_PARTY());
   }, [homeActor]);
 
   return (

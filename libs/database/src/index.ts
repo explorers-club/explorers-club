@@ -9,6 +9,3 @@ export type ProfilesRow = PartiesTable['Row'];
 
 export type PartiesTable = Database['public']['Tables']['parties'];
 export type PartiesRow = PartiesTable['Row'];
-
-export type PartyPlayersTable = Database['public']['Tables']['party_players'];
-export type PartiePlayerwsRow = PartiesTable['Row'];

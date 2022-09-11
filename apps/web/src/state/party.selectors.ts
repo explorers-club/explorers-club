@@ -1,7 +1,7 @@
 import { createSelector } from 'reselect';
 import { selectAppContext } from './app.selectors';
 
-export const selectPartyActor = createSelector(
+export const selectPartyConnectionActor = createSelector(
   selectAppContext,
-  (context) => context.partyActor
+  (context) => context.partyConnectionActor
 );

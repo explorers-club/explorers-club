@@ -3,7 +3,7 @@ import styled from 'styled-components';
 export function PartyComponent() {
   return (
     <Container>
-      <p>Party</p>
+      <p>Player List</p>
 
       <form>
         <label htmlFor="name">Player name:</label>

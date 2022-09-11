@@ -18,7 +18,7 @@ export type ProfileEvent = EventFrom<typeof profileModel>;
 const profileMachine = profileModel.createMachine(
   {
     id: 'profileMachine',
-    initial: 'Initializing',
+    initial: 'Unitialized',
     context: profileModel.initialContext,
     states: {
       Initializing: {
@@ -27,7 +27,7 @@ const profileMachine = profileModel.createMachine(
           onDone: 'Idle',
         },
       },
-      Idle: {},
+      Loading: {}
     },
     predictableActionArguments: true,
   },

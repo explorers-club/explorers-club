@@ -1,18 +1,17 @@
 // Inspired by https://stately.ai/blog/how-to-manage-global-state-with-xstate-and-react
-import {
-  ClientPartyActor,
-  createClientPartyMachine
-} from '@explorers-club/party';
 import { createContext, ReactNode, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BottomSheetRef } from 'react-spring-bottom-sheet';
 import { interpret } from 'xstate';
 import { useActorLogger } from '../lib/logging';
-import { supabaseClient } from '../lib/supabase';
 import { useCurrentRoute } from '../routes/route.hooks';
 import { AppActor, createAppMachine } from './app.machine';
 import { AuthActor, createAuthMachine } from './auth.machine';
 import { createNavigationMachine, NavigationActor } from './navigation.machine';
+import {
+  createPartyConnectionMachine,
+  PartyConnectionActor,
+} from './party-connection.machine';
 
 interface GlobalStateContextType {
   appActor: AppActor;
@@ -23,7 +22,7 @@ declare global {
   interface Window {
     $APP: AppActor;
     $AUTH: AuthActor;
-    $PARTY: ClientPartyActor;
+    $PARTY_CONNECTION: PartyConnectionActor;
     $NAVIGATION: NavigationActor;
   }
 }
@@ -37,8 +36,8 @@ export const GlobalStateProvider = ({ children }: { children: ReactNode }) => {
 
   // Initialize the actor machines
   const [actorRefs] = useState(() => {
-    const partyMachine = createClientPartyMachine({ supabaseClient });
-    const partyActor = interpret(partyMachine);
+    const partyConnectionMachine = createPartyConnectionMachine();
+    const partyConnectionActor = interpret(partyConnectionMachine);
 
     const user = null; // TODO initialize this
     const authMachine = createAuthMachine({ user });
@@ -51,7 +50,7 @@ export const GlobalStateProvider = ({ children }: { children: ReactNode }) => {
     const navigationActor = interpret(navigationMachine);
 
     const appMachine = createAppMachine({
-      partyActor,
+      partyConnectionActor,
       authActor,
       navigationActor,
     });
@@ -61,31 +60,32 @@ export const GlobalStateProvider = ({ children }: { children: ReactNode }) => {
     if (window) {
       window.$APP = appActor;
       window.$AUTH = authActor;
-      window.$PARTY = partyActor;
+      window.$PARTY_CONNECTION = partyConnectionActor;
       window.$NAVIGATION = navigationActor;
     }
 
-    return { appActor, authActor, partyActor, navigationActor };
+    return { appActor, authActor, partyConnectionActor, navigationActor };
   });
-  const { appActor, authActor, partyActor, navigationActor } = actorRefs;
+  const { appActor, authActor, partyConnectionActor, navigationActor } =
+    actorRefs;
 
   useEffect(() => {
     appActor.start();
     authActor.start();
-    partyActor.start();
+    partyConnectionActor.start();
     navigationActor.start();
 
     return () => {
       appActor.stop();
       authActor.stop();
-      partyActor.stop();
+      partyConnectionActor.stop();
       navigationActor.stop();
     };
-  }, [appActor, authActor, partyActor, navigationActor]);
+  }, [appActor, authActor, partyConnectionActor, navigationActor]);
 
   useActorLogger(appActor);
   useActorLogger(authActor);
-  useActorLogger(partyActor);
+  useActorLogger(partyConnectionActor);
   useActorLogger(navigationActor);
 
   return (

@@ -2,7 +2,7 @@ import { PartiesRow } from '@explorers-club/database';
 import { NavigateFunction } from 'react-router-dom';
 import { ActorRefFrom, ContextFrom, DoneInvokeEvent } from 'xstate';
 import { createModel } from 'xstate/lib/model';
-import { homeRouteMachine } from '../routes/home/home.machine';
+import { homeMachine } from '../routes/home/home.machine';
 
 const navigationModel = createModel({}, {});
 export type NavigationContext = ContextFrom<typeof navigationModel>;
@@ -12,9 +12,9 @@ interface CreateNavigationMachineProps {
   navigate: NavigateFunction;
 }
 
-const partyRouteModel = createModel({});
+const partyModel = createModel({});
 
-const partyRouteMachine = partyRouteModel.createMachine({
+const partyMachine = partyModel.createMachine({
   initial: 'WaitingForInput',
   states: {
     WaitingForInput: {},
@@ -31,8 +31,8 @@ export const createNavigationMachine = ({
     states: {
       Home: {
         invoke: {
-          id: 'homeRouteMachine',
-          src: homeRouteMachine,
+          id: 'homeMachine',
+          src: homeMachine,
           onDone: {
             target: 'Party',
             actions: (context, event: DoneInvokeEvent<PartiesRow>) => {
@@ -47,8 +47,8 @@ export const createNavigationMachine = ({
       },
       Party: {
         invoke: {
-          id: 'partyRouteMachine',
-          src: partyRouteMachine,
+          id: 'partyMachine',
+          src: partyMachine,
         },
       },
     },

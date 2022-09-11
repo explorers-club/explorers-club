@@ -4,7 +4,7 @@ import { createModel } from 'xstate/lib/model';
 import { createAnonymousUser } from '../../lib/auth';
 import { supabaseClient } from '../../lib/supabase';
 
-const homeRouteModel = createModel(
+const homeModel = createModel(
   {
     partyCode: '' as string,
     partyRow: undefined as PartiesTable['Row'] | undefined,
@@ -19,9 +19,9 @@ const homeRouteModel = createModel(
   }
 );
 
-export const HOME_ROUTE_EVENTS = homeRouteModel.events;
+export const HOME_EVENTS = homeModel.events;
 
-export const homeRouteMachine = homeRouteModel.createMachine(
+export const homeMachine = homeModel.createMachine(
   {
     id: 'homeMachine',
     initial: 'WaitingForInput',
@@ -149,4 +149,4 @@ const createUserIfNotExists = async () => {
   return user;
 };
 
-export type HomeActor = ActorRefFrom<typeof homeRouteMachine>;
+export type HomeActor = ActorRefFrom<typeof homeMachine>;
