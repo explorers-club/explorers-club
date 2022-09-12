@@ -124,11 +124,16 @@ export const partyMachine = createMachine({
   },
 });
 
-type PartyState = StateFrom<typeof partyMachine>;
+export type PartyActor = ActorRefFrom<typeof partyMachine>;
+export type PartyState = StateFrom<typeof partyMachine>;
 
-export const CURRENT_STATE_EVENT = (props: { state: PartyState }) => ({
-  type: 'broadcast',
-  event: 'currentState',
-  payload: props.state,
-});
-export type CurrentStateEvent = ReturnType<typeof CURRENT_STATE_EVENT>;
+// export const CURRENT_STATE_EVENT = (props: { state: PartyState }) => ({
+//   type: 'broadcast',
+//   event: 'currentState',
+//   payload: props.state,
+// });
+// export type CurrentStateEvent = ReturnType<typeof CURRENT_STATE_EVENT>;
+
+// export const ACTOR_START_EVENT = { event: ChannelEventType.ACTOR_START };
+// export const ACTOR_STATE_EVENT = { event: ChannelEventType.ACTOR_STATE };
+// export const ACTOR_SEND_EVENT = { event: ChannelEventType.ACTOR_SEND };

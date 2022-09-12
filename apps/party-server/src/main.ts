@@ -1,9 +1,11 @@
-import { Database } from '@explorers-club/database';
 import {
-  CURRENT_STATE_EVENT,
-  PartyEvents,
-  partyMachine
-} from '@explorers-club/party';
+  ActorSendEvent,
+  ActorEventType,
+  ActorEvents,
+  ActorInitializeEvent,
+} from '@explorers-club/actor';
+import { Database } from '@explorers-club/database';
+import { PartyEvents, partyMachine } from '@explorers-club/party';
 import { PresenceState } from '@supabase/realtime-js/dist/module/RealtimePresence';
 import * as crypto from 'crypto';
 import { interpret } from 'xstate';
@@ -37,10 +39,12 @@ async function bootstrap() {
             }
             const currentState = partyActor.getSnapshot();
 
-            // Broadcast current state anytime someone joins
+            // Broadcast current state whenever someone joins
             await channel.send(
-              CURRENT_STATE_EVENT({
-                state: JSON.parse(JSON.stringify(currentState)),
+              ActorEvents.INITIALIZE({
+                actorId: hostId,
+                actorType: 'PARTY_ACTOR',
+                state: currentState,
               })
             );
           })
@@ -53,13 +57,20 @@ async function bootstrap() {
               partyActor.send(PartyEvents.PLAYER_DISCONNECTED(toRemove[i]));
             }
           })
-          .on('broadcast', { event: 'actorEvent' }, (payload) => {
-            // TODO
-            // The idea here is that we find the actor and
-            // then send the event payload to it here...
-            console.log(payload);
-          })
-          // .on('broadcast', { event: 'connect' }, (payload: PresenceState) => {})
+          .on(
+            'broadcast',
+            { event: ActorEventType.INITIALIZE },
+            (payload: ActorInitializeEvent) => {
+              console.log('typed init', payload);
+            }
+          )
+          .on(
+            'broadcast',
+            { event: ActorEventType.SEND },
+            (payload: ActorSendEvent) => {
+              console.log('typed send!', payload);
+            }
+          )
           .subscribe(async (status) => {
             if (status !== 'SUBSCRIBED') {
               console.warn(`Channel status ${status} - ${joinCode}`);

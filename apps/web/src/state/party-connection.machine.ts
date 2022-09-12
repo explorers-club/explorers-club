@@ -1,12 +1,18 @@
-// import { createPartyPlayerMachine } from '@explorers-club/party';
-import { CurrentStateEvent } from '@explorers-club/party';
-import { ActorRefFrom, ContextFrom } from 'xstate';
+import {
+  ActorEventType,
+  ActorInitializeEvent,
+  ActorMachineMap,
+  ActorSendEvent,
+} from '@explorers-club/actor';
+import { RealtimeChannel } from '@supabase/supabase-js';
+import { ActorRefFrom, AnyActorRef, ContextFrom, interpret } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { supabaseClient } from '../lib/supabase';
 
 const partyConnectionModel = createModel(
   {
     joinCode: null as string | null,
+    channel: null as RealtimeChannel | null,
   },
   {
     events: {
@@ -22,128 +28,133 @@ export const PARTY_CONNECTION_EVENTS = partyConnectionModel.events;
 export type PartyConnectionContext = ContextFrom<typeof partyConnectionModel>;
 
 export const createPartyConnectionMachine = () => {
-  return partyConnectionModel.createMachine({
-    id: 'ClientPartyMachine',
-    initial: 'Uninitialized',
-    context: partyConnectionModel.initialContext,
-    states: {
-      Uninitialized: {
-        on: {
-          CONNECT: {
-            target: 'Connecting',
-            actions: partyConnectionModel.assign({
-              joinCode: (context, event) => event.joinCode,
-            }),
+  return partyConnectionModel.createMachine(
+    {
+      id: 'ClientPartyMachine',
+      initial: 'Uninitialized',
+      context: partyConnectionModel.initialContext,
+      states: {
+        Uninitialized: {
+          on: {
+            CONNECT: {
+              target: 'Connecting',
+              actions: partyConnectionModel.assign({
+                joinCode: (context, event) => event.joinCode,
+                channel: (context, event) =>
+                  supabaseClient.channel(`party-${event.joinCode}`, {
+                    config: {
+                      broadcast: { ack: true },
+                    },
+                  }),
+              }),
+            },
           },
         },
-      },
-      Connecting: {
-        invoke: {
-          id: 'connectToParty',
-          src: ({ joinCode }) => {
-            if (!joinCode) {
-              throw new Error('tried to connect to party without join code');
-            }
-            return connectToParty(joinCode);
+        Connecting: {
+          invoke: {
+            src: 'connectToParty',
+            onDone: 'Connected',
+            onError: 'Error',
           },
-          onDone: 'Connected',
-          onError: 'Error',
         },
-      },
-      Connected: {
-        on: {
-          DISCONNECT: 'Disconnected',
+        Connected: {
+          on: {
+            DISCONNECT: 'Disconnected',
+          },
         },
-      },
-      Error: {
-        on: {
-          RETRY: 'Connecting',
+        Error: {
+          on: {
+            RETRY: 'Connecting',
+          },
         },
-      },
-      Disconnected: {
-        on: {
-          RECONNECT: 'Connecting',
+        Disconnected: {
+          on: {
+            RECONNECT: 'Connecting',
+          },
         },
       },
     },
-  });
+    {
+      services: {
+        connectToParty: async (context) => {
+          const user = (await supabaseClient.auth.getUser()).data.user;
+          if (!user) {
+            throw new Error('trying to connect to party without user');
+          }
+
+          const channel = context.channel;
+          if (!channel) {
+            throw new Error('tried to connect to party without channel set');
+          }
+
+          await initializeChannel({
+            channel,
+            userId: user.id,
+          });
+
+          return;
+        },
+      },
+    }
+  );
 };
 
-/**
- * Main function for setting up the supabase <-> xstate/actor communication.
- *
- * Works as follows
- * 1. Connects to the supabase channel party-${joinCode}.
- * 2. Grabs the initial state of all actors in the channel
- *    and runs xstate `interpret` to "run" them.
- * 3. Sets the initial state of the connecting player actor in the channel.
- * 4. Sets up handlers to process new incoming events on actors as they come in
- *
- * When all this is done, we return from the function.
- *
- * @param joinCode
- * @returns
- */
-const connectToParty = async (joinCode: string) => {
-  // TODO NEXT:
-  // 1.Use `spawn` here somehow to create instances of the new player
-  // 2.Use an observable in xstate for triggering events
-  //  Try to do this in modeling as much as possible versus writing code sequences
+interface InitializeChannelProps {
+  channel: RealtimeChannel;
+  userId: string;
+}
 
-  const user = (await supabaseClient.auth.getUser()).data.user;
-  if (!user) {
-    throw new Error('trying to connect to party without user');
-  }
+const initializeChannel = async ({
+  channel,
+  userId,
+}: InitializeChannelProps) => {
+  const actorMap = new Map<string, AnyActorRef>();
 
-  // createPartyPlayerMachine({ userId: user.id });
-
-  const channel = supabaseClient.channel(`party-${joinCode}`, {
-    config: {
-      broadcast: { ack: true },
-    },
-  });
-
-  return new Promise((resolve, reject) =>
+  await new Promise((resolve, reject) => {
     channel
-      // .on('presence', { event: 'sync' }, () => {
-      //   // const connectionList = Object.values(channel.presenceState());
-      //   // const actors = connectionList.map((presence) => presence[0]);
-      //   // console.log('sync', { actors });
-      // })
-      // .on('presence', { event: 'join' }, (payload: PresenceState) => {
-      //   // const idsToAdd = payload['newPresences'].map((p) => ({
-      //   //   actorId: p['actorId'],
-      //   //   actorType: p['actorType'] as string,
-      //   // }));
-      //   // console.log({ idsToAdd });
-      // })
-      // .on('presence', { event: 'leave' }, (payload: PresenceState) => {
-      //   // const idsToRemove = payload['leftPresences'].map((p) => ({
-      //   //   actorId: p['actorId'],
-      //   //   actorType: p['actorType'] as string,
-      //   // }));
-      //   // console.log({ idsToRemove });
-      // })
       .on(
         'broadcast',
-        { event: 'currentState' },
-        ({ payload }: CurrentStateEvent) => {
-          console.log('broadcast', payload);
+        { event: ActorEventType.INITIALIZE },
+        ({ payload }: ActorInitializeEvent) => {
+          // If we don't already have this actor, initialize it...
+          const { actorId, actorType, state } = payload;
+
+          if (!actorMap.has(actorId)) {
+            const machine = ActorMachineMap[actorType];
+            const actor = interpret(machine).start(state);
+            console.log("actor snap", actor.getSnapshot());
+
+            actorMap.set(actorId, actor);
+          } else {
+            // console.warn(`actor ${actorId} already initialized`);
+          }
+        }
+      )
+      .on(
+        'broadcast',
+        { event: ActorEventType.SEND },
+        ({ payload }: ActorSendEvent) => {
+          const { actorId, event } = payload;
+          const actor = actorMap.get(actorId);
+          if (actor) {
+            actor.send(event);
+          } else {
+            console.warn(`Could not find actor ${actorId} for event: `, event);
+          }
         }
       )
       .subscribe(async (status: string) => {
         if (status === 'SUBSCRIBED') {
           await channel.track({
-            userId: user.id,
+            userId,
           });
-          resolve(channel);
+          resolve(null);
         } else {
           reject();
         }
-      })
-  );
-
-  return 'todo!';
+      });
+  });
+  return;
 };
 
 type PartyConnectionMachine = ReturnType<typeof createPartyConnectionMachine>;
