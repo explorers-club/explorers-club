@@ -8,7 +8,6 @@ import { HOME_EVENTS } from './home.machine';
 export function Home() {
   const homeActor = useHomeActor();
   useActorLogger(homeActor);
-  console.log({ homeActor });
   const errorMessage = useSelector(
     homeActor,
     (state) => state.context.inputErrorMessage

@@ -1,11 +1,18 @@
 import {
   ActorEventType,
   ActorInitializeEvent,
-  ActorMachineMap,
   ActorSendEvent,
 } from '@explorers-club/actor';
+import { PartyActor, partyMachine } from '@explorers-club/party';
 import { RealtimeChannel } from '@supabase/supabase-js';
-import { ActorRefFrom, AnyActorRef, ContextFrom, interpret } from 'xstate';
+import {
+  ActorRefFrom,
+  assign,
+  ContextFrom,
+  DoneInvokeEvent,
+  interpret,
+  StateFrom,
+} from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { supabaseClient } from '../lib/supabase';
 
@@ -13,6 +20,7 @@ const partyConnectionModel = createModel(
   {
     joinCode: null as string | null,
     channel: null as RealtimeChannel | null,
+    partyActor: undefined as PartyActor | undefined,
   },
   {
     events: {
@@ -53,7 +61,13 @@ export const createPartyConnectionMachine = () => {
         Connecting: {
           invoke: {
             src: 'connectToParty',
-            onDone: 'Connected',
+            onDone: {
+              target: 'Connected',
+              actions: assign({
+                partyActor: (_, event: DoneInvokeEvent<PartyActor>) =>
+                  event.data,
+              }),
+            },
             onError: 'Error',
           },
         },
@@ -87,12 +101,12 @@ export const createPartyConnectionMachine = () => {
             throw new Error('tried to connect to party without channel set');
           }
 
-          await initializeChannel({
+          const partyActor = await initializeChannel({
             channel,
             userId: user.id,
           });
 
-          return;
+          return partyActor;
         },
       },
     }
@@ -108,38 +122,26 @@ const initializeChannel = async ({
   channel,
   userId,
 }: InitializeChannelProps) => {
-  const actorMap = new Map<string, AnyActorRef>();
-
-  await new Promise((resolve, reject) => {
+  const partyActor = await new Promise<PartyActor>((resolve, reject) => {
+    // TODO add timeout in case 'initialize' event doesn't come as expected...
     channel
       .on(
         'broadcast',
         { event: ActorEventType.INITIALIZE },
         ({ payload }: ActorInitializeEvent) => {
-          // If we don't already have this actor, initialize it...
-          const { actorId, actorType, state } = payload;
-
-          if (!actorMap.has(actorId)) {
-            const machine = ActorMachineMap[actorType];
-            const actor = interpret(machine).start(state);
-            console.log("actor snap", actor.getSnapshot());
-
-            actorMap.set(actorId, actor);
-          } else {
-            // console.warn(`actor ${actorId} already initialized`);
-          }
+          const { state } = payload;
+          const actor = interpret(partyMachine);
+          actor.start(state);
+          resolve(actor);
         }
       )
       .on(
         'broadcast',
         { event: ActorEventType.SEND },
         ({ payload }: ActorSendEvent) => {
-          const { actorId, event } = payload;
-          const actor = actorMap.get(actorId);
-          if (actor) {
-            actor.send(event);
-          } else {
-            console.warn(`Could not find actor ${actorId} for event: `, event);
+          const { event } = payload;
+          if (partyActor) {
+            partyActor.send(event);
           }
         }
       )
@@ -148,14 +150,15 @@ const initializeChannel = async ({
           await channel.track({
             userId,
           });
-          resolve(null);
-        } else {
-          reject();
         }
+        // TODO error / retry handle...
       });
   });
-  return;
+  return partyActor;
 };
 
-type PartyConnectionMachine = ReturnType<typeof createPartyConnectionMachine>;
+export type PartyConnectionMachine = ReturnType<
+  typeof createPartyConnectionMachine
+>;
+export type PartyConnectionState = StateFrom<PartyConnectionMachine>;
 export type PartyConnectionActor = ActorRefFrom<PartyConnectionMachine>;

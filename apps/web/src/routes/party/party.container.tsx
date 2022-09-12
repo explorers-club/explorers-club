@@ -1,11 +1,17 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { usePartyConnection } from '../../state/party-connection.hooks';
+import {
+  useParty,
+  usePartyConnection,
+} from '../../state/party-connection.hooks';
 import { PARTY_CONNECTION_EVENTS } from '../../state/party-connection.machine';
 import { useSelector } from '@xstate/react';
+import { useActorLogger } from '../../lib/logging';
 
 export function Party() {
   const partyConnection = usePartyConnection();
+  const party = useParty();
+  useActorLogger(party);
   const { code } = useParams();
 
   // const hasNameSet =

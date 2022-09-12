@@ -6,7 +6,7 @@ interface LobbyPlayerProps {
 }
 
 const lobbyPlayerModel = createModel(
-  {},
+  { userId: '' as string },
   {
     events: {
       READY: () => ({}),
@@ -35,10 +35,6 @@ const createLobbyPlayerMachine = ({ userId }: LobbyPlayerProps) =>
       },
     },
   });
-
-type LobbyPlayerMachine = ReturnType<typeof createLobbyPlayerMachine>;
-type LobbyPlayerActor = ActorRefFrom<LobbyPlayerMachine>;
-// type LobbyPlayerActor = ActorRefFrom<LobbyPlayerMachine>;
 
 const lobbyModel = createModel(
   {
@@ -83,7 +79,7 @@ const gameMachine = createMachine({
   },
 });
 
-interface PartyPlayer {
+export interface PartyPlayer {
   userId: string;
   isConnected: boolean;
 }
@@ -124,16 +120,15 @@ export const partyMachine = createMachine({
   },
 });
 
+export type LobbyPlayerMachine = ReturnType<typeof createLobbyPlayerMachine>;
+export type LobbyPlayerState = StateFrom<LobbyPlayerMachine>;
+export type LobbyPlayerActor = ActorRefFrom<LobbyPlayerMachine>;
+
+export type LobbyActor = ActorRefFrom<typeof lobbyMachine>;
+export type LobbyState = StateFrom<typeof lobbyMachine>;
+
+export type GameActor = ActorRefFrom<typeof gameMachine>;
+export type GameState = StateFrom<typeof gameMachine>;
+
 export type PartyActor = ActorRefFrom<typeof partyMachine>;
 export type PartyState = StateFrom<typeof partyMachine>;
-
-// export const CURRENT_STATE_EVENT = (props: { state: PartyState }) => ({
-//   type: 'broadcast',
-//   event: 'currentState',
-//   payload: props.state,
-// });
-// export type CurrentStateEvent = ReturnType<typeof CURRENT_STATE_EVENT>;
-
-// export const ACTOR_START_EVENT = { event: ChannelEventType.ACTOR_START };
-// export const ACTOR_STATE_EVENT = { event: ChannelEventType.ACTOR_STATE };
-// export const ACTOR_SEND_EVENT = { event: ChannelEventType.ACTOR_SEND };

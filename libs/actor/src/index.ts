@@ -1,14 +1,10 @@
-import { AnyEventObject, AnyState, AnyStateMachine } from 'xstate';
+import { AnyEventObject, AnyStateMachine } from 'xstate';
 import { ActorEventType, ActorType } from './types';
-import { partyMachine } from '@explorers-club/party';
+import { partyMachine, PartyState } from '@explorers-club/party';
 
 export * from './types';
 
-const INITIALIZE = (payload: {
-  actorId: string;
-  actorType: ActorType;
-  state: AnyState;
-}) => ({
+const INITIALIZE = (payload: { state: PartyState }) => ({
   type: 'broadcast',
   event: ActorEventType.INITIALIZE,
   payload,
