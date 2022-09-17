@@ -1,6 +1,6 @@
 // Middleware for logging xstate changes
 import { useEffect } from 'react';
-import { ActorRef, AnyActorRef } from 'xstate';
+import { AnyActorRef } from 'xstate';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const useActorLogger = (actor?: AnyActorRef) => {

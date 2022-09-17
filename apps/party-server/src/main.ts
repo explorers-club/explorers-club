@@ -1,17 +1,21 @@
-import {
-  ActorSendEvent,
-  ActorEventType,
-  ActorEvents,
-  ActorInitializeEvent,
-} from '@explorers-club/actor';
+import { ActorID, ActorManager, MachineFactory } from '@explorers-club/actor';
 import { Database } from '@explorers-club/database';
-import { PartyEvents, partyMachine } from '@explorers-club/party';
+import {
+  createPartyMachine,
+  createPartyPlayerMachine,
+  getPartyActorId,
+  PartyActor,
+  PartyEvents,
+} from '@explorers-club/party';
 import { PresenceState } from '@supabase/realtime-js/dist/module/RealtimePresence';
+import { RealtimeChannel } from '@supabase/supabase-js';
 import * as crypto from 'crypto';
-import { interpret } from 'xstate';
 import { supabaseAdmin } from './lib/supabase';
 
 type PartyRow = Database['public']['Tables']['parties']['Row'];
+
+MachineFactory.registerMachine('PARTY_ACTOR', createPartyMachine);
+MachineFactory.registerMachine('PLAYER_ACTOR', createPartyPlayerMachine);
 
 async function bootstrap() {
   const hostId = crypto.randomUUID();
@@ -25,62 +29,76 @@ async function bootstrap() {
       async (payload: { new: PartyRow }) => {
         const joinCode = payload.new.join_code;
         const channel = supabaseAdmin.channel(`party-${joinCode}`);
-        const partyActor = interpret(partyMachine);
-        partyActor.start();
+        const partyActorId = getPartyActorId(joinCode);
+        const actorManager = new ActorManager(channel, partyActorId);
 
-        channel
-          .on('presence', { event: 'join' }, async (payload: PresenceState) => {
-            const toAdd = payload['newPresences'].map((p) => ({
-              userId: p['userId'],
-            }));
-
-            for (let i = 0; i < toAdd.length; i++) {
-              partyActor.send(PartyEvents.PLAYER_CONNECTED(toAdd[i]));
-            }
-            const currentState = partyActor.getSnapshot();
-
-            // Broadcast current state whenever someone joins
-            await channel.send(
-              ActorEvents.INITIALIZE({
-                actorId: hostId,
-                actorType: 'PARTY_ACTOR',
-                state: currentState,
-              })
-            );
-          })
-          .on('presence', { event: 'leave' }, (payload: PresenceState) => {
-            const toRemove = payload['leftPresences'].map((p) => ({
-              userId: p['userId'],
-            }));
-
-            for (let i = 0; i < toRemove.length; i++) {
-              partyActor.send(PartyEvents.PLAYER_DISCONNECTED(toRemove[i]));
-            }
-          })
-          .on(
-            'broadcast',
-            { event: ActorEventType.INITIALIZE },
-            (payload: ActorInitializeEvent) => {
-              console.log('typed init', payload);
-            }
-          )
-          .on(
-            'broadcast',
-            { event: ActorEventType.SEND },
-            (payload: ActorSendEvent) => {
-              console.log('typed send!', payload);
-            }
-          )
-          .subscribe(async (status) => {
-            if (status !== 'SUBSCRIBED') {
-              console.warn(`Channel status ${status} - ${joinCode}`);
-            } else {
-              console.log(`Connected to channel ${joinCode}`);
-            }
+        const handleConnect = () => {
+          const actorId: ActorID = `Party-${joinCode}`;
+          const partyActor = actorManager.spawn({
+            actorId,
+            actorType: 'PARTY_ACTOR',
           });
+
+          initializePresence({ channel, actorManager, partyActor });
+        };
+
+        channel.subscribe(async (status) => {
+          if (status === 'SUBSCRIBED') {
+            handleConnect();
+          } else {
+            console.warn(`${joinCode} Channel status - ${status}`);
+          }
+        });
       }
     )
     .subscribe();
 }
+
+const initializePresence = ({
+  channel,
+  actorManager,
+  partyActor,
+}: {
+  channel: RealtimeChannel;
+  actorManager: ActorManager;
+  partyActor: PartyActor;
+}) => {
+  const handleSync = async () => {
+    const presenceState = channel.presenceState();
+    const toAdd = Object.values(presenceState).map((p) => ({
+      userId: p['userId'],
+    }));
+
+    for (let i = 0; i < toAdd.length; i++) {
+      partyActor.send(PartyEvents.PLAYER_CONNECTED(toAdd[i]));
+    }
+  };
+
+  const handleLeave = async (payload: PresenceState[]) => {
+    const toRemove = payload['leftPresences'].map((p) => ({
+      userId: p['userId'],
+    }));
+
+    for (let i = 0; i < toRemove.length; i++) {
+      partyActor.send(PartyEvents.PLAYER_DISCONNECTED(toRemove[i]));
+    }
+  };
+
+  const handleJoin = async (payload: PresenceState[]) => {
+    const toAdd = payload['newPresences'].map((p) => ({
+      userId: p['userId'],
+    }));
+
+    for (let i = 0; i < toAdd.length; i++) {
+      partyActor.send(PartyEvents.PLAYER_CONNECTED(toAdd[i]));
+    }
+
+    actorManager.syncAll();
+  };
+
+  channel.on('presence', { event: 'sync' }, handleSync);
+  channel.on('presence', { event: 'leave' }, handleLeave);
+  channel.on('presence', { event: 'join' }, handleJoin);
+};
 
 bootstrap();
