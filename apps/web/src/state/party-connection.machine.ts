@@ -14,7 +14,6 @@ import {
 import { RealtimeChannel } from '@supabase/supabase-js';
 import {
   ActorRefFrom,
-  AnyActorRef,
   assign,
   ContextFrom,
   DoneInvokeEvent,
@@ -31,7 +30,7 @@ const partyConnectionModel = createModel(
     joinCode: null as string | null,
     channel: null as RealtimeChannel | null,
     partyActor: undefined as PartyActor | undefined,
-    actorMap: new Map() as Map<string, AnyActorRef>,
+    actorManager: undefined as ActorManager | undefined,
   },
   {
     events: {
@@ -77,6 +76,8 @@ export const createPartyConnectionMachine = () => {
               actions: assign({
                 partyActor: (_, event: DoneInvokeEvent<ActorManager>) =>
                   event.data.rootActor as PartyActor,
+                actorManager: (_, event: DoneInvokeEvent<ActorManager>) =>
+                  event.data,
               }),
             },
             onError: 'Error',
@@ -117,11 +118,18 @@ export const createPartyConnectionMachine = () => {
             throw new Error('tried to connect to party without join code set');
           }
 
-          return await initializeChannelActors({
+          const actorManager = await initializeChannelActors({
             userId,
             channel,
             joinCode,
           });
+
+          // to not go to next step until hydrated
+          await new Promise((resolve) => {
+            actorManager.once('hydrateAll', resolve);
+          });
+
+          return actorManager;
         },
       },
     }
@@ -149,18 +157,11 @@ const initializeChannelActors = async ({
   };
 
   const handleSyncActors = async ({ payload }: SyncActorsEvent) => {
-    console.log('SYNC ACTORS', payload);
-    payload.forEach((actorProps) => {
-      actorManager.hydrate({
-        ...actorProps,
-      });
-    });
+    actorManager.hydrateAll(payload);
   };
 
   const handleSpawnActor = async ({ payload }: SpawnActorEvent) => {
-    actorManager.hydrate({
-      ...payload,
-    });
+    actorManager.hydrate(payload);
   };
 
   await new Promise((resolve, reject) => {

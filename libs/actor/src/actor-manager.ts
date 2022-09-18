@@ -1,6 +1,7 @@
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { AnyActorRef, AnyStateMachine, interpret, State } from 'xstate';
 import { ActorEvents } from './events';
+import { EventEmitter } from 'events';
 import {
   ActorID,
   ActorType,
@@ -30,7 +31,18 @@ export class MachineFactory {
   }
 }
 
-export class ActorManager {
+interface ManagedActor {
+  actorId: ActorID;
+  actorType: ActorType;
+  actor: AnyActorRef;
+}
+
+export declare interface ActorManager {
+  on(event: 'hydrate', listener: (props: ManagedActor) => void): this;
+  on(event: 'hydrateAll', listener: () => void): this;
+}
+
+export class ActorManager extends EventEmitter {
   private actorMap = new Map<
     string,
     { actor: AnyActorRef; actorType: ActorType }
@@ -39,6 +51,7 @@ export class ActorManager {
   private rootActorId: ActorID;
 
   constructor(channel: RealtimeChannel, rootActorId: ActorID) {
+    super();
     this.channel = channel;
     this.rootActorId = rootActorId;
   }
@@ -54,15 +67,10 @@ export class ActorManager {
 
     const event = ActorEvents.SYNC_ALL(payload);
 
-    const resp = await this.channel.send(event);
-
-    if (resp !== 'ok') {
-      console.warn('non-ok resp for sync all: ' + resp);
-    }
+    return await this.channel.send(event);
   }
 
   spawn({ actorId, actorType }: SpawnProps) {
-    console.log('spawning', actorId);
     const createMachine = MachineFactory.getCreateMachineFunction(actorType);
     if (!createMachine) {
       throw new Error(
@@ -93,6 +101,14 @@ export class ActorManager {
     return actor;
   }
 
+  hydrateAll(payload: SharedActorProps[]) {
+    payload.forEach((actorProps) => {
+      this.hydrate(actorProps);
+    });
+
+    this.emit('hydrateAll');
+  }
+
   hydrate({ actorId, actorType, state }: SharedActorProps) {
     // Don't re-hydrate actors we already have
     if (this.actorMap.has(actorId)) {
@@ -115,6 +131,7 @@ export class ActorManager {
 
     const actor = interpret(machine).start(previousState);
     this.actorMap.set(actorId, { actor, actorType });
+    this.emit('hydrate', { actorId, actorType, actor });
 
     return actor;
   }

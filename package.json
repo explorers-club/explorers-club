@@ -15,6 +15,7 @@
     "@xstate/react": "^3.0.1",
     "camelcase-keys": "^8.0.1",
     "core-js": "^3.6.5",
+    "events": "^3.3.0",
     "leva": "^0.9.30",
     "openapi-typescript": "^5.4.1",
     "react": "^18.2.0",

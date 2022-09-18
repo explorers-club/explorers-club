@@ -95,7 +95,10 @@ const initializePresence = ({
 
     // Hack to get around not being able to disable rate limiting
     setTimeout(async () => {
-      await actorManager.syncAll();
+      const resp = await actorManager.syncAll();
+      if (resp !== 'ok') {
+        console.warn('error syncing');
+      }
     }, 100);
   };
 
