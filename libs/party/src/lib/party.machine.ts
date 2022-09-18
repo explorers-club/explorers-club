@@ -1,6 +1,7 @@
 import { ActorID, SharedMachineProps } from '@explorers-club/actor';
 import { ActorRefFrom, createMachine, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
+import { getPartyPlayerActorId } from './party-player.machine';
 
 export const PLAYER_CONNECTED = (props: { userId: string }) => props;
 export const PLAYER_DISCONNECTED = (props: { userId: string }) => props;
@@ -30,7 +31,8 @@ const partyModel = createModel(
 
 export const PartyEvents = partyModel.events;
 
-export const getPartyActorId = (joinCode: string) => `Party-${joinCode}` as ActorID;
+export const getPartyActorId = (joinCode: string) =>
+  `Party-${joinCode}` as ActorID;
 
 export const createPartyMachine = ({
   actorId,
@@ -45,36 +47,23 @@ export const createPartyMachine = ({
         PLAYER_CONNECTED: {
           actions: partyModel.assign({
             playerActorIds: (context, { userId }) => {
-              const actorId: ActorID = `Player-${userId}`;
+              const actorId: ActorID = getPartyPlayerActorId(userId);
               actorManager.spawn({
                 actorId,
                 actorType: 'PLAYER_ACTOR',
               });
 
-              // context.actorManager.spawn();
-              return [...context.playerActorIds];
-
-              // WHat do we do here... actually?
-              // A player has connected on on the client and the server
-              // We need to get a reference to the actor somehow
-              // SO if we have the actorManager, we can do somethign like
-              // const machine = createPartyPlayerMachine({ userId });
-              // actorManager.spawn<PartyPlayerMachine>
-              // const actor = spawnChannelActor<PartyPlayerMachine>({
-              //   actorType: 'PLAYER_ACTOR',
-              //   channel,
-              //   machine,
-              // });
-              // return [...context.playerActorIds, actor.id];
+              return [...context.playerActorIds, actorId];
             },
           }),
         },
         PLAYER_DISCONNECTED: {
           actions: partyModel.assign({
-            // playerActorIds: (context, { userId }) => {
-            //   const actorId = ""
-            //   return context.playerActorIds.filter((id) => id !== actorId);
-            // },
+            playerActorIds: (context, { userId }) => {
+              getPartyActorId(userId);
+              const actorId = '';
+              return context.playerActorIds.filter((id) => id !== actorId);
+            },
           }),
         },
       },

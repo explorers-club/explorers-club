@@ -11,16 +11,6 @@ import {
 
 type CreateMachineFunction = (props: SharedMachineProps) => AnyStateMachine;
 
-// function createMachine<TCreateProps extends CreateMachineProps>({
-//   createFunction,
-//   props,
-// }: {
-//   createFunction: CreateMachineFunction;
-//   props: TCreateProps;
-// }): AnyStateMachine {
-//   return createFunction(props);
-// }
-
 /**
  * Class to be imported on client and server, and each will register the different
  * type of machines it needs
@@ -53,11 +43,26 @@ export class ActorManager {
     this.rootActorId = rootActorId;
   }
 
-  syncAll() {
-    this.channel.send(ActorEvents.SYNC_ALL(Object.values(this.actorMap)));
+  async syncAll() {
+    const payload = Array.from(this.actorMap.values()).map(
+      ({ actor, actorType }) => ({
+        actorId: actor.id,
+        actorType,
+        state: actor.getSnapshot(),
+      })
+    );
+
+    const event = ActorEvents.SYNC_ALL(payload);
+
+    const resp = await this.channel.send(event);
+
+    if (resp !== 'ok') {
+      console.warn('non-ok resp for sync all: ' + resp);
+    }
   }
 
   spawn({ actorId, actorType }: SpawnProps) {
+    console.log('spawning', actorId);
     const createMachine = MachineFactory.getCreateMachineFunction(actorType);
     if (!createMachine) {
       throw new Error(
@@ -75,7 +80,7 @@ export class ActorManager {
     this.channel
       .send(
         ActorEvents.SPAWN({
-          actorId: actor.id,
+          actorId,
           actorType,
           state: actor.getSnapshot(),
         } as SharedActorProps)
@@ -114,11 +119,15 @@ export class ActorManager {
     return actor;
   }
 
+  getActor(actorId: ActorID) {
+    return this.actorMap.get(actorId)?.actor;
+  }
+
   get rootActor() {
-    return this.actorMap.get(this.rootActorId)?.actor;
+    return this.getActor(this.rootActorId);
   }
 
   get allActors() {
-    return Object.values(this.actorMap);
+    return Array.from(this.actorMap.values()).map(({ actor }) => actor);
   }
 }

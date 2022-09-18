@@ -1,6 +1,5 @@
 import {
   ActorEventType,
-  ActorID,
   ActorManager,
   MachineFactory,
   SpawnActorEvent,
@@ -13,7 +12,6 @@ import {
   PartyActor,
 } from '@explorers-club/party';
 import { RealtimeChannel } from '@supabase/supabase-js';
-import { join } from 'path';
 import {
   ActorRefFrom,
   AnyActorRef,
@@ -151,6 +149,7 @@ const initializeChannelActors = async ({
   };
 
   const handleSyncActors = async ({ payload }: SyncActorsEvent) => {
+    console.log('SYNC ACTORS', payload);
     payload.forEach((actorProps) => {
       actorManager.hydrate({
         ...actorProps,

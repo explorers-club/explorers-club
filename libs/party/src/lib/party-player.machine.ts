@@ -1,4 +1,4 @@
-import { SharedMachineProps } from '@explorers-club/actor';
+import { ActorID, SharedMachineProps } from '@explorers-club/actor';
 import { ActorRefFrom, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 
@@ -12,6 +12,9 @@ const partyPlayerModel = createModel(
     },
   }
 );
+
+export const getPartyPlayerActorId = (userId: string) =>
+  `PartyPlayer-${userId}` as ActorID;
 
 export const createPartyPlayerMachine = ({
   actorId,

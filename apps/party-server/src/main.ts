@@ -28,12 +28,14 @@ async function bootstrap() {
       { event: 'INSERT', schema: 'public', table: 'parties' },
       async (payload: { new: PartyRow }) => {
         const joinCode = payload.new.join_code;
-        const channel = supabaseAdmin.channel(`party-${joinCode}`);
+        const channel = supabaseAdmin.channel(`party-${joinCode}`, {
+          eventsPerSecondLimit: 10000 /** effectively infinite */,
+        });
         const partyActorId = getPartyActorId(joinCode);
         const actorManager = new ActorManager(channel, partyActorId);
 
         const handleConnect = () => {
-          const actorId: ActorID = `Party-${joinCode}`;
+          const actorId: ActorID = getPartyActorId(joinCode);
           const partyActor = actorManager.spawn({
             actorId,
             actorType: 'PARTY_ACTOR',
@@ -44,6 +46,7 @@ async function bootstrap() {
 
         channel.subscribe(async (status) => {
           if (status === 'SUBSCRIBED') {
+            // set a prop on presence to show host is connected?
             handleConnect();
           } else {
             console.warn(`${joinCode} Channel status - ${status}`);
@@ -65,35 +68,35 @@ const initializePresence = ({
 }) => {
   const handleSync = async () => {
     const presenceState = channel.presenceState();
-    const toAdd = Object.values(presenceState).map((p) => ({
-      userId: p['userId'],
-    }));
-
-    for (let i = 0; i < toAdd.length; i++) {
-      partyActor.send(PartyEvents.PLAYER_CONNECTED(toAdd[i]));
-    }
+    Object.values(presenceState)
+      .filter((value) => !!value['userId'])
+      .map((p) => ({ userId: p['userId'] as string }))
+      .forEach((props) => {
+        partyActor.send(PartyEvents.PLAYER_CONNECTED(props));
+      });
   };
 
   const handleLeave = async (payload: PresenceState[]) => {
-    const toRemove = payload['leftPresences'].map((p) => ({
-      userId: p['userId'],
-    }));
-
-    for (let i = 0; i < toRemove.length; i++) {
-      partyActor.send(PartyEvents.PLAYER_DISCONNECTED(toRemove[i]));
-    }
+    Object.values(payload['leftPresences'])
+      .filter((value) => !!value['userId'])
+      .map((p) => ({ userId: p['userId'] as string }))
+      .forEach((props) => {
+        partyActor.send(PartyEvents.PLAYER_DISCONNECTED(props));
+      });
   };
 
   const handleJoin = async (payload: PresenceState[]) => {
-    const toAdd = payload['newPresences'].map((p) => ({
-      userId: p['userId'],
-    }));
+    Object.values(payload['newPresences'])
+      .filter((value) => !!value['userId'])
+      .map((p) => ({ userId: p['userId'] as string }))
+      .forEach((props) => {
+        partyActor.send(PartyEvents.PLAYER_CONNECTED(props));
+      });
 
-    for (let i = 0; i < toAdd.length; i++) {
-      partyActor.send(PartyEvents.PLAYER_CONNECTED(toAdd[i]));
-    }
-
-    actorManager.syncAll();
+    // Hack to get around not being able to disable rate limiting
+    setTimeout(async () => {
+      await actorManager.syncAll();
+    }, 100);
   };
 
   channel.on('presence', { event: 'sync' }, handleSync);

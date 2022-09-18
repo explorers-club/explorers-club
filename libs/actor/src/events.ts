@@ -1,14 +1,14 @@
+import { prependOnceListener } from 'process';
 import { AnyState, AnyEventObject } from 'xstate';
 import { SharedActorProps, ActorEventType, ActorID } from './types';
 
-const SPAWN = ({ actorId, actorType, state }: SharedActorProps) => {
+const SPAWN = ({ state, ...props }: SharedActorProps) => {
   const stateJSON = JSON.parse(JSON.stringify(state)) as AnyState;
   return {
     type: 'broadcast',
     event: ActorEventType.SPAWN,
     payload: {
-      actorId,
-      actorType,
+      ...props,
       state: stateJSON,
     } as SharedActorProps,
   };
@@ -24,11 +24,10 @@ const SYNC_ALL = (payload: SharedActorProps[]) => {
   return {
     type: 'broadcast',
     event: ActorEventType.SYNC_ALL,
-    payload: payload.map(({ actorId, actorType, state }) => {
+    payload: payload.map(({ state, ...props }) => {
       const stateJSON = JSON.parse(JSON.stringify(state)) as AnyState;
       return {
-        actorId,
-        actorType,
+        ...props,
         state: stateJSON,
       };
     }),
