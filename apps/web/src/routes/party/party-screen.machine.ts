@@ -55,8 +55,11 @@ export const createPartyScreenMachine = ({ joinCode }: CreateMachineProps) => {
             Joining: {
               invoke: {
                 src: 'joinParty',
+                onDone: 'Joined',
+                onError: 'JoinError',
               },
             },
+            JoinError: {},
             Joined: {
               initial: 'NotReady',
               states: {
