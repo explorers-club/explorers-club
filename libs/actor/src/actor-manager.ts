@@ -38,8 +38,8 @@ interface ManagedActor {
 }
 
 export declare interface ActorManager {
-  on(event: 'hydrate', listener: (props: ManagedActor) => void): this;
-  on(event: 'hydrateAll', listener: () => void): this;
+  on(event: 'HYDRATE', listener: (props: ManagedActor) => void): this;
+  on(event: 'HYDRATE_ALL', listener: () => void): this;
 }
 
 export class ActorManager extends EventEmitter {
@@ -106,7 +106,7 @@ export class ActorManager extends EventEmitter {
       this.hydrate(actorProps);
     });
 
-    this.emit('hydrateAll');
+    this.emit('HYDRATE_ALL');
   }
 
   hydrate({ actorId, actorType, state }: SharedActorProps) {
@@ -131,13 +131,19 @@ export class ActorManager extends EventEmitter {
 
     const actor = interpret(machine).start(previousState);
     this.actorMap.set(actorId, { actor, actorType });
-    this.emit('hydrate', { actorId, actorType, actor });
+    this.emit('HYDRATE', { actorId, actorType, actor });
 
     return actor;
   }
 
   getActor(actorId: ActorID) {
     return this.actorMap.get(actorId)?.actor;
+  }
+
+  getActorsForType(_actorType: ActorType) {
+    return Array.from(this.actorMap.values())
+      .filter(({ actorType }) => _actorType === actorType)
+      .map(({ actor }) => actor);
   }
 
   get rootActor() {

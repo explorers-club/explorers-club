@@ -10,6 +10,7 @@ import {
   createPartyPlayerMachine,
   getPartyActorId,
   PartyActor,
+  PartyPlayerActor,
 } from '@explorers-club/party';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import {
@@ -29,45 +30,40 @@ const partyConnectionModel = createModel(
   {
     joinCode: null as string | null,
     channel: null as RealtimeChannel | null,
+    me: null as PartyPlayerActor | null,
     partyActor: undefined as PartyActor | undefined,
     actorManager: undefined as ActorManager | undefined,
   },
   {
     events: {
       CONNECT: (joinCode: string) => ({ joinCode }),
-      DISCONNECT: () => ({}),
-      RECONNECT: () => ({}),
-      RETRY: () => ({}),
+      JOIN: (userId: string) => ({ userId }),
     },
   }
 );
-export const PARTY_CONNECTION_EVENTS = partyConnectionModel.events;
+export const PartyConnectionEvents = partyConnectionModel.events;
 
 export type PartyConnectionContext = ContextFrom<typeof partyConnectionModel>;
 
-export const createPartyConnectionMachine = () => {
+interface CreateMachineProps {
+  joinCode: string;
+}
+
+export const createPartyConnectionMachine = ({
+  joinCode,
+}: CreateMachineProps) => {
+  const channel = supabaseClient.channel(`party-${joinCode}`, {
+    config: {
+      broadcast: { ack: true },
+    },
+  });
+
   return partyConnectionModel.createMachine(
     {
-      id: 'PartyConnection',
-      initial: 'Uninitialized',
+      id: `PartyConnection-${joinCode}`,
+      initial: 'Connecting',
       context: partyConnectionModel.initialContext,
       states: {
-        Uninitialized: {
-          on: {
-            CONNECT: {
-              target: 'Connecting',
-              actions: partyConnectionModel.assign({
-                joinCode: (_, event) => event.joinCode,
-                channel: (_, event) =>
-                  supabaseClient.channel(`party-${event.joinCode}`, {
-                    config: {
-                      broadcast: { ack: true },
-                    },
-                  }),
-              }),
-            },
-          },
-        },
         Connecting: {
           invoke: {
             src: 'connectToParty',
@@ -84,49 +80,43 @@ export const createPartyConnectionMachine = () => {
           },
         },
         Connected: {
-          on: {
-            DISCONNECT: 'Disconnected',
+          initial: 'Previewing',
+          states: {
+            Previewing: {
+              on: {
+                JOIN: 'Joining',
+              },
+            },
+            Joining: {
+              invoke: {
+                src: 'joinParty',
+              },
+            },
+            Joined: {},
           },
         },
-        Error: {
-          on: {
-            RETRY: 'Connecting',
-          },
-        },
-        Disconnected: {
-          on: {
-            RECONNECT: 'Connecting',
-          },
-        },
+        Error: {},
       },
     },
     {
       services: {
+        joinParty: async (context, event) => {
+          if (event.type === 'JOIN') {
+            const { userId } = event;
+            await channel.track({
+              userId,
+            });
+          }
+        },
         connectToParty: async (context) => {
-          const userId = (await supabaseClient.auth.getUser()).data.user?.id;
-          if (!userId) {
-            throw new Error('trying to connect to party without user');
-          }
-
-          const channel = context.channel;
-          if (!channel) {
-            throw new Error('tried to connect to party without channel set');
-          }
-
-          const joinCode = context.joinCode;
-          if (!joinCode) {
-            throw new Error('tried to connect to party without join code set');
-          }
-
           const actorManager = await initializeChannelActors({
-            userId,
             channel,
             joinCode,
           });
 
           // to not go to next step until hydrated
           await new Promise((resolve) => {
-            actorManager.once('hydrateAll', resolve);
+            actorManager.once('HYDRATE_ALL', resolve);
           });
 
           return actorManager;
@@ -138,23 +128,15 @@ export const createPartyConnectionMachine = () => {
 
 interface InitializeChannelProps {
   channel: RealtimeChannel;
-  userId: string;
   joinCode: string;
 }
 
 const initializeChannelActors = async ({
   channel,
-  userId,
   joinCode,
 }: InitializeChannelProps) => {
   const partyActorId = getPartyActorId(joinCode);
   const actorManager = new ActorManager(channel, partyActorId);
-
-  const handleConnect = async () => {
-    await channel.track({
-      userId,
-    });
-  };
 
   const handleSyncActors = async ({ payload }: SyncActorsEvent) => {
     actorManager.hydrateAll(payload);
@@ -170,7 +152,6 @@ const initializeChannelActors = async ({
       .on('broadcast', { event: ActorEventType.SPAWN }, handleSpawnActor)
       .subscribe(async (status: string) => {
         if (status === 'SUBSCRIBED') {
-          await handleConnect();
           resolve(null);
         }
       });

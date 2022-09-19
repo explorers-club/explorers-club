@@ -1,1 +1,1 @@
-export * from './party.container';
+export * from './party-screen.container';

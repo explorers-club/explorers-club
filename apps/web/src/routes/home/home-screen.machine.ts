@@ -1,10 +1,9 @@
 import { PartiesTable } from '@explorers-club/database';
 import { ActorRefFrom, assign, DoneInvokeEvent } from 'xstate';
 import { createModel } from 'xstate/lib/model';
-import { createAnonymousUser } from '../../lib/auth';
 import { supabaseClient } from '../../lib/supabase';
 
-const homeModel = createModel(
+const homeScreenModel = createModel(
   {
     partyCode: '' as string,
     partyRow: undefined as PartiesTable['Row'] | undefined,
@@ -19,11 +18,11 @@ const homeModel = createModel(
   }
 );
 
-export const HOME_EVENTS = homeModel.events;
+export const HomeScreenEvents = homeScreenModel.events;
 
-export const homeMachine = homeModel.createMachine(
+export const homeScreenMachine = homeScreenModel.createMachine(
   {
-    id: 'homeMachine',
+    id: 'homeScreenMachine',
     initial: 'WaitingForInput',
     states: {
       WaitingForInput: {
@@ -43,21 +42,8 @@ export const homeMachine = homeModel.createMachine(
             },
           ],
           PRESS_START_PARTY: {
-            target: 'Starting',
-          },
-        },
-      },
-      Starting: {
-        invoke: {
-          src: 'startParty',
-          onDone: {
             target: 'Complete',
-            actions: assign({
-              partyRow: (_, event: DoneInvokeEvent<PartiesTable['Row']>) =>
-                event.data,
-            }),
           },
-          onError: 'NetworkError',
         },
       },
       Joining: {
@@ -104,26 +90,7 @@ export const homeMachine = homeModel.createMachine(
       isJoinCodeValid: (context) => context.partyCode.length === 4,
     },
     services: {
-      startParty: async (context, event) => {
-        await createUserIfNotExists();
-
-        const { data, error } = await supabaseClient
-          .from('parties')
-          .insert({ is_public: true })
-          .select()
-          .single();
-
-        if (error) {
-          throw new Error(error.message);
-        }
-        if (!data) {
-          throw new Error('unexpected no data');
-        }
-
-        return data;
-      },
       joinParty: async (context, event) => {
-        console.log(context.partyCode);
         const party = await supabaseClient
           .from('parties')
           .select('*')
@@ -136,17 +103,4 @@ export const homeMachine = homeModel.createMachine(
   }
 );
 
-const createUserIfNotExists = async () => {
-  const { data, error } = await supabaseClient.auth.getSession();
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  let user = data.session?.user;
-  if (!user) {
-    user = await createAnonymousUser();
-  }
-  return user;
-};
-
-export type HomeActor = ActorRefFrom<typeof homeMachine>;
+export type HomeScreenActor = ActorRefFrom<typeof homeScreenMachine>;

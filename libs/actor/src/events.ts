@@ -1,4 +1,3 @@
-import { prependOnceListener } from 'process';
 import { AnyState, AnyEventObject } from 'xstate';
 import { SharedActorProps, ActorEventType, ActorID } from './types';
 

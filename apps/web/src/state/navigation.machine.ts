@@ -1,8 +1,10 @@
 import { PartiesRow } from '@explorers-club/database';
-import { NavigateFunction } from 'react-router-dom';
+import { matchPath, NavigateFunction } from 'react-router-dom';
 import { ActorRefFrom, ContextFrom, DoneInvokeEvent } from 'xstate';
 import { createModel } from 'xstate/lib/model';
-import { homeMachine } from '../routes/home/home.machine';
+import { homeScreenMachine } from '../routes/home/home-screen.machine';
+import { newPartyScreenMachine } from '../routes/new-party/new-party-screen.machine';
+import { createPartyScreenMachine } from '../routes/party/party-screen.machine';
 
 const navigationModel = createModel({}, {});
 export type NavigationContext = ContextFrom<typeof navigationModel>;
@@ -12,50 +14,82 @@ interface CreateNavigationMachineProps {
   navigate: NavigateFunction;
 }
 
-const partyModel = createModel({});
-
-const partyMachine = partyModel.createMachine({
-  initial: 'WaitingForInput',
-  states: {
-    WaitingForInput: {},
-  },
-});
-
 export const createNavigationMachine = ({
   initial,
   navigate,
 }: CreateNavigationMachineProps) => {
-  return navigationModel.createMachine({
-    id: 'NavigationMachine',
-    initial,
-    states: {
-      Home: {
-        invoke: {
-          id: 'homeMachine',
-          src: homeMachine,
-          onDone: {
-            target: 'Party',
-            actions: (context, event: DoneInvokeEvent<PartiesRow>) => {
-              const code = event.data.join_code;
-              if (!code) {
-                throw new Error('no join code on party');
+  return navigationModel.createMachine(
+    {
+      id: 'NavigationMachine',
+      initial,
+      states: {
+        Home: {
+          invoke: {
+            id: 'homeScreenMachine',
+            src: homeScreenMachine,
+            onDone: [
+              {
+                target: 'Party',
+                cond: (_, event: DoneInvokeEvent<PartiesRow | undefined>) =>
+                  !!event.data,
+                actions: ['navigateToPartyScreen'],
+              },
+              {
+                target: 'NewParty',
+                actions: 'navigateToNewPartyScreen',
+              },
+            ],
+          },
+        },
+        NewParty: {
+          invoke: {
+            id: 'newPartyScreenMachine',
+            src: newPartyScreenMachine,
+            onDone: {
+              target: 'Party',
+              actions: ['navigateToPartyScreen'],
+            },
+          },
+        },
+        Party: {
+          invoke: {
+            id: 'partyScreenMachine',
+            src: (context) => {
+              const pathMatch = matchPath(
+                '/party/:joinCode',
+                window.location.pathname
+              );
+              const joinCode = pathMatch?.params.joinCode;
+              if (!joinCode) {
+                throw new Error('trying to join party without join code set');
               }
-              navigate(`/party/${code}`);
+
+              return createPartyScreenMachine({ joinCode });
             },
           },
         },
       },
-      Party: {
-        invoke: {
-          id: 'partyMachine',
-          src: partyMachine,
+      predictableActionArguments: true, // from xstate v4 warning
+    },
+    {
+      actions: {
+        navigateToNewPartyScreen: () => {
+          navigate(`/party/new`, { replace: true });
+        },
+        navigateToPartyScreen: (
+          context,
+          event: DoneInvokeEvent<PartiesRow>
+        ) => {
+          const code = event.data.join_code;
+          if (!code) {
+            throw new Error('no join code on party');
+          }
+          navigate(`/party/${code}`, { replace: true });
         },
       },
-    },
-    predictableActionArguments: true, // from xstate v4 warning
-  });
+    }
+  );
 };
 
 type NavigationMachine = ReturnType<typeof createNavigationMachine>;
 export type NavigationActor = ActorRefFrom<NavigationMachine>;
-// export type NavigationState = StateFrom<NavigationMachine>;

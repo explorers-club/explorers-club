@@ -87,6 +87,7 @@ export const createPartyMachine = ({
           },
         },
       },
+      predictableActionArguments: true,
     },
     {}
   );

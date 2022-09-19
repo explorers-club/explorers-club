@@ -2,11 +2,11 @@ import { useSelector } from '@xstate/react';
 import { FormEvent, useCallback, useRef } from 'react';
 import styled from 'styled-components';
 import { useActorLogger } from '../../lib/logging';
-import { useHomeActor } from './home.hooks';
-import { HOME_EVENTS } from './home.machine';
+import { useHomeScreenActor } from './home-screen.hooks';
+import { HomeScreenEvents } from './home-screen.machine';
 
-export function Home() {
-  const homeActor = useHomeActor();
+export function HomeScreen() {
+  const homeActor = useHomeScreenActor();
   useActorLogger(homeActor);
   const errorMessage = useSelector(
     homeActor,
@@ -18,7 +18,9 @@ export function Home() {
   const handleChangePartyCode = useCallback(
     (e: FormEvent<HTMLInputElement>) => {
       homeActor.send(
-        HOME_EVENTS.INPUT_CHANGE_PARTY_CODE(partyCodeRef.current?.value || '')
+        HomeScreenEvents.INPUT_CHANGE_PARTY_CODE(
+          partyCodeRef.current?.value || ''
+        )
       );
     },
     [partyCodeRef, homeActor]
@@ -26,14 +28,14 @@ export function Home() {
 
   const handleJoinParty = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
-      homeActor.send(HOME_EVENTS.PRESS_JOIN_PARTY());
+      homeActor.send(HomeScreenEvents.PRESS_JOIN_PARTY());
       e.preventDefault();
     },
     [homeActor]
   );
 
   const handleStartParty = useCallback(() => {
-    homeActor.send(HOME_EVENTS.PRESS_START_PARTY());
+    homeActor.send(HomeScreenEvents.PRESS_START_PARTY());
   }, [homeActor]);
 
   return (

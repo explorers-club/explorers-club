@@ -1,6 +1,6 @@
 // Inspired by https://stately.ai/blog/how-to-manage-global-state-with-xstate-and-react
 import { createContext, ReactNode, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { BottomSheetRef } from 'react-spring-bottom-sheet';
 import { interpret } from 'xstate';
 import { useActorLogger } from '../lib/logging';
@@ -8,10 +8,7 @@ import { useCurrentRoute } from '../routes/route.hooks';
 import { AppActor, createAppMachine } from './app.machine';
 import { AuthActor, createAuthMachine } from './auth.machine';
 import { createNavigationMachine, NavigationActor } from './navigation.machine';
-import {
-  createPartyConnectionMachine,
-  PartyConnectionActor,
-} from './party-connection.machine';
+import { PartyConnectionActor } from './party-connection.machine';
 
 interface GlobalStateContextType {
   appActor: AppActor;
@@ -36,9 +33,6 @@ export const GlobalStateProvider = ({ children }: { children: ReactNode }) => {
 
   // Initialize the actor machines
   const [actorRefs] = useState(() => {
-    const partyConnectionMachine = createPartyConnectionMachine();
-    const partyConnectionActor = interpret(partyConnectionMachine);
-
     const user = null; // TODO initialize this
     const authMachine = createAuthMachine({ user });
     const authActor = interpret(authMachine);
@@ -50,7 +44,6 @@ export const GlobalStateProvider = ({ children }: { children: ReactNode }) => {
     const navigationActor = interpret(navigationMachine);
 
     const appMachine = createAppMachine({
-      partyConnectionActor,
       authActor,
       navigationActor,
     });
@@ -60,32 +53,27 @@ export const GlobalStateProvider = ({ children }: { children: ReactNode }) => {
     if (window) {
       window.$APP = appActor;
       window.$AUTH = authActor;
-      window.$PARTY_CONNECTION = partyConnectionActor;
       window.$NAVIGATION = navigationActor;
     }
 
-    return { appActor, authActor, partyConnectionActor, navigationActor };
+    return { appActor, authActor, navigationActor };
   });
-  const { appActor, authActor, partyConnectionActor, navigationActor } =
-    actorRefs;
+  const { appActor, authActor, navigationActor } = actorRefs;
 
   useEffect(() => {
     appActor.start();
     authActor.start();
-    partyConnectionActor.start();
     navigationActor.start();
 
     return () => {
       appActor.stop();
       authActor.stop();
-      partyConnectionActor.stop();
       navigationActor.stop();
     };
-  }, [appActor, authActor, partyConnectionActor, navigationActor]);
+  }, [appActor, authActor, navigationActor]);
 
   useActorLogger(appActor);
   useActorLogger(authActor);
-  useActorLogger(partyConnectionActor);
   useActorLogger(navigationActor);
 
   return (
