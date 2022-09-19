@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 import { usePartyScreenState } from '../party-screen.hooks';
 import { JoinError } from './join-error.component';
-import { Joined } from './joined.component';
+import { Joined } from './joined';
 import { Joining } from './joining.component';
 import { Spectating } from './spectating.component';
 
