@@ -1,11 +1,13 @@
 import { useSelector } from '@xstate/react';
 import { useContext } from 'react';
 import { GlobalStateContext } from '../../state/global.provider';
-import { selectPartyScreenActor } from './party-screen.selectors';
 
 export const usePartyScreenActor = () => {
-  const { appActor } = useContext(GlobalStateContext);
-  return useSelector(appActor, selectPartyScreenActor);
+  const { navigationActor } = useContext(GlobalStateContext);
+  return useSelector(
+    navigationActor,
+    (state) => state.children['partyScreenMachine']
+  );
 };
 
 export const usePartyScreenState = () => {

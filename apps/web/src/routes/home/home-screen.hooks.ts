@@ -1,9 +1,16 @@
 import { useSelector } from '@xstate/react';
 import { useContext } from 'react';
 import { GlobalStateContext } from '../../state/global.provider';
-import { selectHomeScreenActor } from './home-screen.selectors';
 
 export const useHomeScreenActor = () => {
-  const { appActor } = useContext(GlobalStateContext);
-  return useSelector(appActor, selectHomeScreenActor);
+  const { navigationActor } = useContext(GlobalStateContext);
+  return useSelector(
+    navigationActor,
+    (state) => state.children['homeScreenMachine']
+  );
+};
+
+export const useHomeScreenState = () => {
+  const homeScreenActor = useHomeScreenActor();
+  return useSelector(homeScreenActor, (state) => state);
 };

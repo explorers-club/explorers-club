@@ -6,7 +6,7 @@ import { homeScreenMachine } from '../routes/home/home-screen.machine';
 import { newPartyScreenMachine } from '../routes/new-party/new-party-screen.machine';
 import { createPartyScreenMachine } from '../routes/party/party-screen.machine';
 
-const navigationModel = createModel({}, {});
+const navigationModel = createModel({}, { events: { FOO: () => ({} as any) } }); // Fixes TS lol
 export type NavigationContext = ContextFrom<typeof navigationModel>;
 
 interface CreateNavigationMachineProps {

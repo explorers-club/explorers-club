@@ -1,6 +1,6 @@
 // Inspired by https://stately.ai/blog/how-to-manage-global-state-with-xstate-and-react
 import { createContext, ReactNode, useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { BottomSheetRef } from 'react-spring-bottom-sheet';
 import { interpret } from 'xstate';
 import { useActorLogger } from '../lib/logging';
@@ -13,6 +13,7 @@ import { PartyConnectionActor } from './party-connection.machine';
 interface GlobalStateContextType {
   appActor: AppActor;
   sheetRef: React.RefObject<BottomSheetRef>;
+  navigationActor: NavigationActor;
 }
 
 declare global {
@@ -77,7 +78,9 @@ export const GlobalStateProvider = ({ children }: { children: ReactNode }) => {
   useActorLogger(navigationActor);
 
   return (
-    <GlobalStateContext.Provider value={{ appActor, sheetRef }}>
+    <GlobalStateContext.Provider
+      value={{ appActor, sheetRef, navigationActor }}
+    >
       {children}
     </GlobalStateContext.Provider>
   );
