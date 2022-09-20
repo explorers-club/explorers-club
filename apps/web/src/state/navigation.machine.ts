@@ -6,7 +6,10 @@ import { homeScreenMachine } from '../routes/home/home-screen.machine';
 import { newPartyScreenMachine } from '../routes/new-party/new-party-screen.machine';
 import { createPartyScreenMachine } from '../routes/party/party-screen.machine';
 
-const navigationModel = createModel({}, { events: { FOO: () => ({} as any) } }); // Fixes TS lol
+const navigationModel = createModel(
+  { userId: undefined as string | undefined },
+  { events: { FOO: () => ({} as any) } }
+); // Fixes TS lol
 export type NavigationContext = ContextFrom<typeof navigationModel>;
 
 interface CreateNavigationMachineProps {
@@ -54,7 +57,7 @@ export const createNavigationMachine = ({
         Party: {
           invoke: {
             id: 'partyScreenMachine',
-            src: (context) => {
+            src: ({ userId }) => {
               const pathMatch = matchPath(
                 '/party/:joinCode',
                 window.location.pathname
@@ -64,7 +67,7 @@ export const createNavigationMachine = ({
                 throw new Error('trying to join party without join code set');
               }
 
-              return createPartyScreenMachine({ joinCode });
+              return createPartyScreenMachine({ joinCode, userId });
             },
           },
         },

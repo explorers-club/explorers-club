@@ -9,8 +9,3 @@ export const usePartyScreenActor = () => {
     (state) => state.children['partyScreenMachine']
   );
 };
-
-export const usePartyScreenState = () => {
-  const partyScreenActor = usePartyScreenActor();
-  return useSelector(partyScreenActor, (state) => state);
-};

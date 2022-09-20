@@ -1,19 +1,38 @@
+import { useSelector } from '@xstate/react';
 import styled from 'styled-components';
-import { usePartyScreenState } from '../party-screen.hooks';
+import { usePartyScreenActor } from '../party-screen.hooks';
+import { CreateAccount } from './create-account.component';
 import { JoinError } from './join-error.component';
 import { Joined } from './joined';
 import { Joining } from './joining.component';
 import { Spectating } from './spectating.component';
 
 export const Connected = () => {
-  const state = usePartyScreenState();
+  const actor = usePartyScreenActor();
+
+  const isSpectating = useSelector(actor, (state) =>
+    state.matches('Connected.Spectating')
+  );
+  const isJoining = useSelector(actor, (state) =>
+    state.matches('Connected.Joining')
+  );
+  const isCreatingAccount = useSelector(actor, (state) =>
+    state.matches('Connected.CreateAccount')
+  );
+  const isJoined = useSelector(actor, (state) =>
+    state.matches('Connected.Joined')
+  );
+  const isJoinError = useSelector(actor, (state) =>
+    state.matches('Connected.JoinError')
+  );
 
   return (
     <Container>
-      {state.matches('Connected.Spectating') && <Spectating />}
-      {state.matches('Connected.Joining') && <Joining />}
-      {state.matches('Connected.Joined') && <Joined />}
-      {state.matches('Connected.JoinError') && <JoinError />}
+      {isSpectating && <Spectating />}
+      {isJoining && <Joining />}
+      {isCreatingAccount && <CreateAccount />}
+      {isJoined && <Joined />}
+      {isJoinError && <JoinError />}
     </Container>
   );
 };

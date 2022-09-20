@@ -1,18 +1,34 @@
 import {
   ActorEventType,
   ActorManager,
+  MachineFactory,
   SpawnActorEvent,
   SyncActorsEvent,
 } from '@explorers-club/actor';
-import { getPartyActorId } from '@explorers-club/party';
-import { ActorRefFrom } from 'xstate';
+import {
+  createPartyMachine,
+  createPartyPlayerMachine,
+  getPartyActorId,
+  getPartyPlayerActorId,
+} from '@explorers-club/party';
+import { User } from '@supabase/supabase-js';
+import { ActorRefFrom, assign, DoneInvokeEvent } from 'xstate';
 import { createModel } from 'xstate/lib/model';
+import { createAnonymousUser } from '../../lib/auth';
 import { supabaseClient } from '../../lib/supabase';
 
+MachineFactory.registerMachine('PARTY_ACTOR', createPartyMachine);
+MachineFactory.registerMachine('PLAYER_ACTOR', createPartyPlayerMachine);
+
 const partyScreenModel = createModel(
-  {},
+  {
+    userId: undefined as string | undefined,
+    playerName: undefined as string | undefined,
+  },
   {
     events: {
+      INPUT_CHANGE_PLAYER_NAME: (value: string) => ({ playerName: value }),
+      PRESS_SUBMIT: () => ({}),
       PRESS_JOIN: () => ({}),
       PRESS_READY: () => ({}),
       PRESS_START_GAME: () => ({}),
@@ -25,17 +41,24 @@ export const PartyScreenEvents = partyScreenModel.events;
 
 interface CreateMachineProps {
   joinCode: string;
+  userId: string | undefined;
 }
 
-export const createPartyScreenMachine = ({ joinCode }: CreateMachineProps) => {
+export const createPartyScreenMachine = ({
+  joinCode,
+  userId,
+}: CreateMachineProps) => {
   const partyActorId = getPartyActorId(joinCode);
-  const channel = supabaseClient.channel(`Party-${joinCode}`);
+  const channel = supabaseClient.channel(`party-${joinCode}`);
   const actorManager = new ActorManager(channel, partyActorId);
 
   return partyScreenModel.createMachine(
     {
       initial: 'Connecting',
-      context: {},
+      context: {
+        userId,
+        playerName: undefined,
+      },
       states: {
         Connecting: {
           invoke: {
@@ -49,8 +72,57 @@ export const createPartyScreenMachine = ({ joinCode }: CreateMachineProps) => {
           states: {
             Spectating: {
               on: {
-                PRESS_JOIN: 'Joining',
+                PRESS_JOIN: [
+                  {
+                    cond: 'isLoggedIn',
+                    target: 'Joining',
+                  },
+                  {
+                    target: 'CreateAccount',
+                  },
+                ],
               },
+            },
+            CreateAccount: {
+              initial: 'EnteringName',
+              states: {
+                EnteringName: {
+                  on: {
+                    INPUT_CHANGE_PLAYER_NAME: {
+                      target: 'EnteringName',
+                      actions: ['assignPlayerName'],
+                    },
+                    PRESS_SUBMIT: [
+                      {
+                        target: 'Creating',
+                        cond: 'isPlayerNameValid',
+                      },
+                      {
+                        target: 'EnteringName',
+                        // TODO action to set validation error here
+                      },
+                    ],
+                  },
+                },
+                Creating: {
+                  invoke: {
+                    src: 'createAccount',
+                    onDone: {
+                      target: 'Created',
+                      actions: assign({
+                        userId: (_, event: DoneInvokeEvent<User>) =>
+                          event.data.id,
+                      }),
+                    },
+                    onError: 'CreateError',
+                  },
+                },
+                CreateError: {},
+                Created: {
+                  type: 'final' as const,
+                },
+              },
+              onDone: 'Joining',
             },
             Joining: {
               invoke: {
@@ -81,15 +153,43 @@ export const createPartyScreenMachine = ({ joinCode }: CreateMachineProps) => {
       },
     },
     {
+      actions: {
+        assignPlayerName: partyScreenModel.assign({
+          playerName: (context, event) => {
+            if (event.type === 'INPUT_CHANGE_PLAYER_NAME') {
+              return event.playerName;
+            }
+            return context.playerName;
+          },
+        }),
+      },
+      guards: {
+        isLoggedIn: (context, event) => !!context.userId,
+        isPlayerNameValid: (context) => {
+          console.log(context.playerName);
+          return !!context.playerName;
+        },
+      },
       services: {
+        createAccount: async ({ playerName }) => {
+          // TODO set name on profile
+          return await createAnonymousUser();
+        },
         joinParty: async () => {
+          // TODO get userId from somewhere else
           const userId = (await supabaseClient.auth.getSession()).data.session
             ?.user.id;
-
-          const resp = await channel.track({ userId });
-          if (resp !== 'ok') {
-            throw new Error('non-ok response when joining party' + resp);
+          if (!userId) {
+            throw new Error('trying to join party without being logged in');
           }
+
+          const actorId = getPartyPlayerActorId(userId);
+          const myActor = actorManager.spawn({
+            actorId,
+            actorType: 'PLAYER_ACTOR',
+          });
+
+          return myActor;
         },
         connectToParty: () => {
           return new Promise((resolve) => {
@@ -114,6 +214,16 @@ export const createPartyScreenMachine = ({ joinCode }: CreateMachineProps) => {
               )
               .subscribe(async (status: string) => {
                 if (status === 'SUBSCRIBED') {
+                  const userId = (await supabaseClient.auth.getSession()).data
+                    .session?.user.id;
+
+                  const resp = await channel.track({
+                    userId,
+                  });
+
+                  if (resp !== 'ok') {
+                    console.error(resp);
+                  }
                   resolve(null);
                 }
               });

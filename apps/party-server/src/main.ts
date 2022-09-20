@@ -1,4 +1,10 @@
-import { ActorID, ActorManager, MachineFactory } from '@explorers-club/actor';
+import {
+  ActorEventType,
+  ActorID,
+  ActorManager,
+  MachineFactory,
+  SpawnActorEvent,
+} from '@explorers-club/actor';
 import { Database } from '@explorers-club/database';
 import {
   createPartyMachine,
@@ -29,7 +35,10 @@ async function bootstrap() {
       async (payload: { new: PartyRow }) => {
         const joinCode = payload.new.join_code;
         const channel = supabaseAdmin.channel(`party-${joinCode}`, {
-          eventsPerSecondLimit: 10000 /** effectively infinite */,
+          eventsPerSecondLimit: 10000 /** effectively infinite, i think */,
+          configs: {
+            broadcast: { act: true },
+          },
         });
         const partyActorId = getPartyActorId(joinCode);
         const actorManager = new ActorManager(channel, partyActorId);
@@ -44,14 +53,20 @@ async function bootstrap() {
           initializePresence({ channel, actorManager, partyActor });
         };
 
-        channel.subscribe(async (status) => {
-          if (status === 'SUBSCRIBED') {
-            // set a prop on presence to show host is connected?
-            handleConnect();
-          } else {
-            console.warn(`${joinCode} Channel status - ${status}`);
-          }
-        });
+        const handleSpawnActor = (payload: SpawnActorEvent) => {
+          console.log('SPAWN!', payload);
+        };
+
+        await channel
+          .on('broadcast', { event: ActorEventType.SPAWN }, handleSpawnActor)
+          .subscribe(async (status) => {
+            if (status === 'SUBSCRIBED') {
+              // set a prop on presence to show host is connected?
+              handleConnect();
+            } else {
+              console.warn(`${joinCode} Channel status - ${status}`);
+            }
+          });
       }
     )
     .subscribe();
@@ -66,8 +81,13 @@ const initializePresence = ({
   actorManager: ActorManager;
   partyActor: PartyActor;
 }) => {
+  const handleSpawnActor = async (payload: SpawnActorEvent) => {
+    console.log('spawn', payload);
+  };
+
   const handleSync = async () => {
     const presenceState = channel.presenceState();
+    console.log({ presenceState });
     Object.values(presenceState)
       .filter((value) => !!value['userId'])
       .map((p) => ({ userId: p['userId'] as string }))
@@ -105,6 +125,7 @@ const initializePresence = ({
   channel.on('presence', { event: 'sync' }, handleSync);
   channel.on('presence', { event: 'leave' }, handleLeave);
   channel.on('presence', { event: 'join' }, handleJoin);
+  channel.on('broadcast', { event: ActorEventType.SPAWN }, handleSpawnActor);
 };
 
 bootstrap();

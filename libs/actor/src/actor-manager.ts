@@ -38,6 +38,7 @@ interface ManagedActor {
 }
 
 export declare interface ActorManager {
+  on(event: 'SPAWN', listener: (actor: AnyActorRef) => void): this;
   on(event: 'HYDRATE', listener: (props: ManagedActor) => void): this;
   on(event: 'HYDRATE_ALL', listener: () => void): this;
 }
@@ -94,7 +95,7 @@ export class ActorManager extends EventEmitter {
         } as SharedActorProps)
       )
       .then(() => {
-        // TODO: emit event here? actorManager could be observable that is invoked
+        this.emit('SPAWN', actor);
       });
 
     this.actorMap.set(actor.id, { actor, actorType });
