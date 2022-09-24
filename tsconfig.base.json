@@ -17,7 +17,8 @@
     "paths": {
       "@explorers-club/actor": ["libs/actor/src/index.ts"],
       "@explorers-club/database": ["libs/database/src/index.ts"],
-      "@explorers-club/party": ["libs/party/src/index.ts"]
+      "@explorers-club/party": ["libs/party/src/index.ts"],
+      "@explorers-club/utils": ["libs/utils/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

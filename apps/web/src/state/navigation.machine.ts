@@ -1,4 +1,5 @@
 import { PartiesRow } from '@explorers-club/database';
+import { RealtimeChannel } from '@supabase/supabase-js';
 import { matchPath, NavigateFunction } from 'react-router-dom';
 import { ActorRefFrom, ContextFrom, DoneInvokeEvent } from 'xstate';
 import { createModel } from 'xstate/lib/model';
@@ -15,11 +16,13 @@ export type NavigationContext = ContextFrom<typeof navigationModel>;
 interface CreateNavigationMachineProps {
   initial: string;
   navigate: NavigateFunction;
+  usersChannel: RealtimeChannel;
 }
 
 export const createNavigationMachine = ({
   initial,
   navigate,
+  usersChannel,
 }: CreateNavigationMachineProps) => {
   return navigationModel.createMachine(
     {

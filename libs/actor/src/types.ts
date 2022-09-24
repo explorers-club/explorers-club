@@ -11,13 +11,17 @@ export enum ActorEventType {
   SYNC_ALL = 'ACTORS_SYNC_ALL',
 }
 
-export interface SpawnProps {
+export interface SharedActorRef {
   actorId: ActorID;
   actorType: ActorType;
 }
 
-export type SharedActorProps = SpawnProps & {
+export type SharedActor = SharedActorRef & {
   state: AnyState;
+};
+
+export type SerializedSharedActor = SharedActorRef & {
+  stateJSON: string;
 };
 
 /**

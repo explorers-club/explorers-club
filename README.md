@@ -4,7 +4,7 @@ Welcome to your next adventure!
 
 ## Concept
 
-Imagine Explorers Club as the game [Destiny](https://www.google.com/search?q=destiny+2+map), but instead of planets, imagine islands—and each island is a different board, card, drawing, or other quick to learn game. Friends can brow and play games together in a party from their phones, laptops, and/or TVs via Chromecast.
+Imagine Explorers Club as the game [Destiny](https://www.google.com/search?q=destiny+2+map), but instead of planets, imagine islands—and each island is a different board, card, drawing, or other quick to learn game. Friends can browse and play games together in a party from their phones, laptops, and/or TVs via Chromecast.
 
 ## Development
 
@@ -13,7 +13,7 @@ Run the web app with `nx run web:serve`.
 ## Core Stack and Patterns
 
 - supabase / postgres for database
-- supabase real-time for syncing game state
+- firebase for real-time syncing
 - react-three-fiber for 3D graphics
 - styled-components for styling
 - xstate for state management + actor pattern for sharing distributed real-time state

@@ -48,11 +48,6 @@ export const createPartyMachine = ({
           actions: partyModel.assign({
             playerActorIds: (context, { userId }) => {
               const actorId: ActorID = getPartyPlayerActorId(userId);
-              actorManager.spawn({
-                actorId,
-                actorType: 'PLAYER_ACTOR',
-              });
-
               return [...context.playerActorIds, actorId];
             },
           }),

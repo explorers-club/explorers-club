@@ -1,13 +1,18 @@
-import { RealtimeChannel } from '@supabase/supabase-js';
-import { AnyActorRef, AnyStateMachine, interpret, State } from 'xstate';
-import { ActorEvents } from './events';
+import {
+  AnyActorRef,
+  AnyState,
+  AnyStateMachine,
+  interpret,
+  State,
+} from 'xstate';
 import { EventEmitter } from 'events';
 import {
   ActorID,
   ActorType,
-  SharedActorProps,
+  SharedActor,
   SharedMachineProps,
-  SpawnProps,
+  SharedActorRef,
+  SerializedSharedActor,
 } from './types';
 
 type CreateMachineFunction = (props: SharedMachineProps) => AnyStateMachine;
@@ -43,35 +48,70 @@ export declare interface ActorManager {
   on(event: 'HYDRATE_ALL', listener: () => void): this;
 }
 
+/**
+ * Class to manage actors that are shared across a channel at runtime.
+ */
 export class ActorManager extends EventEmitter {
   private actorMap = new Map<
     string,
     { actor: AnyActorRef; actorType: ActorType }
   >();
-  private channel: RealtimeChannel;
   private rootActorId: ActorID;
 
-  constructor(channel: RealtimeChannel, rootActorId: ActorID) {
+  constructor(rootActorId: ActorID) {
     super();
-    this.channel = channel;
     this.rootActorId = rootActorId;
   }
 
-  async syncAll() {
-    const payload = Array.from(this.actorMap.values()).map(
-      ({ actor, actorType }) => ({
-        actorId: actor.id,
-        actorType,
-        state: actor.getSnapshot(),
-      })
-    );
+  /**
+   * Returns serialized state for a single actor. State is in the form of a JSON string.
+   * @param actorID
+   * @returns
+   */
+  serialize(actorID: ActorID) {
+    const actorData = this.actorMap.get(actorID);
+    if (!actorData) {
+      throw new Error("trying to serialize actor that wasn't found" + actorID);
+    }
 
-    const event = ActorEvents.SYNC_ALL(payload);
-
-    return await this.channel.send(event);
+    const { actor, actorType } = actorData;
+    const stateJSON = JSON.stringify(actor.getSnapshot());
+    return {
+      actorId: actor.id,
+      actorType,
+      stateJSON,
+    };
   }
 
-  spawn({ actorId, actorType }: SpawnProps) {
+  /**
+   * Returns a serialized state of all actors
+   * @returns Objecting containting the id, type, and state of an actor.
+   */
+  serializeAll() {
+    return Array.from(this.actorMap.values()).map(({ actor }) => {
+      return this.serialize(actor.id);
+    });
+  }
+
+  /**
+   * Sends the current state of all actors across the channel.
+   *
+   * To be used on the host to
+   * @returns Response from the channel
+   */
+  // async syncAll() {
+  //   console.debug('synicng all');
+  //   const payload = this.serializeAll();
+  //   const event = ActorEvents.SYNC_ALL(payload);
+  //   return await this._send(event);
+  // }
+
+  /**
+   * Instantiates and interprets a machine specified by the actorType,
+   * then sends it across the network as a "SPAWN" event on the channel,
+   * stores and returns the new reference within the manager map.
+   */
+  spawn({ actorId, actorType }: SharedActorRef) {
     const createMachine = MachineFactory.getCreateMachineFunction(actorType);
     if (!createMachine) {
       throw new Error(
@@ -83,26 +123,14 @@ export class ActorManager extends EventEmitter {
       actorId,
       actorManager: this,
     });
-    const actor = interpret(machine);
-    actor.start();
+    const actor = interpret(machine).start();
 
-    this.channel
-      .send(
-        ActorEvents.SPAWN({
-          actorId,
-          actorType,
-          state: actor.getSnapshot(),
-        } as SharedActorProps)
-      )
-      .then(() => {
-        this.emit('SPAWN', actor);
-      });
-
+    this.emit('SPAWN', actor);
     this.actorMap.set(actor.id, { actor, actorType });
     return actor;
   }
 
-  hydrateAll(payload: SharedActorProps[]) {
+  hydrateAll(payload: SerializedSharedActor[]) {
     payload.forEach((actorProps) => {
       this.hydrate(actorProps);
     });
@@ -110,7 +138,7 @@ export class ActorManager extends EventEmitter {
     this.emit('HYDRATE_ALL');
   }
 
-  hydrate({ actorId, actorType, state }: SharedActorProps) {
+  hydrate({ actorId, actorType, stateJSON }: SerializedSharedActor) {
     // Don't re-hydrate actors we already have
     if (this.actorMap.has(actorId)) {
       return;
@@ -128,6 +156,7 @@ export class ActorManager extends EventEmitter {
       actorManager: this,
     });
 
+    const state = JSON.parse(stateJSON) as AnyState;
     const previousState = State.create(state);
 
     const actor = interpret(machine).start(previousState);

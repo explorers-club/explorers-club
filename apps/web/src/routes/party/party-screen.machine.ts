@@ -1,20 +1,30 @@
 import {
+  ActorEvent,
   ActorEventType,
   ActorManager,
   MachineFactory,
-  SpawnActorEvent,
-  SyncActorsEvent,
+  SerializedSharedActor,
 } from '@explorers-club/actor';
 import {
   createPartyMachine,
   createPartyPlayerMachine,
   getPartyActorId,
   getPartyPlayerActorId,
+  PartyActor,
 } from '@explorers-club/party';
 import { User } from '@supabase/supabase-js';
+import {
+  onChildAdded,
+  onDisconnect,
+  onValue,
+  push,
+  ref,
+  set,
+} from 'firebase/database';
 import { ActorRefFrom, assign, DoneInvokeEvent } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { createAnonymousUser } from '../../lib/auth';
+import { db } from '../../lib/firebase';
 import { supabaseClient } from '../../lib/supabase';
 
 MachineFactory.registerMachine('PARTY_ACTOR', createPartyMachine);
@@ -24,6 +34,8 @@ const partyScreenModel = createModel(
   {
     userId: undefined as string | undefined,
     playerName: undefined as string | undefined,
+    actorManager: {} as ActorManager,
+    partyActor: undefined as PartyActor | undefined,
   },
   {
     events: {
@@ -49,21 +61,28 @@ export const createPartyScreenMachine = ({
   userId,
 }: CreateMachineProps) => {
   const partyActorId = getPartyActorId(joinCode);
-  const channel = supabaseClient.channel(`party-${joinCode}`);
-  const actorManager = new ActorManager(channel, partyActorId);
+  const actorManager = new ActorManager(partyActorId);
 
   return partyScreenModel.createMachine(
     {
       initial: 'Connecting',
       context: {
         userId,
+        partyActor: undefined,
         playerName: undefined,
+        actorManager,
       },
       states: {
         Connecting: {
           invoke: {
             src: 'connectToParty',
-            onDone: 'Connected',
+            onDone: {
+              target: 'Connected',
+              actions: assign({
+                partyActor: (context, event: DoneInvokeEvent<PartyActor>) =>
+                  event.data,
+              }),
+            },
             onError: 'Disconnected',
           },
         },
@@ -90,7 +109,7 @@ export const createPartyScreenMachine = ({
                   on: {
                     INPUT_CHANGE_PLAYER_NAME: {
                       target: 'EnteringName',
-                      actions: ['assignPlayerName'],
+                      actions: 'assignPlayerName',
                     },
                     PRESS_SUBMIT: [
                       {
@@ -156,19 +175,18 @@ export const createPartyScreenMachine = ({
       actions: {
         assignPlayerName: partyScreenModel.assign({
           playerName: (context, event) => {
-            if (event.type === 'INPUT_CHANGE_PLAYER_NAME') {
-              return event.playerName;
+            switch (event.type) {
+              case 'INPUT_CHANGE_PLAYER_NAME':
+                return event.playerName;
+              default:
+                return context.playerName;
             }
-            return context.playerName;
           },
         }),
       },
       guards: {
-        isLoggedIn: (context, event) => !!context.userId,
-        isPlayerNameValid: (context) => {
-          console.log(context.playerName);
-          return !!context.playerName;
-        },
+        isLoggedIn: (context) => !!context.userId,
+        isPlayerNameValid: (context) => !!context.playerName,
       },
       services: {
         createAccount: async ({ playerName }) => {
@@ -191,47 +209,86 @@ export const createPartyScreenMachine = ({
 
           return myActor;
         },
-        connectToParty: () => {
-          return new Promise((resolve) => {
-            const handleSyncActors = async ({ payload }: SyncActorsEvent) => {
-              actorManager.hydrateAll(payload);
-            };
+        connectToParty: async (context, event) => {
+          return new Promise((resolve, reject) => {
+            const actorsRef = ref(db, `parties/${joinCode}/actors`);
+            const eventsRef = ref(db, `parties/${joinCode}/events`);
 
-            const handleSpawnActor = async ({ payload }: SpawnActorEvent) => {
-              actorManager.hydrate(payload);
-            };
+            onChildAdded(eventsRef, (snap) => {
+              const event = snap.val() as ActorEvent;
 
-            channel
-              .on(
-                'broadcast',
-                { event: ActorEventType.SYNC_ALL },
-                handleSyncActors
-              )
-              .on(
-                'broadcast',
-                { event: ActorEventType.SPAWN },
-                handleSpawnActor
-              )
-              .subscribe(async (status: string) => {
-                if (status === 'SUBSCRIBED') {
-                  const userId = (await supabaseClient.auth.getSession()).data
-                    .session?.user.id;
+              if (event.type === ActorEventType.SPAWN) {
+                const hadRootActor = !!actorManager.rootActor;
 
-                  const resp = await channel.track({
-                    userId,
-                  });
+                // TODO fix event 'type' typings to avoid this cast
+                actorManager.hydrate(event.payload as SerializedSharedActor);
 
-                  if (resp !== 'ok') {
-                    console.error(resp);
-                  }
-                  resolve(null);
+                const didSpawnRootActor =
+                  !hadRootActor && !!actorManager.rootActor;
+                if (didSpawnRootActor) {
+                  resolve(actorManager.rootActor);
+                  // TODO remove this listener after we're done
                 }
-              });
+              }
+            });
+
+            onValue(
+              actorsRef,
+              (snap) => {
+                const actorData = (snap.val() || []) as SerializedSharedActor[];
+                actorManager.hydrateAll(actorData);
+
+                initializePartyPresence(joinCode);
+
+                if (actorManager.rootActor) {
+                  resolve(actorManager.rootActor);
+                }
+              },
+              {
+                onlyOnce: true,
+              }
+            );
           });
+
+          // const actorId = getPartyPlayerActorId(userId);
+
+          // const myActorRef = ref(db, `parties/${joinCode}/actors/${actorId}`)
+
+          // onValue(
+          //   actorsRef,
+          //   (snap) => {
+          //     console.log('actor value', snap.val());
+          //     if (snap.val()) {
+          //       console.log(snap.val());
+          //       // const con = push(userConnectionsRef);
+          //       // onDisconnect(con).remove();
+          //       // set(con, joinCode);
+          //     }
+          //   },
+          //   {
+          //     onlyOnce: true,
+          //   }
+          // );
+
+          // initializePartyPresence(joinCode);
         },
       },
     }
   );
+};
+
+const initializePartyPresence = (joinCode: string) => {
+  const userConnectionsRef = ref(db, 'user_party_connections');
+
+  // Set up presence handler
+  const connectedRef = ref(db, '.info/connected');
+  onValue(connectedRef, (snap) => {
+    if (snap.val()) {
+      const con = push(userConnectionsRef);
+      onDisconnect(con).remove();
+      set(con, joinCode);
+    }
+  });
 };
 
 export type PartyScreenActor = ActorRefFrom<

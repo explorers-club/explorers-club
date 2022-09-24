@@ -6,6 +6,7 @@
     "database": "libs/database",
     "party": "libs/party",
     "party-server": "apps/party-server",
+    "utils": "libs/utils",
     "web": "apps/web"
   }
 }
