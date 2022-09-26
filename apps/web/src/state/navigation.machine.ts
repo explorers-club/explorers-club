@@ -1,10 +1,9 @@
 import { PartiesRow } from '@explorers-club/database';
-import { RealtimeChannel } from '@supabase/supabase-js';
 import { matchPath, NavigateFunction } from 'react-router-dom';
 import { ActorRefFrom, ContextFrom, DoneInvokeEvent } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { homeScreenMachine } from '../routes/home/home-screen.machine';
-import { newPartyScreenMachine } from '../routes/new-party/new-party-screen.machine';
+import { createNewPartyScreenMachine } from '../routes/new-party/new-party-screen.machine';
 import { createPartyScreenMachine } from '../routes/party/party-screen.machine';
 import { AuthActor } from './auth.machine';
 
@@ -36,7 +35,7 @@ export const createNavigationMachine = ({
                 target: 'Party',
                 cond: (_, event: DoneInvokeEvent<PartiesRow | undefined>) =>
                   !!event.data,
-                actions: ['navigateToPartyScreen'],
+                actions: 'navigateToPartyScreen',
               },
               {
                 target: 'NewParty',
@@ -48,7 +47,7 @@ export const createNavigationMachine = ({
         NewParty: {
           invoke: {
             id: 'newPartyScreenMachine',
-            src: newPartyScreenMachine,
+            src: createNewPartyScreenMachine({ authActor }),
             onDone: {
               target: 'Party',
               actions: ['navigateToPartyScreen'],

@@ -26,6 +26,7 @@ import {
 import { filter, first, from, takeWhile } from 'rxjs';
 import { ActorRefFrom, assign, DoneInvokeEvent } from 'xstate';
 import { createModel } from 'xstate/lib/model';
+import { createAnonymousUser } from '../../state/auth.utils';
 import { db } from '../../lib/firebase';
 import { supabaseClient } from '../../lib/supabase';
 import { AuthActor, AuthEvents } from '../../state/auth.machine';
@@ -191,27 +192,7 @@ export const createPartyScreenMachine = ({
         isPlayerNameValid: (context) => !!context.playerName,
       },
       services: {
-        createAccount: ({ playerName }) =>
-          // Creates an account by sending event to auth acctor
-          // Listens for changes to the auth actor state and
-          // resolves/rejects promise according to it.
-          new Promise((resolve, reject) => {
-            from(authActor)
-              .pipe(
-                filter((state) => state.matches('Authenticated')),
-                first()
-              )
-              .subscribe(resolve);
-            // TODO cleanup observable subscriptions?
-            from(authActor)
-              .pipe(
-                filter((state) => state.matches('Unauthenticated.Error')),
-                first()
-              )
-              .subscribe(reject);
-            authActor.send(AuthEvents.CREATE_ANONYMOUS_USER());
-          }),
-
+        createAccount: ({ authActor }) => createAnonymousUser(authActor),
         joinParty: async () => {
           // Make sure we're logged in
           const userId = authActor.getSnapshot()?.context.session?.user.id;
