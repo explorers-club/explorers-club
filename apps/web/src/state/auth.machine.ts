@@ -40,6 +40,10 @@ export const createAuthMachine = () =>
             onDone: [
               {
                 target: 'Authenticated',
+                actions: assign({
+                  session: (_, { data }: DoneInvokeEvent<Session | null>) =>
+                    data,
+                }),
                 cond: 'isLoggedIn',
               },
               {
@@ -61,7 +65,8 @@ export const createAuthMachine = () =>
                 src: 'createAnonymousUser',
                 onDone: {
                   actions: assign({
-                    session: (_, event: DoneInvokeEvent<Session>) => event.data,
+                    session: (_, event: DoneInvokeEvent<Session | null>) =>
+                      event.data,
                   }),
                   target: 'Success',
                 },
