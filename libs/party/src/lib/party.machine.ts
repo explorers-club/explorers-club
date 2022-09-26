@@ -1,12 +1,19 @@
-import { ActorID, SharedMachineProps } from '@explorers-club/actor';
+import {
+  ActorID,
+  ActorManager,
+  SharedMachineProps,
+} from '@explorers-club/actor';
 import { ActorRefFrom, createMachine, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
-import { getPartyPlayerActorId } from './party-player.machine';
+import {
+  getLobbyPlayerActorId,
+  LobbyPlayerActor,
+} from './lobby-player.machine';
 
-export const PLAYER_CONNECTED = (props: { userId: string }) => props;
+export const PLAYER_JOINED = (props: { userId: string }) => props;
 export const PLAYER_DISCONNECTED = (props: { userId: string }) => props;
 
-export type PlayerConnectedEvent = ReturnType<typeof PLAYER_CONNECTED>;
+export type PlayerJoinedEvent = ReturnType<typeof PLAYER_JOINED>;
 export type PlayerDisconnectedEvent = ReturnType<typeof PLAYER_DISCONNECTED>;
 
 const gameMachine = createMachine({
@@ -19,12 +26,13 @@ const gameMachine = createMachine({
 
 const partyModel = createModel(
   {
-    playerActorIds: [] as string[],
+    playerUserIds: [] as string[],
+    actorManager: {} as ActorManager,
   },
   {
     events: {
       PLAYER_DISCONNECTED,
-      PLAYER_CONNECTED,
+      PLAYER_JOINED,
     },
   }
 );
@@ -41,23 +49,23 @@ export const createPartyMachine = ({
   partyModel.createMachine(
     {
       id: actorId,
-      context: partyModel.initialContext,
+      context: {
+        playerUserIds: [],
+        actorManager,
+      },
       initial: 'Lobby',
       on: {
-        PLAYER_CONNECTED: {
+        PLAYER_JOINED: {
           actions: partyModel.assign({
-            playerActorIds: (context, { userId }) => {
-              const actorId: ActorID = getPartyPlayerActorId(userId);
-              return [...context.playerActorIds, actorId];
+            playerUserIds: (context, { userId }) => {
+              return [...context.playerUserIds, userId];
             },
           }),
         },
         PLAYER_DISCONNECTED: {
           actions: partyModel.assign({
-            playerActorIds: (context, { userId }) => {
-              getPartyActorId(userId);
-              const actorId = '';
-              return context.playerActorIds.filter((id) => id !== actorId);
+            playerUserIds: (context, { userId }) => {
+              return context.playerUserIds.filter((id) => id !== userId);
             },
           }),
         },
@@ -67,8 +75,18 @@ export const createPartyMachine = ({
           onDone: 'Game',
           initial: 'Waiting',
           states: {
-            Waiting: {},
-            AllReady: {},
+            Waiting: {
+              always: {
+                target: 'AllReady',
+                cond: 'allPlayersReady',
+              },
+            },
+            AllReady: {
+              always: {
+                target: 'Waiting',
+                cond: 'allPlayersNotReady',
+              },
+            },
             EnteringGame: {
               type: 'final' as const,
             },
@@ -84,8 +102,32 @@ export const createPartyMachine = ({
       },
       predictableActionArguments: true,
     },
-    {}
+    {
+      guards: {
+        allPlayersNotReady: ({ actorManager, playerUserIds }) =>
+          !getAllPlayersReady(actorManager, playerUserIds),
+        allPlayersReady: ({ actorManager, playerUserIds }) =>
+          getAllPlayersReady(actorManager, playerUserIds),
+      },
+    }
   );
+
+const getAllPlayersReady = (
+  actorManager: ActorManager,
+  playerUserIds: string[]
+) => {
+  return (
+    playerUserIds
+      .map((userId) => {
+        const lobbyActorId = getLobbyPlayerActorId(userId);
+        const lobbyActor = actorManager.getActor(lobbyActorId) as
+          | LobbyPlayerActor
+          | undefined;
+        return lobbyActor?.getSnapshot()?.matches('Ready');
+      })
+      .filter((val) => val).length === 0
+  );
+};
 
 export type GameActor = ActorRefFrom<typeof gameMachine>;
 export type GameState = StateFrom<typeof gameMachine>;

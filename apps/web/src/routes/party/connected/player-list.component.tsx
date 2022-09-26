@@ -1,11 +1,19 @@
-import { useSelector } from "@xstate/react";
-import { usePartyScreenActor } from "../party-screen.hooks";
+import { useSelector } from '@xstate/react';
+import { usePartyActor } from '../party-screen.hooks';
 
 export const PlayerList = () => {
-  const actor = usePartyScreenActor();
-  const partyActor = useSelector(actor, (state) => state.context.partyActor);
+  const partyActor = usePartyActor();
+
+  const playerIds = useSelector(
+    partyActor,
+    (state) => state.context.playerUserIds
+  );
+
   return (
     <ul>
+      {playerIds.map((id) => (
+        <li key={id}>{id}</li>
+      ))}
     </ul>
   );
 };

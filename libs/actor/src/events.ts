@@ -22,9 +22,18 @@ const SPAWN = ({
   };
 };
 
-const SEND = (payload: { actorId: ActorID; event: AnyEventObject }) => ({
+const SEND = ({
+  actorId,
+  event,
+}: {
+  actorId: ActorID;
+  event: AnyEventObject;
+}) => ({
   type: ActorEventType.SEND,
-  payload,
+  payload: {
+    actorId,
+    event,
+  },
 });
 
 type SendActorEvent = ReturnType<typeof SEND>;

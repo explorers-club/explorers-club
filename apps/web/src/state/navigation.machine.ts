@@ -6,23 +6,21 @@ import { createModel } from 'xstate/lib/model';
 import { homeScreenMachine } from '../routes/home/home-screen.machine';
 import { newPartyScreenMachine } from '../routes/new-party/new-party-screen.machine';
 import { createPartyScreenMachine } from '../routes/party/party-screen.machine';
+import { AuthActor } from './auth.machine';
 
-const navigationModel = createModel(
-  { userId: undefined as string | undefined },
-  { events: { FOO: () => ({} as any) } }
-); // Fixes TS lol
+const navigationModel = createModel({}, { events: { FOO: () => ({} as any) } }); // Fixes TS lol
 export type NavigationContext = ContextFrom<typeof navigationModel>;
 
 interface CreateNavigationMachineProps {
   initial: string;
   navigate: NavigateFunction;
-  usersChannel: RealtimeChannel;
+  authActor: AuthActor;
 }
 
 export const createNavigationMachine = ({
   initial,
   navigate,
-  usersChannel,
+  authActor,
 }: CreateNavigationMachineProps) => {
   return navigationModel.createMachine(
     {
@@ -60,7 +58,7 @@ export const createNavigationMachine = ({
         Party: {
           invoke: {
             id: 'partyScreenMachine',
-            src: ({ userId }) => {
+            src: (_) => {
               const pathMatch = matchPath(
                 '/party/:joinCode',
                 window.location.pathname
@@ -70,7 +68,7 @@ export const createNavigationMachine = ({
                 throw new Error('trying to join party without join code set');
               }
 
-              return createPartyScreenMachine({ joinCode, userId });
+              return createPartyScreenMachine({ joinCode, authActor });
             },
           },
         },

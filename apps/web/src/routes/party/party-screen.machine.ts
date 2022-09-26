@@ -1,5 +1,6 @@
 import {
   ActorEvent,
+  ActorEvents,
   ActorEventType,
   ActorManager,
   MachineFactory,
@@ -11,8 +12,9 @@ import {
   getPartyActorId,
   getPartyPlayerActorId,
   PartyActor,
+  PartyEvents,
 } from '@explorers-club/party';
-import { User } from '@supabase/supabase-js';
+import { noop } from '@explorers-club/utils';
 import {
   onChildAdded,
   onDisconnect,
@@ -21,21 +23,22 @@ import {
   ref,
   set,
 } from 'firebase/database';
+import { filter, first, from, takeWhile } from 'rxjs';
 import { ActorRefFrom, assign, DoneInvokeEvent } from 'xstate';
 import { createModel } from 'xstate/lib/model';
-import { createAnonymousUser } from '../../lib/auth';
 import { db } from '../../lib/firebase';
 import { supabaseClient } from '../../lib/supabase';
+import { AuthActor, AuthEvents } from '../../state/auth.machine';
 
 MachineFactory.registerMachine('PARTY_ACTOR', createPartyMachine);
 MachineFactory.registerMachine('PLAYER_ACTOR', createPartyPlayerMachine);
 
 const partyScreenModel = createModel(
   {
-    userId: undefined as string | undefined,
     playerName: undefined as string | undefined,
     actorManager: {} as ActorManager,
     partyActor: undefined as PartyActor | undefined,
+    authActor: {} as AuthActor,
   },
   {
     events: {
@@ -53,24 +56,26 @@ export const PartyScreenEvents = partyScreenModel.events;
 
 interface CreateMachineProps {
   joinCode: string;
-  userId: string | undefined;
+  authActor: AuthActor;
 }
 
 export const createPartyScreenMachine = ({
   joinCode,
-  userId,
+  authActor,
 }: CreateMachineProps) => {
   const partyActorId = getPartyActorId(joinCode);
   const actorManager = new ActorManager(partyActorId);
+  const actorsRef = ref(db, `parties/${joinCode}/actors`);
+  const eventsRef = ref(db, `parties/${joinCode}/events`);
 
   return partyScreenModel.createMachine(
     {
       initial: 'Connecting',
       context: {
-        userId,
         partyActor: undefined,
         playerName: undefined,
         actorManager,
+        authActor,
       },
       states: {
         Connecting: {
@@ -128,10 +133,6 @@ export const createPartyScreenMachine = ({
                     src: 'createAccount',
                     onDone: {
                       target: 'Created',
-                      actions: assign({
-                        userId: (_, event: DoneInvokeEvent<User>) =>
-                          event.data.id,
-                      }),
                     },
                     onError: 'CreateError',
                   },
@@ -185,35 +186,87 @@ export const createPartyScreenMachine = ({
         }),
       },
       guards: {
-        isLoggedIn: (context) => !!context.userId,
+        isLoggedIn: ({ authActor }) =>
+          !!authActor.getSnapshot()?.matches('Authenticated'),
         isPlayerNameValid: (context) => !!context.playerName,
       },
       services: {
-        createAccount: async ({ playerName }) => {
-          // TODO set name on profile
-          return await createAnonymousUser();
-        },
+        createAccount: ({ playerName }) =>
+          // Creates an account by sending event to auth acctor
+          // Listens for changes to the auth actor state and
+          // resolves/rejects promise according to it.
+          new Promise((resolve, reject) => {
+            from(authActor)
+              .pipe(
+                filter((state) => state.matches('Authenticated')),
+                first()
+              )
+              .subscribe(resolve);
+            // TODO cleanup observable subscriptions?
+            from(authActor)
+              .pipe(
+                filter((state) => state.matches('Unauthenticated.Error')),
+                first()
+              )
+              .subscribe(reject);
+            authActor.send(AuthEvents.CREATE_ANONYMOUS_USER());
+          }),
+
         joinParty: async () => {
-          // TODO get userId from somewhere else
-          const userId = (await supabaseClient.auth.getSession()).data.session
-            ?.user.id;
+          // Make sure we're logged in
+          const userId = authActor.getSnapshot()?.context.session?.user.id;
           if (!userId) {
             throw new Error('trying to join party without being logged in');
           }
 
+          // Spawn the player actor
           const actorId = getPartyPlayerActorId(userId);
+          const actorType = 'PLAYER_ACTOR';
+
           const myActor = actorManager.spawn({
             actorId,
-            actorType: 'PLAYER_ACTOR',
+            actorType,
           });
+
+          actorManager.myActorId = actorId;
+
+          // Send the actors events up to the network
+          myActor.onEvent((event) => {
+            const newEventRef = push(eventsRef);
+            set(
+              newEventRef,
+              ActorEvents.SEND({
+                actorId,
+                event,
+              })
+            );
+          });
+
+          // Spawn the player actor on the network
+          const spawnActorEventRef = push(eventsRef);
+          set(
+            spawnActorEventRef,
+            ActorEvents.SPAWN({
+              actorId,
+              actorType,
+              actor: myActor,
+            })
+          ).then(noop);
+
+          // Tell the party we've joind
+          const joinEventRef = push(eventsRef);
+          set(
+            joinEventRef,
+            ActorEvents.SEND({
+              actorId: partyActorId,
+              event: PartyEvents.PLAYER_JOINED({ userId }),
+            })
+          );
 
           return myActor;
         },
         connectToParty: async (context, event) => {
           return new Promise((resolve, reject) => {
-            const actorsRef = ref(db, `parties/${joinCode}/actors`);
-            const eventsRef = ref(db, `parties/${joinCode}/events`);
-
             onChildAdded(eventsRef, (snap) => {
               const event = snap.val() as ActorEvent;
 
@@ -249,28 +302,6 @@ export const createPartyScreenMachine = ({
               }
             );
           });
-
-          // const actorId = getPartyPlayerActorId(userId);
-
-          // const myActorRef = ref(db, `parties/${joinCode}/actors/${actorId}`)
-
-          // onValue(
-          //   actorsRef,
-          //   (snap) => {
-          //     console.log('actor value', snap.val());
-          //     if (snap.val()) {
-          //       console.log(snap.val());
-          //       // const con = push(userConnectionsRef);
-          //       // onDisconnect(con).remove();
-          //       // set(con, joinCode);
-          //     }
-          //   },
-          //   {
-          //     onlyOnce: true,
-          //   }
-          // );
-
-          // initializePartyPresence(joinCode);
         },
       },
     }

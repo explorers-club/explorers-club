@@ -1,5 +1,6 @@
 import {
   AnyActorRef,
+  AnyInterpreter,
   AnyState,
   AnyStateMachine,
   interpret,
@@ -9,7 +10,6 @@ import { EventEmitter } from 'events';
 import {
   ActorID,
   ActorType,
-  SharedActor,
   SharedMachineProps,
   SharedActorRef,
   SerializedSharedActor,
@@ -54,13 +54,14 @@ export declare interface ActorManager {
 export class ActorManager extends EventEmitter {
   private actorMap = new Map<
     string,
-    { actor: AnyActorRef; actorType: ActorType }
+    { actor: AnyInterpreter; actorType: ActorType }
   >();
-  private rootActorId: ActorID;
+  private _rootActorId: ActorID;
+  private _myActorId?: ActorID;
 
   constructor(rootActorId: ActorID) {
     super();
-    this.rootActorId = rootActorId;
+    this._rootActorId = rootActorId;
   }
 
   /**
@@ -176,8 +177,16 @@ export class ActorManager extends EventEmitter {
       .map(({ actor }) => actor);
   }
 
+  set myActorId(value: ActorID) {
+    this._myActorId = value;
+  }
+
+  get myActor() {
+    return this.getActor(this.myActorId);
+  }
+
   get rootActor() {
-    return this.getActor(this.rootActorId);
+    return this.getActor(this._rootActorId);
   }
 
   get allActors() {

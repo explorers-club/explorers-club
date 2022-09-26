@@ -30,19 +30,16 @@ export const GlobalStateProvider = ({ children }: { children: ReactNode }) => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const route = useCurrentRoute();
   const navigate = useNavigate();
-  const usersChannel = supabaseClient.channel('users');
-  usersChannel.subscribe();
 
   // Initialize the actor machines
   const [actorRefs] = useState(() => {
-    const user = null; // TODO initialize this
-    const authMachine = createAuthMachine({ user });
+    const authMachine = createAuthMachine();
     const authActor = interpret(authMachine);
 
     const navigationMachine = createNavigationMachine({
       initial: route.state,
       navigate,
-      usersChannel,
+      authActor,
     });
     const navigationActor = interpret(navigationMachine);
 

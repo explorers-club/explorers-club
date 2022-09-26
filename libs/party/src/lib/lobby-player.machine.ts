@@ -1,11 +1,13 @@
-import { createModel } from "xstate/lib/model";
+import { ActorID, SharedMachineProps } from '@explorers-club/actor';
+import { ActorRefFrom } from 'xstate';
+import { createModel } from 'xstate/lib/model';
 
 interface LobbyPlayerProps {
   userId: string;
 }
 
 const lobbyPlayerModel = createModel(
-  { userId: '' as string },
+  {},
   {
     events: {
       READY: () => ({}),
@@ -14,13 +16,13 @@ const lobbyPlayerModel = createModel(
   }
 );
 
-export const createLobbyPlayerMachine = ({ userId }: LobbyPlayerProps) =>
+export const getLobbyPlayerActorId = (userId: string) =>
+  `LobbyPlayer-${userId}` as ActorID;
+
+export const createLobbyPlayerMachine = ({ actorId }: SharedMachineProps) =>
   lobbyPlayerModel.createMachine({
-    id: `LobbyPlayer-${userId}`,
+    id: actorId,
     initial: 'NotReady',
-    context: {
-      userId,
-    },
     states: {
       NotReady: {
         on: {
@@ -34,3 +36,6 @@ export const createLobbyPlayerMachine = ({ userId }: LobbyPlayerProps) =>
       },
     },
   });
+
+export type LobbyPlayerMachine = ReturnType<typeof createLobbyPlayerMachine>;
+export type LobbyPlayerActor = ActorRefFrom<LobbyPlayerMachine>;

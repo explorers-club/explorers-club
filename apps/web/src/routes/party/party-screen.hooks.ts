@@ -1,3 +1,4 @@
+import { PartyActor } from '@explorers-club/party';
 import { useSelector } from '@xstate/react';
 import { useContext } from 'react';
 import { GlobalStateContext } from '../../state/global.provider';
@@ -8,5 +9,18 @@ export const usePartyScreenActor = () => {
   return useSelector(
     navigationActor,
     (state) => state.children['partyScreenMachine'] as PartyScreenActor
+  );
+};
+
+/**
+ * Should only be used by components when in the connected state, otherwise
+ * will throw an exception
+ * @returns the party actor
+ */
+export const usePartyActor = () => {
+  const partyScreenActor = usePartyScreenActor();
+  return useSelector(
+    partyScreenActor,
+    (state) => state.context.partyActor as PartyActor
   );
 };

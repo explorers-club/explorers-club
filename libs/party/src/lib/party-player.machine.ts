@@ -3,9 +3,7 @@ import { ActorRefFrom, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 
 const partyPlayerModel = createModel(
-  {
-    userId: '' as string,
-  },
+  {},
   {
     events: {
       READY: () => ({}),
@@ -16,16 +14,13 @@ const partyPlayerModel = createModel(
 export const getPartyPlayerActorId = (userId: string) =>
   `PartyPlayer-${userId}` as ActorID;
 
-export const createPartyPlayerMachine = ({
-  actorId,
-  actorManager,
-}: SharedMachineProps) =>
+export const createPartyPlayerMachine = ({ actorId }: SharedMachineProps) =>
   partyPlayerModel.createMachine(
     {
       id: actorId,
-      initial: 'Connecting',
+      initial: 'Spawned',
       states: {
-        Connecting: {},
+        Spawned: {},
         Connected: {},
         Disconnected: {},
       },
