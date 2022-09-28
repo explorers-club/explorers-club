@@ -12,10 +12,9 @@ export const useActorLogger = (actor?: AnyActorRef) => {
     const subscription = actor.subscribe((state) => {
       // TODO only do in dev
       console.log(
-        `[${actor.id}]`,
-        `[type: ${state.event.type}]`,
-        `[next state: ${JSON.stringify(state.value)}]`,
-        { event: state.event, context: state.context, actor }
+        `${actor.id}\n ${state.event.type}\n`,
+        ` state: ${JSON.stringify(state.value)}`,
+        { event: state.event, context: state.context }
       );
     });
     return () => {

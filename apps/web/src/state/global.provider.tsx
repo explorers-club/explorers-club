@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { BottomSheetRef } from 'react-spring-bottom-sheet';
 import { interpret } from 'xstate';
 import { useActorLogger } from '../lib/logging';
-import { supabaseClient } from '../lib/supabase';
 import { useCurrentRoute } from '../routes/route.hooks';
 import { AppActor, createAppMachine } from './app.machine';
 import { AuthActor, createAuthMachine } from './auth.machine';
@@ -72,9 +71,9 @@ export const GlobalStateProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [appActor, authActor, navigationActor]);
 
-  useActorLogger(appActor);
+  // useActorLogger(appActor);
   useActorLogger(authActor);
-  useActorLogger(navigationActor);
+  // useActorLogger(navigationActor);
 
   return (
     <GlobalStateContext.Provider

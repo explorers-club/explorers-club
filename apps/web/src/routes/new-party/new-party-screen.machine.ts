@@ -40,6 +40,7 @@ export const createNewPartyScreenMachine = ({
         },
         NetworkError: {},
       },
+      predictableActionArguments: true,
     },
     {
       services: {

@@ -35,22 +35,36 @@ export const createAuthMachine = () =>
       context: authModel.initialContext,
       states: {
         Initializing: {
-          invoke: {
-            src: 'getSession',
-            onDone: [
-              {
-                target: 'Authenticated',
-                actions: assign({
-                  session: (_, { data }: DoneInvokeEvent<Session | null>) =>
-                    data,
-                }),
-                cond: 'isLoggedIn',
+          initial: 'Fetching',
+          states: {
+            Fetching: {
+              invoke: {
+                src: 'getSession',
+                onDone: [
+                  {
+                    target: 'Complete',
+                    actions: assign({
+                      session: (_, { data }: DoneInvokeEvent<Session | null>) =>
+                        data,
+                    }),
+                  },
+                ],
               },
-              {
-                target: 'Unauthenticated',
-              },
-            ],
+            },
+            Complete: {
+              type: 'final' as const,
+            },
+            Error: {},
           },
+          onDone: [
+            {
+              target: 'Authenticated',
+              cond: 'isLoggedIn',
+            },
+            {
+              target: 'Unauthenticated',
+            },
+          ],
         },
         Unauthenticated: {
           initial: 'Idle',
@@ -98,7 +112,9 @@ export const createAuthMachine = () =>
         },
       },
       guards: {
-        isLoggedIn: (context) => !!context.session,
+        isLoggedIn: (context, event) => {
+          return !!context.session;
+        },
       },
       services: {
         getSession: async () => {

@@ -1,17 +1,18 @@
 import {
   ActorEvent,
-  ActorEvents, ActorManager,
+  ActorEvents,
+  ActorManager,
   isSendEvent,
   isSpawnEvent,
   MachineFactory,
-  SerializedSharedActor
+  SerializedSharedActor,
 } from '@explorers-club/actor';
 import {
   createPartyMachine,
   createPartyPlayerMachine,
   getPartyActorId,
   getPartyPlayerActorId,
-  PartyActor
+  PartyActor,
 } from '@explorers-club/party';
 import { noop } from '@explorers-club/utils';
 import {
@@ -20,7 +21,7 @@ import {
   onValue,
   push,
   ref,
-  set
+  set,
 } from 'firebase/database';
 import { ActorRefFrom, assign, DoneInvokeEvent } from 'xstate';
 import { createModel } from 'xstate/lib/model';
@@ -169,6 +170,7 @@ export const createPartyScreenMachine = ({
         },
         Disconnected: {},
       },
+      predictableActionArguments: true,
     },
     {
       actions: {
@@ -236,7 +238,6 @@ export const createPartyScreenMachine = ({
           return new Promise((resolve, reject) => {
             onChildAdded(eventsRef, (snap) => {
               const event = snap.val() as ActorEvent;
-              console.log('CHILD ADDED', event);
 
               if (isSpawnEvent(event)) {
                 const hadRootActor = !!actorManager.rootActor;
@@ -253,7 +254,6 @@ export const createPartyScreenMachine = ({
                 const { actorId } = event.payload;
                 const actor = actorManager.getActor(actorId);
                 if (actor) {
-                  console.log(event);
                   actor.send(event.payload.event);
                 } else {
                   console.debug('warning: no actor found for event', event);

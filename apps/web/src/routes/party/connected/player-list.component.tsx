@@ -7,7 +7,6 @@ export const PlayerList = () => {
     partyActor,
     (state) => state.context.playerActorIds
   );
-  console.log({ partyActor, actorIds });
 
   return (
     <ul>

@@ -22,6 +22,7 @@ const gameMachine = createMachine({
   states: {
     Loading: {},
   },
+  predictableActionArguments: true,
 });
 
 const partyModel = createModel(
