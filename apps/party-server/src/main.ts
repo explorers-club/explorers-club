@@ -28,14 +28,13 @@ import {
   set
 } from 'firebase/database';
 import { filter, fromEvent } from 'rxjs';
+import { isPartyPlayer } from './actors';
 import { db } from './lib/firebase';
 
 // Presence app example
 // https://firebase.google.com/docs/database/android/offline-capabilities#section-sample
 
 // type PartyRow = Database['public']['Tables']['parties']['Row'];
-MachineFactory.registerMachine('PARTY_ACTOR', createPartyMachine);
-MachineFactory.registerMachine('PLAYER_ACTOR', createPartyPlayerMachine);
 
 const runningParties = new Set();
 
@@ -173,17 +172,6 @@ async function bootstrap() {
 }
 
 bootstrap();
-
-interface PartyPlayerManagedActor extends ManagedActor {
-  actorType: 'PLAYER_ACTOR';
-  actor: PartyPlayerActor;
-}
-
-function isPartyPlayer(
-  managedActor: ManagedActor
-): managedActor is PartyPlayerManagedActor {
-  return managedActor.actorType === 'PLAYER_ACTOR';
-}
 
 /**
  * Runs the logic for the party in a loop.
