@@ -23,6 +23,7 @@ import {
   ref,
   set,
 } from 'firebase/database';
+import { filter, first, from } from 'rxjs';
 import { ActorRefFrom, assign, DoneInvokeEvent } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { db } from '../../lib/firebase';
@@ -91,8 +92,23 @@ export const createPartyScreenMachine = ({
           },
         },
         Connected: {
-          initial: 'Spectating',
+          initial: 'Initializing',
           states: {
+            Initializing: {
+              invoke: {
+                src: 'waitForAuthInit',
+                onDone: [
+                  {
+                    // Resume playing if they were previously connected
+                    cond: 'isInParty',
+                    target: 'Joined',
+                  },
+                  {
+                    target: 'Spectating',
+                  },
+                ],
+              },
+            },
             Spectating: {
               on: {
                 PRESS_JOIN: [
@@ -186,11 +202,32 @@ export const createPartyScreenMachine = ({
         }),
       },
       guards: {
+        isInParty: ({ authActor, actorManager }) => {
+          const userId = authActor.getSnapshot()?.context.session?.user.id; // lol
+          if (!userId) {
+            return false;
+          }
+
+          const actorId = getPartyPlayerActorId(userId);
+          return !!actorManager.getActor(actorId);
+        },
         isLoggedIn: ({ authActor }) =>
           !!authActor.getSnapshot()?.matches('Authenticated'),
         isPlayerNameValid: (context) => !!context.playerName,
       },
       services: {
+        waitForAuthInit: ({ authActor }) => {
+          return new Promise((resolve) => {
+            from(authActor)
+              // Wait for first state not in Initializing
+              // TODO: is there a good way to type the states strings?
+              .pipe(
+                filter((state) => !state.matches('Initializing')),
+                first()
+              )
+              .subscribe(resolve);
+          });
+        },
         createAccount: ({ authActor }) => createAnonymousUser(authActor),
         joinParty: async () => {
           // Make sure we're logged in
@@ -200,6 +237,7 @@ export const createPartyScreenMachine = ({
           }
 
           // Spawn the player actor
+          // and send it out on the network
           const actorId = getPartyPlayerActorId(userId);
           const actorType = 'PLAYER_ACTOR';
 
@@ -209,7 +247,16 @@ export const createPartyScreenMachine = ({
           });
           actorManager.myActorId = actorId;
 
-          // Send the actors events up to the network
+          const spawnActorEventRef = push(eventsRef);
+          set(
+            spawnActorEventRef,
+            ActorEvents.SPAWN({
+              actorId,
+              actorType,
+              actor: myActor,
+            })
+          ).then(noop);
+
           myActor.onEvent((event) => {
             const newEventRef = push(eventsRef);
             set(
@@ -220,17 +267,6 @@ export const createPartyScreenMachine = ({
               })
             );
           });
-
-          // Spawn the player actor on the network
-          const spawnActorEventRef = push(eventsRef);
-          set(
-            spawnActorEventRef,
-            ActorEvents.SPAWN({
-              actorId,
-              actorType,
-              actor: myActor,
-            })
-          ).then(noop);
 
           return myActor;
         },
