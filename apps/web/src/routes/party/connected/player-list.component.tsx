@@ -3,15 +3,15 @@ import { usePartyActor } from '../party-screen.hooks';
 
 export const PlayerList = () => {
   const partyActor = usePartyActor();
-
-  const playerIds = useSelector(
+  const actorIds = useSelector(
     partyActor,
-    (state) => state.context.playerUserIds
+    (state) => state.context.playerActorIds
   );
+  console.log({ partyActor, actorIds });
 
   return (
     <ul>
-      {playerIds.map((id) => (
+      {actorIds.map((id) => (
         <li key={id}>{id}</li>
       ))}
     </ul>

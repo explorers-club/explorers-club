@@ -1,16 +1,20 @@
 import {
   ActorEvent,
-  ActorEvents,
-  ActorEventType,
-  ActorID,
-  ActorManager,
+  ActorEvents, ActorManager,
+  isSendEvent,
+  isSpawnEvent,
   MachineFactory,
+  ManagedActor,
+  SendActorEvent,
   SerializedSharedActor,
+  SpawnActorEvent
 } from '@explorers-club/actor';
 import {
   createPartyMachine,
   createPartyPlayerMachine,
   getPartyActorId,
+  PartyEvents,
+  PartyPlayerActor
 } from '@explorers-club/party';
 import { noop } from '@explorers-club/utils';
 import * as crypto from 'crypto';
@@ -21,9 +25,9 @@ import {
   push,
   ref,
   runTransaction,
-  set,
+  set
 } from 'firebase/database';
-import { AnyEventObject } from 'xstate';
+import { filter, fromEvent } from 'rxjs';
 import { db } from './lib/firebase';
 
 // Presence app example
@@ -33,19 +37,25 @@ import { db } from './lib/firebase';
 MachineFactory.registerMachine('PARTY_ACTOR', createPartyMachine);
 MachineFactory.registerMachine('PLAYER_ACTOR', createPartyPlayerMachine);
 
+const runningParties = new Set();
+
 async function bootstrap() {
   const hostId = crypto.randomUUID();
 
   const trySpawnPartyHost = async (joinCode: string) => {
+    if (runningParties.has(joinCode)) {
+      return;
+    }
+
     const hostRef = ref(db, `parties/${joinCode}/host`);
-    // todo: only do the transaction if we're unsure if the party is already running locally
-    await !!runTransaction(hostRef, (currentHostId) => {
-      // If a host is already set, bail
+    await runTransaction(hostRef, (currentHostId) => {
+      // todo, theres an issue around currentHostId being unexpectedly null
       if (currentHostId) {
-        return undefined;
+        return currentHostId;
       }
 
       initializeParty(joinCode);
+      runningParties.add(joinCode);
 
       onDisconnect(hostRef).remove();
       return hostId;
@@ -61,69 +71,93 @@ async function bootstrap() {
     const actorsRef = ref(db, `parties/${joinCode}/actors`);
     const eventsRef = ref(db, `parties/${joinCode}/events`);
 
+    const handleSpawnActorEvent = ({ payload }: SpawnActorEvent) => {
+      console.log('receive spawn', payload.actorId);
+      actorManager.hydrate(payload);
+    };
+
+    const handleSendActorEvent = ({ payload }: SendActorEvent) => {
+      // Don't allow events sent from/to the party
+      if (payload.actorId === partyActorId) {
+        return;
+      }
+      console.log('receive send', payload.actorId, payload.event.type);
+
+      const actor = actorManager.getActor(payload.actorId);
+      actor.send(payload.event);
+    };
+
+    // Whenever a new event is logged, process it
     onChildAdded(eventsRef, (snap) => {
       const event = snap.val() as ActorEvent;
-      if (event.type === ActorEventType.SPAWN) {
-        console.debug('spawn', event);
-        // TODO fix event 'type' typings to avoid this cast
-        actorManager.hydrate(event.payload as SerializedSharedActor);
-      } else if (event.type === ActorEventType.SEND) {
-        console.debug('send', event);
-        const payload = event.payload as {
-          actorId: ActorID;
-          event: AnyEventObject;
-        };
 
-        if (payload.actorId !== partyActorId) {
-          const actor = actorManager.getActor(payload.actorId);
-          actor.send(payload.event);
-        }
+      // Don't process events coming from the main party actor
+      if (partyActorId === event.payload.actorId) {
+        return;
+      }
+
+      if (isSpawnEvent(event)) {
+        handleSpawnActorEvent(event);
+      } else if (isSendEvent(event)) {
+        handleSendActorEvent(event);
       }
     });
 
-    // Immediately spawn the main party actor...
+    const initialize = (actorData: SerializedSharedActor[]) => {
+      actorManager.hydrateAll(actorData);
+
+      const actorId = partyActorId;
+      const actorType = 'PARTY_ACTOR';
+
+      // If a root actor hasn't been spawned yet for the party, spawn one
+      if (!actorManager.rootActor) {
+        const rootActor = actorManager.spawn({
+          actorId,
+          actorType,
+        });
+
+        const newEventRef = push(eventsRef);
+        set(
+          newEventRef,
+          ActorEvents.SPAWN({
+            actorId,
+            actorType,
+            actor: rootActor,
+          })
+        ).then(noop);
+      }
+      const partyActor = actorManager.rootActor;
+
+      // Listen for all root actor events that happen
+      // and send them out on the network
+      partyActor.onEvent((event) => {
+        console.debug('sending', event);
+        const newEventRef = push(eventsRef);
+        set(
+          newEventRef,
+          ActorEvents.SEND({
+            actorId: partyActorId,
+            event,
+          })
+        ).then(noop);
+      });
+
+      const hydrate$ = fromEvent(actorManager, 'HYDRATE');
+      hydrate$.pipe(filter(isPartyPlayer)).subscribe(({ actorId }) => {
+        partyActor.send(PartyEvents.PLAYER_JOINED({ actorId }));
+      });
+
+      // Start the loop
+      runPartyLoop(joinCode, actorManager);
+    };
+
+    // Grab any persisted state from database and initialize using it
     onValue(
       actorsRef,
       (snap) => {
+        // actorData should usually be empty unless resuming from a crash/restart
         const actorData = (snap.val() || []) as SerializedSharedActor[];
-        actorManager.hydrateAll(actorData);
-
-        const actorId = partyActorId;
-        const actorType = 'PARTY_ACTOR';
-
-        // If a root actor hasn't been spawned yet for the party, spawn one
-        if (!actorManager.rootActor) {
-          const rootActor = actorManager.spawn({
-            actorId,
-            actorType,
-          });
-
-          const newEventRef = push(eventsRef);
-          set(
-            newEventRef,
-            ActorEvents.SPAWN({
-              actorId,
-              actorType,
-              actor: rootActor,
-            })
-          ).then(noop);
-        }
-
-        actorManager.rootActor.onEvent((event) => {
-          console.log('root actor event', event);
-          const newEventRef = push(eventsRef);
-          set(
-            newEventRef,
-            ActorEvents.SEND({
-              actorId: partyActorId,
-              event,
-            })
-          ).then(noop);
-        });
-
-        // How does this go over the network now?
-
-        runPartyLoop(joinCode, actorManager);
+        initialize(actorData);
       },
       {
         onlyOnce: true,
@@ -139,6 +173,17 @@ async function bootstrap() {
 }
 
 bootstrap();
+
+interface PartyPlayerManagedActor extends ManagedActor {
+  actorType: 'PLAYER_ACTOR';
+  actor: PartyPlayerActor;
+}
+
+function isPartyPlayer(
+  managedActor: ManagedActor
+): managedActor is PartyPlayerManagedActor {
+  return managedActor.actorType === 'PLAYER_ACTOR';
+}
 
 /**
  * Runs the logic for the party in a loop.

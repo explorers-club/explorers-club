@@ -36,10 +36,18 @@ const SEND = ({
   },
 });
 
-type SendActorEvent = ReturnType<typeof SEND>;
-type SpawnActorEvent = ReturnType<typeof SPAWN>;
+export type SendActorEvent = ReturnType<typeof SEND>;
+export type SpawnActorEvent = ReturnType<typeof SPAWN>;
 
 export type ActorEvent = SpawnActorEvent | SendActorEvent;
+
+export function isSpawnEvent(event: ActorEvent): event is SpawnActorEvent {
+  return event.type === ActorEventType.SPAWN;
+}
+
+export function isSendEvent(event: ActorEvent): event is SendActorEvent {
+  return event.type === ActorEventType.SEND;
+}
 
 export const ActorEvents = {
   SEND,

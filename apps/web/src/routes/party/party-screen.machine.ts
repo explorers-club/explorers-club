@@ -1,18 +1,17 @@
 import {
   ActorEvent,
-  ActorEvents,
-  ActorEventType,
-  ActorManager,
+  ActorEvents, ActorManager,
+  isSendEvent,
+  isSpawnEvent,
   MachineFactory,
-  SerializedSharedActor,
+  SerializedSharedActor
 } from '@explorers-club/actor';
 import {
   createPartyMachine,
   createPartyPlayerMachine,
   getPartyActorId,
   getPartyPlayerActorId,
-  PartyActor,
-  PartyEvents,
+  PartyActor
 } from '@explorers-club/party';
 import { noop } from '@explorers-club/utils';
 import {
@@ -21,15 +20,13 @@ import {
   onValue,
   push,
   ref,
-  set,
+  set
 } from 'firebase/database';
-import { filter, first, from, takeWhile } from 'rxjs';
 import { ActorRefFrom, assign, DoneInvokeEvent } from 'xstate';
 import { createModel } from 'xstate/lib/model';
-import { createAnonymousUser } from '../../state/auth.utils';
 import { db } from '../../lib/firebase';
-import { supabaseClient } from '../../lib/supabase';
-import { AuthActor, AuthEvents } from '../../state/auth.machine';
+import { AuthActor } from '../../state/auth.machine';
+import { createAnonymousUser } from '../../state/auth.utils';
 
 MachineFactory.registerMachine('PARTY_ACTOR', createPartyMachine);
 MachineFactory.registerMachine('PLAYER_ACTOR', createPartyPlayerMachine);
@@ -208,7 +205,6 @@ export const createPartyScreenMachine = ({
             actorId,
             actorType,
           });
-
           actorManager.myActorId = actorId;
 
           // Send the actors events up to the network
@@ -234,34 +230,33 @@ export const createPartyScreenMachine = ({
             })
           ).then(noop);
 
-          // Tell the party we've joind
-          const joinEventRef = push(eventsRef);
-          set(
-            joinEventRef,
-            ActorEvents.SEND({
-              actorId: partyActorId,
-              event: PartyEvents.PLAYER_JOINED({ userId }),
-            })
-          );
-
           return myActor;
         },
         connectToParty: async (context, event) => {
           return new Promise((resolve, reject) => {
             onChildAdded(eventsRef, (snap) => {
               const event = snap.val() as ActorEvent;
+              console.log('CHILD ADDED', event);
 
-              if (event.type === ActorEventType.SPAWN) {
+              if (isSpawnEvent(event)) {
                 const hadRootActor = !!actorManager.rootActor;
 
-                // TODO fix event 'type' typings to avoid this cast
-                actorManager.hydrate(event.payload as SerializedSharedActor);
+                actorManager.hydrate(event.payload);
 
                 const didSpawnRootActor =
                   !hadRootActor && !!actorManager.rootActor;
                 if (didSpawnRootActor) {
                   resolve(actorManager.rootActor);
                   // TODO remove this listener after we're done
+                }
+              } else if (isSendEvent(event)) {
+                const { actorId } = event.payload;
+                const actor = actorManager.getActor(actorId);
+                if (actor) {
+                  console.log(event);
+                  actor.send(event.payload.event);
+                } else {
+                  console.debug('warning: no actor found for event', event);
                 }
               }
             });

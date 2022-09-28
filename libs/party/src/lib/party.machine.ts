@@ -10,7 +10,7 @@ import {
   LobbyPlayerActor,
 } from './lobby-player.machine';
 
-export const PLAYER_JOINED = (props: { userId: string }) => props;
+export const PLAYER_JOINED = (props: { actorId: string }) => props;
 export const PLAYER_DISCONNECTED = (props: { userId: string }) => props;
 
 export type PlayerJoinedEvent = ReturnType<typeof PLAYER_JOINED>;
@@ -26,7 +26,7 @@ const gameMachine = createMachine({
 
 const partyModel = createModel(
   {
-    playerUserIds: [] as string[],
+    playerActorIds: [] as ActorID[],
     actorManager: {} as ActorManager,
   },
   {
@@ -50,22 +50,22 @@ export const createPartyMachine = ({
     {
       id: actorId,
       context: {
-        playerUserIds: [],
+        playerActorIds: [],
         actorManager,
       },
       initial: 'Lobby',
       on: {
         PLAYER_JOINED: {
           actions: partyModel.assign({
-            playerUserIds: (context, { userId }) => {
-              return [...context.playerUserIds, userId];
+            playerActorIds: (context, { actorId }) => {
+              return [...context.playerActorIds, actorId];
             },
           }),
         },
         PLAYER_DISCONNECTED: {
           actions: partyModel.assign({
-            playerUserIds: (context, { userId }) => {
-              return context.playerUserIds.filter((id) => id !== userId);
+            playerActorIds: (context, { userId }) => {
+              return context.playerActorIds.filter((id) => id !== userId);
             },
           }),
         },
@@ -104,20 +104,20 @@ export const createPartyMachine = ({
     },
     {
       guards: {
-        allPlayersNotReady: ({ actorManager, playerUserIds }) =>
-          !getAllPlayersReady(actorManager, playerUserIds),
-        allPlayersReady: ({ actorManager, playerUserIds }) =>
-          getAllPlayersReady(actorManager, playerUserIds),
+        allPlayersNotReady: () => true,
+        // !getAllPlayersReady(actorManager, playerActorIds),
+        allPlayersReady: () => false,
+        // getAllPlayersReady(actorManager, playerActorIds),
       },
     }
   );
 
 const getAllPlayersReady = (
   actorManager: ActorManager,
-  playerUserIds: string[]
+  playerActorIds: string[]
 ) => {
   return (
-    playerUserIds
+    playerActorIds
       .map((userId) => {
         const lobbyActorId = getLobbyPlayerActorId(userId);
         const lobbyActor = actorManager.getActor(lobbyActorId) as

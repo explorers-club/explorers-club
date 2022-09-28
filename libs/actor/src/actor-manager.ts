@@ -36,14 +36,14 @@ export class MachineFactory {
   }
 }
 
-interface ManagedActor {
+export interface ManagedActor {
   actorId: ActorID;
   actorType: ActorType;
   actor: AnyActorRef;
 }
 
 export declare interface ActorManager {
-  on(event: 'SPAWN', listener: (actor: AnyActorRef) => void): this;
+  on(event: 'SPAWN', listener: (props: ManagedActor) => void): this;
   on(event: 'HYDRATE', listener: (props: ManagedActor) => void): this;
   on(event: 'HYDRATE_ALL', listener: () => void): this;
 }
@@ -52,16 +52,78 @@ export declare interface ActorManager {
  * Class to manage actors that are shared across a channel at runtime.
  */
 export class ActorManager extends EventEmitter {
-  private actorMap = new Map<
-    string,
-    { actor: AnyInterpreter; actorType: ActorType }
-  >();
+  actorMap = new Map<string, { actor: AnyInterpreter; actorType: ActorType }>();
   private _rootActorId: ActorID;
   private _myActorId?: ActorID;
 
   constructor(rootActorId: ActorID) {
     super();
     this._rootActorId = rootActorId;
+  }
+
+  /**
+   * Used to create a new actor. Each actorId should only ever be spawned
+   * once. After it's spawned, it sent across the network to host and/or clients
+   * to be "hydrated".
+   */
+  spawn({ actorId, actorType }: SharedActorRef) {
+    const createMachine = MachineFactory.getCreateMachineFunction(actorType);
+    if (!createMachine) {
+      throw new Error(
+        `tried to get create machine function for unregistered type ${actorType}`
+      );
+    }
+
+    const machine = createMachine({
+      actorId,
+      actorManager: this,
+    });
+    const actor = interpret(machine).start();
+
+    this.actorMap.set(actor.id, { actor, actorType });
+    this.emit('SPAWN', { actorId, actorType, actor });
+
+    return actor;
+  }
+
+  /**
+   * After an actor is spawned on the network, it should be hydrated
+   * by clients when they receive the spawn event.
+   */
+  hydrate({ actorId, actorType, stateJSON }: SerializedSharedActor) {
+    // Don't re-hydrate actors we already have
+    if (this.actorMap.has(actorId)) {
+      return;
+    }
+
+    const createMachine = MachineFactory.getCreateMachineFunction(actorType);
+    if (!createMachine) {
+      throw new Error(
+        `missing create machine function for actor type ${actorType}. make sure it is registered with the MachineFactory`
+      );
+    }
+
+    const machine = createMachine({
+      actorId,
+      actorManager: this,
+    });
+
+    const state = JSON.parse(stateJSON) as AnyState;
+    const previousState = State.create(state);
+
+    const actor = interpret(machine).start(previousState);
+    this.actorMap.set(actorId, { actor, actorType });
+    this.emit('HYDRATE', { actorId, actorType, actor });
+
+    return actor;
+  }
+
+  hydrateAll(payload: SerializedSharedActor[]) {
+    payload.forEach((actorProps) => {
+      this.hydrate(actorProps);
+    });
+
+    this.emit('HYDRATE_ALL');
   }
 
   /**
@@ -92,79 +154,6 @@ export class ActorManager extends EventEmitter {
     return Array.from(this.actorMap.values()).map(({ actor }) => {
       return this.serialize(actor.id);
     });
-  }
-
-  /**
-   * Sends the current state of all actors across the channel.
-   *
-   * To be used on the host to
-   * @returns Response from the channel
-   */
-  // async syncAll() {
-  //   console.debug('synicng all');
-  //   const payload = this.serializeAll();
-  //   const event = ActorEvents.SYNC_ALL(payload);
-  //   return await this._send(event);
-  // }
-
-  /**
-   * Instantiates and interprets a machine specified by the actorType,
-   * then sends it across the network as a "SPAWN" event on the channel,
-   * stores and returns the new reference within the manager map.
-   */
-  spawn({ actorId, actorType }: SharedActorRef) {
-    const createMachine = MachineFactory.getCreateMachineFunction(actorType);
-    if (!createMachine) {
-      throw new Error(
-        `tried to get create machine function for unregistered type ${actorType}`
-      );
-    }
-
-    const machine = createMachine({
-      actorId,
-      actorManager: this,
-    });
-    const actor = interpret(machine).start();
-
-    this.emit('SPAWN', actor);
-    this.actorMap.set(actor.id, { actor, actorType });
-    return actor;
-  }
-
-  hydrateAll(payload: SerializedSharedActor[]) {
-    payload.forEach((actorProps) => {
-      this.hydrate(actorProps);
-    });
-
-    this.emit('HYDRATE_ALL');
-  }
-
-  hydrate({ actorId, actorType, stateJSON }: SerializedSharedActor) {
-    // Don't re-hydrate actors we already have
-    if (this.actorMap.has(actorId)) {
-      return;
-    }
-
-    const createMachine = MachineFactory.getCreateMachineFunction(actorType);
-    if (!createMachine) {
-      throw new Error(
-        `missing create machine function for actor type ${actorType}. make sure it is registered with the MachineFactory`
-      );
-    }
-
-    const machine = createMachine({
-      actorId,
-      actorManager: this,
-    });
-
-    const state = JSON.parse(stateJSON) as AnyState;
-    const previousState = State.create(state);
-
-    const actor = interpret(machine).start(previousState);
-    this.actorMap.set(actorId, { actor, actorType });
-    this.emit('HYDRATE', { actorId, actorType, actor });
-
-    return actor;
   }
 
   getActor(actorId: ActorID) {
