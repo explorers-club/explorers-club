@@ -40,13 +40,13 @@
     },
     "deploy": {
       "executor": "nx:run-commands",
-      "dependsOn": ["^build"],
+      "dependsOn": ["build"],
       "options": {
         "command": "cp apps/party-server/fly.staging.toml ./dist/apps/party-server/fly.toml && flyctl deploy ./dist/apps/party-server"
       },
       "configurations": {
         "production": {
-          "dependsOn": ["^build:production"],
+          "dependsOn": ["build:production"],
           "options": {
             "command": "cp apps/party-server/fly.production.toml ./dist/apps/party-server/fly.toml && flyctl deploy ./dist/apps/party-server"
           }
