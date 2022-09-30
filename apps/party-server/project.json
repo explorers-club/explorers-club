@@ -7,6 +7,7 @@
       "executor": "@nrwl/node:webpack",
       "outputs": ["{options.outputPath}"],
       "options": {
+        "generatePackageJson": true,
         "outputPath": "dist/apps/party-server",
         "main": "apps/party-server/src/main.ts",
         "tsConfig": "apps/party-server/tsconfig.app.json",
@@ -17,7 +18,6 @@
           "optimization": true,
           "extractLicenses": true,
           "inspect": false,
-          "generatePackageJson": true,
           "fileReplacements": [
             {
               "replace": "apps/party-server/src/environments/environment.ts",
@@ -40,13 +40,12 @@
     },
     "deploy": {
       "executor": "nx:run-commands",
-      "dependsOn": ["build:production"],
+      "dependsOn": [{ "projects": "self", "target": "build" }],
       "options": {
         "command": "cp apps/party-server/fly.staging.toml ./dist/apps/party-server/fly.toml && flyctl deploy ./dist/apps/party-server --remote-only"
       },
       "configurations": {
         "production": {
-          "dependsOn": ["build:production"],
           "options": {
             "command": "cp apps/party-server/fly.production.toml ./dist/apps/party-server/fly.toml && flyctl deploy ./dist/apps/party-server --remote-only"
           }
