@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - run: npm ci
-      - run: npx nx run party-server:deploy:production
+      - run: npx nx run party-server:deploy-production
 
   push-database:
     runs-on: ubuntu-22.04
