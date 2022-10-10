@@ -1,4 +1,6 @@
 import { Environment, OrbitControls, useTexture } from '@react-three/drei';
+import { defineHex, Grid, spiral, HexCoordinates } from 'honeycomb-grid';
+
 import { useControls } from 'leva';
 import { Fragment, Suspense, useMemo, useState } from 'react';
 import {
@@ -10,7 +12,11 @@ import {
   SphereGeometry,
   Vector2,
 } from 'three';
-import { mergeBufferGeometries, SimplexNoise } from 'three-stdlib';
+import {
+  mergeBufferGeometries,
+  NumberGenerator,
+  SimplexNoise,
+} from 'three-stdlib';
 
 export function LobbyScene() {
   const color = useMemo(() => new Color('#FFCBBE').convertSRGBToLinear(), []);
@@ -164,6 +170,12 @@ const Ship = () => {
   );
 };
 
+const simplex = new SimplexNoise();
+
+class Hex extends defineHex({ dimensions: { xRadius: 1, yRadius: 1 } }) {
+  elevation!: number;
+}
+
 const Terrain = () => {
   const [dirtTexture, dirt2Texture, grassTexture, sandTexture, stoneTexture] =
     useTexture([
@@ -174,9 +186,13 @@ const Terrain = () => {
       './assets/stone.png',
     ]);
 
-  const radius = 30;
+  const grid = new Grid(Hex, spiral({ radius: 10 }));
+  grid.forEach((hex) => {
+    const noise = (simplex.noise(hex.q * 0.1, hex.r * 0.1) + 1) * 0.5;
+    hex.elevation = Math.pow(noise, 1.5) * 10;
+  });
+
   const {
-    innerRadius,
     maxHeight,
     stoneHeightMultiplier,
     dirtHeightMultiplier,
@@ -184,12 +200,6 @@ const Terrain = () => {
     sandHeightMultiplier,
     dirt2HeightMultiplier,
   } = useControls({
-    innerRadius: {
-      value: 15,
-      min: 1,
-      max: 30,
-      step: 1,
-    },
     maxHeight: {
       value: 10,
       min: 1,
@@ -243,9 +253,10 @@ const Terrain = () => {
       let grassGeo: BufferGeometry = new BoxGeometry(0, 0, 0);
       let cloudsGeo: BufferGeometry = new SphereGeometry(0, 0, 0);
 
-      const simplex = new SimplexNoise();
-
-      const makeHex = (height: number, position: Point) => {
+      const makeHex = (hex: Hex) => {
+        const height = hex.elevation;
+        const position = { x: hex.r, y: hex.q };
+        console.log(hex);
         const geo = getHexGeometry(height, position);
         geometries = mergeBufferGeometriesWithError([geometries, geo]);
 
@@ -297,30 +308,12 @@ const Terrain = () => {
         cloudsGeo = mergeBufferGeometriesWithError([cloudsGeo, cloudGeo]);
       }
 
-      for (let i = -radius; i < radius; i++) {
-        for (let j = -radius; j < radius; j++) {
-          const position = tileToPosition(i, j);
-          if (position.length() > innerRadius) {
-            continue;
-          }
-
-          const noise = (simplex.noise(i * 0.1, j * 0.1) + 1) * 0.5;
-          const height = Math.pow(noise, 1.5) * 10;
-
-          makeHex(height, position);
-        }
-      }
+      grid.forEach((hex) => {
+        makeHex(hex);
+      });
 
       return { stoneGeo, grassGeo, dirt2Geo, dirtGeo, sandGeo, cloudsGeo };
-    }, [
-      radius,
-      innerRadius,
-      dirtHeight,
-      sandHeight,
-      dirt2Height,
-      grassHeight,
-      stoneHeight,
-    ]);
+    }, [dirtHeight, sandHeight, dirt2Height, grassHeight, stoneHeight]);
 
   return (
     <>
