@@ -43,39 +43,34 @@ export function LobbyScene() {
   );
 }
 
-interface Point {
-  x: number;
-  y: number;
-}
-
-const getHexGeometry = (height: number, position: Point) => {
-  const geo = new CylinderGeometry(1, 1, height, 6, 1, false);
-  geo.translate(position.x, height * 0.5, position.y);
+const getHexGeometry = (hex: Hex) => {
+  const geo = new CylinderGeometry(1, 1, hex.elevation, 6, 1, false);
+  geo.translate(hex.x, hex.elevation * 0.5, hex.y);
 
   return geo;
 };
 
-const getStoneGeometry = (height: number, position: Point) => {
+const getStoneGeometry = (hex: Hex) => {
   const px = Math.random() * 0.4;
   const pz = Math.random() * 0.4;
 
   const geo = new SphereGeometry(Math.random() * 0.3 + 0.1, 7, 7);
-  geo.translate(position.x + px, height, position.y + pz);
+  geo.translate(hex.x + px, hex.elevation, hex.y + pz);
 
   return geo;
 };
 
-const getTreeGeometry = (height: number, position: Point) => {
+const getTreeGeometry = (hex: Hex) => {
   const treeHeight = Math.random() * 1 + 1.25;
 
   const geo = new CylinderGeometry(0, 1.5, treeHeight, 3);
-  geo.translate(position.x, height + treeHeight * 0 + 1, position.y);
+  geo.translate(hex.x, hex.elevation + treeHeight * 0 + 1, hex.y);
 
   const geo2 = new CylinderGeometry(0, 1.15, treeHeight, 3);
-  geo2.translate(position.x, height + treeHeight * 0.6 + 1, position.y);
+  geo2.translate(hex.x, hex.elevation + treeHeight * 0.6 + 1, hex.y);
 
   const geo3 = new CylinderGeometry(0, 0.8, treeHeight, 3);
-  geo3.translate(position.x, height + treeHeight * 1.25 + 1, position.y);
+  geo3.translate(hex.x, hex.elevation + treeHeight * 1.25 + 1, hex.y);
 
   return mergeBufferGeometriesWithError([geo, geo2, geo3]);
 };
@@ -255,9 +250,7 @@ const Terrain = () => {
 
       const makeHex = (hex: Hex) => {
         const height = hex.elevation;
-        const position = { x: hex.r, y: hex.q };
-        console.log(hex);
-        const geo = getHexGeometry(height, position);
+        const geo = getHexGeometry(hex);
         geometries = mergeBufferGeometriesWithError([geometries, geo]);
 
         if (height > stoneHeight) {
@@ -266,7 +259,7 @@ const Terrain = () => {
           if (Math.random() > 0.6) {
             stoneGeo = mergeBufferGeometriesWithError([
               stoneGeo,
-              getStoneGeometry(height, position),
+              getStoneGeometry(hex),
             ]);
           }
         } else if (height > dirtHeight) {
@@ -275,7 +268,7 @@ const Terrain = () => {
           if (Math.random() > 0.8) {
             grassGeo = mergeBufferGeometriesWithError([
               grassGeo,
-              getTreeGeometry(height, position),
+              getTreeGeometry(hex),
             ]);
           }
         } else if (height > grassHeight) {
