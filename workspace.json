@@ -4,9 +4,11 @@
   "projects": {
     "actor": "libs/actor",
     "database": "libs/database",
+    "level-editor": "apps/level-editor",
     "party": "libs/party",
     "party-server": "apps/party-server",
     "utils": "libs/utils",
-    "web": "apps/web"
+    "web": "apps/web",
+    "world": "libs/world"
   }
 }

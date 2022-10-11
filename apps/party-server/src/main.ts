@@ -3,15 +3,14 @@ import {
   ActorEvents,
   ActorManager,
   isSendEvent,
-  isSpawnEvent, SendActorEvent,
+  isSpawnEvent,
+  SendActorEvent,
   SerializedSharedActor,
-  SpawnActorEvent
+  SpawnActorEvent,
 } from '@explorers-club/actor';
-import {
-  getPartyActorId,
-  PartyEvents
-} from '@explorers-club/party';
+import { getPartyActorId, PartyEvents } from '@explorers-club/party';
 import { noop } from '@explorers-club/utils';
+import { World } from '@explorers-club/world';
 import * as crypto from 'crypto';
 import {
   onChildAdded,
@@ -20,7 +19,7 @@ import {
   push,
   ref,
   runTransaction,
-  set
+  set,
 } from 'firebase/database';
 import { filter, fromEvent } from 'rxjs';
 import { isPartyPlayer } from './actors';
@@ -28,8 +27,6 @@ import { db } from './lib/firebase';
 
 // Presence app example
 // https://firebase.google.com/docs/database/android/offline-capabilities#section-sample
-
-// type PartyRow = Database['public']['Tables']['parties']['Row'];
 
 const runningParties = new Set();
 
@@ -58,6 +55,8 @@ async function bootstrap() {
 
   const initializeParty = (joinCode: string) => {
     console.debug('hosting ' + joinCode);
+
+    // const world = new World();
 
     const partyActorId = getPartyActorId(joinCode);
     const actorManager = new ActorManager(partyActorId);
