@@ -1,4 +1,9 @@
-import { Environment, OrbitControls, useTexture } from '@react-three/drei';
+import {
+  Environment,
+  OrbitControls,
+  PositionalAudio,
+  useTexture,
+} from '@react-three/drei';
 import { defineHex, Grid, spiral, HexCoordinates } from 'honeycomb-grid';
 
 import { useControls } from 'leva';
@@ -306,10 +311,18 @@ const Terrain = () => {
       });
 
       return { stoneGeo, grassGeo, dirt2Geo, dirtGeo, sandGeo, cloudsGeo };
-    }, [dirtHeight, sandHeight, dirt2Height, grassHeight, stoneHeight]);
+    }, [grid, dirtHeight, sandHeight, dirt2Height, grassHeight, stoneHeight]);
 
   return (
     <>
+      <group position={[0, 0, 0]}>
+        <PositionalAudio
+          autoplay
+          loop
+          url="./assets/lobbymusic.mp3"
+          distance={5}
+        />
+      </group>
       <mesh geometry={dirtGeo} castShadow={true} receiveShadow={true}>
         <meshPhysicalMaterial
           // envMap={envMap}
