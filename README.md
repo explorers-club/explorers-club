@@ -37,3 +37,7 @@ Run the web app with `nx run web:serve`.
 ## Contributing
 
 [Join the Discord](https://discord.gg/PUHsGxqBKt) if you are interested in helping build, testing, or have feedback!
+
+## Support Us
+
+The best way to support us right now is to buy a hat or shirt from our [merch page](https://explorersclubmerch.myshopify.com/collections/all). Thanks!
