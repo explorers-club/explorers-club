@@ -2,6 +2,8 @@
 
 Welcome to your next adventure!
 
+![Logo](https://raw.githubusercontent.com/explorers-club/explorers-club/main/apps/web/src/assets/logo.png)
+
 ## Concept
 
 Imagine Explorers Club as the game [Destiny](https://www.google.com/search?q=destiny+2+map), but instead of planets, imagine islands—and each island is a different board, card, drawing, or other quick to learn game. Friends can browse and play games together in a party from their phones, laptops, and/or TVs via Chromecast.
