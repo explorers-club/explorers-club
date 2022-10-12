@@ -17,9 +17,6 @@ export function MainUI() {
 
   return (
     <div>
-      <Background>
-        <Logo alt="Explorers Club Logo" src="./assets/logo.png" />
-      </Background>
       <BottomSheet
         open={open}
         onDismiss={handleDismiss}
@@ -37,11 +34,6 @@ const Background = styled.div`
   position: absolute;
   padding-top: 64px;
   display: flex;
-`;
-
-const Logo = styled.img`
-  display: block;
-  width: 100%;
 `;
 
 export default MainUI;

@@ -319,7 +319,7 @@ const Terrain = () => {
         <PositionalAudio
           autoplay
           loop
-          url="./assets/lobbymusic.mp3"
+          url="./assets/watersounds.mp3"
           distance={5}
         />
       </group>
