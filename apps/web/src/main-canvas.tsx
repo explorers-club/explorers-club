@@ -10,7 +10,7 @@ export function MainCanvas() {
       <Leva flat collapsed />
       <Canvas
         gl={{ physicallyCorrectLights: true }}
-        camera={{ position: [0, 0, 50] }}
+        camera={{ position: [20, 10, 20] }}
       >
         <LobbyScene />
       </Canvas>

@@ -1,5 +1,10 @@
-import { Environment, OrbitControls, useTexture } from '@react-three/drei';
-import { Grid, spiral } from 'honeycomb-grid';
+import {
+  Environment,
+  OrbitControls,
+  PositionalAudio,
+  useTexture,
+} from '@react-three/drei';
+import { Grid, Hex, spiral } from 'honeycomb-grid';
 import { useControls } from 'leva';
 import { Fragment, Suspense, useMemo, useState } from 'react';
 import {
@@ -8,7 +13,7 @@ import {
   Color,
   CylinderGeometry,
   DoubleSide,
-  SphereGeometry
+  SphereGeometry,
 } from 'three';
 import { mergeBufferGeometries } from 'three-stdlib';
 
@@ -237,7 +242,7 @@ const Terrain = () => {
       let cloudsGeo: BufferGeometry = new SphereGeometry(0, 0, 0);
 
       const makeHex = (hex: Hex) => {
-        const height = hex.elevation;
+        const height = 0.5; // TODO populate this somehow else
         const geo = getHexGeometry(hex);
         geometries = mergeBufferGeometriesWithError([geometries, geo]);
 
@@ -294,10 +299,24 @@ const Terrain = () => {
       });
 
       return { stoneGeo, grassGeo, dirt2Geo, dirtGeo, sandGeo, cloudsGeo };
-    }, [dirtHeight, sandHeight, dirt2Height, grassHeight, stoneHeight]);
+    }, [grid, dirtHeight, sandHeight, dirt2Height, grassHeight, stoneHeight]);
 
   return (
     <>
+      <group position={[0, 0, 0]}>
+        <PositionalAudio
+          autoplay
+          loop
+          url="./assets/lobbymusic.mp3"
+          distance={5}
+        />
+        <PositionalAudio
+          autoplay
+          loop
+          url="./assets/watersounds.mp3"
+          distance={5}
+        />
+      </group>
       <mesh geometry={dirtGeo} castShadow={true} receiveShadow={true}>
         <meshPhysicalMaterial
           // envMap={envMap}
