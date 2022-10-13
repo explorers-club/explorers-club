@@ -12,17 +12,19 @@ Imagine Explorers Club as the game [Destiny](https://www.google.com/search?q=des
 
 Run the web app with `nx run web:serve`.
 
-## Core Stack and Patterns
+## Stack, Patterns, Attribution
 
 - supabase / postgres for database
 - firebase for real-time syncing
-- react-three-fiber for 3D graphics
-- styled-components for styling
-- xstate for state management + actor pattern for sharing distributed real-time state
+- [react-three-fiber](https://github.com/pmndrs/react-three-fiber) for 3D graphics
+- [styled-components](https://styled-components.com/) for styling
+- [xstate](https://xstate.js.org/) for state management + actor pattern for sharing distributed real-time state
 - static site hosting on netlify
 - game server hosting on fly.io
-- nx for managing the monorepo
+- [nx](https://nx.dev/) for managing the monorepo
 - github actions for CI
+- [Honeycomb](https://github.com/flauwekeul/honeycomb)
+- Sound effects and sounds from [Zapsplat](https://www.zapsplat.com/)
 
 ## Inspirations
 
