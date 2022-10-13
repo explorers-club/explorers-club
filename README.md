@@ -23,18 +23,15 @@ Run the web app with `nx run web:serve`.
 - game server hosting on fly.io
 - [nx](https://nx.dev/) for managing the monorepo
 - github actions for CI
-- [Honeycomb](https://github.com/flauwekeul/honeycomb)
+- [Honeycomb](https://github.com/flauwekeul/honeycomb) for Hex grids
 - Sound effects and sounds from [Zapsplat](https://www.zapsplat.com/)
 
 ## Inspirations
 
-- Rocketcrab.com
-- Destiny
-- Jackbox
-- Jagex
-- Boardgamearena.com
-- Tabletop Simulator
-- Mario Party
+- Rocketcrab.com web based lobby system.
+- Destiny map and planet system.
+- Jackbox join code and TV-centered play system.
+- Games/services where people can play many games together, like: Jagex, Boardgamearena.com, Tabletop Simulator, Mario Party.
 
 ## Contributing
 
