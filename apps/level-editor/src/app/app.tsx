@@ -1,22 +1,27 @@
 import { Environment, OrbitControls, useTexture } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
-import { defineHex, Grid, Hex, HexCoordinates } from 'honeycomb-grid';
+import {
+  defineHex,
+  Grid,
+  HexCoordinates,
+  Orientation,
+  spiral,
+} from 'honeycomb-grid';
 import PNG from 'png-ts';
 import {
   ChangeEvent,
   Fragment,
   Suspense,
   useCallback,
+  useEffect,
   useMemo,
-  useState,
 } from 'react';
 import styled from 'styled-components';
 import { BufferGeometry, Color, ExtrudeBufferGeometry } from 'three';
 import * as THREE from 'three';
-import { mergeBufferGeometries, OutlinePass, SimplexNoise } from 'three-stdlib';
+import { mergeBufferGeometries } from 'three-stdlib';
 import create from 'zustand';
-
-const simplex = new SimplexNoise();
+import { stringify } from 'querystring';
 
 const StyledApp = styled.div`
   position: absolute;
@@ -26,44 +31,43 @@ const StyledApp = styled.div`
   bottom: 0;
 `;
 
-type ImageInputData = {
-  x: number;
-  y: number;
-  elevation: number;
-};
-
 interface HeightmapState {
   heightmap: PNG | undefined;
-  setHeightmap: (heightmap: PNG) => void;
+  loading: boolean;
+  loadFromURL: (url: string) => void;
 }
 
-const useHeightmapStore = create<HeightmapState>((set) => ({
+const useHeightmapStore = create<HeightmapState>((set, get) => ({
   heightmap: undefined,
-  setHeightmap: (heightmap: PNG) => set({ heightmap }),
+  loading: false,
+  loadFromURL: async (url: string) => {
+    if (get().loading || get().heightmap) {
+      return;
+    }
+    set({ loading: true });
+    const response = await fetch(url);
+    const arrayBuffer = await response.arrayBuffer();
+    const heightmap = PNG.load(new Uint8Array(arrayBuffer));
+    if (
+      heightmap.height !== INPUT_IMAGE_HEIGHT ||
+      heightmap.width !== INPUT_IMAGE_WIDTH
+    ) {
+      throw new Error(
+        `heightmap doesnt match expected dimensions ${INPUT_IMAGE_WIDTH}x${INPUT_IMAGE_HEIGHT}`
+      );
+    }
+    set({ heightmap, loading: false });
+  },
 }));
 
 export function App() {
-  const { setHeightmap } = useHeightmapStore();
-
-  const handleFileUpload = useCallback(
-    async (event: ChangeEvent<HTMLInputElement>) => {
-      const file = event.currentTarget.files?.[0];
-      if (!file) {
-        return;
-      }
-
-      const arrayBuffer = await file.arrayBuffer();
-      const data = new Uint8Array(arrayBuffer);
-
-      const png = PNG.load(data);
-      setHeightmap(png);
-    },
-    [setHeightmap]
-  );
+  const { loadFromURL } = useHeightmapStore();
+  useEffect(() => {
+    loadFromURL('./assets/heightmap.png');
+  }, [loadFromURL]);
 
   return (
     <StyledApp>
-      <input type="file" name="file" onChange={handleFileUpload} />
       <Canvas
         gl={{ physicallyCorrectLights: true }}
         camera={{ position: [0, 0, 5000], far: 30000 }}
@@ -74,22 +78,16 @@ export function App() {
   );
 }
 
-const BASE_HEX_HEIGHT = 1024;
-const BASE_HEX_SIZE = BASE_HEX_HEIGHT * 2;
-const BASE_HEX_WIDTH = Math.sqrt(3) * BASE_HEX_SIZE;
+const BASE_HEX_WIDTH = 560;
+const BASE_HEX_HEIGHT = 480;
 
-const HEIGHTMAP_IMAGE_SIZE = 4096;
-const BASE_GRID_SIZE = 4;
+const INPUT_IMAGE_WIDTH = 2 * BASE_HEX_WIDTH;
+const INPUT_IMAGE_HEIGHT = 2 * BASE_HEX_HEIGHT;
 
-// Cut the grid up in to 4 bins along each dimension.
-// Add extra size to the cells so that we can fully cover the
-// the 4096px heightmap image with hexes
-const BASE_CELL_SIZE =
-  (HEIGHTMAP_IMAGE_SIZE / BASE_GRID_SIZE +
-    HEIGHTMAP_IMAGE_SIZE / BASE_GRID_SIZE / 2) /
-  2;
-
-export class BaseHex extends defineHex({ dimensions: BASE_CELL_SIZE }) {
+class BaseHex extends defineHex({
+  dimensions: { width: BASE_HEX_WIDTH, height: BASE_HEX_HEIGHT },
+  orientation: Orientation.FLAT,
+}) {
   elevation!: number;
 
   static create(coordinates: HexCoordinates, elevation: number) {
@@ -105,18 +103,7 @@ const useIndexedHexTree = (heightmap?: PNG) => {
       return;
     }
 
-    if (heightmap.width !== 4096 || heightmap.height !== 4096) {
-      throw new Error('heightmap png must be 4096x4096');
-    }
-
-    const hexes: BaseHex[] = [];
-    for (let row = -BASE_GRID_SIZE; row < BASE_GRID_SIZE; row++) {
-      for (let col = -BASE_GRID_SIZE; col < BASE_GRID_SIZE; col++) {
-        const hex = BaseHex.create({ row, col }, 200 * Math.random());
-        hexes.push(hex);
-      }
-    }
-    const baseGrid = new Grid(BaseHex, hexes);
+    const baseGrid = new Grid(BaseHex, spiral({ radius: 1 }));
 
     // Next... for every pixel in the grid
     // If it has a value, create
@@ -134,8 +121,6 @@ const useIndexedHexTree = (heightmap?: PNG) => {
 
 export function Editor() {
   const color = useMemo(() => new Color('#FFCBBE').convertSRGBToLinear(), []);
-  const { heightmap } = useHeightmapStore();
-  const hexTree = useIndexedHexTree(heightmap);
 
   return (
     <Fragment>
@@ -147,20 +132,43 @@ export function Editor() {
       />
       <Suspense fallback={null}>
         <Environment preset="sunset" />
-        {hexTree?.baseGrid && <HexGrid grid={hexTree.baseGrid} />}
+        <Heightmap />
+        <HexGrid />
         <OrbitControls autoRotate autoRotateSpeed={0.6} enablePan={false} />
       </Suspense>
     </Fragment>
   );
 }
 
-interface HexGridProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  grid: Grid<BaseHex>;
+function Heightmap() {
+  const { heightmap } = useHeightmapStore();
+  const texture = useTexture('./assets/heightmap.png');
+
+  if (!heightmap) {
+    // eslint-disable-next-line react/jsx-no-useless-fragment
+    return <></>;
+  }
+
+  return (
+    <mesh position={[0, 0, 50]}>
+      <planeBufferGeometry args={[heightmap.width, heightmap.height]} />
+      <meshBasicMaterial map={texture} />;
+    </mesh>
+  );
 }
 
-function HexGrid({ grid }: HexGridProps) {
+// URL.createObjectURL(new Blob([heightmap.imgData], { type: 'image/png' })),
+
+function HexGrid() {
+  const { heightmap } = useHeightmapStore();
+  const hexTree = useIndexedHexTree(heightmap);
+  const grid = hexTree?.baseGrid;
+
   const geo = useMemo(() => {
+    if (!grid) {
+      return;
+    }
+
     const geos: BufferGeometry[] = [];
     grid.forEach((h) => {
       const extrudeSettings = {
@@ -193,6 +201,10 @@ function HexGrid({ grid }: HexGridProps) {
     return out;
   }, [grid]);
   const [stoneTexture] = useTexture(['./assets/stone.png']);
+
+  if (!geo) {
+    return null;
+  }
 
   return (
     <mesh geometry={geo} castShadow={true} receiveShadow={true}>
