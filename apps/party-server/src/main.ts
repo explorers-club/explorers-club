@@ -1,28 +1,28 @@
 import {
-  ActorEvent,
   ActorEvents,
   ActorManager,
-  isSendEvent,
-  isSpawnEvent, SendActorEvent,
-  SerializedSharedActor,
-  SpawnActorEvent
+  initializeActor, setActorEvent,
+  setActorState,
+  setNewActor,
+  SharedActorRef
 } from '@explorers-club/actor';
 import {
   getPartyActorId,
+  PartyActor,
   PartyEvents
 } from '@explorers-club/party';
-import { noop } from '@explorers-club/utils';
 import * as crypto from 'crypto';
 import {
+  DataSnapshot,
   onChildAdded,
   onDisconnect,
   onValue,
   push,
   ref,
-  runTransaction,
-  set
+  runTransaction
 } from 'firebase/database';
 import { filter, fromEvent } from 'rxjs';
+import { AnyInterpreter } from 'xstate';
 import { isPartyPlayer } from './actors';
 import { db } from './lib/firebase';
 
@@ -62,101 +62,77 @@ async function bootstrap() {
     const partyActorId = getPartyActorId(joinCode);
     const actorManager = new ActorManager(partyActorId);
 
-    const actorsRef = ref(db, `parties/${joinCode}/actors`);
-    const eventsRef = ref(db, `parties/${joinCode}/events`);
+    // Grab any persisted state from database and initialize using it
+    const stateRef = ref(
+      db,
+      `parties/${joinCode}/actors/${partyActorId}/state`
+    );
+    onValue(
+      stateRef,
+      async (snap) => {
+        // actorData should usually be empty unless resuming from a crash/restart
+        const stateJSON = snap.val() as string | undefined;
+        let actor: AnyInterpreter;
 
-    const handleSpawnActorEvent = ({ payload }: SpawnActorEvent) => {
-      console.log('receive spawn', payload.actorId);
-      actorManager.hydrate(payload);
-    };
+        const sharedActorRef: SharedActorRef = {
+          actorId: partyActorId,
+          actorType: 'PARTY_ACTOR',
+        };
 
-    const handleSendActorEvent = ({ payload }: SendActorEvent) => {
-      // Don't allow events sent from/to the party
-      if (payload.actorId === partyActorId) {
-        return;
-      }
-      console.log('receive send', payload.actorId, payload.event.type);
+        // If we have an party actor already, hydrate from it's state
+        if (stateJSON) {
+          actor = actorManager.hydrate({
+            ...sharedActorRef,
+            stateJSON,
+          });
+        } else {
+          // Otherwise spawn a new one
+          actor = actorManager.spawn(sharedActorRef);
 
-      const actor = actorManager.getActor(payload.actorId);
-      actor.send(payload.event);
-    };
+          // TODO dry up this code with client join party code
+          const stateJSON = JSON.stringify(actor.getSnapshot());
+          await setActorState(stateRef, stateJSON);
 
-    // Whenever a new event is logged, process it
-    onChildAdded(eventsRef, (snap) => {
-      const event = snap.val() as ActorEvent;
+          const actorsRef = ref(db, `parties/${joinCode}/actor_list`);
+          const newActorRef = push(actorsRef);
+          await setNewActor(newActorRef, sharedActorRef);
+        }
 
-      // Don't process events coming from the main party actor
-      if (partyActorId === event.payload.actorId) {
-        return;
-      }
-
-      if (isSpawnEvent(event)) {
-        handleSpawnActorEvent(event);
-      } else if (isSendEvent(event)) {
-        handleSendActorEvent(event);
-      }
-    });
-
-    const initialize = (actorData: SerializedSharedActor[]) => {
-      actorManager.hydrateAll(actorData);
-
-      const actorId = partyActorId;
-      const actorType = 'PARTY_ACTOR';
-
-      // If a root actor hasn't been spawned yet for the party, spawn one
-      if (!actorManager.rootActor) {
-        const rootActor = actorManager.spawn({
-          actorId,
-          actorType,
+        actor.onEvent(async (event) => {
+          console.debug('sending', event);
+          const eventRef = ref(
+            db,
+            `parties/${joinCode}/actors/${partyActorId}/event`
+          );
+          await setActorEvent(
+            eventRef,
+            ActorEvents.SEND({
+              actorId: partyActorId,
+              event,
+            })
+          );
         });
 
-        const newEventRef = push(eventsRef);
-        set(
-          newEventRef,
-          ActorEvents.SPAWN({
-            actorId,
-            actorType,
-            actor: rootActor,
-          })
-        ).then(noop);
-      }
-      const partyActor = actorManager.rootActor;
-
-      // Listen for all root actor events that happen
-      // and send them out on the network
-      partyActor.onEvent((event) => {
-        console.debug('sending', event);
-        const newEventRef = push(eventsRef);
-        set(
-          newEventRef,
-          ActorEvents.SEND({
-            actorId: partyActorId,
-            event,
-          })
-        ).then(noop);
-      });
-
-      const hydrate$ = fromEvent(actorManager, 'HYDRATE');
-      hydrate$.pipe(filter(isPartyPlayer)).subscribe(({ actorId }) => {
-        partyActor.send(PartyEvents.PLAYER_JOINED({ actorId }));
-      });
-
-      // Start the loop
-      runPartyLoop(joinCode, actorManager);
-    };
-
-    // Grab any persisted state from database and initialize using it
-    onValue(
-      actorsRef,
-      (snap) => {
-        // actorData should usually be empty unless resuming from a crash/restart
-        const actorData = (snap.val() || []) as SerializedSharedActor[];
-        initialize(actorData);
+        connectPartyActorObservables(actor);
       },
       {
         onlyOnce: true,
       }
     );
+
+    const actorsRef = ref(db, `parties/${joinCode}/actor_list`);
+    onChildAdded(actorsRef, (snap: DataSnapshot) => {
+      const ref = snap.val() as SharedActorRef;
+      console.log('new actor', ref);
+      initializeActor(db, joinCode, ref, actorManager);
+    });
+
+    const connectPartyActorObservables = (actor: PartyActor) => {
+      const hydrate$ = fromEvent(actorManager, 'HYDRATE');
+      hydrate$.pipe(filter(isPartyPlayer)).subscribe(({ actorId }) => {
+        actor.send(PartyEvents.PLAYER_JOINED({ actorId }));
+      });
+    };
   };
 
   const userConnectionsRef = ref(db, 'user_party_connections');
@@ -167,21 +143,3 @@ async function bootstrap() {
 }
 
 bootstrap();
-
-/**
- * Runs the logic for the party in a loop.
- * @param joinCode
- * @param actorManager
- */
-const runPartyLoop = async (joinCode: string, actorManager: ActorManager) => {
-  const actorsRef = ref(db, `parties/${joinCode}/actors`);
-
-  const loop = () => {
-    // Backup current state every 500ms
-    const actorsJSON = actorManager.serializeAll();
-    set(actorsRef, actorsJSON).then(noop);
-    setTimeout(loop, 500);
-  };
-
-  loop();
-};

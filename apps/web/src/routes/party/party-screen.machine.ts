@@ -1,29 +1,26 @@
 import {
-  ActorEvent,
   ActorEvents,
   ActorManager,
-  isSendEvent,
-  isSpawnEvent,
-  MachineFactory,
-  SerializedSharedActor,
+  initializeActor, MachineFactory,
+  ManagedActor, setActorEvent, setActorState, setNewActor, SharedActorRef
 } from '@explorers-club/actor';
 import {
   createPartyMachine,
   createPartyPlayerMachine,
   getPartyActorId,
   getPartyPlayerActorId,
-  PartyActor,
+  PartyActor
 } from '@explorers-club/party';
-import { noop } from '@explorers-club/utils';
 import {
+  DataSnapshot,
   onChildAdded,
   onDisconnect,
   onValue,
   push,
   ref,
-  set,
+  set
 } from 'firebase/database';
-import { filter, first, from } from 'rxjs';
+import { filter, first, from, fromEvent } from 'rxjs';
 import { ActorRefFrom, assign, DoneInvokeEvent } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { db } from '../../lib/firebase';
@@ -65,8 +62,7 @@ export const createPartyScreenMachine = ({
 }: CreateMachineProps) => {
   const partyActorId = getPartyActorId(joinCode);
   const actorManager = new ActorManager(partyActorId);
-  const actorsRef = ref(db, `parties/${joinCode}/actors`);
-  const eventsRef = ref(db, `parties/${joinCode}/events`);
+  const actorsRef = ref(db, `parties/${joinCode}/actor_list`);
 
   return partyScreenModel.createMachine(
     {
@@ -236,88 +232,67 @@ export const createPartyScreenMachine = ({
             throw new Error('trying to join party without being logged in');
           }
 
-          // Spawn the player actor
-          // and send it out on the network
-          const actorId = getPartyPlayerActorId(userId);
-          const actorType = 'PLAYER_ACTOR';
+          // Create my actor, persist its state, then
+          // add it to the list of actors on the network
+          const sharedActorRef: SharedActorRef = {
+            actorId: getPartyPlayerActorId(userId),
+            actorType: 'PLAYER_ACTOR',
+          };
+          const { actorId } = sharedActorRef;
 
-          const myActor = actorManager.spawn({
-            actorId,
-            actorType,
-          });
+          // TODO dry up this code with party-server
+          const myActor = actorManager.spawn(sharedActorRef);
           actorManager.myActorId = actorId;
+          const stateRef = ref(
+            db,
+            `parties/${joinCode}/actors/${actorId}/state`
+          );
+          const stateJSON = JSON.stringify(myActor.getSnapshot());
+          await setActorState(stateRef, stateJSON);
 
-          const spawnActorEventRef = push(eventsRef);
-          set(
-            spawnActorEventRef,
-            ActorEvents.SPAWN({
-              actorId,
-              actorType,
-              actor: myActor,
-            })
-          ).then(noop);
+          const actorsRef = ref(db, `parties/${joinCode}/actor_list`);
+          const newActorRef = push(actorsRef);
+          await setNewActor(newActorRef, sharedActorRef);
 
-          myActor.onEvent((event) => {
-            const newEventRef = push(eventsRef);
-            set(
-              newEventRef,
+          myActor.onEvent(async (event) => {
+            const eventRef = ref(
+              db,
+              `parties/${joinCode}/actors/${actorId}/event`
+            );
+            await setActorEvent(
+              eventRef,
               ActorEvents.SEND({
-                actorId,
+                actorId: partyActorId,
                 event,
               })
             );
           });
-
-          return myActor;
         },
         connectToParty: async (context, event) => {
           return new Promise((resolve, reject) => {
-            onChildAdded(eventsRef, (snap) => {
-              const event = snap.val() as ActorEvent;
-
-              if (isSpawnEvent(event)) {
-                const hadRootActor = !!actorManager.rootActor;
-
-                actorManager.hydrate(event.payload);
-
-                const didSpawnRootActor =
-                  !hadRootActor && !!actorManager.rootActor;
-                if (didSpawnRootActor) {
-                  resolve(actorManager.rootActor);
-                  // TODO remove this listener after we're done
-                }
-              } else if (isSendEvent(event)) {
-                const { actorId } = event.payload;
-                const actor = actorManager.getActor(actorId);
-                if (actor) {
-                  actor.send(event.payload.event);
-                } else {
-                  console.debug('warning: no actor found for event', event);
-                }
-              }
+            // Get all actors and initialize them
+            onChildAdded(actorsRef, (snap: DataSnapshot) => {
+              const ref = snap.val() as SharedActorRef;
+              initializeActor(db, joinCode, ref, actorManager);
             });
+            initializePartyPresence(joinCode);
 
-            onValue(
-              actorsRef,
-              (snap) => {
-                const actorData = (snap.val() || []) as SerializedSharedActor[];
-                actorManager.hydrateAll(actorData);
-
-                initializePartyPresence(joinCode);
-
-                if (actorManager.rootActor) {
-                  resolve(actorManager.rootActor);
-                }
-              },
-              {
-                onlyOnce: true,
-              }
-            );
+            // Once the party is actor is hydrated, we are "connected"
+            const hydrate$ = fromEvent<ManagedActor>(actorManager, 'HYDRATE');
+            hydrate$
+              .pipe(filter(isPartyActor), first())
+              .subscribe(({ actor }) => {
+                resolve(actor);
+              });
           });
         },
       },
     }
   );
+};
+
+const isPartyActor = (managedActor: ManagedActor) => {
+  return managedActor.actorType === 'PARTY_ACTOR';
 };
 
 const initializePartyPresence = (joinCode: string) => {

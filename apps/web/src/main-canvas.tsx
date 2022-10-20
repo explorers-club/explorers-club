@@ -7,7 +7,7 @@ export function MainCanvas() {
   return (
     <Container>
       {/* Configuration: https://github.com/pmndrs/leva/blob/main/docs/configuration.md */}
-      <Leva flat collapsed />
+      <Leva hidden flat collapsed />
       <Canvas
         gl={{ physicallyCorrectLights: true }}
         camera={{ position: [20, 10, 20] }}
