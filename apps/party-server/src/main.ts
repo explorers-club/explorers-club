@@ -1,35 +1,39 @@
 import {
-  ActorEvents,
   ActorManager,
-  initializeActor, setActorEvent,
+  initializeActor,
+  MachineFactory,
+  setActorEvent,
   setActorState,
   setNewActor,
   SharedActorRef
 } from '@explorers-club/actor';
 import {
+  createPartyMachine,
+  createPartyPlayerMachine,
   getPartyActorId,
   PartyActor,
   PartyEvents
 } from '@explorers-club/party';
 import * as crypto from 'crypto';
 import {
-  DataSnapshot,
-  onChildAdded,
-  onDisconnect,
+  onChildAdded, onDisconnect,
   onValue,
   push,
   ref,
   runTransaction
 } from 'firebase/database';
-import { filter, fromEvent } from 'rxjs';
+import { fromRef, ListenEvent } from 'rxfire/database';
+import { filter, map } from 'rxjs';
 import { AnyInterpreter } from 'xstate';
-import { isPartyPlayer } from './actors';
 import { db } from './lib/firebase';
 
 // Presence app example
 // https://firebase.google.com/docs/database/android/offline-capabilities#section-sample
 
 // type PartyRow = Database['public']['Tables']['parties']['Row'];
+
+MachineFactory.registerMachine('PARTY_ACTOR', createPartyMachine);
+MachineFactory.registerMachine('PLAYER_ACTOR', createPartyPlayerMachine);
 
 const runningParties = new Set();
 
@@ -89,7 +93,6 @@ async function bootstrap() {
           // Otherwise spawn a new one
           actor = actorManager.spawn(sharedActorRef);
 
-          // TODO dry up this code with client join party code
           const stateJSON = JSON.stringify(actor.getSnapshot());
           await setActorState(stateRef, stateJSON);
 
@@ -98,22 +101,28 @@ async function bootstrap() {
           await setNewActor(newActorRef, sharedActorRef);
         }
 
+        /**
+         * Update actor data in db when there is a new event
+         * to push it out to clients
+         */
         actor.onEvent(async (event) => {
-          console.debug('sending', event);
+          const stateRef = ref(
+            db,
+            `parties/${joinCode}/actors/${partyActorId}/state`
+          );
           const eventRef = ref(
             db,
             `parties/${joinCode}/actors/${partyActorId}/event`
           );
-          await setActorEvent(
-            eventRef,
-            ActorEvents.SEND({
-              actorId: partyActorId,
-              event,
-            })
-          );
+          const stateJSON = JSON.stringify(actor.getSnapshot());
+
+          await Promise.all([
+            setActorEvent(eventRef, event),
+            setActorState(stateRef, stateJSON),
+          ]);
         });
 
-        connectPartyActorObservables(actor);
+        connectPartyObservables(actor);
       },
       {
         onlyOnce: true,
@@ -121,16 +130,39 @@ async function bootstrap() {
     );
 
     const actorsRef = ref(db, `parties/${joinCode}/actor_list`);
-    onChildAdded(actorsRef, (snap: DataSnapshot) => {
-      const ref = snap.val() as SharedActorRef;
-      console.log('new actor', ref);
-      initializeActor(db, joinCode, ref, actorManager);
+
+    const sharedActorRef$ = fromRef(actorsRef, ListenEvent.added).pipe(
+      map((change) => change.snapshot.val() as SharedActorRef)
+    );
+
+    // For each actor that exists (and gets added), this will
+    // fetch their state, connect a listen for new events, and
+    // hydrate it with the actor manager
+    sharedActorRef$.subscribe((sharedActorRef) => {
+      initializeActor(db, joinCode, sharedActorRef, actorManager);
     });
 
-    const connectPartyActorObservables = (actor: PartyActor) => {
-      const hydrate$ = fromEvent(actorManager, 'HYDRATE');
-      hydrate$.pipe(filter(isPartyPlayer)).subscribe(({ actorId }) => {
-        actor.send(PartyEvents.PLAYER_JOINED({ actorId }));
+    /**
+     * Sets up observables on on the firebase actor list and
+     * creates and send events to the main party actor when things happen
+     * @param actor
+     */
+    const connectPartyObservables = (actor: PartyActor) => {
+      const playerActor$ = sharedActorRef$.pipe(
+        filter(({ actorType }) => actorType === 'PLAYER_ACTOR')
+      );
+
+      const newPlayer$ = playerActor$.pipe(
+        filter(
+          ({ actorId }) =>
+            !actor.getSnapshot().context.playerActorIds.includes(actorId) // TODO use hashmap
+        )
+      );
+
+      // Send player join event
+      newPlayer$.subscribe(({ actorId }) => {
+        const event = PartyEvents.PLAYER_JOINED({ actorId });
+        actor.send(event);
       });
     };
   };

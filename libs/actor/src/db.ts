@@ -1,6 +1,6 @@
 import { DatabaseReference, set } from 'firebase/database';
-import { SendActorEvent } from './events';
-import { SerializedSharedActor, SharedActorRef } from './types';
+import { AnyEventObject } from 'xstate';
+import { SharedActorRef } from './types';
 
 export function setNewActor(
   ref: DatabaseReference,
@@ -13,9 +13,6 @@ export function setActorState(ref: DatabaseReference, stateJSON: string) {
   set(ref, stateJSON);
 }
 
-export function setActorEvent(
-  ref: DatabaseReference,
-  actorState: SendActorEvent
-) {
-  set(ref, actorState);
+export function setActorEvent(ref: DatabaseReference, event: AnyEventObject) {
+  set(ref, event);
 }

@@ -1,15 +1,20 @@
 import {
-  ActorEvents,
   ActorManager,
-  initializeActor, MachineFactory,
-  ManagedActor, setActorEvent, setActorState, setNewActor, SharedActorRef
+  initializeActor,
+  MachineFactory,
+  ManagedActor,
+  setActorEvent,
+  setActorState,
+  setNewActor,
+  SharedActorRef
 } from '@explorers-club/actor';
 import {
   createPartyMachine,
   createPartyPlayerMachine,
   getPartyActorId,
   getPartyPlayerActorId,
-  PartyActor
+  PartyActor,
+  PartyPlayerEvents
 } from '@explorers-club/party';
 import {
   DataSnapshot,
@@ -205,7 +210,11 @@ export const createPartyScreenMachine = ({
           }
 
           const actorId = getPartyPlayerActorId(userId);
-          return !!actorManager.getActor(actorId);
+          const partyActor = actorManager.rootActor as PartyActor;
+          console.log(partyActor.getSnapshot()?.context);
+          return partyActor
+            .getSnapshot()
+            ?.context.playerActorIds.includes(actorId) as boolean;
         },
         isLoggedIn: ({ authActor }) =>
           !!authActor.getSnapshot()?.matches('Authenticated'),
@@ -254,22 +263,21 @@ export const createPartyScreenMachine = ({
           const newActorRef = push(actorsRef);
           await setNewActor(newActorRef, sharedActorRef);
 
+          const eventRef = ref(
+            db,
+            `parties/${joinCode}/actors/${actorId}/event`
+          );
+
+          // Send disconnect event when we disconnect
+          onDisconnect(eventRef).set(PartyPlayerEvents.DISCONNECT());
+
           myActor.onEvent(async (event) => {
-            const eventRef = ref(
-              db,
-              `parties/${joinCode}/actors/${actorId}/event`
-            );
-            await setActorEvent(
-              eventRef,
-              ActorEvents.SEND({
-                actorId: partyActorId,
-                event,
-              })
-            );
+            await setActorEvent(eventRef, event);
           });
         },
         connectToParty: async (context, event) => {
           return new Promise((resolve, reject) => {
+            // TODO use rxjs here for consistency with server code
             // Get all actors and initialize them
             onChildAdded(actorsRef, (snap: DataSnapshot) => {
               const ref = snap.val() as SharedActorRef;
@@ -295,10 +303,14 @@ const isPartyActor = (managedActor: ManagedActor) => {
   return managedActor.actorType === 'PARTY_ACTOR';
 };
 
+/**
+ * Add ourselves to `user_party_connections` when we connect
+ * and remove when we disconnect. This is how party server
+ * knows which parties to spawn.
+ */
 const initializePartyPresence = (joinCode: string) => {
   const userConnectionsRef = ref(db, 'user_party_connections');
 
-  // Set up presence handler
   const connectedRef = ref(db, '.info/connected');
   onValue(connectedRef, (snap) => {
     if (snap.val()) {

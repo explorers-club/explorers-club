@@ -1,4 +1,5 @@
-import { Database, DataSnapshot, onValue, ref } from 'firebase/database';
+import { Database, DataSnapshot, get, onValue, ref } from 'firebase/database';
+import { AnyActorRef, AnyEventObject } from 'xstate';
 import { ActorManager } from './actor-manager';
 import { ActorEvent, isSendEvent } from './events';
 import { SharedActorRef } from './types';
@@ -21,25 +22,35 @@ export const initializeActor = (
   const stateRef = ref(db, `parties/${joinCode}/actors/${actorId}/state`);
   const eventRef = ref(db, `parties/${joinCode}/actors/${actorId}/event`);
 
-  const hydrateInitialState = (snap: DataSnapshot) => {
-    const stateJSON = snap.val() as string | undefined;
-    if (stateJSON) {
-      actor = actorManager.hydrate({
-        ...sharedActorRef,
-        stateJSON,
-      });
+  // const eventQueue: AnyEventObject[] = [];
+
+  const fetchAndHydrateActor = async () => {
+    const stateSnapshot = await get(stateRef);
+    const stateJSON = stateSnapshot.val() as string | undefined;
+    if (!stateJSON) {
+      throw new Error('couldnt find state json for ' + sharedActorRef.actorId);
+    }
+
+    return actorManager.hydrate({
+      ...sharedActorRef,
+      stateJSON,
+    });
+  };
+
+  const handleNewEvent = async (snap: DataSnapshot) => {
+    // TODO need to collect any events that come in
+    // here while we are fetching the actor
+    // potential for timing issue currently
+    const event = snap.val() as AnyEventObject | undefined;
+    console.log('he', { event, actor });
+    if (event && actor) {
+      actor.send(event);
     } else {
-      console.debug(`warning missing shared actor for ${actorId}`);
+      actor = await fetchAndHydrateActor();
+      // we ignore the first event if there was one since
+      // since it's should be already processed
     }
   };
 
-  const handleNewEvent = (snap: DataSnapshot) => {
-    const event = snap.val() as ActorEvent | undefined;
-    if (actor && event && isSendEvent(event)) {
-      actor.send(event.payload.event);
-    }
-  };
-
-  onValue(stateRef, hydrateInitialState, { onlyOnce: true });
   onValue(eventRef, handleNewEvent);
 };
