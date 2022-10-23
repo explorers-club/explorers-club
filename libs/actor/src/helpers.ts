@@ -1,7 +1,6 @@
 import { Database, DataSnapshot, get, onValue, ref } from 'firebase/database';
-import { AnyActorRef, AnyEventObject } from 'xstate';
+import { AnyEventObject } from 'xstate';
 import { ActorManager } from './actor-manager';
-import { ActorEvent, isSendEvent } from './events';
 import { SharedActorRef } from './types';
 
 // TODO maybe just move this function in to actorManager somehow
@@ -42,9 +41,11 @@ export const initializeActor = (
     // here while we are fetching the actor
     // potential for timing issue currently
     const event = snap.val() as AnyEventObject | undefined;
-    console.log('he', { event, actor });
+    console.log('receive', event);
     if (event && actor) {
+      console.log('before send', event, actor.getSnapshot().value, actor.getSnapshot().context);
       actor.send(event);
+      console.log('after send', actor.getSnapshot().value, actor.getSnapshot().context);
     } else {
       actor = await fetchAndHydrateActor();
       // we ignore the first event if there was one since

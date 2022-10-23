@@ -25,7 +25,7 @@ export const createPartyPlayerMachine = ({ actorId }: SharedMachineProps) =>
   partyPlayerModel.createMachine(
     {
       id: actorId,
-      type: "parallel",
+      type: 'parallel',
       states: {
         Ready: {
           initial: 'NotReady',
@@ -45,11 +45,20 @@ export const createPartyPlayerMachine = ({ actorId }: SharedMachineProps) =>
         Connection: {
           initial: 'Connected',
           states: {
-            Connected: {},
-            Disconnected: {},
+            Connected: {
+              on: {
+                DISCONNECT: 'Disconnected',
+              },
+            },
+            Disconnected: {
+              on: {
+                CONNECT: 'Connected',
+              },
+            },
           },
         },
       },
+      predictableActionArguments: true,
     },
     {
       services: {},

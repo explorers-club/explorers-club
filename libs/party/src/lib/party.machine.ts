@@ -11,10 +11,10 @@ import {
 } from './party-player.machine';
 
 export const PLAYER_JOINED = (props: { actorId: string }) => props;
-export const PLAYER_DISCONNECTED = (props: { userId: string }) => props;
+export const PLAYER_LEFT = (props: { actorId: string }) => props;
 
 export type PlayerJoinedEvent = ReturnType<typeof PLAYER_JOINED>;
-export type PlayerDisconnectedEvent = ReturnType<typeof PLAYER_DISCONNECTED>;
+export type PlayerLeftEvent = ReturnType<typeof PLAYER_LEFT>;
 
 const gameMachine = createMachine({
   id: 'GameMachine',
@@ -32,8 +32,8 @@ const partyModel = createModel(
   },
   {
     events: {
-      PLAYER_DISCONNECTED,
       PLAYER_JOINED,
+      PLAYER_LEFT,
     },
   }
 );
@@ -59,15 +59,14 @@ export const createPartyMachine = ({
         PLAYER_JOINED: {
           actions: partyModel.assign({
             playerActorIds: (context, { actorId }) => {
-              console.log('PLAYER JOINED CALLED');
               return [...context.playerActorIds, actorId];
             },
           }),
         },
-        PLAYER_DISCONNECTED: {
+        PLAYER_LEFT: {
           actions: partyModel.assign({
-            playerActorIds: (context, { userId }) => {
-              return context.playerActorIds.filter((id) => id !== userId);
+            playerActorIds: (context, { actorId }) => {
+              return context.playerActorIds.filter((id) => id !== actorId);
             },
           }),
         },
