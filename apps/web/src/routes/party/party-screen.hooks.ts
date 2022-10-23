@@ -24,3 +24,8 @@ export const usePartyActor = () => {
     (state) => state.context.partyActor as PartyActor
   );
 };
+
+export const useActorManager = () => {
+  const partyScreenActor = usePartyScreenActor();
+  return useSelector(partyScreenActor, (state) => state.context.actorManager);
+};

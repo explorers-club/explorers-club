@@ -1,4 +1,4 @@
-import { AnyState } from 'xstate';
+import { AnyEventObject, AnyState } from 'xstate';
 import { ActorManager } from './actor-manager';
 
 export type ActorID = string;
@@ -14,6 +14,11 @@ export enum ActorEventType {
 export interface SharedActorRef {
   actorId: ActorID;
   actorType: ActorType;
+}
+
+export interface SharedActorEvent {
+  actorId: ActorID;
+  event: AnyEventObject;
 }
 
 export type SharedActor = SharedActorRef & {

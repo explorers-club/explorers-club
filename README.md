@@ -18,7 +18,7 @@ Run the web app with `nx run web:serve`.
 - firebase for real-time syncing
 - [react-three-fiber](https://github.com/pmndrs/react-three-fiber) for 3D graphics
 - [styled-components](https://styled-components.com/) for styling
-- [xstate](https://xstate.js.org/) for state management + actor pattern for sharing distributed real-time state
+- [xstate](https://xstate.js.org/) for state management + [actor pattern](https://www.youtube.com/watch?v=NTfPtYJORck) for sharing distributed real-time state
 - static site hosting on netlify
 - game server hosting on fly.io
 - [nx](https://nx.dev/) for managing the monorepo
