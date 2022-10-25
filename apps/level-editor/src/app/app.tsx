@@ -107,6 +107,9 @@ const getHexOrientation: (resolution: number) => Orientation = (resolution) => {
   return resolution % 2 ? Orientation.FLAT : Orientation.POINTY;
 };
 
+/**
+ * Creates a set of grids from min resolution to max resolution
+ */
 const createGrids = () => {
   const grids = [];
   // Create a grid at each resolution
@@ -127,23 +130,31 @@ const createGrids = () => {
   return grids;
 };
 
+/**
+ * Creates the "zoomable" grid system using heightmap information from a png.
+ * @param heightmap
+ * @returns
+ */
 const useIndexedHexTree = (heightmap?: PNG) => {
   return useMemo(() => {
     if (!heightmap) {
       return;
     }
+    console.log("creating grids");
 
     const grids = createGrids();
     const baseGrid = grids[0];
 
-    // TODO NEXT... for every pixel in the grid
-    // insert it in to the hex grid at each
     const pixels = heightmap.decodePixels();
 
-    console.log('creating grids');
-
+    /**
+     * Walk through each pixel in the image and insert it's
+     * it in to the hex grid system at it's x,y position, but translated
+     * so that the center pixel of the image is at (0,0).
+     */
     for (let x = 0; x < heightmap.width; x++) {
       for (let y = 0; y < heightmap.height; y++) {
+        // Get the 'value' value to determine elevation at this point.
         const index = x * 4 + y * heightmap.width * 4;
         const value = chroma([
           pixels[index],
@@ -151,57 +162,36 @@ const useIndexedHexTree = (heightmap?: PNG) => {
           pixels[index + 2],
         ]).hsv()[2];
 
+        // Don't create hexes if there is no value.
         if (value === 0) {
           continue;
         }
 
+        // Translate pixels to center is at 0,0
+        const translatedX = x - heightmap.width / 2;
+        const translatedY = y - heightmap.height / 2;
+
         grids.forEach((grid) => {
-          const coords = { x, y };
-          const hex = grid.pointToHex(coords); // TODO adjust this by some offset
+          const point = { x: translatedX, y: translatedY };
+          const hex = grid.pointToHex(point);
           if (!grid.hasHex(hex)) {
             grid.setHexes([hex]);
           }
         });
       }
     }
-    console.log(grids);
-    grids.forEach(console.log);
 
-    grids.forEach((grid) => {
-      console.log(grid.size);
+    // After all the hex are inserted, go back
+    // and calculate the elevation values for each hex.
+    //
+    // At the highest resolution, we just use the value
+    // direction from the heightmap, otherwise we aggregate
+    // the points and save statistics about them that can
+    // be used by shaders and in the terrain.
+    grids.forEach((grid, index) => {
+      console.log(index, grid.size);
     });
-    baseGrid.forEach(console.log);
 
-    // const counts: Record<string, number> = {};
-    // const pixels = heightmap.decodePixels();
-    // const counts: Record<string, number> = {};
-
-    // const hexes: BaseHex[] = [];
-    // for (let x = 0; x < heightmap.width; x++) {
-    //   for (let y = 0; y < heightmap.height; y++) {
-    //     const index = x * 4 + y * heightmap.width * 4;
-    //     const value = chroma([
-    //       pixels[index],
-    //       pixels[index + 1],
-    //       pixels[index + 2],
-    //     ]).hsv()[2];
-
-    //     if (value === 0) {
-    //       continue;
-    //     }
-
-    //     const adjustedX = x - INPUT_IMAGE_WIDTH / 2;
-    //     const adjustedY = y - INPUT_IMAGE_HEIGHT / 2;
-    //     hexes.push(
-    //       BaseHex.create({ col: adjustedX, row: adjustedY }, 5, 0, value)
-    //     );
-
-    //     // Shift x and y so that we match up with the hex grid
-
-    //     // Find which cell we belong to in the base hex grid.
-    //   }
-    // }
-    // baseGrid.setHexes(hexes);
     return { baseGrid };
   }, [heightmap]);
 };
@@ -214,7 +204,7 @@ export function Editor() {
       <color attach="background" args={['#FFEECC']} />
       <pointLight
         args={[color, 80, 200]}
-        position={[10, 20, 10]}
+        position={[10, 20, 100]}
         castShadow={true}
       />
       <Suspense fallback={null}>
