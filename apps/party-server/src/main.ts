@@ -5,13 +5,13 @@ import {
   SerializedSharedActor,
   setActorEvent,
   setActorState,
-  SharedActorEvent,
+  SharedActorEvent
 } from '@explorers-club/actor';
 import {
   createPartyMachine,
   createPartyPlayerMachine,
   getPartyActorId,
-  PartyEvents,
+  PartyEvents
 } from '@explorers-club/party';
 import * as crypto from 'crypto';
 import {
@@ -21,31 +21,17 @@ import {
   onDisconnect,
   push,
   ref,
-  runTransaction,
+  runTransaction
 } from 'firebase/database';
 import { fromRef, ListenEvent } from 'rxfire/database';
 import { first, map, skipWhile } from 'rxjs';
-import { createMachine } from 'xstate';
 import { db } from './lib/firebase';
 
 // Presence app example
 // https://firebase.google.com/docs/database/android/offline-capabilities#section-sample
 
-// type PartyRow = Database['public']['Tables']['parties']['Row'];
-
 MachineFactory.registerMachine('PARTY_ACTOR', createPartyMachine);
 MachineFactory.registerMachine('PLAYER_ACTOR', createPartyPlayerMachine);
-
-const partyServerMachine = createMachine({
-  id: 'PartyServerMachine',
-  initial: 'Initializing',
-  states: {
-    Initializing: {
-      onDone: 'Serving',
-    },
-    Serving: {},
-  },
-});
 
 const runningParties = new Set();
 
