@@ -10,7 +10,7 @@ const partyPlayerModel = createModel(
     events: {
       NOT_READY: () => ({}),
       READY: () => ({}),
-      CONNECT: () => ({}),
+      RECONNECT: () => ({}),
       DISCONNECT: () => ({}),
     },
   }
@@ -28,16 +28,16 @@ export const createPartyPlayerMachine = ({ actorId }: SharedMachineProps) =>
       type: 'parallel',
       states: {
         Ready: {
-          initial: 'NotReady',
+          initial: 'No',
           states: {
-            NotReady: {
+            No: {
               on: {
-                READY: 'Ready',
+                READY: 'Yes',
               },
             },
-            Ready: {
+            Yes: {
               on: {
-                NOT_READY: 'NotReady',
+                NOT_READY: 'No',
               },
             },
           },
@@ -52,7 +52,7 @@ export const createPartyPlayerMachine = ({ actorId }: SharedMachineProps) =>
             },
             Disconnected: {
               on: {
-                CONNECT: 'Connected',
+                RECONNECT: 'Connected',
               },
             },
           },

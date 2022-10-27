@@ -13,6 +13,7 @@ import {
   SharedMachineProps,
   SharedActorRef,
   SerializedSharedActor,
+  SharedActorEvent,
 } from './types';
 
 type CreateMachineFunction = (props: SharedMachineProps) => AnyStateMachine;
@@ -46,6 +47,7 @@ export declare interface ActorManager {
   on(event: 'SPAWN', listener: (props: ManagedActor) => void): this;
   on(event: 'HYDRATE', listener: (props: ManagedActor) => void): this;
   on(event: 'HYDRATE_ALL', listener: () => void): this;
+  on(event: 'ACTOR_EVENT', listener: (props: SharedActorEvent) => void): this;
 }
 
 /**
@@ -112,8 +114,13 @@ export class ActorManager extends EventEmitter {
     const previousState = State.create(state);
 
     const actor = interpret(machine).start(previousState);
+
     this.actorMap.set(actorId, { actor, actorType });
     this.emit('HYDRATE', { actorId, actorType, actor });
+
+    actor.onEvent((event) => {
+      this.emit('ACTOR_EVENT', { actorId, event });
+    });
 
     return actor;
   }

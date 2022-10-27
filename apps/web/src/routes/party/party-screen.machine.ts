@@ -14,13 +14,13 @@ import {
   getPartyActorId,
   getPartyPlayerActorId,
   PartyActor,
-  PartyEvents,
+  PartyPlayerActor,
   PartyPlayerEvents,
 } from '@explorers-club/party';
 import { get, onDisconnect, onValue, push, ref, set } from 'firebase/database';
 import { fromRef, ListenEvent } from 'rxfire/database';
-import { filter, first, from, fromEvent, map } from 'rxjs';
-import { ActorRefFrom, AnyInterpreter, assign, DoneInvokeEvent } from 'xstate';
+import { filter, first, from, fromEvent } from 'rxjs';
+import { ActorRefFrom, assign, DoneInvokeEvent } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { db } from '../../lib/firebase';
 import { AuthActor } from '../../state/auth.machine';
@@ -34,6 +34,7 @@ const partyScreenModel = createModel(
     playerName: undefined as string | undefined,
     actorManager: {} as ActorManager,
     partyActor: undefined as PartyActor | undefined,
+    myActor: undefined as PartyPlayerActor | undefined,
     authActor: {} as AuthActor,
   },
   {
@@ -66,6 +67,7 @@ export const createPartyScreenMachine = ({
     {
       initial: 'Connecting',
       context: {
+        myActor: undefined,
         partyActor: undefined,
         playerName: undefined,
         actorManager,
@@ -156,26 +158,20 @@ export const createPartyScreenMachine = ({
             Joining: {
               invoke: {
                 src: 'joinParty',
-                onDone: 'Joined',
+                onDone: {
+                  target: 'Joined',
+                  actions: assign({
+                    myActor: (
+                      context,
+                      event: DoneInvokeEvent<PartyPlayerActor>
+                    ) => event.data,
+                  }),
+                },
                 onError: 'JoinError',
               },
             },
             JoinError: {},
-            Joined: {
-              initial: 'NotReady',
-              states: {
-                NotReady: {
-                  on: {
-                    PRESS_READY: 'Ready',
-                  },
-                },
-                Ready: {
-                  on: {
-                    PRESS_UNREADY: 'NotReady',
-                  },
-                },
-              },
-            },
+            Joined: {},
           },
         },
         Disconnected: {},
@@ -260,6 +256,8 @@ export const createPartyScreenMachine = ({
             actorId,
             event: PartyPlayerEvents.DISCONNECT(),
           });
+
+          return myActor;
         },
         connectToParty: async (context, event) => {
           const stateRef = ref(db, `parties/${joinCode}/actor_state`);

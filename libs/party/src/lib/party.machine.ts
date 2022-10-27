@@ -1,21 +1,19 @@
 import {
   ActorID,
   ActorManager,
-  SharedMachineProps,
+  fromActorEvents,
+  SharedMachineProps
 } from '@explorers-club/actor';
+import { filter, first } from 'rxjs';
 import { ActorRefFrom, createMachine, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
-import {
-  getPartyPlayerActorId,
-  PartyPlayerActor,
-} from './party-player.machine';
+import { PartyPlayerActor } from './party-player.machine';
 
-export const PLAYER_JOINED = (props: { actorId: string }) => props;
-export const PLAYER_LEFT = (props: { actorId: string }) => props;
+const MIN_PLAYER_COUNT = 2;
 
-export type PlayerJoinedEvent = ReturnType<typeof PLAYER_JOINED>;
-export type PlayerLeftEvent = ReturnType<typeof PLAYER_LEFT>;
-
+// TODO import this...
+// For now we can hard code the game machien since we only have one
+// But in future probalby want that to be dynamic
 const gameMachine = createMachine({
   id: 'GameMachine',
   initial: 'Loading',
@@ -29,11 +27,12 @@ const partyModel = createModel(
   {
     playerActorIds: [] as ActorID[],
     actorManager: {} as ActorManager,
+    startingAt: undefined as Date | undefined,
   },
   {
     events: {
-      PLAYER_JOINED,
-      PLAYER_LEFT,
+      PLAYER_JOINED: (props: { actorId: string }) => props,
+      PLAYER_LEFT: (props: { actorId: string }) => props,
     },
   }
 );
@@ -53,6 +52,7 @@ export const createPartyMachine = ({
       context: {
         playerActorIds: [],
         actorManager,
+        startingAt: undefined,
       },
       initial: 'Lobby',
       on: {
@@ -77,15 +77,19 @@ export const createPartyMachine = ({
           initial: 'Waiting',
           states: {
             Waiting: {
-              always: {
-                target: 'AllReady',
-                cond: 'allPlayersReady',
+              onDone: '',
+              invoke: {
+                src: 'onAllPlayersReady',
+                onDone: 'AllReady',
               },
             },
             AllReady: {
-              always: {
-                target: 'Waiting',
-                cond: 'allPlayersNotReady',
+              invoke: {
+                src: 'onAnyPlayerNotReady',
+                onDone: 'Waiting',
+              },
+              after: {
+                5000: 'EnteringGame',
               },
             },
             EnteringGame: {
@@ -104,33 +108,62 @@ export const createPartyMachine = ({
       predictableActionArguments: true,
     },
     {
-      guards: {
-        allPlayersNotReady: ({ playerActorIds }) =>
-          !getAllPlayersReady(actorManager, playerActorIds),
-        // !getAllPlayersReady(actorManager, playerActorIds),
-        allPlayersReady: ({ playerActorIds }) =>
-          getAllPlayersReady(actorManager, playerActorIds),
-        // getAllPlayersReady(actorManager, playerActorIds),
+      actions: {
+        setStartingAtTime: partyModel.assign({
+          startingAt: () => {
+            const now = new Date();
+            now.setSeconds(now.getSeconds() + 6);
+            return now;
+          },
+        }),
+      },
+      services: {
+        onAnyPlayerNotReady: () =>
+          new Promise((resolve) => {
+            const playerEvents$ = fromActorEvents(actorManager, [
+              'PLAYER_JOINED',
+              'PLAYER_LEFT',
+              'PLAYER_READY',
+              'PLAYER_UNREADY',
+            ]);
+            playerEvents$
+              .pipe(
+                first() // Take the first
+              )
+              .subscribe(resolve);
+          }),
+        onAllPlayersReady: () =>
+          new Promise((resolve) => {
+            const playerEvents$ = fromActorEvents(actorManager, [
+              'PLAYER_JOINED',
+              'PLAYER_LEFT',
+              'PLAYER_READY',
+              'PLAYER_UNREADY',
+            ]);
+            playerEvents$
+              .pipe(
+                filter(() => {
+                  const partyActor = actorManager.rootActor as PartyActor;
+                  const playerActors = actorManager.getActorsForType(
+                    'PLAYER_ACTOR'
+                  ) as PartyPlayerActor[];
+                  const readyCount = playerActors
+                    .map((actor) => actor.getSnapshot()?.matches('Ready.Yes'))
+                    .filter((isReady) => isReady).length;
+                  const playerCount =
+                    partyActor.getSnapshot()?.context.playerActorIds.length;
+                  const allReady =
+                    readyCount === playerCount &&
+                    playerCount >= MIN_PLAYER_COUNT;
+                  return allReady;
+                }),
+                first()
+              )
+              .subscribe(resolve);
+          }),
       },
     }
   );
-
-const getAllPlayersReady = (
-  actorManager: ActorManager,
-  playerActorIds: string[]
-) => {
-  return (
-    playerActorIds
-      .map((userId) => {
-        const actorId = getPartyPlayerActorId(userId);
-        const actor = actorManager.getActor(actorId) as
-          | PartyPlayerActor
-          | undefined;
-        return actor?.getSnapshot()?.matches('Ready');
-      })
-      .filter((val) => val).length === 0
-  );
-};
 
 export type GameActor = ActorRefFrom<typeof gameMachine>;
 export type GameState = StateFrom<typeof gameMachine>;

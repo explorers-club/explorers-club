@@ -1,6 +1,4 @@
 import {
-  ActorEvents,
-  ActorID,
   ActorManager,
   getEventRef,
   MachineFactory,
@@ -24,11 +22,10 @@ import {
   push,
   ref,
   runTransaction,
-  ThenableReference,
 } from 'firebase/database';
 import { fromRef, ListenEvent } from 'rxfire/database';
-import { filter, first, map, skipWhile } from 'rxjs';
-import { AnyEventObject, AnyInterpreter } from 'xstate';
+import { first, map, skipWhile } from 'rxjs';
+import { createMachine } from 'xstate';
 import { db } from './lib/firebase';
 
 // Presence app example
@@ -38,6 +35,17 @@ import { db } from './lib/firebase';
 
 MachineFactory.registerMachine('PARTY_ACTOR', createPartyMachine);
 MachineFactory.registerMachine('PLAYER_ACTOR', createPartyPlayerMachine);
+
+const partyServerMachine = createMachine({
+  id: 'PartyServerMachine',
+  initial: 'Initializing',
+  states: {
+    Initializing: {
+      onDone: 'Serving',
+    },
+    Serving: {},
+  },
+});
 
 const runningParties = new Set();
 
@@ -147,37 +155,11 @@ async function bootstrap() {
     }
     // Log our events to the database
     partyActor.onEvent(async (event) => {
+      console.log(event);
       await setActorEvent(myEventRef, { actorId: partyActorId, event });
     });
 
     initialized = true;
-
-    // connectPartyObservables(actor);
-    // startGameLoop(actor);
-
-    /**
-     * Sets up observables on on the firebase actor list and
-     * creates and send events to the main party actor when things happen
-     * @param actor
-     */
-    // const connectPartyObservables = (actor: PartyActor) => {
-    //   const playerActor$ = sharedActorRef$.pipe(
-    //     filter(({ actorType }) => actorType === 'PLAYER_ACTOR')
-    //   );
-
-    //   const newPlayer$ = playerActor$.pipe(
-    //     filter(
-    //       ({ actorId }) =>
-    //         !actor.getSnapshot().context.playerActorIds.includes(actorId) // TODO use hashmap
-    //     )
-    //   );
-
-    //   // Send player join event
-    //   newPlayer$.subscribe(({ actorId }) => {
-    //     const event = PartyEvents.PLAYER_JOINED({ actorId });
-    //     actor.send(event);
-    //   });
-    // };
   };
 
   const userConnectionsRef = ref(db, 'user_party_connections');
@@ -186,16 +168,5 @@ async function bootstrap() {
     trySpawnPartyHost(joinCode);
   });
 }
-
-const TICK_RATE = 60; // Number of times per second the server game loop runs
-
-const startGameLoop = (actor: AnyInterpreter) => {
-  const interval = 1000 / TICK_RATE;
-
-  const timer = setInterval(() => {
-    // If
-    actor;
-  }, interval);
-};
 
 bootstrap();

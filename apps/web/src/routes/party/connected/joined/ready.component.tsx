@@ -1,14 +1,14 @@
-import { useCallback } from 'react';
+import { PartyPlayerEvents } from '@explorers-club/party';
+import { useCallback, useContext } from 'react';
 import styled from 'styled-components';
-import { usePartyScreenActor } from '../../party-screen.hooks';
-import { PartyScreenEvents } from '../../party-screen.machine';
+import { JoinedContext } from './joined.context';
 
 export const Ready = () => {
-  const partyScreenActor = usePartyScreenActor();
+  const { myActor } = useContext(JoinedContext);
 
   const handlePressUnready = useCallback(() => {
-    partyScreenActor.send(PartyScreenEvents.PRESS_UNREADY());
-  }, [partyScreenActor]);
+    myActor.send(PartyPlayerEvents.NOT_READY());
+  }, [myActor]);
 
   return (
     <Container>
