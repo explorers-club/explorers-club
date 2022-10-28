@@ -19,7 +19,7 @@ import {
 } from '@explorers-club/party';
 import { get, onDisconnect, onValue, push, ref, set } from 'firebase/database';
 import { fromRef, ListenEvent } from 'rxfire/database';
-import { filter, first, from, fromEvent } from 'rxjs';
+import { filter, first, from, fromEvent, skipWhile } from 'rxjs';
 import { ActorRefFrom, assign, DoneInvokeEvent } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { db } from '../../lib/firebase';
@@ -278,29 +278,26 @@ export const createPartyScreenMachine = ({
           return new Promise((resolve, reject) => {
             // Listen for events on all actors in the party
             const newEvent$ = fromRef(eventsRef, ListenEvent.changed);
-            newEvent$.pipe(first()).subscribe((changes) => {
-              // Wait until we're initialized before sending new events...
-              if (!initialized) {
-                return;
-              }
+            newEvent$
+              .pipe(skipWhile(() => !initialized))
+              .subscribe((changes) => {
+                const { actorId, event } =
+                  changes.snapshot.val() as SharedActorEvent;
+                console.log('new event', actorId, event);
 
-              const { actorId, event } =
-                changes.snapshot.val() as SharedActorEvent;
-              console.log('new event', actorId, event);
+                // Don't send events on our own actor
+                if (actorManager.myActorId === actorId) {
+                  return;
+                }
 
-              // Don't send events on our own actor
-              if (actorManager.myActorId === actorId) {
-                return;
-              }
+                const actor = actorManager.getActor(actorId);
+                if (!actor) {
+                  console.warn("Couldn't find actor " + actorId);
+                  return;
+                }
 
-              const actor = actorManager.getActor(actorId);
-              if (!actor) {
-                console.warn("Couldn't find actor " + actorId);
-                return;
-              }
-
-              actor.send(event);
-            });
+                actor.send(event);
+              });
 
             // Listen for new actors and hydrate them
             const actorAdded$ = fromRef(stateRef, ListenEvent.added);
