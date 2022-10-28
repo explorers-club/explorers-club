@@ -7,7 +7,7 @@ export const NotReady = () => {
   const { myActor } = useContext(JoinedContext);
 
   const handlePressReady = useCallback(() => {
-    myActor.send(PartyPlayerEvents.READY());
+    myActor.send(PartyPlayerEvents.PLAYER_READY());
   }, [myActor]);
 
   return (

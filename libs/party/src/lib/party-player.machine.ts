@@ -8,15 +8,20 @@ const partyPlayerModel = createModel(
   },
   {
     events: {
-      NOT_READY: () => ({}),
-      READY: () => ({}),
-      RECONNECT: () => ({}),
-      DISCONNECT: () => ({}),
+      PLAYER_UNREADY: () => ({}),
+      PLAYER_READY: () => ({}),
+      PLAYER_RECONNECT: () => ({}),
+      PLAYER_DISCONNECT: () => ({}),
     },
   }
 );
 
 export const PartyPlayerEvents = partyPlayerModel.events;
+
+// todo enumerate somehow to get create enum type
+// type PlayerDisconnectedEvent = ReturnType<
+//   typeof PartyPlayerEvents.PLAYER_RECONNECT
+// >;
 
 export const getPartyPlayerActorId = (userId: string) =>
   `PartyPlayer-${userId}` as ActorID;
@@ -32,27 +37,27 @@ export const createPartyPlayerMachine = ({ actorId }: SharedMachineProps) =>
           states: {
             No: {
               on: {
-                READY: 'Yes',
+                PLAYER_READY: 'Yes',
               },
             },
             Yes: {
               on: {
-                NOT_READY: 'No',
+                PLAYER_UNREADY: 'No',
               },
             },
           },
         },
-        Connection: {
-          initial: 'Connected',
+        Connected: {
+          initial: 'Yes',
           states: {
-            Connected: {
+            No: {
               on: {
-                DISCONNECT: 'Disconnected',
+                PLAYER_RECONNECT: 'Yes',
               },
             },
-            Disconnected: {
+            Yes: {
               on: {
-                RECONNECT: 'Connected',
+                PLAYER_DISCONNECT: 'No',
               },
             },
           },

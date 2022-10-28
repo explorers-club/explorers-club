@@ -265,7 +265,7 @@ export const createPartyScreenMachine = ({
           // Send disconnect event when we disconnect
           onDisconnect(myEventRef).set({
             actorId,
-            event: PartyPlayerEvents.DISCONNECT(),
+            event: PartyPlayerEvents.PLAYER_DISCONNECT(),
           });
 
           return myActor;

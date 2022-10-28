@@ -21,7 +21,7 @@ import {
   runTransaction,
 } from 'firebase/database';
 import { fromRef, ListenEvent } from 'rxfire/database';
-import { first, map, skipWhile } from 'rxjs';
+import { map, skipWhile } from 'rxjs';
 import { db } from './lib/firebase';
 
 // Presence app example
@@ -61,6 +61,7 @@ async function bootstrap() {
     const actorManager = new ActorManager(partyActorId);
     const stateRef = ref(db, `parties/${joinCode}/actor_state`);
     const eventsRef = ref(db, `parties/${joinCode}/actor_events`);
+
     const myEventRef = ref(
       db,
       `parties/${joinCode}/actor_events/${partyActorId}`
@@ -117,7 +118,6 @@ async function bootstrap() {
     >;
     const serializedActors = Object.values(stateMap);
     actorManager.hydrateAll(serializedActors);
-    console.log(stateMap);
 
     // If there is no party actor present, spawn one
     let partyActor = actorManager.rootActor;

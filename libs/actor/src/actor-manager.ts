@@ -85,6 +85,10 @@ export class ActorManager extends EventEmitter {
     this.actorMap.set(actor.id, { actor, actorType });
     this.emit('SPAWN', { actorId, actorType, actor });
 
+    actor.onEvent((event) => {
+      this.emit('ACTOR_EVENT', { actorId, event });
+    });
+
     return actor;
   }
 

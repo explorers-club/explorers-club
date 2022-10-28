@@ -2,7 +2,7 @@ import {
   ActorID,
   ActorManager,
   fromActorEvents,
-  SharedMachineProps
+  SharedMachineProps,
 } from '@explorers-club/actor';
 import { filter, first } from 'rxjs';
 import { ActorRefFrom, createMachine, StateFrom } from 'xstate';
@@ -77,7 +77,6 @@ export const createPartyMachine = ({
           initial: 'Waiting',
           states: {
             Waiting: {
-              onDone: '',
               invoke: {
                 src: 'onAllPlayersReady',
                 onDone: 'AllReady',
@@ -151,11 +150,13 @@ export const createPartyMachine = ({
                     .map((actor) => actor.getSnapshot()?.matches('Ready.Yes'))
                     .filter((isReady) => isReady).length;
                   const playerCount =
-                    partyActor.getSnapshot()?.context.playerActorIds.length;
-                  const allReady =
-                    readyCount === playerCount &&
-                    playerCount >= MIN_PLAYER_COUNT;
-                  return allReady;
+                    partyActor.getSnapshot()?.context.playerActorIds.length ||
+                    0;
+
+                  const allReady = readyCount === playerCount;
+                  const minReady = playerCount >= MIN_PLAYER_COUNT;
+
+                  return allReady && minReady;
                 }),
                 first()
               )

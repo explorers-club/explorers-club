@@ -1,7 +1,7 @@
 import { PartyPlayerActor } from '@explorers-club/party';
 import { useSelector } from '@xstate/react';
 import { useActorManager, usePartyActor } from '../party-screen.hooks';
-import { PlayerListItem } from '../player-list-item.component';
+import { PlayerListItem } from './player-list-item.component';
 
 export const PlayerList = () => {
   const partyActor = usePartyActor();
