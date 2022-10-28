@@ -98,6 +98,7 @@ export const createPartyScreenMachine = ({
                     // Resume playing if they were previously connected
                     cond: 'isInParty',
                     target: 'Joined',
+                    actions: 'assignMyActor',
                   },
                   {
                     target: 'Spectating',
@@ -160,12 +161,7 @@ export const createPartyScreenMachine = ({
                 src: 'joinParty',
                 onDone: {
                   target: 'Joined',
-                  actions: assign({
-                    myActor: (
-                      context,
-                      event: DoneInvokeEvent<PartyPlayerActor>
-                    ) => event.data,
-                  }),
+                  actions: 'assignMyActor',
                 },
                 onError: 'JoinError',
               },
@@ -180,6 +176,17 @@ export const createPartyScreenMachine = ({
     },
     {
       actions: {
+        assignMyActor: partyScreenModel.assign({
+          myActor: ({ authActor }) => {
+            const userId = authActor.getSnapshot()?.context.session?.user.id; // lol
+            if (!userId) {
+              throw new Error('trying to assign actor without being logged in');
+            }
+
+            const actorId = getPartyPlayerActorId(userId);
+            return actorManager.getActor(actorId);
+          },
+        }),
         assignPlayerName: partyScreenModel.assign({
           playerName: (context, event) => {
             switch (event.type) {
@@ -240,13 +247,17 @@ export const createPartyScreenMachine = ({
 
           const myActor = actorManager.spawn(sharedActorRef);
           actorManager.myActorId = actorId;
-          const stateRef = ref(db, `parties/${joinCode}/actor_state`);
-          const eventsRef = ref(db, `parties/${joinCode}/actor_events`);
-          const newActorRef = push(stateRef);
+          const myActorRef = ref(
+            db,
+            `parties/${joinCode}/actor_state/${actorId}`
+          );
           const stateJSON = JSON.stringify(myActor.getSnapshot());
-          await setActorState(newActorRef, { ...sharedActorRef, stateJSON });
+          await setActorState(myActorRef, { ...sharedActorRef, stateJSON });
 
-          const myEventRef = push(eventsRef);
+          const myEventRef = ref(
+            db,
+            `parties/${joinCode}/actor_events/${actorId}`
+          );
           myActor.onEvent(async (event) => {
             await setActorEvent(myEventRef, { actorId, event });
           });

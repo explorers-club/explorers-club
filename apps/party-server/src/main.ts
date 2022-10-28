@@ -1,27 +1,24 @@
 import {
   ActorManager,
-  getEventRef,
   MachineFactory,
   SerializedSharedActor,
   setActorEvent,
   setActorState,
-  SharedActorEvent
+  SharedActorEvent,
 } from '@explorers-club/actor';
 import {
   createPartyMachine,
   createPartyPlayerMachine,
   getPartyActorId,
-  PartyEvents
+  PartyEvents,
 } from '@explorers-club/party';
 import * as crypto from 'crypto';
 import {
-  DatabaseReference,
   get,
   onChildAdded,
   onDisconnect,
-  push,
   ref,
-  runTransaction
+  runTransaction,
 } from 'firebase/database';
 import { fromRef, ListenEvent } from 'rxfire/database';
 import { first, map, skipWhile } from 'rxjs';
@@ -64,26 +61,37 @@ async function bootstrap() {
     const actorManager = new ActorManager(partyActorId);
     const stateRef = ref(db, `parties/${joinCode}/actor_state`);
     const eventsRef = ref(db, `parties/${joinCode}/actor_events`);
-    let myEventRef: DatabaseReference;
+    const myEventRef = ref(
+      db,
+      `parties/${joinCode}/actor_events/${partyActorId}`
+    );
+    const myStateRef = ref(
+      db,
+      `parties/${joinCode}/actor_state/${partyActorId}`
+    );
     let initialized = false;
 
-    // Listen for events on all actors in the party
+    // Listen for any changes to the events ref
     const newEvent$ = fromRef(eventsRef, ListenEvent.changed);
-    newEvent$.pipe(first()).subscribe((changes) => {
-      const { actorId, event } = changes.snapshot.val() as SharedActorEvent;
-
-      // Don't process events from ourself
-      if (actorId === partyActorId) {
-        return;
-      }
-
+    newEvent$.subscribe(async (changes) => {
+      const { actorId, event } = changes.snapshot.val() as SharedActorEvent; // way to make this safer?
       const actor = actorManager.getActor(actorId);
       if (!actor) {
         console.warn("Couldn't find actor " + actorId);
         return;
       }
 
-      actor.send(event);
+      // Don't process events sent from the host actor
+      if (actorId !== partyActorId) {
+        actor.send(event);
+      }
+
+      // Persist updated state in db
+      const actorStateRef = ref(
+        db,
+        `parties/${joinCode}/actor_state/${actorId}`
+      );
+      await setActorState(actorStateRef, actorManager.serialize(actorId));
     });
 
     // Listen for new actors and hydrate them
@@ -109,6 +117,7 @@ async function bootstrap() {
     >;
     const serializedActors = Object.values(stateMap);
     actorManager.hydrateAll(serializedActors);
+    console.log(stateMap);
 
     // If there is no party actor present, spawn one
     let partyActor = actorManager.rootActor;
@@ -118,30 +127,16 @@ async function bootstrap() {
         actorType: 'PARTY_ACTOR',
       });
 
-      const myStateRef = push(stateRef);
+      // do these together in same transaction?
       await setActorState(myStateRef, actorManager.serialize(partyActorId));
-
-      // maybe do this save in same trasaciton with the state?
-      myEventRef = push(eventsRef);
       await setActorEvent(myEventRef, {
         actorId: partyActorId,
         event: { type: 'INIT' },
       });
-    } else {
-      // If we are resuming (party actor already spawned), just get
-      // our event ref to log events to
-      myEventRef = await getEventRef(eventsRef, partyActorId);
-
-      if (!myEventRef) {
-        throw new Error(
-          "couldn't find event ref for existing party actor state: " +
-            partyActorId
-        );
-      }
     }
+
     // Log our events to the database
     partyActor.onEvent(async (event) => {
-      console.log(event);
       await setActorEvent(myEventRef, { actorId: partyActorId, event });
     });
 
