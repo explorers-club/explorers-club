@@ -11,6 +11,7 @@ import { createNavigationMachine, NavigationActor } from './navigation.machine';
 
 interface GlobalStateContextType {
   appActor: AppActor;
+  authActor: AuthActor;
   sheetRef: React.RefObject<BottomSheetRef>;
   navigationActor: NavigationActor;
 }
@@ -77,7 +78,7 @@ export const GlobalStateProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <GlobalStateContext.Provider
-      value={{ appActor, sheetRef, navigationActor }}
+      value={{ appActor, authActor, sheetRef, navigationActor }}
     >
       {children}
     </GlobalStateContext.Provider>

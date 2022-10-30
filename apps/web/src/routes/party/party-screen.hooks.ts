@@ -1,4 +1,4 @@
-import { PartyActor } from '@explorers-club/party';
+import { getPartyPlayerActorId, PartyActor } from '@explorers-club/party';
 import { useSelector } from '@xstate/react';
 import { useContext } from 'react';
 import { GlobalStateContext } from '../../state/global.provider';
@@ -10,6 +10,21 @@ export const usePartyScreenActor = () => {
     navigationActor,
     (state) => state.children['partyScreenMachine'] as PartyScreenActor
   );
+};
+
+export const useMyActorId = () => {
+  const { authActor } = useContext(GlobalStateContext);
+  const userId = useSelector(
+    authActor,
+    (state) => state.context.session?.user.id
+  );
+  // weird pattern here
+  if (!userId) {
+    throw new Error('trying to access actor id without being logged in');
+  }
+
+  const actorId = getPartyPlayerActorId(userId);
+  return actorId;
 };
 
 /**

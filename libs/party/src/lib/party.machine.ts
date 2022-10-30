@@ -26,6 +26,7 @@ const gameMachine = createMachine({
 const partyModel = createModel(
   {
     playerActorIds: [] as ActorID[],
+    hostActorId: '' as ActorID,
     actorManager: {} as ActorManager,
     startingAt: undefined as Date | undefined,
   },
@@ -33,6 +34,7 @@ const partyModel = createModel(
     events: {
       PLAYER_JOINED: (props: { actorId: string }) => props,
       PLAYER_LEFT: (props: { actorId: string }) => props,
+      PLAYER_REMOVE: (props: { actorId: string }) => props,
     },
   }
 );
@@ -51,6 +53,7 @@ export const createPartyMachine = ({
       id: actorId,
       context: {
         playerActorIds: [],
+        hostActorId: '',
         actorManager,
         startingAt: undefined,
       },
@@ -60,6 +63,15 @@ export const createPartyMachine = ({
           actions: partyModel.assign({
             playerActorIds: (context, { actorId }) => {
               return [...context.playerActorIds, actorId];
+            },
+            hostActorId: (context, { actorId }) => {
+              // The first actor to join we set as the host
+              // if one isnt set
+              if (!context.hostActorId) {
+                return actorId;
+              } else {
+                return context.hostActorId;
+              }
             },
           }),
         },

@@ -74,6 +74,7 @@ async function bootstrap() {
 
     // Listen for any changes to the events ref
     const newEvent$ = fromRef(eventsRef, ListenEvent.changed);
+
     newEvent$.subscribe(async (changes) => {
       const { actorId, event } = changes.snapshot.val() as SharedActorEvent; // way to make this safer?
       const actor = actorManager.getActor(actorId);
@@ -101,6 +102,7 @@ async function bootstrap() {
       map((change) => change.snapshot.val() as SerializedSharedActor)
     );
     actorAdded$.subscribe((serializedActor: SerializedSharedActor) => {
+      console.log('actor ADDED', serializedActor);
       actorManager.hydrate(serializedActor);
 
       if (serializedActor.actorType === 'PLAYER_ACTOR') {
@@ -136,7 +138,10 @@ async function bootstrap() {
     }
 
     // Log our events to the database
-    partyActor.onEvent(async (event) => {
+    partyActor.onEvent(async (e) => {
+      // convert to json first because invoke events have
+      // a toString() function on them that we cant set in db
+      const event = JSON.parse(JSON.stringify(e));
       await setActorEvent(myEventRef, { actorId: partyActorId, event });
     });
 

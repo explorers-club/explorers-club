@@ -10,7 +10,7 @@ export const PlayerList = () => {
     return state.context.playerActorIds
       .map((actorId) => actorManager.getActor(actorId))
       .filter((actor) => {
-        return actor
+        return actor;
       }) as PartyPlayerActor[];
   });
 

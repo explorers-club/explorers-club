@@ -156,16 +156,7 @@ export const createPartyScreenMachine = ({
                   {
                     target: 'Joined',
                     cond: 'isPlayerNameValid',
-                    actions: ({ myActor, playerName }) => {
-                      if (!playerName || !myActor) {
-                        console.warn('expected player name and actor');
-                        return;
-                      }
-
-                      myActor.send(
-                        PartyPlayerEvents.SET_PLAYER_NAME({ playerName })
-                      );
-                    },
+                    actions: 'savePlayerName',
                   },
                   {
                     target: 'EnteringName',
@@ -176,7 +167,7 @@ export const createPartyScreenMachine = ({
             },
             Rejoining: {
               on: {
-                '': { target: 'Joined' },
+                '': { target: 'Joined', actions: 'rejoinParty' },
               },
             },
             JoinError: {},
@@ -189,6 +180,46 @@ export const createPartyScreenMachine = ({
     },
     {
       actions: {
+        // TODO try up with join party function
+        rejoinParty: () => {
+          const userId = authActor.getSnapshot()?.context.session?.user.id;
+          if (!userId) {
+            throw new Error('trying to rejoin party without being logged in');
+          }
+
+          const actorId = getPartyPlayerActorId(userId);
+          const myActor = actorManager.getActor(actorId);
+          if (!myActor) {
+            console.warn('couldnt find actor when trying to rejoin');
+            return;
+          }
+          actorManager.myActorId = actorId;
+
+          const myEventRef = ref(
+            db,
+            `parties/${joinCode}/actor_events/${actorId}`
+          );
+          myActor.onEvent(async (event) => {
+            await setActorEvent(myEventRef, { actorId, event });
+          });
+          myActor.send(PartyPlayerEvents.PLAYER_REJOIN());
+
+          // Send disconnect event when we disconnect
+          onDisconnect(myEventRef).set({
+            actorId,
+            event: PartyPlayerEvents.PLAYER_DISCONNECT(),
+          });
+
+          return myActor;
+        },
+        savePlayerName: ({ myActor, playerName }) => {
+          if (!playerName || !myActor) {
+            console.warn('expected player name and actor');
+            return;
+          }
+
+          myActor.send(PartyPlayerEvents.SET_PLAYER_NAME({ playerName }));
+        },
         assignMyActor: partyScreenModel.assign({
           myActor: ({ authActor }) => {
             const userId = authActor.getSnapshot()?.context.session?.user.id;
@@ -290,7 +321,6 @@ export const createPartyScreenMachine = ({
             actorId,
             event: PartyPlayerEvents.PLAYER_DISCONNECT(),
           });
-          console.log({ myActor, actorManager });
 
           return myActor;
         },
