@@ -47,6 +47,8 @@ export const createNewPartyScreenMachine = ({
         startParty: async (_) => {
           await createAnonymousUser(authActor);
 
+          // Only place were using supbase currently
+          // The join code generation is in postgresql code
           const { data, error } = await supabaseClient
             .from('parties')
             .insert({ is_public: true })

@@ -1,5 +1,5 @@
 import { ActorID, SharedMachineProps } from '@explorers-club/actor';
-import { ActorRefFrom, StateFrom } from 'xstate';
+import { ActorRefFrom, assign, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 
 const partyPlayerModel = createModel(
@@ -8,6 +8,9 @@ const partyPlayerModel = createModel(
   },
   {
     events: {
+      SET_PLAYER_NAME: ({ playerName }: { playerName: string }) => ({
+        playerName,
+      }),
       PLAYER_UNREADY: () => ({}),
       PLAYER_READY: () => ({}),
       PLAYER_RECONNECT: () => ({}),
@@ -49,6 +52,11 @@ export const createPartyPlayerMachine = ({ actorId }: SharedMachineProps) =>
         },
         Connected: {
           initial: 'Yes',
+          on: {
+            SET_PLAYER_NAME: {
+              actions: 'assignPlayerName',
+            },
+          },
           states: {
             No: {
               on: {
@@ -66,7 +74,17 @@ export const createPartyPlayerMachine = ({ actorId }: SharedMachineProps) =>
       predictableActionArguments: true,
     },
     {
-      services: {},
+      actions: {
+        assignPlayerName: assign({
+          playerName: (context, event) => {
+            if (event.type === 'SET_PLAYER_NAME') {
+              return event.playerName;
+            } else {
+              return context.playerName;
+            }
+          },
+        }),
+      },
     }
   );
 

@@ -7,6 +7,7 @@ interface Props {
 }
 
 export const PlayerListItem: FC<Props> = ({ actor }) => {
+  const name = useSelector(actor, (state) => state.context.playerName);
   const isReady = useSelector(actor, (state) => !!state.matches('Ready.Yes'));
   const isConnected = useSelector(
     actor,
@@ -15,7 +16,7 @@ export const PlayerListItem: FC<Props> = ({ actor }) => {
 
   return (
     <div>
-      {actor.id} - ready: {isReady ? 'Yes' : 'No'} - connected:{' '}
+      {name} - ready: {isReady ? 'Yes' : 'No'} - connected:{' '}
       {isConnected ? 'Yes' : 'No'}
     </div>
   );

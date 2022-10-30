@@ -42,9 +42,6 @@ const partyScreenModel = createModel(
       INPUT_CHANGE_PLAYER_NAME: (value: string) => ({ playerName: value }),
       PRESS_SUBMIT: () => ({}),
       PRESS_JOIN: () => ({}),
-      PRESS_READY: () => ({}),
-      PRESS_START_GAME: () => ({}),
-      PRESS_UNREADY: () => ({}),
     },
   }
 );
@@ -97,7 +94,7 @@ export const createPartyScreenMachine = ({
                   {
                     // Resume playing if they were previously connected
                     cond: 'isInParty',
-                    target: 'Joined',
+                    target: 'Rejoining',
                     actions: 'assignMyActor',
                   },
                   {
@@ -110,36 +107,18 @@ export const createPartyScreenMachine = ({
               on: {
                 PRESS_JOIN: [
                   {
-                    cond: 'isLoggedIn',
-                    target: 'Joining',
+                    cond: 'isNotLoggedIn',
+                    target: 'CreateAccount',
                   },
                   {
-                    target: 'CreateAccount',
+                    target: 'Joining',
                   },
                 ],
               },
             },
             CreateAccount: {
-              initial: 'EnteringName',
+              initial: 'Creating',
               states: {
-                EnteringName: {
-                  on: {
-                    INPUT_CHANGE_PLAYER_NAME: {
-                      target: 'EnteringName',
-                      actions: 'assignPlayerName',
-                    },
-                    PRESS_SUBMIT: [
-                      {
-                        target: 'Creating',
-                        cond: 'isPlayerNameValid',
-                      },
-                      {
-                        target: 'EnteringName',
-                        // TODO action to set validation error here
-                      },
-                    ],
-                  },
-                },
                 Creating: {
                   invoke: {
                     src: 'createAccount',
@@ -160,10 +139,44 @@ export const createPartyScreenMachine = ({
               invoke: {
                 src: 'joinParty',
                 onDone: {
-                  target: 'Joined',
+                  target: 'EnteringName',
                   actions: 'assignMyActor',
                 },
                 onError: 'JoinError',
+              },
+            },
+            EnteringName: {
+              on: {
+                '': { target: 'Joined', cond: 'hasPlayerName' },
+                INPUT_CHANGE_PLAYER_NAME: {
+                  target: 'EnteringName',
+                  actions: 'assignPlayerName',
+                },
+                PRESS_SUBMIT: [
+                  {
+                    target: 'Joined',
+                    cond: 'isPlayerNameValid',
+                    actions: ({ myActor, playerName }) => {
+                      if (!playerName || !myActor) {
+                        console.warn('expected player name and actor');
+                        return;
+                      }
+
+                      myActor.send(
+                        PartyPlayerEvents.SET_PLAYER_NAME({ playerName })
+                      );
+                    },
+                  },
+                  {
+                    target: 'EnteringName',
+                    // TODO action to set validation error here
+                  },
+                ],
+              },
+            },
+            Rejoining: {
+              on: {
+                '': { target: 'Joined' },
               },
             },
             JoinError: {},
@@ -178,7 +191,7 @@ export const createPartyScreenMachine = ({
       actions: {
         assignMyActor: partyScreenModel.assign({
           myActor: ({ authActor }) => {
-            const userId = authActor.getSnapshot()?.context.session?.user.id; // lol
+            const userId = authActor.getSnapshot()?.context.session?.user.id;
             if (!userId) {
               throw new Error('trying to assign actor without being logged in');
             }
@@ -199,6 +212,9 @@ export const createPartyScreenMachine = ({
         }),
       },
       guards: {
+        hasPlayerName: ({ myActor }) => {
+          return !!myActor?.getSnapshot()?.context.playerName;
+        },
         isInParty: ({ authActor, actorManager }) => {
           const userId = authActor.getSnapshot()?.context.session?.user.id; // lol
           if (!userId) {
@@ -212,8 +228,8 @@ export const createPartyScreenMachine = ({
             .getSnapshot()
             ?.context.playerActorIds.includes(actorId) as boolean;
         },
-        isLoggedIn: ({ authActor }) =>
-          !!authActor.getSnapshot()?.matches('Authenticated'),
+        isNotLoggedIn: ({ authActor }) =>
+          !authActor.getSnapshot()?.matches('Authenticated'),
         isPlayerNameValid: (context) => !!context.playerName,
       },
       services: {
@@ -251,13 +267,20 @@ export const createPartyScreenMachine = ({
             db,
             `parties/${joinCode}/actor_state/${actorId}`
           );
-          const stateJSON = JSON.stringify(myActor.getSnapshot());
-          await setActorState(myActorRef, { ...sharedActorRef, stateJSON });
-
           const myEventRef = ref(
             db,
             `parties/${joinCode}/actor_events/${actorId}`
           );
+
+          const stateJSON = JSON.stringify(myActor.getSnapshot());
+
+          // TODO do in transation ?
+          await setActorState(myActorRef, { ...sharedActorRef, stateJSON });
+          await setActorEvent(myEventRef, {
+            actorId: partyActorId,
+            event: { type: 'INIT' },
+          });
+
           myActor.onEvent(async (event) => {
             await setActorEvent(myEventRef, { actorId, event });
           });
@@ -267,6 +290,7 @@ export const createPartyScreenMachine = ({
             actorId,
             event: PartyPlayerEvents.PLAYER_DISCONNECT(),
           });
+          console.log({ myActor, actorManager });
 
           return myActor;
         },

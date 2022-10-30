@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { usePartyScreenActor } from '../party-screen.hooks';
 import { PartyScreenEvents } from '../party-screen.machine';
 
-export const CreateAccount = () => {
+export const EnterName = () => {
   const actor = usePartyScreenActor();
   const playerNameRef = useRef<HTMLInputElement>(null);
 

@@ -62,7 +62,7 @@ export const homeScreenMachine = homeScreenModel.createMachine(
       NetworkError: {},
       Complete: {
         type: 'final' as const,
-        data: (context) => context.partyRow,
+        data: (context) => context.partyRow, // Empty if starting a new one
       },
     },
     predictableActionArguments: true,
