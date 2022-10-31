@@ -1,16 +1,15 @@
 import { useSelector } from '@xstate/react';
 import { Fragment, useContext } from 'react';
 import { ConnectedContext } from '../../state/connected.context';
-import LobbyScene from './lobby.scene';
+import GameScene from './game.scene';
 
-export const Lobby = () => {
+export const Game = () => {
   const { partyActor } = useContext(ConnectedContext);
-  const inLobby = useSelector(partyActor, (state) => state.matches('Lobby'));
+  const inGame = useSelector(partyActor, (state) => state.matches('Game'));
 
-  if (!inLobby) {
+  if (!inGame) {
     // eslint-disable-next-line react/jsx-no-useless-fragment
     return <Fragment />;
   }
-
-  return <LobbyScene />;
+  return <GameScene />;
 };

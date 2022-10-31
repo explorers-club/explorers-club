@@ -1,10 +1,7 @@
 import { PartyEvents, PartyPlayerActor } from '@explorers-club/party';
 import { useSelector } from '@xstate/react';
 import { FC, useCallback } from 'react';
-import {
-  useMyActorId,
-  usePartyActor
-} from '../party-screen.hooks';
+import { usePartyActor } from '../party-screen.hooks';
 
 interface Props {
   actor: PartyPlayerActor;
@@ -17,9 +14,8 @@ export const PlayerListItem: FC<Props> = ({ actor }) => {
     partyActor,
     (state) => state.context.hostActorId
   );
-  const myActorId = useMyActorId();
 
-  const iAmHost = hostActorId === myActorId;
+  const iAmHost = false; // todo get my actor id from auth
   const actorIsNotHost = hostActorId !== actorId;
   const showRemoveButton = iAmHost && actorIsNotHost;
 

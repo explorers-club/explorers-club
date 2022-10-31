@@ -5,7 +5,6 @@ import {
   useTexture,
 } from '@react-three/drei';
 import { defineHex, Grid, spiral } from 'honeycomb-grid';
-
 import { useControls } from 'leva';
 import { Fragment, Suspense, useMemo, useState } from 'react';
 import {
@@ -18,13 +17,13 @@ import {
 } from 'three';
 import { mergeBufferGeometries, SimplexNoise } from 'three-stdlib';
 
-export function LobbyScene() {
+export function GameScene() {
   const color = useMemo(() => new Color('#FFCBBE').convertSRGBToLinear(), []);
   // const envMap = useLoader(RGBELoader, "./assets/envmap.hdr");
 
   return (
     <Fragment>
-      <color attach="background" args={['#CCEECC']} />
+      <color attach="background" args={['#FFEECC']} />
       <pointLight
         args={[color, 80, 200]}
         position={[10, 20, 10]}
@@ -383,4 +382,4 @@ function mergeBufferGeometriesWithError(geometries: BufferGeometry[]) {
   return result;
 }
 
-export default LobbyScene;
+export default GameScene;

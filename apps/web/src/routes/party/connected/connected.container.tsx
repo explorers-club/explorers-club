@@ -1,4 +1,6 @@
 import { useSelector } from '@xstate/react';
+import { ConnectedContext } from 'apps/web/src/state/connected.context';
+import { useContext } from 'react';
 import styled from 'styled-components';
 import { usePartyScreenActor } from '../party-screen.hooks';
 import { EnterName } from './enter-name.component';
@@ -10,6 +12,19 @@ import { Rejoining } from './rejoining.component';
 import { Spectating } from './spectating.component';
 
 export const Connected = () => {
+  const { partyActor } = useContext(ConnectedContext);
+  const inLobby = useSelector(partyActor, (state) => state.matches('Lobby'));
+  const inGame = useSelector(partyActor, (state) => state.matches('Game'));
+
+  return (
+    <Container>
+      {inLobby && <Lobby />}
+      {inGame && <Game />}
+    </Container>
+  );
+};
+
+const Lobby = () => {
   const actor = usePartyScreenActor();
 
   const isRejoining = useSelector(actor, (state) =>
@@ -31,7 +46,6 @@ export const Connected = () => {
     state.matches('Connected.JoinError')
   );
   const myActor = useSelector(actor, (state) => state.context.myActor);
-
   return (
     <Container>
       {isSpectating && <Spectating />}
@@ -46,6 +60,11 @@ export const Connected = () => {
       {isJoinError && <JoinError />}
     </Container>
   );
+};
+
+const Game = () => {
+  // Game context...
+  return <div>Playing!</div>;
 };
 
 const Container = styled.div``;

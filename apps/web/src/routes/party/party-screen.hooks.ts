@@ -1,4 +1,4 @@
-import { getPartyPlayerActorId, PartyActor } from '@explorers-club/party';
+import { PartyActor } from '@explorers-club/party';
 import { useSelector } from '@xstate/react';
 import { useContext } from 'react';
 import { GlobalStateContext } from '../../state/global.provider';
@@ -12,22 +12,23 @@ export const usePartyScreenActor = () => {
   );
 };
 
-export const useMyActorId = () => {
-  const { authActor } = useContext(GlobalStateContext);
-  const userId = useSelector(
-    authActor,
-    (state) => state.context.session?.user.id
-  );
-  // weird pattern here
-  if (!userId) {
-    throw new Error('trying to access actor id without being logged in');
-  }
+// export const useMyActorId = () => {
+//   const { authActor } = useContext(GlobalStateContext);
+//   const userId = useSelector(
+//     authActor,
+//     (state) => state.context.session?.user.id
+//   );
+//   // weird pattern here
+//   if (!userId) {
+//     throw new Error('trying to access actor id without being logged in');
+//   }
 
-  const actorId = getPartyPlayerActorId(userId);
-  return actorId;
-};
+//   const actorId = getPartyPlayerActorId(userId);
+//   return actorId;
+// };
 
 /**
+ * todo remove this, unsafe
  * Should only be used by components when in the connected state, otherwise
  * will throw an exception
  * @returns the party actor

@@ -1,10 +1,14 @@
 import { useSelector } from '@xstate/react';
 import styled from 'styled-components';
-import { useActorLogger } from '../../lib/logging';
+import { ConnectedContext } from '../../state/connected.context';
 import { Connected } from './connected';
 import { Connecting } from './connecting.component';
 import { Disconnected } from './disconnected.component';
-import { usePartyScreenActor } from './party-screen.hooks';
+import {
+  useActorManager,
+  usePartyActor,
+  usePartyScreenActor,
+} from './party-screen.hooks';
 
 export function PartyScreen() {
   const actor = usePartyScreenActor();
@@ -16,11 +20,21 @@ export function PartyScreen() {
   );
   const isConnected = useSelector(actor, (state) => state.matches('Connected'));
 
+  // TODO delete these hooks and just use selectors
+  // so we dont use them where we are not supposed to
+  // only consume the actors/data through context
+  const partyActor = usePartyActor();
+  const actorManager = useActorManager();
+
   return (
     <Container>
       {isConnecting && <Connecting />}
       {isDisconnected && <Disconnected />}
-      {isConnected && <Connected />}
+      {isConnected && partyActor && actorManager && (
+        <ConnectedContext.Provider value={{ partyActor, actorManager }}>
+          <Connected />
+        </ConnectedContext.Provider>
+      )}
     </Container>
   );
 }
