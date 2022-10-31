@@ -17,22 +17,22 @@ jobs:
       - run: npm ci
       - run: npx nx run party-server:deploy-staging
 
-  push-database:
-    runs-on: ubuntu-22.04
+  # push-database:
+  #   runs-on: ubuntu-22.04
 
-    env:
-      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      SUPABASE_DB_PASSWORD: ${{ secrets.STAGING_DB_PASSWORD }}
-      STAGING_PROJECT_ID: ${{ secrets.STAGING_PROJECT_ID }}
+  #   env:
+  #     SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+  #     SUPABASE_DB_PASSWORD: ${{ secrets.STAGING_DB_PASSWORD }}
+  #     STAGING_PROJECT_ID: ${{ secrets.STAGING_PROJECT_ID }}
 
-    steps:
-      - uses: actions/checkout@v3
-      - run: npm ci
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - run: npm ci
 
-      - uses: supabase/setup-cli@v1
-        with:
-          version: 1.0.0
+  #     - uses: supabase/setup-cli@v1
+  #       with:
+  #         version: 1.0.0
 
-      - run: |
-          npx nx run database:link --project-ref $STAGING_PROJECT_ID --password $STAGING_DB_PASSWORD
-          npx nx run database:push
+  #     - run: |
+  #         npx nx run database:link --project-ref $STAGING_PROJECT_ID --password $STAGING_DB_PASSWORD
+  #         npx nx run database:push
