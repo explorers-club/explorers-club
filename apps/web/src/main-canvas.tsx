@@ -1,9 +1,13 @@
+import { useContextBridge } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { Leva } from 'leva';
 import styled from 'styled-components';
-import LobbyScene from './scenes/lobby/lobby.scene';
+import { Scenes } from './scenes';
+import { GlobalStateContext } from './state/global.provider';
 
 export function MainCanvas() {
+  const ContextBridge = useContextBridge(GlobalStateContext);
+
   return (
     <Container>
       {/* Configuration: https://github.com/pmndrs/leva/blob/main/docs/configuration.md */}
@@ -12,7 +16,9 @@ export function MainCanvas() {
         gl={{ physicallyCorrectLights: true }}
         camera={{ position: [20, 10, 20] }}
       >
-        <LobbyScene />
+        <ContextBridge>
+          <Scenes />
+        </ContextBridge>
       </Canvas>
     </Container>
   );

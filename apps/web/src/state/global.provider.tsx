@@ -5,12 +5,10 @@ import { BottomSheetRef } from 'react-spring-bottom-sheet';
 import { interpret } from 'xstate';
 import { useActorLogger } from '../lib/logging';
 import { useCurrentRoute } from '../routes/route.hooks';
-import { AppActor, createAppMachine } from './app.machine';
 import { AuthActor, createAuthMachine } from './auth.machine';
 import { createNavigationMachine, NavigationActor } from './navigation.machine';
 
 interface GlobalStateContextType {
-  appActor: AppActor;
   authActor: AuthActor;
   sheetRef: React.RefObject<BottomSheetRef>;
   navigationActor: NavigationActor;
@@ -18,7 +16,6 @@ interface GlobalStateContextType {
 
 declare global {
   interface Window {
-    $APP: AppActor;
     $AUTH: AuthActor;
     $NAVIGATION: NavigationActor;
   }
@@ -43,34 +40,25 @@ export const GlobalStateProvider = ({ children }: { children: ReactNode }) => {
     });
     const navigationActor = interpret(navigationMachine);
 
-    const appMachine = createAppMachine({
-      authActor,
-      navigationActor,
-    });
-    const appActor = interpret(appMachine);
-
     // Setup for debugging
     if (window) {
-      window.$APP = appActor;
       window.$AUTH = authActor;
       window.$NAVIGATION = navigationActor;
     }
 
-    return { appActor, authActor, navigationActor };
+    return { authActor, navigationActor };
   });
-  const { appActor, authActor, navigationActor } = actorRefs;
+  const { authActor, navigationActor } = actorRefs;
 
   useEffect(() => {
-    appActor.start();
     authActor.start();
     navigationActor.start();
 
     return () => {
-      appActor.stop();
       authActor.stop();
       navigationActor.stop();
     };
-  }, [appActor, authActor, navigationActor]);
+  }, [authActor, navigationActor]);
 
   // useActorLogger(appActor);
   useActorLogger(authActor);
@@ -78,7 +66,7 @@ export const GlobalStateProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <GlobalStateContext.Provider
-      value={{ appActor, authActor, sheetRef, navigationActor }}
+      value={{ authActor, sheetRef, navigationActor }}
     >
       {children}
     </GlobalStateContext.Provider>

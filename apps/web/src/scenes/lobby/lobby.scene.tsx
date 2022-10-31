@@ -4,8 +4,7 @@ import {
   PositionalAudio,
   useTexture,
 } from '@react-three/drei';
-import { defineHex, Grid, spiral, HexCoordinates } from 'honeycomb-grid';
-
+import { defineHex, Grid, spiral } from 'honeycomb-grid';
 import { useControls } from 'leva';
 import { Fragment, Suspense, useMemo, useState } from 'react';
 import {
@@ -15,13 +14,8 @@ import {
   CylinderGeometry,
   DoubleSide,
   SphereGeometry,
-  Vector2,
 } from 'three';
-import {
-  mergeBufferGeometries,
-  NumberGenerator,
-  SimplexNoise,
-} from 'three-stdlib';
+import { mergeBufferGeometries, SimplexNoise } from 'three-stdlib';
 
 export function LobbyScene() {
   const color = useMemo(() => new Color('#FFCBBE').convertSRGBToLinear(), []);
@@ -386,10 +380,6 @@ function mergeBufferGeometriesWithError(geometries: BufferGeometry[]) {
     throw Error('expected non-null result from merge buffer geometries');
   }
   return result;
-}
-
-function tileToPosition(tileX: number, tileY: number) {
-  return new Vector2((tileX + (tileY % 2) * 0.5) * 1.77, tileY * 1.535);
 }
 
 export default LobbyScene;
