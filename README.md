@@ -8,7 +8,7 @@ Welcome to your next adventure!
 
 Imagine Mario Party, but in a browser, set in an archipelagos in the Pacific ocean, with coconut-inspired characters. Players can play together straight from their phones and TVs, and join using a 4-digit code.
 
-Other inspiration we are drawing from: [Rocket Crab](https://github.com/tannerkrewson/rocketcrab), Mario Party, Destiny, BoardGameArena, Tabletop Simulator, Jackbox.TV
+Other inspiration we are drawing from: [Rocket Crab](https://github.com/tannerkrewson/rocketcrab), Destiny, BoardGameArena, Tabletop Simulator, Jackbox.TV
 
 ## Ways you can contribute
 
