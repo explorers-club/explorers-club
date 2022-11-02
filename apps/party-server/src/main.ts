@@ -1,16 +1,16 @@
 import {
   ActorManager,
+  fromActorEvents,
   MachineFactory,
   SerializedSharedActor,
   setActorEvent,
   setActorState,
-  SharedActorEvent,
+  SharedActorEvent
 } from '@explorers-club/actor';
 import {
   createPartyMachine,
   createPartyPlayerMachine,
-  getPartyActorId,
-  PartyEvents,
+  getPartyActorId, PartyEvents
 } from '@explorers-club/party';
 import * as crypto from 'crypto';
 import {
@@ -18,7 +18,7 @@ import {
   onChildAdded,
   onDisconnect,
   ref,
-  runTransaction,
+  runTransaction
 } from 'firebase/database';
 import { fromRef, ListenEvent } from 'rxfire/database';
 import { map, skipWhile } from 'rxjs';
@@ -102,7 +102,7 @@ async function bootstrap() {
       map((change) => change.snapshot.val() as SerializedSharedActor)
     );
     actorAdded$.subscribe((serializedActor: SerializedSharedActor) => {
-      console.log('actor ADDED', serializedActor);
+      // console.log('actor ADDED', serializedActor);
       actorManager.hydrate(serializedActor);
 
       if (serializedActor.actorType === 'PLAYER_ACTOR') {
@@ -111,6 +111,41 @@ async function bootstrap() {
         );
       }
     });
+
+    // Remove players from party if they have disconnected after 30 seconds
+    // todo: only do this if they are still in the lobby
+    const playerDisconnect$ = fromActorEvents(actorManager, [
+      'PLAYER_DISCONNECT',
+    ]);
+    const DISCONNECT_REMOVAL_TIMEOUT_MS = 30000;
+    playerDisconnect$
+      .pipe(
+        skipWhile(() => {
+          // Only remove players while in lobby, never remove a player while in game.
+          return !partyActor.getSnapshot().matches('Lobby');
+        })
+      )
+      .subscribe(({ actorId }) => {
+        const actor = actorManager.getActor(actorId);
+        const timer = setTimeout(() => {
+          partyActor.send(PartyEvents.PLAYER_LEFT({ actorId }));
+        }, DISCONNECT_REMOVAL_TIMEOUT_MS);
+
+        const cancelRemoval = (e) => {
+          if (e.type === 'PLAYER_DISCONNECT') {
+            return;
+          }
+          clearTimeout(timer);
+          actor.off(cancelRemoval);
+        };
+        actor.onEvent(cancelRemoval);
+      });
+    // playerDisconnect$.pipe(
+    //   timeoutWith(30000, playerJoined$)
+    // )
+    // playerDisconnect$.subscribe((event) => {
+    //   console.log(event.actorId, 'DISCONNEct');
+    // });
 
     // Get initial state and hydrate it
     const stateSnapshot = await get(stateRef);
