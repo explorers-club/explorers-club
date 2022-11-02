@@ -39,4 +39,6 @@ export function PartyScreen() {
   );
 }
 
-const Container = styled.div``;
+const Container = styled.div`
+  padding: 24px;
+`;

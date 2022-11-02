@@ -21,10 +21,6 @@ export const PlayerListItem: FC<Props> = ({ actor }) => {
 
   const name = useSelector(actor, (state) => state.context.playerName);
   const isReady = useSelector(actor, (state) => !!state.matches('Ready.Yes'));
-  const isConnected = useSelector(
-    actor,
-    (state) => !!state.matches('Connected.Yes')
-  );
 
   const handleRemove = useCallback(() => {
     partyActor.send(PartyEvents.PLAYER_REMOVE({ actorId }));
@@ -32,9 +28,14 @@ export const PlayerListItem: FC<Props> = ({ actor }) => {
 
   return (
     <div>
-      {name} - ready: {isReady ? 'Yes' : 'No'} - connected:{' '}
-      {isConnected ? 'Yes' : 'No'}
-      {showRemoveButton && <button onClick={handleRemove}>remove</button>}
+      {!name ? (
+        <span>a new explorer is connecting...</span>
+      ) : (
+        <span>
+          {name} - {isReady ? 'Ready' : 'Not Ready'}
+          {showRemoveButton && <button onClick={handleRemove}>remove</button>}
+        </span>
+      )}
     </div>
   );
 };
