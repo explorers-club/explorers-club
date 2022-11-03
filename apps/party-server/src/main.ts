@@ -5,23 +5,29 @@ import {
   SerializedSharedActor,
   setActorEvent,
   setActorState,
-  SharedActorEvent
+  SharedActorEvent,
 } from '@explorers-club/actor';
 import {
   createPartyMachine,
   createPartyPlayerMachine,
-  getPartyActorId, PartyEvents
+  getPartyActorId,
+  PartyActor,
+  PartyEvents,
 } from '@explorers-club/party';
+import {
+  createTreehouseTriviaMachine,
+  createTreehouseTriviaPlayerMachine,
+} from '@explorers-club/treehouse-trivia/state';
 import * as crypto from 'crypto';
 import {
   get,
   onChildAdded,
   onDisconnect,
   ref,
-  runTransaction
+  runTransaction,
 } from 'firebase/database';
 import { fromRef, ListenEvent } from 'rxfire/database';
-import { map, skipWhile } from 'rxjs';
+import { filter, from, map, skipWhile } from 'rxjs';
 import { db } from './lib/firebase';
 
 // Presence app example
@@ -29,6 +35,14 @@ import { db } from './lib/firebase';
 
 MachineFactory.registerMachine('PARTY_ACTOR', createPartyMachine);
 MachineFactory.registerMachine('PLAYER_ACTOR', createPartyPlayerMachine);
+MachineFactory.registerMachine(
+  'TREEHOUSE_TRIVIA_ACTOR',
+  createTreehouseTriviaMachine
+);
+MachineFactory.registerMachine(
+  'TREEHOUSE_TRIVIA_PLAYER_ACTOR',
+  createTreehouseTriviaPlayerMachine
+);
 
 const runningParties = new Set();
 
@@ -140,12 +154,6 @@ async function bootstrap() {
         };
         actor.onEvent(cancelRemoval);
       });
-    // playerDisconnect$.pipe(
-    //   timeoutWith(30000, playerJoined$)
-    // )
-    // playerDisconnect$.subscribe((event) => {
-    //   console.log(event.actorId, 'DISCONNEct');
-    // });
 
     // Get initial state and hydrate it
     const stateSnapshot = await get(stateRef);
@@ -180,6 +188,8 @@ async function bootstrap() {
       await setActorEvent(myEventRef, { actorId: partyActorId, event });
     });
 
+    connectPartyHandlers(partyActor, actorManager);
+
     initialized = true;
   };
 
@@ -188,6 +198,17 @@ async function bootstrap() {
     const joinCode = data.val();
     trySpawnPartyHost(joinCode);
   });
+}
+
+function connectPartyHandlers(partyActor: PartyActor, actorManager) {
+  const state$ = from(partyActor);
+  const enterGame$ = state$.pipe(filter((state) => state.matches('Game')));
+
+  enterGame$.subscribe((state) => {
+    actorManager.spawn({});
+    console.log('entered game! ');
+  });
+  //
 }
 
 bootstrap();

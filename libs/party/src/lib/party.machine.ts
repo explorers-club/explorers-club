@@ -5,23 +5,11 @@ import {
   SharedMachineProps,
 } from '@explorers-club/actor';
 import { filter, first } from 'rxjs';
-import { ActorRefFrom, createMachine, StateFrom } from 'xstate';
+import { ActorRefFrom, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { PartyPlayerActor } from './party-player.machine';
 
 const MIN_PLAYER_COUNT = 2;
-
-// TODO import this...
-// For now we can hard code the game machien since we only have one
-// But in future probalby want that to be dynamic
-const gameMachine = createMachine({
-  id: 'GameMachine',
-  initial: 'Loading',
-  states: {
-    Loading: {},
-  },
-  predictableActionArguments: true,
-});
 
 const partyModel = createModel(
   {
@@ -29,6 +17,7 @@ const partyModel = createModel(
     hostActorId: '' as ActorID,
     actorManager: {} as ActorManager,
     startingAt: undefined as Date | undefined,
+    gameActorId: undefined as ActorID | undefined,
   },
   {
     events: {
@@ -56,6 +45,7 @@ export const createPartyMachine = ({
         hostActorId: '',
         actorManager,
         startingAt: undefined,
+        gameActorId: undefined,
       },
       initial: 'Lobby',
       on: {
@@ -109,11 +99,15 @@ export const createPartyMachine = ({
           },
         },
         Game: {
-          invoke: {
-            id: 'gameActor',
-            src: gameMachine,
-            onDone: 'Lobby',
+          initial: 'Initializing',
+          states: {
+            Initializing: {},
           },
+          // invoke: {
+          //   id: 'gameActor',
+          //   src: gameMachine,
+          //   onDone: 'Lobby',
+          // },
         },
       },
       predictableActionArguments: true,
@@ -177,9 +171,6 @@ export const createPartyMachine = ({
       },
     }
   );
-
-export type GameActor = ActorRefFrom<typeof gameMachine>;
-export type GameState = StateFrom<typeof gameMachine>;
 
 export type PartyMachine = ReturnType<typeof createPartyMachine>;
 export type PartyActor = ActorRefFrom<PartyMachine>;

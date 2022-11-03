@@ -5,6 +5,7 @@ import { createModel } from 'xstate/lib/model';
 const partyPlayerModel = createModel(
   {
     playerName: undefined as string | undefined,
+    userId: '' as string,
   },
   {
     events: {

@@ -3,7 +3,11 @@ import { ActorManager } from './actor-manager';
 
 export type ActorID = string;
 
-export type ActorType = 'PARTY_ACTOR' | 'PLAYER_ACTOR';
+export type ActorType =
+  | 'PARTY_ACTOR'
+  | 'PLAYER_ACTOR'
+  | 'TREEHOUSE_TRIVIA_ACTOR'
+  | 'TREEHOUSE_TRIVIA_PLAYER_ACTOR';
 
 export enum ActorEventType {
   SEND = 'ACTOR_SEND',
