@@ -17,6 +17,10 @@ import {
   PartyPlayerActor,
   PartyPlayerEvents,
 } from '@explorers-club/party';
+import {
+  createTreehouseTriviaMachine,
+  createTreehouseTriviaPlayerMachine,
+} from '@explorers-club/treehouse-trivia/state';
 import { get, onDisconnect, onValue, push, ref, set } from 'firebase/database';
 import { fromRef, ListenEvent } from 'rxfire/database';
 import { filter, first, from, fromEvent, skipWhile } from 'rxjs';
@@ -30,6 +34,14 @@ MachineFactory.registerMachine(ActorType.PARTY_ACTOR, createPartyMachine);
 MachineFactory.registerMachine(
   ActorType.PLAYER_ACTOR,
   createPartyPlayerMachine
+);
+MachineFactory.registerMachine(
+  ActorType.TREEHOUSE_TRIVIA_ACTOR,
+  createTreehouseTriviaMachine
+);
+MachineFactory.registerMachine(
+  ActorType.TREEHOUSE_TRIVIA_PLAYER_ACTOR,
+  createTreehouseTriviaPlayerMachine
 );
 
 const partyScreenModel = createModel(

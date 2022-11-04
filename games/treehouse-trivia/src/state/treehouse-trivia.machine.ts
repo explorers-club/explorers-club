@@ -23,11 +23,10 @@ const treehouseTriviaModel = createModel(
 
 export const createTreehouseTriviaMachine = ({
   actorId,
-  actorManager,
 }: SharedMachineProps) =>
   treehouseTriviaModel.createMachine(
     {
-      id: 'TreehouseTriviaMachine',
+      id: actorId,
       initial: 'Unitialized',
       states: {
         Unitialized: {

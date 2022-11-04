@@ -192,7 +192,7 @@ async function bootstrap() {
       await setActorEvent(myEventRef, { actorId: partyActorId, event });
     });
 
-    connectPartyHandlers(partyActor, actorManager);
+    connectPartyHandlers(partyActor, actorManager, joinCode);
 
     initialized = true;
   };
@@ -204,17 +204,34 @@ async function bootstrap() {
   });
 }
 
-function connectPartyHandlers(partyActor: PartyActor, actorManager) {
+function connectPartyHandlers(
+  partyActor: PartyActor,
+  actorManager: ActorManager,
+  joinCode: string
+) {
+  /**
+   * Spawns the actor on the actor manager and initializes actor in the db.
+   */
+  const spawnGameActor = async () => {
+    const actorType = ActorType.TREEHOUSE_TRIVIA_ACTOR;
+    const actorId = getActorId(actorType, joinCode);
+    actorManager.spawn({ actorId, actorType });
+    const eventRef = ref(db, `parties/${joinCode}/actor_events/${actorId}`);
+    const stateRef = ref(db, `parties/${joinCode}/actor_state/${actorId}`);
+
+    await setActorState(stateRef, actorManager.serialize(actorId));
+    await setActorEvent(eventRef, {
+      actorId,
+      event: { type: 'INIT' },
+    });
+
+    console.log('spawned game actor!', actorId);
+  };
+
+  // When party machine enters Game state, spawn the game actor
   const state$ = from(partyActor);
   const enterGame$ = state$.pipe(filter((state) => state.matches('Game')));
-
-  enterGame$.subscribe((state) => {
-    const actorId = '';
-    const actorType = 'TREEHOUSE_TRIVIA_ACTOR';
-    const gameActor = actorManager.spawn({ actorId, actorType });
-    console.log('entered game! ');
-  });
-  //
+  enterGame$.subscribe(spawnGameActor);
 }
 
 bootstrap();
