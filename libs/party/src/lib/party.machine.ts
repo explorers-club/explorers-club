@@ -3,9 +3,10 @@ import {
   ActorManager,
   ActorType,
   fromActorEvents,
+  ManagedActor,
   SharedMachineProps,
 } from '@explorers-club/actor';
-import { filter, first } from 'rxjs';
+import { filter, first, fromEvent, take } from 'rxjs';
 import { ActorRefFrom, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { PartyPlayerActor } from './party-player.machine';
@@ -88,7 +89,13 @@ export const createPartyMachine = ({
                 onDone: 'Waiting',
               },
               after: {
-                5000: 'EnteringGame',
+                5000: 'CreatingGame',
+              },
+            },
+            CreatingGame: {
+              invoke: {
+                src: 'onSpawnGameActor',
+                onDone: 'EnteringGame',
               },
             },
             EnteringGame: {
@@ -98,14 +105,16 @@ export const createPartyMachine = ({
         },
         Game: {
           initial: 'Initializing',
+          entry: () => {
+            // todo make a getActorForType which returns the first
+            console.log(
+              'game initializing',
+              actorManager.getActorsForType(ActorType.TREEHOUSE_TRIVIA_ACTOR)
+            );
+          },
           states: {
             Initializing: {},
           },
-          // invoke: {
-          //   id: 'gameActor',
-          //   src: gameMachine,
-          //   onDone: 'Lobby',
-          // },
         },
       },
       predictableActionArguments: true,
@@ -121,6 +130,17 @@ export const createPartyMachine = ({
         }),
       },
       services: {
+        onSpawnGameActor: () =>
+          new Promise((resolve) => {
+            const spawn$ = fromEvent<ManagedActor>(actorManager, 'SPAWN');
+            spawn$
+              .pipe(
+                filter((e) => e.actorType === ActorType.TREEHOUSE_TRIVIA_ACTOR),
+                first()
+              )
+              .subscribe(resolve);
+          }),
+
         onAnyPlayerNotReady: () =>
           new Promise((resolve) => {
             const playerEvents$ = fromActorEvents(actorManager, [

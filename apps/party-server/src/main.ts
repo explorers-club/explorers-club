@@ -192,7 +192,7 @@ async function bootstrap() {
       await setActorEvent(myEventRef, { actorId: partyActorId, event });
     });
 
-    connectPartyHandlers(partyActor, actorManager, joinCode);
+    wirePartyObservables(partyActor, actorManager, joinCode);
 
     initialized = true;
   };
@@ -204,7 +204,21 @@ async function bootstrap() {
   });
 }
 
-function connectPartyHandlers(
+/**
+ * Calling it wiring because here we are generically listening for
+ * events by setting up observables on the actors, running operators
+ * on those observables, and then running functions to execute business
+ * logic for different scnearios.
+ * 
+ * Here we are first wiring up the party actor to spawn the game actor
+ * after all players have readied up and the lobby is transitioning state.
+ * 
+ * Plan to re-use this pattern for writing business logic in response to
+ * events that happen in the world.
+ * 
+ * Will probably want to change this function signature soon
+ */
+function wirePartyObservables(
   partyActor: PartyActor,
   actorManager: ActorManager,
   joinCode: string
@@ -230,7 +244,7 @@ function connectPartyHandlers(
 
   // When party machine enters Game state, spawn the game actor
   const state$ = from(partyActor);
-  const enterGame$ = state$.pipe(filter((state) => state.matches('Game')));
+  const enterGame$ = state$.pipe(filter((state) => state.matches('Lobby.CreatingGame')));
   enterGame$.subscribe(spawnGameActor);
 }
 
