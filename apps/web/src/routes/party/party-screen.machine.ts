@@ -1,5 +1,7 @@
 import {
   ActorManager,
+  ActorType,
+  getActorId,
   MachineFactory,
   ManagedActor,
   SerializedSharedActor,
@@ -11,8 +13,6 @@ import {
 import {
   createPartyMachine,
   createPartyPlayerMachine,
-  getPartyActorId,
-  getPartyPlayerActorId,
   PartyActor,
   PartyPlayerActor,
   PartyPlayerEvents,
@@ -26,8 +26,11 @@ import { db } from '../../lib/firebase';
 import { AuthActor } from '../../state/auth.machine';
 import { createAnonymousUser } from '../../state/auth.utils';
 
-MachineFactory.registerMachine('PARTY_ACTOR', createPartyMachine);
-MachineFactory.registerMachine('PLAYER_ACTOR', createPartyPlayerMachine);
+MachineFactory.registerMachine(ActorType.PARTY_ACTOR, createPartyMachine);
+MachineFactory.registerMachine(
+  ActorType.PLAYER_ACTOR,
+  createPartyPlayerMachine
+);
 
 const partyScreenModel = createModel(
   {
@@ -57,7 +60,7 @@ export const createPartyScreenMachine = ({
   joinCode,
   authActor,
 }: CreateMachineProps) => {
-  const partyActorId = getPartyActorId(joinCode);
+  const partyActorId = getActorId(ActorType.PARTY_ACTOR, joinCode);
   const actorManager = new ActorManager(partyActorId);
 
   return partyScreenModel.createMachine(
@@ -187,7 +190,7 @@ export const createPartyScreenMachine = ({
             throw new Error('trying to rejoin party without being logged in');
           }
 
-          const actorId = getPartyPlayerActorId(userId);
+          const actorId = getActorId(ActorType.PLAYER_ACTOR, userId);
           const myActor = actorManager.getActor(actorId);
           if (!myActor) {
             console.warn('couldnt find actor when trying to rejoin');
@@ -227,7 +230,7 @@ export const createPartyScreenMachine = ({
               throw new Error('trying to assign actor without being logged in');
             }
 
-            const actorId = getPartyPlayerActorId(userId);
+            const actorId = getActorId(ActorType.PLAYER_ACTOR, userId);
             return actorManager.getActor(actorId);
           },
         }),
@@ -252,7 +255,7 @@ export const createPartyScreenMachine = ({
             return false;
           }
 
-          const actorId = getPartyPlayerActorId(userId);
+          const actorId = getActorId(ActorType.PLAYER_ACTOR, userId);
           const partyActor = actorManager.rootActor as PartyActor;
 
           return partyActor
@@ -287,8 +290,8 @@ export const createPartyScreenMachine = ({
           // Create my actor, persist its state, then
           // add it to the list of actors on the network
           const sharedActorRef: SharedActorRef = {
-            actorId: getPartyPlayerActorId(userId),
-            actorType: 'PLAYER_ACTOR',
+            actorId: getActorId(ActorType.PLAYER_ACTOR, userId),
+            actorType: ActorType.PLAYER_ACTOR,
           };
           const { actorId } = sharedActorRef;
 
