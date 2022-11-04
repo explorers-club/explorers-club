@@ -101,6 +101,7 @@ export const createPartyScreenMachine = ({
         },
         Connected: {
           initial: 'Initializing',
+          entry: 'wirePartyClient',
           states: {
             Initializing: {
               invoke: {
@@ -195,6 +196,48 @@ export const createPartyScreenMachine = ({
     },
     {
       actions: {
+        wirePartyClient: (context) => {
+          const userId = authActor.getSnapshot()?.context.session?.user.id;
+          if (!userId) {
+            throw new Error('expected user id');
+          }
+
+          if (!context.partyActor) {
+            throw new Error('expected party actor');
+          }
+
+          /**
+           * Spawns the actor on the actor manager and initializes actor in the db.
+           */
+          const spawnPlayerActor = async () => {
+            const actorType = ActorType.TREEHOUSE_TRIVIA_PLAYER_ACTOR;
+            const actorId = getActorId(actorType, userId);
+            actorManager.spawn({ actorId, actorType });
+            const eventRef = ref(
+              db,
+              `parties/${joinCode}/actor_events/${actorId}`
+            );
+            const stateRef = ref(
+              db,
+              `parties/${joinCode}/actor_state/${actorId}`
+            );
+
+            await setActorState(stateRef, actorManager.serialize(actorId));
+            await setActorEvent(eventRef, {
+              actorId,
+              event: { type: 'INIT' },
+            });
+
+            console.log('spawned player actor!', actorId);
+          };
+
+          // When party machine enters Game state, spawn the game actor
+          const state$ = from(context.partyActor);
+          const enterGame$ = state$.pipe(
+            filter((state) => state.matches('Lobby.CreatingGame'))
+          );
+          enterGame$.subscribe(spawnPlayerActor);
+        },
         // TODO try up with join party function
         rejoinParty: () => {
           const userId = authActor.getSnapshot()?.context.session?.user.id;
@@ -339,7 +382,7 @@ export const createPartyScreenMachine = ({
 
           return myActor;
         },
-        connectToParty: async (context, event) => {
+        connectToParty: async () => {
           const stateRef = ref(db, `parties/${joinCode}/actor_state`);
           const eventsRef = ref(db, `parties/${joinCode}/actor_events`);
           let initialized = false;
@@ -393,15 +436,16 @@ export const createPartyScreenMachine = ({
               initialized = true;
             });
 
-            initializePartyPresence(joinCode);
+            wirePartyPresence(joinCode);
 
-            // Once the party is actor is hydrated, we are "connected"
-            const hydrate$ = fromEvent<ManagedActor>(actorManager, 'HYDRATE');
-            hydrate$
-              .pipe(filter(isPartyActor), first())
-              .subscribe(({ actor }) => {
-                resolve(actor);
-              });
+            // Once the party is actor is hydrated, we are "connected", resolve the promise
+            const onPartyActorHydrate = fromEvent<ManagedActor>(
+              actorManager,
+              'HYDRATE'
+            ).pipe(filter(isPartyActor), first());
+            onPartyActorHydrate.subscribe(({ actor }) => {
+              resolve(actor);
+            });
           });
         },
       },
@@ -413,12 +457,13 @@ const isPartyActor = (managedActor: ManagedActor) => {
   return managedActor.actorType === 'PARTY_ACTOR';
 };
 
+
 /**
  * Add ourselves to `user_party_connections` when we connect
  * and remove when we disconnect. This is how party server
  * knows which parties to spawn.
  */
-const initializePartyPresence = (joinCode: string) => {
+const wirePartyPresence = (joinCode: string) => {
   const userConnectionsRef = ref(db, 'user_party_connections');
 
   const connectedRef = ref(db, '.info/connected');

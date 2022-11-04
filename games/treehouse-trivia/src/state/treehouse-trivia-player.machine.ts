@@ -24,7 +24,9 @@ export const TreehouseTriviaPlayerEvents = treehouseTriviaPlayerModel.events;
 export const getTreehouseTriviaPlayerActorId = (userId: string) =>
   `TreehouseTriviaPlayer-${userId}` as ActorID;
 
-export const createTreehouseTriviaPlayerMachine = ({ actorId }: SharedMachineProps) =>
+export const createTreehouseTriviaPlayerMachine = ({
+  actorId,
+}: SharedMachineProps) =>
   treehouseTriviaPlayerModel.createMachine(
     {
       id: actorId,
@@ -47,12 +49,17 @@ export const createTreehouseTriviaPlayerMachine = ({ actorId }: SharedMachinePro
             onDone: 'Ready',
           },
         },
+        Ready: {},
       },
       predictableActionArguments: true,
     },
     {}
   );
 
-export type TreehouseTriviaPlayerMachine = ReturnType<typeof createTreehouseTriviaPlayerMachine>;
-export type TreehouseTriviaPlayerState = StateFrom<TreehouseTriviaPlayerMachine>;
-export type TreehouseTriviaPlayerActor = ActorRefFrom<TreehouseTriviaPlayerMachine>;
+export type TreehouseTriviaPlayerMachine = ReturnType<
+  typeof createTreehouseTriviaPlayerMachine
+>;
+export type TreehouseTriviaPlayerState =
+  StateFrom<TreehouseTriviaPlayerMachine>;
+export type TreehouseTriviaPlayerActor =
+  ActorRefFrom<TreehouseTriviaPlayerMachine>;

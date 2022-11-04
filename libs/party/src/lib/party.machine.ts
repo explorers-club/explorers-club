@@ -4,9 +4,9 @@ import {
   ActorType,
   fromActorEvents,
   ManagedActor,
-  SharedMachineProps,
+  SharedMachineProps
 } from '@explorers-club/actor';
-import { filter, first, fromEvent, take } from 'rxjs';
+import { filter, first, fromEvent } from 'rxjs';
 import { ActorRefFrom, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { PartyPlayerActor } from './party-player.machine';
@@ -105,13 +105,6 @@ export const createPartyMachine = ({
         },
         Game: {
           initial: 'Initializing',
-          entry: () => {
-            // todo make a getActorForType which returns the first
-            console.log(
-              'game initializing',
-              actorManager.getActorsForType(ActorType.TREEHOUSE_TRIVIA_ACTOR)
-            );
-          },
           states: {
             Initializing: {},
           },
