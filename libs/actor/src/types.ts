@@ -3,11 +3,27 @@ import { ActorManager } from './actor-manager';
 
 export type ActorID = string;
 
-export type ActorType =
-  | 'PARTY_ACTOR'
-  | 'PLAYER_ACTOR'
-  | 'TREEHOUSE_TRIVIA_ACTOR'
-  | 'TREEHOUSE_TRIVIA_PLAYER_ACTOR';
+export enum ActorType {
+  PARTY_ACTOR = "PARTY_ACTOR",
+  PLAYER_ACTOR = "PLAYER_ACTOR",
+  TREEHOUSE_TRIVIA_ACTOR = "TREEHOUSE_TRIVIA_ACTOR",
+  TREEHOUSE_TRIVIA_PLAYER_ACTOR = "TREEHOUSE_TRIVIA_PLAYER_ACTOR"
+}
+
+export const getActorId = (actorType: ActorType, uniqueId: string) => {
+  switch (actorType) {
+    case ActorType.PARTY_ACTOR:
+      return `Party-${uniqueId}`
+    case ActorType.PLAYER_ACTOR:
+      return `PartyPlayer-${uniqueId}`
+    case ActorType.TREEHOUSE_TRIVIA_ACTOR:
+      return `TreehouseTrivia-${uniqueId}`
+    case ActorType.TREEHOUSE_TRIVIA_PLAYER_ACTOR:
+      return `TreehouseTriviaPlayer-${uniqueId}`
+    default:
+      throw new Error(`Non-existent actor type in switch: ${actorType}`);
+  }
+}
 
 export enum ActorEventType {
   SEND = 'ACTOR_SEND',

@@ -1,6 +1,8 @@
 import {
   ActorManager,
+  ActorType,
   fromActorEvents,
+  getActorId,
   MachineFactory,
   SerializedSharedActor,
   setActorEvent,
@@ -10,7 +12,6 @@ import {
 import {
   createPartyMachine,
   createPartyPlayerMachine,
-  getPartyActorId,
   PartyActor,
   PartyEvents,
 } from '@explorers-club/party';
@@ -33,14 +34,17 @@ import { db } from './lib/firebase';
 // Presence app example
 // https://firebase.google.com/docs/database/android/offline-capabilities#section-sample
 
-MachineFactory.registerMachine('PARTY_ACTOR', createPartyMachine);
-MachineFactory.registerMachine('PLAYER_ACTOR', createPartyPlayerMachine);
+MachineFactory.registerMachine(ActorType.PARTY_ACTOR, createPartyMachine);
 MachineFactory.registerMachine(
-  'TREEHOUSE_TRIVIA_ACTOR',
+  ActorType.PLAYER_ACTOR,
+  createPartyPlayerMachine
+);
+MachineFactory.registerMachine(
+  ActorType.TREEHOUSE_TRIVIA_ACTOR,
   createTreehouseTriviaMachine
 );
 MachineFactory.registerMachine(
-  'TREEHOUSE_TRIVIA_PLAYER_ACTOR',
+  ActorType.TREEHOUSE_TRIVIA_PLAYER_ACTOR,
   createTreehouseTriviaPlayerMachine
 );
 
@@ -71,7 +75,7 @@ async function bootstrap() {
 
   const initializeParty = async (joinCode: string) => {
     console.debug('hosting ' + joinCode);
-    const partyActorId = getPartyActorId(joinCode);
+    const partyActorId = getActorId(ActorType.PARTY_ACTOR, joinCode);
     const actorManager = new ActorManager(partyActorId);
     const stateRef = ref(db, `parties/${joinCode}/actor_state`);
     const eventsRef = ref(db, `parties/${joinCode}/actor_events`);
@@ -169,7 +173,7 @@ async function bootstrap() {
     if (!partyActor) {
       partyActor = actorManager.spawn({
         actorId: partyActorId,
-        actorType: 'PARTY_ACTOR',
+        actorType: ActorType.PARTY_ACTOR,
       });
 
       // do these together in same transaction?
@@ -205,7 +209,9 @@ function connectPartyHandlers(partyActor: PartyActor, actorManager) {
   const enterGame$ = state$.pipe(filter((state) => state.matches('Game')));
 
   enterGame$.subscribe((state) => {
-    actorManager.spawn({});
+    const actorId = '';
+    const actorType = 'TREEHOUSE_TRIVIA_ACTOR';
+    const gameActor = actorManager.spawn({ actorId, actorType });
     console.log('entered game! ');
   });
   //

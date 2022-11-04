@@ -1,6 +1,7 @@
 import {
   ActorID,
   ActorManager,
+  ActorType,
   fromActorEvents,
   SharedMachineProps,
 } from '@explorers-club/actor';
@@ -29,9 +30,6 @@ const partyModel = createModel(
 );
 
 export const PartyEvents = partyModel.events;
-
-export const getPartyActorId = (joinCode: string) =>
-  `Party-${joinCode}` as ActorID;
 
 export const createPartyMachine = ({
   actorId,
@@ -150,7 +148,7 @@ export const createPartyMachine = ({
                 filter(() => {
                   const partyActor = actorManager.rootActor as PartyActor;
                   const playerActors = actorManager.getActorsForType(
-                    'PLAYER_ACTOR'
+                    ActorType.PLAYER_ACTOR
                   ) as PartyPlayerActor[];
                   const readyCount = playerActors
                     .map((actor) => actor.getSnapshot()?.matches('Ready.Yes'))

@@ -1,4 +1,4 @@
-import { ActorID, SharedMachineProps } from '@explorers-club/actor';
+import { SharedMachineProps } from '@explorers-club/actor';
 import { ActorRefFrom, assign, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 
@@ -26,9 +26,6 @@ export const PartyPlayerEvents = partyPlayerModel.events;
 // type PlayerDisconnectedEvent = ReturnType<
 //   typeof PartyPlayerEvents.PLAYER_REJOIN
 // >;
-
-export const getPartyPlayerActorId = (userId: string) =>
-  `PartyPlayer-${userId}` as ActorID;
 
 export const createPartyPlayerMachine = ({ actorId }: SharedMachineProps) =>
   partyPlayerModel.createMachine(
