@@ -197,11 +197,6 @@ export const createPartyScreenMachine = ({
     {
       actions: {
         wirePartyClient: (context) => {
-          const userId = authActor.getSnapshot()?.context.session?.user.id;
-          if (!userId) {
-            throw new Error('expected user id');
-          }
-
           if (!context.partyActor) {
             throw new Error('expected party actor');
           }
@@ -210,6 +205,11 @@ export const createPartyScreenMachine = ({
            * Spawns the actor on the actor manager and initializes actor in the db.
            */
           const spawnPlayerActor = async () => {
+            const userId = context.authActor.getSnapshot()?.context.session?.user.id;
+            if (!userId) {
+              throw new Error('expected user id');
+            }
+
             const actorType = ActorType.TREEHOUSE_TRIVIA_PLAYER_ACTOR;
             const actorId = getActorId(actorType, userId);
             actorManager.spawn({ actorId, actorType });
@@ -456,7 +456,6 @@ export const createPartyScreenMachine = ({
 const isPartyActor = (managedActor: ManagedActor) => {
   return managedActor.actorType === 'PARTY_ACTOR';
 };
-
 
 /**
  * Add ourselves to `user_party_connections` when we connect
