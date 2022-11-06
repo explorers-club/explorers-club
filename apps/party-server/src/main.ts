@@ -14,10 +14,12 @@ import {
   createPartyPlayerMachine,
   PartyActor,
   PartyEvents,
+  PartyPlayerActor,
 } from '@explorers-club/party';
 import {
   createTreehouseTriviaMachine,
   createTreehouseTriviaPlayerMachine,
+  TreehouseTriviaEvents,
 } from '@explorers-club/treehouse-trivia/state';
 import * as crypto from 'crypto';
 import {
@@ -36,7 +38,7 @@ import { db } from './lib/firebase';
 
 MachineFactory.registerMachine(ActorType.PARTY_ACTOR, createPartyMachine);
 MachineFactory.registerMachine(
-  ActorType.PLAYER_ACTOR,
+  ActorType.PARTY_PLAYER_ACTOR,
   createPartyPlayerMachine
 );
 MachineFactory.registerMachine(
@@ -123,7 +125,7 @@ async function bootstrap() {
       // console.log('actor ADDED', serializedActor);
       actorManager.hydrate(serializedActor);
 
-      if (serializedActor.actorType === 'PLAYER_ACTOR') {
+      if (serializedActor.actorType === ActorType.PARTY_PLAYER_ACTOR) {
         partyActor.send(
           PartyEvents.PLAYER_JOINED({ actorId: serializedActor.actorId })
         );
@@ -230,14 +232,44 @@ function wirePartyServer(
   const spawnGameActor = async () => {
     const actorType = ActorType.TREEHOUSE_TRIVIA_ACTOR;
     const actorId = getActorId(actorType, joinCode);
-    actorManager.spawn({ actorId, actorType });
     const eventRef = ref(db, `parties/${joinCode}/actor_events/${actorId}`);
     const stateRef = ref(db, `parties/${joinCode}/actor_state/${actorId}`);
+    const actor = actorManager.spawn({ actorId, actorType });
+
+    const { hostActorId, playerActorIds } = partyActor.getSnapshot().context;
+    const partyPlayerActors = playerActorIds.map(
+      (actorId) => actorManager.getActor(actorId) as PartyPlayerActor
+    );
+    const userIds = partyPlayerActors.map(
+      (actor) => actor.getSnapshot().context.userId
+    );
+    const gamePlayerActorIds = userIds.map((userId) =>
+      getActorId(ActorType.TREEHOUSE_TRIVIA_PLAYER_ACTOR, userId)
+    );
+
+    const hostUserId = actorManager.getActor(hostActorId).getSnapshot()
+      .context.userId;
+    const hostId = getActorId(
+      ActorType.TREEHOUSE_TRIVIA_PLAYER_ACTOR,
+      hostUserId
+    );
+
+    TreehouseTriviaEvents.INITIALIZE({
+      playerActorIds: gamePlayerActorIds,
+      hostId,
+    });
 
     await setActorState(stateRef, actorManager.serialize(actorId));
     await setActorEvent(eventRef, {
       actorId,
       event: { type: 'INIT' },
+    });
+
+    actor.onEvent(async (e) => {
+      // convert to json first because invoke events have
+      // a toString() function on them that we cant set in db
+      const event = JSON.parse(JSON.stringify(e));
+      await setActorEvent(eventRef, { actorId, event });
     });
 
     console.log('spawned game actor!', actorId);

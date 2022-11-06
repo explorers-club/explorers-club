@@ -161,7 +161,7 @@ export const createPartyMachine = ({
                 filter(() => {
                   const partyActor = actorManager.rootActor as PartyActor;
                   const playerActors = actorManager.getActorsForType(
-                    ActorType.PLAYER_ACTOR
+                    ActorType.PARTY_PLAYER_ACTOR
                   ) as PartyPlayerActor[];
                   const readyCount = playerActors
                     .map((actor) => actor.getSnapshot()?.matches('Ready.Yes'))

@@ -64,7 +64,7 @@ const Lobby = () => {
 
 const Game = () => {
   // Game context...
-  return <div>Playing!</div>;
+  return <div>Playing treehouse trivia</div>;
 };
 
 const Container = styled.div``;

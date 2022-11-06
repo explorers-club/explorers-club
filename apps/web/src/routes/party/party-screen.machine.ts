@@ -32,7 +32,7 @@ import { createAnonymousUser } from '../../state/auth.utils';
 
 MachineFactory.registerMachine(ActorType.PARTY_ACTOR, createPartyMachine);
 MachineFactory.registerMachine(
-  ActorType.PLAYER_ACTOR,
+  ActorType.PARTY_PLAYER_ACTOR,
   createPartyPlayerMachine
 );
 MachineFactory.registerMachine(
@@ -205,14 +205,15 @@ export const createPartyScreenMachine = ({
            * Spawns the actor on the actor manager and initializes actor in the db.
            */
           const spawnPlayerActor = async () => {
-            const userId = context.authActor.getSnapshot()?.context.session?.user.id;
+            const userId =
+              context.authActor.getSnapshot()?.context.session?.user.id;
             if (!userId) {
               throw new Error('expected user id');
             }
 
             const actorType = ActorType.TREEHOUSE_TRIVIA_PLAYER_ACTOR;
             const actorId = getActorId(actorType, userId);
-            actorManager.spawn({ actorId, actorType });
+            const playerActor = actorManager.spawn({ actorId, actorType });
             const eventRef = ref(
               db,
               `parties/${joinCode}/actor_events/${actorId}`
@@ -228,7 +229,12 @@ export const createPartyScreenMachine = ({
               event: { type: 'INIT' },
             });
 
+            playerActor.onEvent(async (event) => {
+              await setActorEvent(eventRef, { actorId, event });
+            });
+
             console.log('spawned player actor!', actorId);
+            // TODO maybe set up a disconnect send even here if we need it
           };
 
           // When party machine enters Game state, spawn the game actor
@@ -245,7 +251,7 @@ export const createPartyScreenMachine = ({
             throw new Error('trying to rejoin party without being logged in');
           }
 
-          const actorId = getActorId(ActorType.PLAYER_ACTOR, userId);
+          const actorId = getActorId(ActorType.PARTY_PLAYER_ACTOR, userId);
           const myActor = actorManager.getActor(actorId);
           if (!myActor) {
             console.warn('couldnt find actor when trying to rejoin');
@@ -285,7 +291,7 @@ export const createPartyScreenMachine = ({
               throw new Error('trying to assign actor without being logged in');
             }
 
-            const actorId = getActorId(ActorType.PLAYER_ACTOR, userId);
+            const actorId = getActorId(ActorType.PARTY_PLAYER_ACTOR, userId);
             return actorManager.getActor(actorId);
           },
         }),
@@ -310,7 +316,7 @@ export const createPartyScreenMachine = ({
             return false;
           }
 
-          const actorId = getActorId(ActorType.PLAYER_ACTOR, userId);
+          const actorId = getActorId(ActorType.PARTY_PLAYER_ACTOR, userId);
           const partyActor = actorManager.rootActor as PartyActor;
 
           return partyActor
@@ -345,8 +351,8 @@ export const createPartyScreenMachine = ({
           // Create my actor, persist its state, then
           // add it to the list of actors on the network
           const sharedActorRef: SharedActorRef = {
-            actorId: getActorId(ActorType.PLAYER_ACTOR, userId),
-            actorType: ActorType.PLAYER_ACTOR,
+            actorId: getActorId(ActorType.PARTY_PLAYER_ACTOR, userId),
+            actorType: ActorType.PARTY_PLAYER_ACTOR,
           };
           const { actorId } = sharedActorRef;
 

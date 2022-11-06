@@ -1,28 +1,20 @@
-import { ActorID, SharedMachineProps } from '@explorers-club/actor';
-import { ActorRefFrom, assign, StateFrom } from 'xstate';
+import { SharedMachineProps } from '@explorers-club/actor';
+import { ActorRefFrom, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 
-interface Props {
-  userId: string;
-}
-
 const treehouseTriviaPlayerModel = createModel(
-  {
-    userId: '' as string,
-  },
+  {},
   {
     events: {
-      INITIALIZE: (props: Props) => props,
-      ANSWER: () => ({}),
-      JUDGE_RESPONSE: (correct: boolean) => ({ correct }),
+      PLAYER_PRESS_NEXT_QUESTION: () => ({}),
+      PLAYER_PRESS_ANSWER: () => ({}),
+      PLAYER_PRESS_CORRECT: () => ({}),
+      PLAYER_PRESS_INCORRECT: () => ({}),
     },
   }
 );
 
 export const TreehouseTriviaPlayerEvents = treehouseTriviaPlayerModel.events;
-
-export const getTreehouseTriviaPlayerActorId = (userId: string) =>
-  `TreehouseTriviaPlayer-${userId}` as ActorID;
 
 export const createTreehouseTriviaPlayerMachine = ({
   actorId,
@@ -31,25 +23,11 @@ export const createTreehouseTriviaPlayerMachine = ({
     {
       id: actorId,
       type: 'parallel',
-      initial: 'Uninitialized',
+      initial: 'Playing',
       states: {
-        Unitialized: {
-          on: {
-            INITIALIZE: {
-              target: 'Loading',
-              actions: assign({
-                userId: (_, event) => event.userId,
-              }),
-            },
-          },
+        Playing: {
+          // future handle disocnnect / reconnect logic here
         },
-        Loading: {
-          invoke: {
-            src: 'waitUntilLoaded',
-            onDone: 'Ready',
-          },
-        },
-        Ready: {},
       },
       predictableActionArguments: true,
     },

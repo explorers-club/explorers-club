@@ -1,15 +1,20 @@
-import { SharedMachineProps } from '@explorers-club/actor';
+import {
+  ActorID,
+  fromActorEvents,
+  SharedMachineProps,
+} from '@explorers-club/actor';
+import { map, first } from 'rxjs';
 import { ActorRefFrom, assign, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 
 interface Props {
-  playerUserIds: string[];
+  playerActorIds: string[];
   hostId: string;
 }
 
 const treehouseTriviaModel = createModel(
   {
-    playerUserIds: [] as string[],
+    playerActorIds: [] as ActorID[],
     hostId: '' as string,
     correctCounts: {} as Record<string, number>,
   },
@@ -21,8 +26,11 @@ const treehouseTriviaModel = createModel(
   }
 );
 
+export const TreehouseTriviaEvents = treehouseTriviaModel.events;
+
 export const createTreehouseTriviaMachine = ({
   actorId,
+  actorManager,
 }: SharedMachineProps) =>
   treehouseTriviaModel.createMachine(
     {
@@ -33,10 +41,10 @@ export const createTreehouseTriviaMachine = ({
           on: {
             INITIALIZE: {
               actions: assign({
-                playerUserIds: (_, event) => event.playerUserIds,
+                playerActorIds: (_, event) => event.playerActorIds,
                 hostId: (_, event) => event.hostId,
                 correctCounts: (_, event) =>
-                  event.playerUserIds.reduce((result, cur) => {
+                  event.playerActorIds.reduce((result, cur) => {
                     return {
                       ...result,
                       [cur]: 0,
@@ -51,7 +59,56 @@ export const createTreehouseTriviaMachine = ({
             src: 'waitForAllPlayersLoaded',
           },
         },
-        Playing: {},
+        Playing: {
+          states: {
+            AwaitingQuestion: {
+              invoke: {
+                src: (context, event) =>
+                  fromActorEvents(actorManager, [
+                    'PLAYER_PRESS_NEXT_QUESTION',
+                  ]).pipe(
+                    // do this map because xstate expects observable to run an event with a type
+                    map((data) => data.event),
+                    first()
+                  ),
+                onDone: 'AwaitingResponse',
+              },
+            },
+            AwaitingResponse: {
+              invoke: {
+                src: (context, event) =>
+                  fromActorEvents(actorManager, ['PLAYER_PRESS_ANSWER']).pipe(
+                    map((data) => data.event),
+                    first()
+                  ),
+                onDone: 'AwaitingJudgement',
+              },
+            },
+            AwaitingJudgement: {
+              invoke: {
+                src: (context, event) =>
+                  fromActorEvents(actorManager, [
+                    'PLAYER_PRESS_CORRECT',
+                    'PLAYER_PRESS_INCORRECT',
+                  ]).pipe(
+                    map(({ event, actorId }) => ({
+                      ...event,
+                      actorId,
+                    })),
+                    first()
+                  ),
+                onDone: [
+                  {
+                    target: 'AwaitingResponse',
+                    cond: (cond, event) =>
+                      event.type === 'PLAYER_PRESS_INCORRECT',
+                  },
+                  { target: 'AwaitingQuestion' },
+                ],
+              },
+            },
+          },
+        },
         GameOver: {
           type: 'final' as const,
         },

@@ -1,6 +1,6 @@
 import { filter, fromEvent, Observable } from 'rxjs';
 import { ActorManager } from './actor-manager';
-import { SharedActorEvent } from './types';
+import { ActorID, ActorType, SharedActorEvent } from './types';
 
 /**
  * Given a list of event types, return an observable that
@@ -18,4 +18,25 @@ export const fromActorEvents = (
   return actorEvent$.pipe(
     filter((props) => eventTypes.includes(props.event.type)) // todo make O(1)
   );
+};
+
+export const getUniqueId: (actorId: ActorID) => string = (actorId) =>
+  actorId.split('-')[1];
+
+export const getActorId: (actorType: ActorType, uniqueId: string) => ActorID = (
+  actorType,
+  uniqueId
+) => {
+  switch (actorType) {
+    case ActorType.PARTY_ACTOR:
+      return `Party-${uniqueId}`;
+    case ActorType.PARTY_PLAYER_ACTOR:
+      return `PartyPlayer-${uniqueId}`;
+    case ActorType.TREEHOUSE_TRIVIA_ACTOR:
+      return `TreehouseTrivia-${uniqueId}`;
+    case ActorType.TREEHOUSE_TRIVIA_PLAYER_ACTOR:
+      return `TreehouseTriviaPlayer-${uniqueId}`;
+    default:
+      throw new Error(`Non-existent actor type in switch: ${actorType}`);
+  }
 };
