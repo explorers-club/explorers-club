@@ -1,14 +1,22 @@
-import { FC } from 'react';
+import { ActorManager, ActorType } from '@explorers-club/actor';
+import { FC, useMemo } from 'react';
 import { Leaderboard } from '../components/Leaderboard';
-import { TreehouseTriviaPlayerActor } from '../state/treehouse-trivia-player.machine';
-import { TreehouseTriviaActor } from '../state/treehouse-trivia.machine';
 
 interface Props {
-  gameActor: TreehouseTriviaActor;
-  playerActors: TreehouseTriviaPlayerActor;
+  actorManager: ActorManager;
 }
 
-export const MainUI: FC<Props> = ({ gameActor, playerActors }) => {
+export const TreehouseTriviaMainUI: FC<Props> = ({ actorManager }) => {
+  const gameActor = useMemo(
+    () => actorManager.getActorForType(ActorType.TREEHOUSE_TRIVIA_ACTOR),
+    [actorManager]
+  );
+  const playerActors = useMemo(
+    () =>
+      actorManager.getActorsForType(ActorType.TREEHOUSE_TRIVIA_PLAYER_ACTOR),
+    [actorManager]
+  );
+  console.log({ gameActor, playerActors });
   return (
     <div>
       <h2>Welcome to treehouse Trivia!</h2>

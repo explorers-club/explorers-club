@@ -20,7 +20,7 @@
       "@explorers-club/party": ["libs/party/src/index.ts"],
       "@explorers-club/utils": ["libs/utils/src/index.ts"],
       "@explorers-club/treehouse-trivia/state": ["games/treehouse-trivia/src/state/index.ts"],
-      "@explorers-club/treehouse-trivia/ui": ["games/treehouse-trivia/src/ui/index.tsx"],
+      "@explorers-club/treehouse-trivia/ui": ["games/treehouse-trivia/src/ui/index.ts"],
       "@explorers-club/treehouse-trivia/scene": ["games/treehouse-trivia/src/scene/index.ts"]
     }
   },

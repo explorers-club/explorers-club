@@ -233,8 +233,8 @@ export const createPartyScreenMachine = ({
               await setActorEvent(eventRef, { actorId, event });
             });
 
-            console.log('spawned player actor!', actorId);
             // TODO maybe set up a disconnect send even here if we need it
+            console.log('spawned player actor!', actorId);
           };
 
           // When party machine enters Game state, spawn the game actor

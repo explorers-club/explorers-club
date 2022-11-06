@@ -171,6 +171,15 @@ export class ActorManager extends EventEmitter {
     return this.actorMap.get(actorId)?.actor;
   }
 
+  /**
+   * Get's the first actor for a given type
+   * @param _actorType Get
+   * @returns
+   */
+  getActorForType(_actorType: ActorType) {
+    return this.getActorsForType(_actorType)[0];
+  }
+
   getActorsForType(_actorType: ActorType) {
     return Array.from(this.actorMap.values())
       .filter(({ actorType }) => _actorType === actorType)

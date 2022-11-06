@@ -1,8 +1,8 @@
 import { useSelector } from '@xstate/react';
-import { ConnectedContext } from 'apps/web/src/state/connected.context';
-import { useContext } from 'react';
+import { ConnectedContext } from '../../../state/connected.context';
+import { useContext, useMemo } from 'react';
 import styled from 'styled-components';
-import { usePartyScreenActor } from '../party-screen.hooks';
+import { useActorManager, usePartyScreenActor } from '../party-screen.hooks';
 import { EnterName } from './enter-name.component';
 import { JoinError } from './join-error.component';
 import { Joined } from './joined';
@@ -10,6 +10,7 @@ import { JoinedContext } from './joined/joined.context';
 import { Joining } from './joining.component';
 import { Rejoining } from './rejoining.component';
 import { Spectating } from './spectating.component';
+import { TreehouseTriviaMainUI } from '@explorers-club/treehouse-trivia/ui';
 
 export const Connected = () => {
   const { partyActor } = useContext(ConnectedContext);
@@ -64,7 +65,8 @@ const Lobby = () => {
 
 const Game = () => {
   // Game context...
-  return <div>Playing treehouse trivia</div>;
+  const actorManager = useActorManager();
+  return <TreehouseTriviaMainUI actorManager={actorManager} />;
 };
 
 const Container = styled.div``;
