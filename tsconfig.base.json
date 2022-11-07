@@ -16,12 +16,17 @@
     "baseUrl": ".",
     "paths": {
       "@explorers-club/actor": ["libs/actor/src/index.ts"],
+      "@explorers-club/contentful": ["libs/contentful/src/index.ts"],
       "@explorers-club/database": ["libs/database/src/index.ts"],
       "@explorers-club/party": ["libs/party/src/index.ts"],
-      "@explorers-club/utils": ["libs/utils/src/index.ts"],
-      "@explorers-club/trivia-jam/state": ["games/trivia-jam/src/state/index.ts"],
+      "@explorers-club/trivia-jam/scene": [
+        "games/trivia-jam/src/scene/index.ts"
+      ],
+      "@explorers-club/trivia-jam/state": [
+        "games/trivia-jam/src/state/index.ts"
+      ],
       "@explorers-club/trivia-jam/ui": ["games/trivia-jam/src/ui/index.ts"],
-      "@explorers-club/trivia-jam/scene": ["games/trivia-jam/src/scene/index.ts"]
+      "@explorers-club/utils": ["libs/utils/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
