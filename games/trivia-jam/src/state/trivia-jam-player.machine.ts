@@ -2,7 +2,7 @@ import { SharedMachineProps } from '@explorers-club/actor';
 import { ActorRefFrom, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 
-const treehouseTriviaPlayerModel = createModel(
+const triviaJamPlayerModel = createModel(
   {},
   {
     events: {
@@ -14,12 +14,12 @@ const treehouseTriviaPlayerModel = createModel(
   }
 );
 
-export const TreehouseTriviaPlayerEvents = treehouseTriviaPlayerModel.events;
+export const TriviaJamPlayerEvents = triviaJamPlayerModel.events;
 
-export const createTreehouseTriviaPlayerMachine = ({
+export const createTriviaJamPlayerMachine = ({
   actorId,
 }: SharedMachineProps) =>
-  treehouseTriviaPlayerModel.createMachine(
+  triviaJamPlayerModel.createMachine(
     {
       id: actorId,
       type: 'parallel',
@@ -34,10 +34,10 @@ export const createTreehouseTriviaPlayerMachine = ({
     {}
   );
 
-export type TreehouseTriviaPlayerMachine = ReturnType<
-  typeof createTreehouseTriviaPlayerMachine
+export type TriviaJamPlayerMachine = ReturnType<
+  typeof createTriviaJamPlayerMachine
 >;
-export type TreehouseTriviaPlayerState =
-  StateFrom<TreehouseTriviaPlayerMachine>;
-export type TreehouseTriviaPlayerActor =
-  ActorRefFrom<TreehouseTriviaPlayerMachine>;
+export type TriviaJamPlayerState =
+  StateFrom<TriviaJamPlayerMachine>;
+export type TriviaJamPlayerActor =
+  ActorRefFrom<TriviaJamPlayerMachine>;

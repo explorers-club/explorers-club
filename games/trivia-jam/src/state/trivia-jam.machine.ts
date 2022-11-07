@@ -12,7 +12,7 @@ interface Props {
   hostId: string;
 }
 
-const treehouseTriviaModel = createModel(
+const triviaJamModel = createModel(
   {
     playerActorIds: [] as ActorID[],
     hostId: '' as string,
@@ -26,13 +26,13 @@ const treehouseTriviaModel = createModel(
   }
 );
 
-export const TreehouseTriviaEvents = treehouseTriviaModel.events;
+export const TriviaJamEvents = triviaJamModel.events;
 
-export const createTreehouseTriviaMachine = ({
+export const createTriviaJamMachine = ({
   actorId,
   actorManager,
 }: SharedMachineProps) =>
-  treehouseTriviaModel.createMachine(
+  triviaJamModel.createMachine(
     {
       id: actorId,
       initial: 'Unitialized',
@@ -125,8 +125,8 @@ export const createTreehouseTriviaMachine = ({
     }
   );
 
-export type TreehouseTriviaMachine = ReturnType<
-  typeof createTreehouseTriviaMachine
+export type TriviaJamMachine = ReturnType<
+  typeof createTriviaJamMachine
 >;
-export type TreehouseTriviaActor = ActorRefFrom<TreehouseTriviaMachine>;
-export type TreehouseTriviaState = StateFrom<TreehouseTriviaMachine>;
+export type TriviaJamActor = ActorRefFrom<TriviaJamMachine>;
+export type TriviaJamState = StateFrom<TriviaJamMachine>;

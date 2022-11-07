@@ -1,10 +1,10 @@
 /* eslint-disable */
 export default {
-  displayName: 'treehouse-trivia',
+  displayName: 'trivia-jam',
   preset: '../../jest.preset.js',
   transform: {
     '^.+\\.[tj]sx?$': 'babel-jest',
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
-  coverageDirectory: '../../coverage/games/treehouse-trivia',
+  coverageDirectory: '../../coverage/games/trivia-jam',
 };

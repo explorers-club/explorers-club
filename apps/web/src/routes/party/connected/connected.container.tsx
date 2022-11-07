@@ -10,7 +10,7 @@ import { JoinedContext } from './joined/joined.context';
 import { Joining } from './joining.component';
 import { Rejoining } from './rejoining.component';
 import { Spectating } from './spectating.component';
-import { TreehouseTriviaMainUI } from '@explorers-club/treehouse-trivia/ui';
+import { TriviaJamMainUI } from '@explorers-club/trivia-jam/ui';
 
 export const Connected = () => {
   const { partyActor } = useContext(ConnectedContext);
@@ -66,7 +66,7 @@ const Lobby = () => {
 const Game = () => {
   // Game context...
   const actorManager = useActorManager();
-  return <TreehouseTriviaMainUI actorManager={actorManager} />;
+  return <TriviaJamMainUI actorManager={actorManager} />;
 };
 
 const Container = styled.div``;

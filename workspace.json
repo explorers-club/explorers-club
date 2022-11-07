@@ -6,7 +6,7 @@
     "database": "libs/database",
     "party": "libs/party",
     "party-server": "apps/party-server",
-    "treehouse-trivia": "games/treehouse-trivia",
+    "trivia-jam": "games/trivia-jam",
     "utils": "libs/utils",
     "web": "apps/web"
   }

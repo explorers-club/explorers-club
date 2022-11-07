@@ -7,7 +7,7 @@ import {
 import { PartyPlayerActor } from '@explorers-club/party';
 import { useSelector } from '@xstate/react';
 import { FC, useContext, useMemo } from 'react';
-import { TreehouseTriviaPlayerActor } from '../state';
+import { TriviaJamPlayerActor } from '../state';
 import { GameContext } from '../state/game.context';
 
 export const Leaderboard = () => {
@@ -44,7 +44,7 @@ export const Leaderboard = () => {
 
 interface PlayerProps {
   partyPlayerActor: PartyPlayerActor;
-  gamePlayerActor: TreehouseTriviaPlayerActor;
+  gamePlayerActor: TriviaJamPlayerActor;
 }
 
 const LeaderboardPlayer: FC<PlayerProps> = ({

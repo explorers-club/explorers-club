@@ -17,10 +17,10 @@ import {
   PartyPlayerActor,
 } from '@explorers-club/party';
 import {
-  createTreehouseTriviaMachine,
-  createTreehouseTriviaPlayerMachine,
-  TreehouseTriviaEvents,
-} from '@explorers-club/treehouse-trivia/state';
+  createTriviaJamMachine,
+  createTriviaJamPlayerMachine,
+  TriviaJamEvents,
+} from '@explorers-club/trivia-jam/state';
 import * as crypto from 'crypto';
 import {
   get,
@@ -43,11 +43,11 @@ MachineFactory.registerMachine(
 );
 MachineFactory.registerMachine(
   ActorType.TREEHOUSE_TRIVIA_ACTOR,
-  createTreehouseTriviaMachine
+  createTriviaJamMachine
 );
 MachineFactory.registerMachine(
   ActorType.TREEHOUSE_TRIVIA_PLAYER_ACTOR,
-  createTreehouseTriviaPlayerMachine
+  createTriviaJamPlayerMachine
 );
 
 const runningParties = new Set();
@@ -254,7 +254,7 @@ function wirePartyServer(
       hostUserId
     );
 
-    TreehouseTriviaEvents.INITIALIZE({
+    TriviaJamEvents.INITIALIZE({
       playerActorIds: gamePlayerActorIds,
       hostId,
     });

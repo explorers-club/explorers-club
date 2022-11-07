@@ -7,11 +7,11 @@ interface Props {
   actorManager: ActorManager;
 }
 
-export const TreehouseTriviaMainUI: FC<Props> = ({ actorManager }) => {
+export const TriviaJamMainUI: FC<Props> = ({ actorManager }) => {
   return (
     <GameContext.Provider value={{ actorManager }}>
       <div>
-        <h2>Welcome to treehouse Trivia!</h2>
+        <h2>Welcome to Trivia Jam!</h2>
         <Leaderboard />
       </div>
     </GameContext.Provider>
