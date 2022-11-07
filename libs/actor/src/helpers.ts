@@ -21,7 +21,7 @@ export const fromActorEvents = (
 };
 
 export const getUniqueId: (actorId: ActorID) => string = (actorId) =>
-  actorId.split('-')[1];
+  actorId.substring(actorId.indexOf('-') + 1);
 
 export const getActorId: (actorType: ActorType, uniqueId: string) => ActorID = (
   actorType,
