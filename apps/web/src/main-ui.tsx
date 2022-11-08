@@ -29,7 +29,7 @@ export function MainUI() {
         >
           <RoutesContainer />
         </BottomSheet>
-        <ReactQueryDevtools initialIsOpen={false} />
+        <ReactQueryDevtools initialIsOpen={false} position="top-left" panelPosition='top' />
       </QueryClientProvider>
     </div>
   );
