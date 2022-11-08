@@ -1,3 +1,4 @@
+// Routing setup inspired by https://blog.logrocket.com/complete-guide-authentication-with-react-router-v6/
 import { Route, Routes } from 'react-router-dom';
 import { routes } from './routes.constants';
 

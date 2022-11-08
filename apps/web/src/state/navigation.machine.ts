@@ -2,6 +2,7 @@ import { PartiesRow } from '@explorers-club/database';
 import { matchPath, NavigateFunction } from 'react-router-dom';
 import { ActorRefFrom, ContextFrom, DoneInvokeEvent } from 'xstate';
 import { createModel } from 'xstate/lib/model';
+import { createClubScreenMachine } from '../routes/club/club-screen.machine';
 import { homeScreenMachine } from '../routes/home/home-screen.machine';
 import { createNewPartyScreenMachine } from '../routes/new-party/new-party-screen.machine';
 import { createPartyScreenMachine } from '../routes/party/party-screen.machine';
@@ -51,6 +52,23 @@ export const createNavigationMachine = ({
             onDone: {
               target: 'Party',
               actions: ['navigateToPartyScreen'],
+            },
+          },
+        },
+        Club: {
+          invoke: {
+            id: 'clubScreenMachine',
+            src: (_) => {
+              const pathMatch = matchPath(
+                '/:playerName',
+                window.location.pathname
+              );
+              const playerName = pathMatch?.params.playerName;
+              if (!playerName) {
+                throw new Error('expected playerName from path but was undefined');
+              }
+
+              return createClubScreenMachine({ playerName, authActor });
             },
           },
         },

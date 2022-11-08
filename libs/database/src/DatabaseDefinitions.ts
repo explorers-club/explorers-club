@@ -9,6 +9,35 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      parties: {
+        Row: {
+          join_code: string | null;
+          host_actor_id: string | null;
+          id: string;
+          user_id: string;
+          is_public: boolean;
+          last_activity_at: string;
+          created_at: string;
+        };
+        Insert: {
+          join_code?: string | null;
+          host_actor_id?: string | null;
+          id?: string;
+          user_id?: string;
+          is_public?: boolean;
+          last_activity_at?: string;
+          created_at?: string;
+        };
+        Update: {
+          join_code?: string | null;
+          host_actor_id?: string | null;
+          id?: string;
+          user_id?: string;
+          is_public?: boolean;
+          last_activity_at?: string;
+          created_at?: string;
+        };
+      };
       profiles: {
         Row: {
           id: number;
@@ -27,52 +56,6 @@ export interface Database {
           player_name?: string | null;
           user_id?: string;
           created_at?: string;
-        };
-      };
-      parties: {
-        Row: {
-          join_code: string | null;
-          id: string;
-          user_id: string;
-          is_public: boolean;
-          last_activity_at: string;
-          created_at: string;
-          actor_host_id: string | null;
-        };
-        Insert: {
-          join_code?: string | null;
-          id?: string;
-          user_id?: string;
-          is_public?: boolean;
-          last_activity_at?: string;
-          created_at?: string;
-          actor_host_id?: string | null;
-        };
-        Update: {
-          join_code?: string | null;
-          id?: string;
-          user_id?: string;
-          is_public?: boolean;
-          last_activity_at?: string;
-          created_at?: string;
-          actor_host_id?: string | null;
-        };
-      };
-      party_players: {
-        Row: {
-          party_id: string;
-          user_id: string;
-          join_token: string;
-        };
-        Insert: {
-          party_id: string;
-          user_id: string;
-          join_token?: string;
-        };
-        Update: {
-          party_id?: string;
-          user_id?: string;
-          join_token?: string;
         };
       };
     };
