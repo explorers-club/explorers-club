@@ -32,9 +32,9 @@ export const createClubScreenMachine = ({
   // Fetch to see if this profile has been claimed before
   // We can do that with useQuery and firebase I think
   return clubScreenModel.createMachine({
-    initial: 'Connecting',
+    initial: 'Loading',
     states: {
-      Connecting: {},
+      Loading: {},
       Connected: {},
     },
   });

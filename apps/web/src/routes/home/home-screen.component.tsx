@@ -1,6 +1,12 @@
+import * as LabelPrimitive from '@radix-ui/react-label';
+import { styled } from '@stitches/react';
 import { useSelector } from '@xstate/react';
 import { FormEvent, useCallback, useRef } from 'react';
-import styled from 'styled-components';
+import { Button } from '../../components/atoms/Button';
+import { Fieldset } from '../../components/atoms/Fieldset';
+import { Flex } from '../../components/atoms/Flex';
+import { Input } from '../../components/atoms/Input';
+import { Label } from '../../components/atoms/Label';
 import { useActorLogger } from '../../lib/logging';
 import { useHomeScreenActor } from './home-screen.hooks';
 import { HomeScreenEvents } from './home-screen.machine';
@@ -13,59 +19,46 @@ export function HomeScreen() {
     (state) => state.context.inputErrorMessage
   );
 
-  const partyCodeRef = useRef<HTMLInputElement>(null);
+  const playerNameRef = useRef<HTMLInputElement>(null);
 
   const handleChangePartyCode = useCallback(
     (e: FormEvent<HTMLInputElement>) => {
       homeActor.send(
-        HomeScreenEvents.INPUT_CHANGE_PARTY_CODE(
-          partyCodeRef.current?.value || ''
+        HomeScreenEvents.INPUT_CHANGE_PLAYER_NAME(
+          playerNameRef.current?.value || ''
         )
       );
     },
-    [partyCodeRef, homeActor]
-  );
-
-  const handleJoinParty = useCallback(
-    (e: FormEvent<HTMLFormElement>) => {
-      homeActor.send(HomeScreenEvents.PRESS_JOIN_PARTY());
-      e.preventDefault();
-    },
-    [homeActor]
+    [playerNameRef, homeActor]
   );
 
   const handleStartParty = useCallback(() => {
-    homeActor.send(HomeScreenEvents.PRESS_START_PARTY());
+    homeActor.send(HomeScreenEvents.PRESS_CREATE());
   }, [homeActor]);
 
   return (
     <Container>
-      <h2>Join party</h2>
-      <p>Enter 4-digit code</p>
-      <form onSubmit={handleJoinParty}>
-        {errorMessage !== '' && (
-          <ErrorMessage>
-            <strong>{errorMessage}</strong>
-          </ErrorMessage>
-        )}
-        <input
-          ref={partyCodeRef}
-          type="text"
-          name="partyCode"
-          onChange={handleChangePartyCode}
-        />
-        <input type="submit" value="Join" />
-      </form>
-      <h3>Start new party</h3>
-      <button onClick={handleStartParty}>Start</button>
+      <h1>Welcome to Explorers Club</h1>
+      <Flex style={{ flexDirection: 'column' }}>
+        <p>Start your club</p>
+        <Fieldset>
+          <span>
+            <Input
+              ref={playerNameRef}
+              type="text"
+              id="playerName"
+              defaultValue="Teddy"
+              onChange={handleChangePartyCode}
+            />
+            's Explorers Club
+          </span>
+        </Fieldset>
+        <Button variant="mauve">Claim It</Button>
+      </Flex>
     </Container>
   );
 }
 
-const ErrorMessage = styled.p`
-  color: red;
-`;
-
-const Container = styled.div`
-  padding: 24px;
-`;
+const Container = styled('div', {
+  padding: '16px',
+});

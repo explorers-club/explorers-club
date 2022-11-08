@@ -1,19 +1,15 @@
-import { PartiesTable } from '@explorers-club/database';
-import { ActorRefFrom, assign, DoneInvokeEvent } from 'xstate';
+import { ActorRefFrom, assign, createMachine, DoneInvokeEvent } from 'xstate';
 import { createModel } from 'xstate/lib/model';
-import { supabaseClient } from '../../lib/supabase';
 
 const homeScreenModel = createModel(
   {
-    partyCode: '' as string,
-    partyRow: undefined as PartiesTable['Row'] | undefined,
     inputErrorMessage: '' as string,
+    playerName: '' as string,
   },
   {
     events: {
-      INPUT_CHANGE_PARTY_CODE: (value: string) => ({ partyCode: value }),
-      PRESS_JOIN_PARTY: () => ({}),
-      PRESS_START_PARTY: () => ({}),
+      INPUT_CHANGE_PLAYER_NAME: (value: string) => ({ playerName: value }),
+      PRESS_CREATE: () => ({}),
     },
   }
 );
@@ -27,42 +23,24 @@ export const homeScreenMachine = homeScreenModel.createMachine(
     states: {
       WaitingForInput: {
         on: {
-          INPUT_CHANGE_PARTY_CODE: {
+          INPUT_CHANGE_PLAYER_NAME: {
             target: 'WaitingForInput',
-            actions: ['assignPartyCode', 'clearError'],
+            actions: ['assignPlayerName', 'clearError'],
           },
-          PRESS_JOIN_PARTY: [
+          PRESS_CREATE: [
             {
-              target: 'Joining',
-              cond: 'isJoinCodeValid',
-            },
-            {
-              target: 'WaitingForInput',
-              actions: 'setValidationError',
+              target: 'Validating',
+              cond: 'isPlayerNameValid',
             },
           ],
-          PRESS_START_PARTY: {
-            target: 'Complete',
-          },
         },
       },
-      Joining: {
-        invoke: {
-          src: 'joinParty',
-          onDone: {
-            target: 'Complete',
-            actions: assign({
-              partyRow: (_, event: DoneInvokeEvent<PartiesTable['Row']>) =>
-                event.data,
-            }),
-          },
-          onError: 'NetworkError',
-        },
-      },
+      Validating: {},
+      Creating: {},
       NetworkError: {},
       Complete: {
         type: 'final' as const,
-        data: (context) => context.partyRow, // Empty if starting a new one
+        data: (context) => context.playerName, // Empty if starting a new one
       },
     },
     predictableActionArguments: true,
@@ -75,30 +53,26 @@ export const homeScreenMachine = homeScreenModel.createMachine(
       setValidationError: assign({
         inputErrorMessage: (_) => 'code must be 4 characters',
       }),
-      assignPartyCode: assign({
-        partyCode: (_, event) => {
-          if (event.type !== 'INPUT_CHANGE_PARTY_CODE') {
+      assignPlayerName: assign({
+        playerName: (_, event) => {
+          if (event.type !== 'INPUT_CHANGE_PLAYER_NAME') {
             throw new Error(
               `unhandled event type in action assign party code ${event.type}`
             );
           }
-          return event.partyCode;
+          return event.playerName;
         },
       }),
     },
-    guards: {
-      isJoinCodeValid: (context) => context.partyCode.length === 4,
-    },
     services: {
-      joinParty: async (context, event) => {
-        const party = await supabaseClient
-          .from('parties')
-          .select('*')
-          .match({ code: context.partyCode })
-          .single();
-
-        return party;
-      },
+      // joinParty: async (context, event) => {
+      //   const party = await supabaseClient
+      //     .from('parties')
+      //     .select('*')
+      //     .match({ code: context.partyCode })
+      //     .single();
+      //   return party;
+      // },
     },
   }
 );
