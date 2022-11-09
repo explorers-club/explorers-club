@@ -1,12 +1,12 @@
-import * as LabelPrimitive from '@radix-ui/react-label';
+import { ChevronRightIcon } from '@radix-ui/react-icons';
 import { styled } from '@stitches/react';
 import { useSelector } from '@xstate/react';
 import { FormEvent, useCallback, useRef } from 'react';
+import { Box } from '../../components/atoms/Box';
 import { Button } from '../../components/atoms/Button';
 import { Fieldset } from '../../components/atoms/Fieldset';
 import { Flex } from '../../components/atoms/Flex';
 import { Input } from '../../components/atoms/Input';
-import { Label } from '../../components/atoms/Label';
 import { useActorLogger } from '../../lib/logging';
 import { useHomeScreenActor } from './home-screen.hooks';
 import { HomeScreenEvents } from './home-screen.machine';
@@ -14,10 +14,6 @@ import { HomeScreenEvents } from './home-screen.machine';
 export function HomeScreen() {
   const homeActor = useHomeScreenActor();
   useActorLogger(homeActor);
-  const errorMessage = useSelector(
-    homeActor,
-    (state) => state.context.inputErrorMessage
-  );
 
   const playerNameRef = useRef<HTMLInputElement>(null);
 
@@ -32,28 +28,47 @@ export function HomeScreen() {
     [playerNameRef, homeActor]
   );
 
-  const handleStartParty = useCallback(() => {
-    homeActor.send(HomeScreenEvents.PRESS_CREATE());
-  }, [homeActor]);
+  const playerName = useSelector(
+    homeActor,
+    (state) => state.context.playerName
+  );
+  const nameIsAvailable = useSelector(homeActor, (state) =>
+    state.matches('NameInput.Availability.Available')
+  );
+  const nameIsUnavailable = useSelector(homeActor, (state) =>
+    state.matches('NameInput.Availability.Unavailable')
+  );
+  console.log({ nameIsAvailable, playerName });
+
+  // const handleStartParty = useCallback(() => {
+  //   homeActor.send(HomeScreenEvents.PRESS_CREATE());
+  // }, [homeActor]);
 
   return (
     <Container>
       <h1>Welcome to Explorers Club</h1>
       <Flex style={{ flexDirection: 'column' }}>
-        <p>Start your club</p>
+        <Box>Start your club</Box>
         <Fieldset>
           <span>
             <Input
               ref={playerNameRef}
               type="text"
               id="playerName"
-              defaultValue="Teddy"
+              placeholder="Teddy"
+              pattern="^[a-zA-Z0-9_-]*$"
               onChange={handleChangePartyCode}
             />
             's Explorers Club
           </span>
+          {playerName && nameIsAvailable && (
+            <Box>{playerName} is available</Box>
+          )}
+          {playerName && nameIsUnavailable && (
+            <Box>{playerName} is unavailable. Choose another name</Box>
+          )}
         </Fieldset>
-        <Button variant="mauve">Claim It</Button>
+        <Button variant="primary">Claim Club</Button>
       </Flex>
     </Container>
   );

@@ -1,9 +1,8 @@
-import { styled } from '@stitches/react';
-import { blackA, mauve, red, violet } from '@radix-ui/colors';
+import { styled } from '../../styles';
 
 export const Button = styled('button', {
   all: 'unset',
-//   display: 'inline-flex',
+  //   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
   borderRadius: 4,
@@ -12,28 +11,26 @@ export const Button = styled('button', {
   lineHeight: 1,
   fontWeight: 500,
   height: 35,
+  textAlign: 'center',
 
   variants: {
     variant: {
-      violet: {
-        backgroundColor: 'white',
-        color: violet.violet11,
-        '&:hover': { backgroundColor: mauve.mauve3 },
+      primary: {
+        backgroundColor: "$accent9",
+        color: "white",
+        '&:hover': { backgroundColor: "$neutral3" },
+        '&:disabled': { backgroundColor: "$neutral3" },
       },
-      red: {
-        backgroundColor: red.red4,
-        color: red.red11,
-        '&:hover': { backgroundColor: red.red5 },
-      },
-      mauve: {
-        backgroundColor: mauve.mauve4,
-        color: mauve.mauve11,
-        '&:hover': { backgroundColor: mauve.mauve5 },
+      success: {
+        backgroundColor: "$success9",
+        color: "white",
+        '&:hover': { backgroundColor: "$neutral3" },
+        '&:disabled': { backgroundColor: "$neutral3" },
       },
     },
   },
 
   defaultVariants: {
-    variant: 'violet',
+    variant: 'primary',
   },
 });
