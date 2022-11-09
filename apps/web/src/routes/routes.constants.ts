@@ -1,7 +1,5 @@
 import { HomeScreen } from './home';
-import { NewPartyScreen } from './new-party';
-import { PartyScreen } from './party';
-import { ClubScreen } from "./club";
+import { ClubScreen } from './club';
 
 export interface Route {
   path: string;
@@ -15,16 +13,6 @@ export const routes: Route[] = [
     path: '/:playerName',
     state: 'Club',
     Component: ClubScreen,
-  },
-  {
-    path: '/party/new',
-    state: 'NewParty',
-    Component: NewPartyScreen,
-  },
-  {
-    path: '/party/:joinCode',
-    state: 'Party',
-    Component: PartyScreen,
   },
 ];
 

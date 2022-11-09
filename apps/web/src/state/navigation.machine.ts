@@ -1,11 +1,8 @@
-import { PartiesRow } from '@explorers-club/database';
 import { matchPath, NavigateFunction } from 'react-router-dom';
 import { ActorRefFrom, ContextFrom, DoneInvokeEvent } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { createClubScreenMachine } from '../routes/club/club-screen.machine';
 import { homeScreenMachine } from '../routes/home/home-screen.machine';
-import { createNewPartyScreenMachine } from '../routes/new-party/new-party-screen.machine';
-import { createPartyScreenMachine } from '../routes/party/party-screen.machine';
 import { AuthActor } from './auth.machine';
 
 const navigationModel = createModel({}, { events: { FOO: () => ({} as any) } }); // Fixes TS lol
@@ -33,26 +30,10 @@ export const createNavigationMachine = ({
             src: homeScreenMachine,
             onDone: [
               {
-                target: 'Party',
-                cond: (_, event: DoneInvokeEvent<PartiesRow | undefined>) =>
-                  !!event.data,
-                actions: 'navigateToPartyScreen',
-              },
-              {
-                target: 'NewParty',
-                actions: 'navigateToNewPartyScreen',
+                target: 'Club',
+                actions: 'navigateToClubScreen',
               },
             ],
-          },
-        },
-        NewParty: {
-          invoke: {
-            id: 'newPartyScreenMachine',
-            src: createNewPartyScreenMachine({ authActor }),
-            onDone: {
-              target: 'Party',
-              actions: ['navigateToPartyScreen'],
-            },
           },
         },
         Club: {
@@ -65,27 +46,15 @@ export const createNavigationMachine = ({
               );
               const playerName = pathMatch?.params.playerName;
               if (!playerName) {
-                throw new Error('expected playerName from path but was undefined');
+                throw new Error(
+                  'expected playerName from path but was undefined'
+                );
               }
 
-              return createClubScreenMachine({ playerName, authActor });
-            },
-          },
-        },
-        Party: {
-          invoke: {
-            id: 'partyScreenMachine',
-            src: (_) => {
-              const pathMatch = matchPath(
-                '/party/:joinCode',
-                window.location.pathname
-              );
-              const joinCode = pathMatch?.params.joinCode;
-              if (!joinCode) {
-                throw new Error('trying to join party without join code set');
-              }
-
-              return createPartyScreenMachine({ joinCode, authActor });
+              return createClubScreenMachine({
+                hostPlayerName: playerName,
+                authActor,
+              });
             },
           },
         },
@@ -94,18 +63,12 @@ export const createNavigationMachine = ({
     },
     {
       actions: {
-        navigateToNewPartyScreen: () => {
-          navigate(`/party/new`, { replace: true });
-        },
-        navigateToPartyScreen: (
-          context,
-          event: DoneInvokeEvent<PartiesRow>
-        ) => {
-          const code = event.data.join_code;
-          if (!code) {
-            throw new Error('no join code on party');
+        navigateToClubScreen: (context, event: DoneInvokeEvent<string>) => {
+          const playerName = event.data;
+          if (!playerName) {
+            throw new Error('expected club screen');
           }
-          navigate(`/party/${code}`, { replace: true });
+          navigate(`/${playerName}`, { replace: true });
         },
       },
     }

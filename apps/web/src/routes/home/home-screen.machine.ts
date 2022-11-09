@@ -1,5 +1,6 @@
 import { ActorRefFrom, assign } from 'xstate';
 import { createModel } from 'xstate/lib/model';
+import { fetchUserProfileByName } from '../../api/fetchUserProfileByName';
 import { supabaseClient } from '../../lib/supabase';
 import { assertEventType } from '../../state/utils';
 
@@ -124,7 +125,7 @@ export const homeScreenMachine = homeScreenModel.createMachine(
       },
       Complete: {
         type: 'final' as const,
-        data: (context) => context.playerName, // Empty if starting a new one
+        data: (context) => context.playerName,
       },
     },
     predictableActionArguments: true,
@@ -163,32 +164,14 @@ export const homeScreenMachine = homeScreenModel.createMachine(
       getPlayerNameIsAvailable: async (context, event) => {
         assertEventType(event, 'INPUT_CHANGE_PLAYER_NAME');
 
-        // TODO query supabase
-        // context.playerName;
-        const { data, error } = await supabaseClient
-          .from('profiles')
-          .select()
-          .match({ player_name: event.playerName })
-          .maybeSingle();
-
-        if (error) {
-          throw error;
+        try {
+          const profile = await fetchUserProfileByName(event.playerName);
+          return !profile;
+        } catch (ex) {
+          // TODO break down error by type
+          return true;
         }
-
-        if (data) {
-          return false;
-        }
-
-        return true;
       },
-      // joinParty: async (context, event) => {
-      //   const party = await supabaseClient
-      //     .from('parties')
-      //     .select('*')
-      //     .match({ code: context.partyCode })
-      //     .single();
-      //   return party;
-      // },
     },
   }
 );

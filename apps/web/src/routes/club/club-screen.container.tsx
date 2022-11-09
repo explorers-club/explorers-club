@@ -1,28 +1,36 @@
-import { useQuery } from '@tanstack/react-query';
-import { useCallback } from 'react';
-import { useParams } from 'react-router-dom';
-import styled from 'styled-components';
-import { fetchUserProfileByName } from '../../api/fetchUserProfileByName';
+import { useSelector } from '@xstate/react';
+import { useClubScreenActor } from './club-screen.hooks';
+import { Container } from './club.styles';
+import { Loading } from './loading.component';
+import { Unclaimed } from './unclaimed.container';
 
 export const ClubScreen = () => {
-  const { playerName } = useParams();
+  const clubScreenActor = useClubScreenActor();
   //   const { authActor } = useContext(GlobalStateContext);
 
-  const { isFetching, isSuccess } = useQuery({
-    queryKey: ['playersByName', playerName],
-    queryFn: () => fetchUserProfileByName(playerName),
-  });
+  const playerName = useSelector(
+    clubScreenActor,
+    (state) => state.context.hostPlayerName
+  );
+
+  const isLoading = useSelector(clubScreenActor, (state) =>
+    state.matches('Loading')
+  );
+
+  const isUnclaimed = useSelector(clubScreenActor, (state) =>
+    state.matches('Unclaimed')
+  );
 
   if (!playerName) {
     return <Container>error parsing URL</Container>;
   }
 
-  if (isFetching) {
-    return <Container>...</Container>;
+  if (isLoading) {
+    return <Loading />;
   }
 
-  if (!isSuccess) {
-    return <Unclaimed playerName={playerName} />;
+  if (isUnclaimed) {
+    return <Unclaimed />;
   }
 
   return <Party hostPlayerName={playerName} />;
@@ -31,24 +39,3 @@ export const ClubScreen = () => {
 const Party = ({ hostPlayerName }: { hostPlayerName: string }) => {
   return <Container>{hostPlayerName}</Container>;
 };
-
-const Unclaimed = ({ playerName }: { playerName?: string }) => {
-  const handlePressClaim = useCallback(() => {
-    // Enter a name
-    console.log(playerName);
-  }, [playerName]);
-
-  return (
-    <Container>
-      <h3>{playerName}'s explorers club is unclaimed</h3>
-      <p>Make it yours</p>
-      <div>
-        <button onClick={handlePressClaim}>Claim '{playerName}'</button>
-      </div>
-    </Container>
-  );
-};
-
-const Container = styled.div`
-  padding: 16px;
-`;
