@@ -41,8 +41,7 @@ export function HomeScreen() {
 
   const handleFormSubmit = useCallback(() => {
     homeActor.send(HomeScreenEvents.PRESS_CREATE());
-    console.log(playerNameRef.current);
-  }, [playerNameRef]);
+  }, [homeActor]);
 
   return (
     <Container>

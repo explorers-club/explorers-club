@@ -1,9 +1,10 @@
-import { ActorRefFrom, DoneInvokeEvent } from 'xstate';
+import { ActorRefFrom, assign, createMachine } from 'xstate';
 import { createModel } from 'xstate/lib/model';
-import { AuthActor } from '../../state/auth.machine';
-import { ProfilesRow } from '@explorers-club/database';
 import { fetchUserProfileByName } from '../../api/fetchUserProfileByName';
+import { AuthActor } from '../../state/auth.machine';
 import { createAnonymousUser } from '../../state/auth.utils';
+import { createFormMachine } from '../../state/form.machine';
+import { assertEventType } from '../../state/utils';
 
 const clubScreenModel = createModel(
   {
@@ -11,20 +12,25 @@ const clubScreenModel = createModel(
     authActor: {} as AuthActor,
     // hostProfile: undefined as ProfilesRow | undefined,
     //     playerName: undefined as string | undefined,
-    //     actorManager: {} as ActorManager,
+   //     actorManager: {} as ActorManager,
     //     partyActor: undefined as PartyActor | undefined,
     //     myActor: undefined as PartyPlayerActor | undefined,
   },
   {
     events: {
-      INPUT_CHANGE_PHONE_NUMBER: (value: string) => ({ playerName: value }),
+      INPUT_CHANGE_PHONE_NUMBER: (value: string) => ({ phoneNumber: value }),
       PRESS_CLAIM: () => ({}),
-      //       INPUT_CHANGE_PLAYER_NAME: (value: string) => ({ playerName: value }),
-      //       PRESS_SUBMIT: () => ({}),
-      //       PRESS_JOIN: () => ({}),
+      PRESS_SUBMIT: () => ({}),
     },
   }
 );
+
+const enterPhoneNumberMachine = createFormMachine({
+  handleSubmit: async (context, event) => {
+    // TODO make network call here and figure if it we should return data or boolean
+    return true
+  }
+})
 
 export const ClubScreenEvents = clubScreenModel.events;
 
@@ -42,6 +48,7 @@ export const createClubScreenMachine = ({
   // We can do that with useQuery and firebase I think
   return clubScreenModel.createMachine(
     {
+      id: 'ClubScreenMachine',
       initial: 'Loading',
       context: {
         authActor,
@@ -81,7 +88,13 @@ export const createClubScreenMachine = ({
                   },
                 },
                 Error: {},
-                EnterPhoneNumber: {},
+                EnterPhoneNumber: {
+                  invoke: {
+                    src: enterPhoneNumberMachine,
+                    onDone: 'VerifyPhoneNumber',
+                  },
+                },
+                VerifyPhoneNumber: {},
               },
             },
           },
@@ -94,6 +107,13 @@ export const createClubScreenMachine = ({
       guards: {
         isNotLoggedIn: ({ authActor }, event) => {
           return !authActor.getSnapshot()?.context.session;
+        },
+        isPhoneNumberValid: (_, event) => {
+          assertEventType(event, 'INPUT_CHANGE_PHONE_NUMBER');
+          return (
+            event.phoneNumber.length === 10 &&
+            !!event.phoneNumber.match(/^[0-9]+$/)
+          );
         },
       },
       services: {

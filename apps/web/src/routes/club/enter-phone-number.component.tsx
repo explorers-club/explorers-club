@@ -1,17 +1,24 @@
-import { useCallback, useRef } from 'react';
+import { useSelector } from '@xstate/react';
+import { FormEventHandler, useCallback, useRef } from 'react';
 import { Button } from '../../components/atoms/Button';
 import { Fieldset } from '../../components/atoms/Fieldset';
 import { Label } from '../../components/atoms/Label';
 import { Text } from '../../components/atoms/Text';
 import { TextField } from '../../components/atoms/TextField';
+import { useActorLogger } from '../../lib/logging';
 import { useClubScreenActor, useHostPlayerName } from './club-screen.hooks';
 import { ClubScreenEvents } from './club-screen.machine';
 import { Container } from './club.styles';
 
 export const EnterPhoneNumber = () => {
   const actor = useClubScreenActor();
+  useActorLogger(actor);
   const hostPlayerName = useHostPlayerName();
   const phoneNumberRef = useRef<HTMLInputElement>(null);
+
+  const canSubmit = useSelector(actor, (state) =>
+    state.matches('Unclaimed.Claiming.EnterPhoneNumber.Valid.Yes')
+  );
 
   const handleChangePhoneNumber = useCallback(() => {
     actor.send(
@@ -21,9 +28,17 @@ export const EnterPhoneNumber = () => {
     );
   }, [actor]);
 
+  const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
+    (event) => {
+      actor.send(ClubScreenEvents.PRESS_SUBMIT());
+      event.preventDefault();
+    },
+    [actor]
+  );
+
   return (
     <Container>
-      <form>
+      <form onSubmit={handleSubmit}>
         <Text>
           Enter your phone number to claim explorers.club/{hostPlayerName}
         </Text>
@@ -38,7 +53,13 @@ export const EnterPhoneNumber = () => {
             onChange={handleChangePhoneNumber}
           />
         </Fieldset>
-        <Button type="submit" fullWidth size="2" color="green">
+        <Button
+          disabled={!canSubmit}
+          type="submit"
+          fullWidth
+          size="2"
+          color="green"
+        >
           Submit
         </Button>
       </form>
