@@ -9,6 +9,7 @@
     "@nestjs/platform-express": "^9.0.0",
     "@radix-ui/colors": "^0.1.8",
     "@radix-ui/react-icons": "^1.1.1",
+    "@radix-ui/react-progress": "^1.0.1",
     "@react-three/drei": "^9.17.1",
     "@react-three/fiber": "^8.6.0",
     "@stitches/react": "^1.2.8",

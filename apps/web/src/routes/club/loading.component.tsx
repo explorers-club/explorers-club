@@ -1,5 +1,10 @@
+import { ProgressBar } from '../../components/molecules/ProgressBar';
 import { Container } from './club.styles';
 
 export const Loading = () => {
-  return <Container>...</Container>;
+  return (
+    <Container>
+      <ProgressBar data-indeterminate={true} />
+    </Container>
+  );
 };
