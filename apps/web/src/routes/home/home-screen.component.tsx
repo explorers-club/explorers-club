@@ -1,4 +1,3 @@
-import { ChevronRightIcon } from '@radix-ui/react-icons';
 import { styled } from '@stitches/react';
 import { useSelector } from '@xstate/react';
 import { FormEvent, useCallback, useRef } from 'react';
@@ -6,7 +5,8 @@ import { Box } from '../../components/atoms/Box';
 import { Button } from '../../components/atoms/Button';
 import { Fieldset } from '../../components/atoms/Fieldset';
 import { Flex } from '../../components/atoms/Flex';
-import { Input } from '../../components/atoms/Input';
+import { Text } from '../../components/atoms/Text';
+import { TextField } from '../../components/atoms/TextField';
 import { useActorLogger } from '../../lib/logging';
 import { useHomeScreenActor } from './home-screen.hooks';
 import { HomeScreenEvents } from './home-screen.machine';
@@ -38,37 +38,49 @@ export function HomeScreen() {
   const nameIsUnavailable = useSelector(homeActor, (state) =>
     state.matches('NameInput.Availability.Unavailable')
   );
-  console.log({ nameIsAvailable, playerName });
-
-  // const handleStartParty = useCallback(() => {
-  //   homeActor.send(HomeScreenEvents.PRESS_CREATE());
-  // }, [homeActor]);
 
   return (
     <Container>
-      <h1>Welcome to Explorers Club</h1>
+      <Text as="h1">Welcome to Explorers Club</Text>
       <Flex style={{ flexDirection: 'column' }}>
-        <Box>Start your club</Box>
+        <Box>Enter your player name.</Box>
         <Fieldset>
-          <span>
-            <Input
-              ref={playerNameRef}
-              type="text"
-              id="playerName"
-              placeholder="Teddy"
-              pattern="^[a-zA-Z0-9_-]*$"
-              onChange={handleChangePartyCode}
-            />
-            's Explorers Club
-          </span>
-          {playerName && nameIsAvailable && (
-            <Box>{playerName} is available</Box>
-          )}
-          {playerName && nameIsUnavailable && (
-            <Box>{playerName} is unavailable. Choose another name</Box>
-          )}
+          <TextField
+            ref={playerNameRef}
+            size="2"
+            type="text"
+            id="playerName"
+            state={
+              nameIsAvailable
+                ? 'valid'
+                : nameIsUnavailable
+                ? 'invalid'
+                : undefined
+            }
+            placeholder="Teddy"
+            pattern="^[a-zA-Z0-9_-]*$"
+            fullWidth={false}
+            onChange={handleChangePartyCode}
+          />
+          <Text>'s Explorers Club</Text>
         </Fieldset>
-        <Button variant="primary">Claim Club</Button>
+        <Button
+          size="2"
+          color={nameIsAvailable ? 'green' : nameIsUnavailable ? 'red' : 'blue'}
+        >
+          {playerName
+            ? nameIsAvailable
+              ? `${playerName} Is Available`
+              : nameIsUnavailable
+              ? `${playerName} Is Unavailable`
+              : 'Create Club'
+            : 'Create Club'}
+          {/* {playerName ? nameIsAvailable ? 
+            `'/${playerName}' is available—Claim It!`
+          :
+          nameIsUnavailable ? `Unavailable` : "Claim Your Club"
+        } */}
+        </Button>
       </Flex>
     </Container>
   );
