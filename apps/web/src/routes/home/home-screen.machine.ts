@@ -1,7 +1,4 @@
-import {
-  ActorRefFrom,
-  assign
-} from 'xstate';
+import { ActorRefFrom, assign } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { supabaseClient } from '../../lib/supabase';
 import { assertEventType } from '../../state/utils';
@@ -24,7 +21,7 @@ export const HomeScreenEvents = homeScreenModel.events;
 
 export const homeScreenMachine = homeScreenModel.createMachine(
   {
-    id: 'homeScreenMachine',
+    id: 'HomeScreenMachine',
     initial: 'NameInput',
     states: {
       NameInput: {
@@ -118,15 +115,13 @@ export const homeScreenMachine = homeScreenModel.createMachine(
                       target: 'Unitialized',
                     },
                   ],
+                  PRESS_CREATE: '#HomeScreenMachine.Complete',
                 },
               },
             },
           },
         },
       },
-      Validating: {},
-      Creating: {},
-      NetworkError: {},
       Complete: {
         type: 'final' as const,
         data: (context) => context.playerName, // Empty if starting a new one

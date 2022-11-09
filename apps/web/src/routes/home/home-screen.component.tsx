@@ -39,48 +39,54 @@ export function HomeScreen() {
     state.matches('NameInput.Availability.Unavailable')
   );
 
+  const handleFormSubmit = useCallback(() => {
+    homeActor.send(HomeScreenEvents.PRESS_CREATE());
+    console.log(playerNameRef.current);
+  }, [playerNameRef]);
+
   return (
     <Container>
-      <Text as="h1">Welcome to Explorers Club</Text>
+      <h2>Welcome to Explorers Club!</h2>
       <Flex style={{ flexDirection: 'column' }}>
-        <Box>Enter your player name.</Box>
-        <Fieldset>
-          <TextField
-            ref={playerNameRef}
+        <form onSubmit={handleFormSubmit}>
+          <Box>Choose a player name you would like to use.</Box>
+          <Fieldset>
+            <Text>explorers.club/</Text>
+            <TextField
+              ref={playerNameRef}
+              size="2"
+              type="text"
+              id="playerName"
+              state={
+                nameIsAvailable
+                  ? 'valid'
+                  : nameIsUnavailable
+                  ? 'invalid'
+                  : undefined
+              }
+              placeholder="Teddy"
+              pattern="^[a-zA-Z0-9_-]*$"
+              fullWidth={false}
+              onChange={handleChangePartyCode}
+            />
+          </Fieldset>
+          <Button
+            type="submit"
+            fullWidth
             size="2"
-            type="text"
-            id="playerName"
-            state={
-              nameIsAvailable
-                ? 'valid'
-                : nameIsUnavailable
-                ? 'invalid'
-                : undefined
+            color={
+              nameIsAvailable ? 'green' : nameIsUnavailable ? 'red' : 'blue'
             }
-            placeholder="Teddy"
-            pattern="^[a-zA-Z0-9_-]*$"
-            fullWidth={false}
-            onChange={handleChangePartyCode}
-          />
-          <Text>'s Explorers Club</Text>
-        </Fieldset>
-        <Button
-          size="2"
-          color={nameIsAvailable ? 'green' : nameIsUnavailable ? 'red' : 'blue'}
-        >
-          {playerName
-            ? nameIsAvailable
-              ? `${playerName} Is Available`
-              : nameIsUnavailable
-              ? `${playerName} Is Unavailable`
-              : 'Create Club'
-            : 'Create Club'}
-          {/* {playerName ? nameIsAvailable ? 
-            `'/${playerName}' is available—Claim It!`
-          :
-          nameIsUnavailable ? `Unavailable` : "Claim Your Club"
-        } */}
-        </Button>
+          >
+            {playerName
+              ? nameIsAvailable
+                ? `'${playerName}' Is Available. Claim it!`
+                : nameIsUnavailable
+                ? `'${playerName}' Is Unavailable`
+                : 'Create Club'
+              : 'Create Club'}
+          </Button>
+        </form>
       </Flex>
     </Container>
   );
