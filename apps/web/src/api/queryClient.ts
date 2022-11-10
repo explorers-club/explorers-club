@@ -1,3 +1,5 @@
+// Default query example:
+// https://codesandbox.io/s/github/tanstack/query/tree/main/examples/react/default-query-function?from-embed
 import { QueryClient } from '@tanstack/react-query';
 
 export const queryClient = new QueryClient({

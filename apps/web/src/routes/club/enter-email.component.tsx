@@ -5,7 +5,6 @@ import { Fieldset } from '../../components/atoms/Fieldset';
 import { Label } from '../../components/atoms/Label';
 import { Text } from '../../components/atoms/Text';
 import { TextField } from '../../components/atoms/TextField';
-import { useActorLogger } from '../../lib/logging';
 import { useHostPlayerName } from './club-screen.hooks';
 import { Container } from './club.styles';
 import { EnterEmailActor, EnterEmailFormEvents } from './enter-email.machine';
@@ -15,7 +14,6 @@ interface Props {
 }
 
 export const EnterEmail: FC<Props> = ({ formActor }) => {
-  useActorLogger(formActor);
   const hostPlayerName = useHostPlayerName();
   const emailRef = useRef<HTMLInputElement>(null);
 

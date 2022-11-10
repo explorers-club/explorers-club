@@ -4,70 +4,84 @@ export type Json =
   | boolean
   | null
   | { [key: string]: Json }
-  | Json[];
+  | Json[]
 
 export interface Database {
   public: {
     Tables: {
-      parties: {
+      game_instances: {
         Row: {
-          join_code: string | null;
-          host_actor_id: string | null;
-          id: string;
-          user_id: string;
-          is_public: boolean;
-          last_activity_at: string;
-          created_at: string;
-        };
+          host_user_id: string
+          game_id: string | null
+          id: string
+          starting_at: string | null
+          started_at: string | null
+          created_at: string | null
+        }
         Insert: {
-          join_code?: string | null;
-          host_actor_id?: string | null;
-          id?: string;
-          user_id?: string;
-          is_public?: boolean;
-          last_activity_at?: string;
-          created_at?: string;
-        };
+          host_user_id: string
+          game_id?: string | null
+          id?: string
+          starting_at?: string | null
+          started_at?: string | null
+          created_at?: string | null
+        }
         Update: {
-          join_code?: string | null;
-          host_actor_id?: string | null;
-          id?: string;
-          user_id?: string;
-          is_public?: boolean;
-          last_activity_at?: string;
-          created_at?: string;
-        };
-      };
+          host_user_id?: string
+          game_id?: string | null
+          id?: string
+          starting_at?: string | null
+          started_at?: string | null
+          created_at?: string | null
+        }
+      }
+      games: {
+        Row: {
+          id: string
+          name: string
+          created_at: string
+        }
+        Insert: {
+          id: string
+          name: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          created_at?: string
+        }
+      }
       profiles: {
         Row: {
-          id: number;
-          player_name: string | null;
-          user_id: string;
-          created_at: string;
-        };
+          id: number
+          player_name: string | null
+          user_id: string
+          created_at: string
+        }
         Insert: {
-          id?: number;
-          player_name?: string | null;
-          user_id?: string;
-          created_at?: string;
-        };
+          id?: number
+          player_name?: string | null
+          user_id?: string
+          created_at?: string
+        }
         Update: {
-          id?: number;
-          player_name?: string | null;
-          user_id?: string;
-          created_at?: string;
-        };
-      };
-    };
+          id?: number
+          player_name?: string | null
+          user_id?: string
+          created_at?: string
+        }
+      }
+    }
     Views: {
-      [_ in never]: never;
-    };
+      [_ in never]: never
+    }
     Functions: {
-      [_ in never]: never;
-    };
+      [_ in never]: never
+    }
     Enums: {
-      [_ in never]: never;
-    };
-  };
+      [_ in never]: never
+    }
+  }
 }
 

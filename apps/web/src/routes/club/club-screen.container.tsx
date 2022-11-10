@@ -1,11 +1,15 @@
 import { useSelector } from '@xstate/react';
+import { useActorLogger } from '../../lib/logging';
+import { Claimable } from './claimable.component';
+import { Claiming } from './claiming.container';
 import { useClubScreenActor } from './club-screen.hooks';
 import { Container } from './club.styles';
+import { DoesNotExist } from './does-not-exist.component';
 import { Loading } from './loading.component';
-import { Unclaimed } from './unclaimed.container';
 
 export const ClubScreen = () => {
   const clubScreenActor = useClubScreenActor();
+  useActorLogger(clubScreenActor);
   //   const { authActor } = useContext(GlobalStateContext);
 
   const playerName = useSelector(
@@ -16,9 +20,14 @@ export const ClubScreen = () => {
   const isLoading = useSelector(clubScreenActor, (state) =>
     state.matches('Loading')
   );
-
-  const isUnclaimed = useSelector(clubScreenActor, (state) =>
-    state.matches('Unclaimed')
+  const isClaimable = useSelector(clubScreenActor, (state) =>
+    state.matches('Unclaimed.Claimable')
+  );
+  const doesNotExist = useSelector(clubScreenActor, (state) =>
+    state.matches('Unclaimed.NotExist')
+  );
+  const isClaiming = useSelector(clubScreenActor, (state) =>
+    state.matches('Unclaimed.Claiming')
   );
 
   if (!playerName) {
@@ -29,8 +38,16 @@ export const ClubScreen = () => {
     return <Loading />;
   }
 
-  if (isUnclaimed) {
-    return <Unclaimed />;
+  if (doesNotExist) {
+    return <DoesNotExist />;
+  }
+
+  if (isClaimable) {
+    return <Claimable />;
+  }
+
+  if (isClaiming) {
+    return <Claiming />;
   }
 
   return <Party hostPlayerName={playerName} />;

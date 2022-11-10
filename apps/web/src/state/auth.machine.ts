@@ -1,4 +1,5 @@
-import { Session, User } from '@supabase/supabase-js';
+import { ProfilesRow } from '@explorers-club/database';
+import { Session } from '@supabase/supabase-js';
 import {
   assign,
   ContextFrom,
@@ -13,6 +14,7 @@ import { supabaseClient } from '../lib/supabase';
 const authModel = createModel(
   {
     session: null as Session | null,
+    profile: null as ProfilesRow | null,
   },
   {
     events: {
@@ -35,20 +37,39 @@ export const createAuthMachine = () =>
       context: authModel.initialContext,
       states: {
         Initializing: {
-          initial: 'Fetching',
+          initial: 'FetchSession',
           states: {
-            Fetching: {
+            FetchSession: {
               invoke: {
                 src: 'getSession',
                 onDone: [
                   {
-                    target: 'Complete',
+                    // If we're logged in, fetch the profile next
+                    target: 'FetchProfile',
+                    cond: (context, event) => !!event.data,
                     actions: assign({
                       session: (_, { data }: DoneInvokeEvent<Session | null>) =>
                         data,
                     }),
                   },
+                  {
+                    target: 'Complete',
+                  },
                 ],
+              },
+            },
+            FetchProfile: {
+              invoke: {
+                src: 'getProfile',
+                onDone: {
+                  target: 'Complete',
+                  actions: assign({
+                    profile: (
+                      _,
+                      { data }: DoneInvokeEvent<ProfilesRow | null>
+                    ) => data,
+                  }),
+                },
               },
             },
             Complete: {
@@ -121,6 +142,23 @@ export const createAuthMachine = () =>
           return await (
             await supabaseClient.auth.getSession()
           ).data.session;
+        },
+        getProfile: async (context) => {
+          const userId = context.session?.user.id;
+          if (!userId) {
+            throw new Error('tried to get profile without being logged in');
+          }
+
+          const { data, error } = await supabaseClient
+            .from('profiles')
+            .select()
+            .eq('user_id', userId)
+            .single();
+
+          if (error) {
+            throw error;
+          }
+          return data;
         },
         createAnonymousUser: async () => {
           const id = crypto.randomUUID();

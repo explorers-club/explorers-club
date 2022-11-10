@@ -59,6 +59,13 @@
         "cwd": "libs/database"
       }
     },
+    "diff": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["supabase db diff"],
+        "cwd": "libs/database"
+      }
+    },
     "generate-local-types": {
       "executor": "nx:run-commands",
       "options": {

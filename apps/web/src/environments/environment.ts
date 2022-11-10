@@ -14,7 +14,7 @@ const firebaseConfig = {
 export const environment = {
   firebaseConfig,
   production: false,
-  supabaseUrl: 'https://jmvrrxbfmgwpvuuhhykj.supabase.co',
+  supabaseUrl: 'http://localhost:54321',
   supabaseAnonKey:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImptdnJyeGJmbWd3cHZ1dWhoeWtqIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NjgwNTIyOTMsImV4cCI6MTk4MzYyODI5M30.uhfTYjZS1flLocG2DytxdMh5nNh_3LpQ9cdXeCVGq0w',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24ifQ.625_WdcF3KHqz5amU0x2X5WWHP-OEs_4qj0ssLNHzTs',
 };

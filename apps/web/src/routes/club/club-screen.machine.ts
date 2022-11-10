@@ -1,7 +1,8 @@
-import { context } from '@react-three/fiber';
-import { ActorRefFrom } from 'xstate';
+import { ActorRefFrom, DoneInvokeEvent, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
+import { waitFor } from 'xstate/lib/waitFor';
 import { fetchUserProfileByName } from '../../api/fetchUserProfileByName';
+import { queryClient } from '../../api/queryClient';
 import { supabaseClient } from '../../lib/supabase';
 import { AuthActor } from '../../state/auth.machine';
 import { createAnonymousUser } from '../../state/auth.utils';
@@ -48,7 +49,6 @@ export const createClubScreenMachine = ({
         authActor,
         hostPlayerName,
         email: undefined,
-        // hostProfile: undefined,
       },
       states: {
         Loading: {
@@ -59,10 +59,25 @@ export const createClubScreenMachine = ({
           },
         },
         Unclaimed: {
-          initial: 'Idle',
+          initial: 'Indeterminate',
           onDone: 'Connecting',
           states: {
-            Idle: {
+            Indeterminate: {
+              invoke: {
+                src: 'getHasProfileName',
+                onDone: [
+                  {
+                    target: 'NotExist',
+                    cond: (_, event) => !!event.data,
+                  },
+                  {
+                    target: 'Claimable',
+                  },
+                ],
+              },
+            },
+            NotExist: {},
+            Claimable: {
               on: {
                 PRESS_CLAIM: 'Claiming',
               },
@@ -111,9 +126,19 @@ export const createClubScreenMachine = ({
                 },
               },
             },
+            Claimed: {
+              type: 'final' as const,
+            },
           },
         },
-        Connecting: {},
+        Connecting: {
+          invoke: {
+            src: 'connectToParty',
+            onDone: 'Connected',
+            onError: 'Error',
+          },
+        },
+        Error: {},
         Connected: {},
       },
     },
@@ -122,6 +147,9 @@ export const createClubScreenMachine = ({
         isNotLoggedIn: ({ authActor }) => {
           const session = authActor.getSnapshot()?.context.session;
           return !session;
+        },
+        isClaimable: ({ authActor }) => {
+          return false;
         },
         isAnonymous: ({ authActor }) => {
           return !!authActor
@@ -135,6 +163,16 @@ export const createClubScreenMachine = ({
       },
       services: {
         createAccount: ({ authActor }) => createAnonymousUser(authActor),
+        getHasProfileName: async ({ authActor }) => {
+          // Wait for the auth actor to finish fetching
+          const authState = await waitFor(
+            authActor,
+            (state) =>
+              state.matches('Authenticated') || state.matches('Unauthenticated')
+          );
+          console.log(authState.context.profile);
+          return !!authState.context.profile?.player_name;
+        },
         savePlayerName: async (context) => {
           const userId = authActor.getSnapshot()?.context.session?.user.id;
           if (!userId) {
@@ -161,6 +199,6 @@ export const createClubScreenMachine = ({
   );
 };
 
-export type ClubScreenActor = ActorRefFrom<
-  ReturnType<typeof createClubScreenMachine>
->;
+export type ClubScreenMachine = ReturnType<typeof createClubScreenMachine>;
+export type ClubScreenActor = ActorRefFrom<ClubScreenMachine>;
+export type ClubScreenState = StateFrom<ClubScreenMachine>;

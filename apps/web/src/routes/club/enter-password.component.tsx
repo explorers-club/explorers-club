@@ -5,12 +5,10 @@ import { Fieldset } from '../../components/atoms/Fieldset';
 import { Label } from '../../components/atoms/Label';
 import { Text } from '../../components/atoms/Text';
 import { TextField } from '../../components/atoms/TextField';
-import { useActorLogger } from '../../lib/logging';
-import { useHostPlayerName } from './club-screen.hooks';
 import { Container } from './club.styles';
 import {
   EnterPasswordActor,
-  EnterPasswordFormEvents,
+  EnterPasswordFormEvents
 } from './enter-password.machine';
 
 interface Props {
@@ -18,8 +16,6 @@ interface Props {
 }
 
 export const EnterPassword: FC<Props> = ({ formActor }) => {
-  useActorLogger(formActor);
-  const hostPlayerName = useHostPlayerName();
   const passwordRef = useRef<HTMLInputElement>(null);
 
   const canSubmit = useSelector(
