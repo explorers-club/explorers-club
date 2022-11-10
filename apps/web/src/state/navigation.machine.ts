@@ -2,7 +2,7 @@ import { matchPath, NavigateFunction } from 'react-router-dom';
 import { ActorRefFrom, ContextFrom, DoneInvokeEvent } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { createClubScreenMachine } from '../routes/club/club-screen.machine';
-import { homeScreenMachine } from '../routes/home/home-screen.machine';
+import { createHomeScreenMachine } from '../routes/home/home-screen.machine';
 import { AuthActor } from './auth.machine';
 
 const navigationModel = createModel({}, { events: { FOO: () => ({} as any) } }); // Fixes TS lol
@@ -27,7 +27,7 @@ export const createNavigationMachine = ({
         Home: {
           invoke: {
             id: 'homeScreenMachine',
-            src: homeScreenMachine,
+            src: () => createHomeScreenMachine({ authActor }),
             onDone: [
               {
                 target: 'Club',

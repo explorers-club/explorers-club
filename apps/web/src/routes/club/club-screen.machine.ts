@@ -1,10 +1,10 @@
-import { ActorRefFrom, DoneInvokeEvent, StateFrom } from 'xstate';
+import { ActorRefFrom, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { waitFor } from 'xstate/lib/waitFor';
 import { fetchUserProfileByName } from '../../api/fetchUserProfileByName';
-import { queryClient } from '../../api/queryClient';
 import { supabaseClient } from '../../lib/supabase';
 import { AuthActor } from '../../state/auth.machine';
+import { selectAuthIsInitalized } from '../../state/auth.selectors';
 import { createAnonymousUser } from '../../state/auth.utils';
 import { enterEmailMachine } from './enter-email.machine';
 import { enterPasswordMachine } from './enter-password.machine';
@@ -165,12 +165,7 @@ export const createClubScreenMachine = ({
         createAccount: ({ authActor }) => createAnonymousUser(authActor),
         getHasProfileName: async ({ authActor }) => {
           // Wait for the auth actor to finish fetching
-          const authState = await waitFor(
-            authActor,
-            (state) =>
-              state.matches('Authenticated') || state.matches('Unauthenticated')
-          );
-          console.log(authState.context.profile);
+          const authState = await waitFor(authActor, selectAuthIsInitalized);
           return !!authState.context.profile?.player_name;
         },
         savePlayerName: async (context) => {

@@ -7,13 +7,15 @@ import { Fieldset } from '../../components/atoms/Fieldset';
 import { Flex } from '../../components/atoms/Flex';
 import { Text } from '../../components/atoms/Text';
 import { TextField } from '../../components/atoms/TextField';
-import { useActorLogger } from '../../lib/logging';
 import { useHomeScreenActor } from './home-screen.hooks';
 import { HomeScreenEvents } from './home-screen.machine';
+import {
+	selectNameIsAvailable,
+	selectNameIsUnavailable
+} from './home-screen.selectors';
 
-export function HomeScreen() {
+export function NewUserLanding() {
   const homeActor = useHomeScreenActor();
-  useActorLogger(homeActor);
 
   const playerNameRef = useRef<HTMLInputElement>(null);
 
@@ -32,12 +34,8 @@ export function HomeScreen() {
     homeActor,
     (state) => state.context.playerName
   );
-  const nameIsAvailable = useSelector(homeActor, (state) =>
-    state.matches('NameInput.Availability.Available')
-  );
-  const nameIsUnavailable = useSelector(homeActor, (state) =>
-    state.matches('NameInput.Availability.Unavailable')
-  );
+  const nameIsAvailable = useSelector(homeActor, selectNameIsAvailable);
+  const nameIsUnavailable = useSelector(homeActor, selectNameIsUnavailable);
 
   const handleFormSubmit = useCallback(() => {
     homeActor.send(HomeScreenEvents.PRESS_CREATE());

@@ -1,1 +1,1 @@
-export * from './home-screen.component';
+export * from './home-screen.container';
