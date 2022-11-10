@@ -1,36 +1,30 @@
-import { ActorRefFrom, assign, createMachine } from 'xstate';
+import { context } from '@react-three/fiber';
+import { ActorRefFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { fetchUserProfileByName } from '../../api/fetchUserProfileByName';
+import { supabaseClient } from '../../lib/supabase';
 import { AuthActor } from '../../state/auth.machine';
 import { createAnonymousUser } from '../../state/auth.utils';
-import { createFormMachine } from '../../state/form.machine';
-import { assertEventType } from '../../state/utils';
+import { enterEmailMachine } from './enter-email.machine';
+import { enterPasswordMachine } from './enter-password.machine';
 
 const clubScreenModel = createModel(
   {
     hostPlayerName: '' as string,
     authActor: {} as AuthActor,
+    email: undefined as string | undefined,
     // hostProfile: undefined as ProfilesRow | undefined,
     //     playerName: undefined as string | undefined,
-   //     actorManager: {} as ActorManager,
+    //     actorManager: {} as ActorManager,
     //     partyActor: undefined as PartyActor | undefined,
     //     myActor: undefined as PartyPlayerActor | undefined,
   },
   {
     events: {
-      INPUT_CHANGE_PHONE_NUMBER: (value: string) => ({ phoneNumber: value }),
       PRESS_CLAIM: () => ({}),
-      PRESS_SUBMIT: () => ({}),
     },
   }
 );
-
-const enterPhoneNumberMachine = createFormMachine({
-  handleSubmit: async (context, event) => {
-    // TODO make network call here and figure if it we should return data or boolean
-    return true
-  }
-})
 
 export const ClubScreenEvents = clubScreenModel.events;
 
@@ -53,6 +47,7 @@ export const createClubScreenMachine = ({
       context: {
         authActor,
         hostPlayerName,
+        email: undefined,
         // hostProfile: undefined,
       },
       states: {
@@ -65,6 +60,7 @@ export const createClubScreenMachine = ({
         },
         Unclaimed: {
           initial: 'Idle',
+          onDone: 'Connecting',
           states: {
             Idle: {
               on: {
@@ -77,24 +73,42 @@ export const createClubScreenMachine = ({
                 Initializing: {
                   always: [
                     { target: 'CreateAccount', cond: 'isNotLoggedIn' },
-                    { target: 'EnterPhoneNumber' },
+                    { target: 'EnterEmail', cond: 'isAnonymous' },
+                    { target: 'SavePlayerName' },
                   ],
                 },
                 CreateAccount: {
                   invoke: {
                     src: 'createAccount',
-                    onDone: 'EnterPhoneNumber',
+                    onDone: 'EnterEmail',
+                    onError: 'Error',
+                  },
+                },
+                EnterEmail: {
+                  invoke: {
+                    src: enterEmailMachine,
+                    onDone: 'EnterPassword',
+                    onError: 'Error',
+                  },
+                },
+                EnterPassword: {
+                  invoke: {
+                    src: enterPasswordMachine,
+                    onDone: 'SavePlayerName',
+                    onError: 'Error',
+                  },
+                },
+                SavePlayerName: {
+                  invoke: {
+                    src: 'savePlayerName',
+                    onDone: 'Complete',
                     onError: 'Error',
                   },
                 },
                 Error: {},
-                EnterPhoneNumber: {
-                  invoke: {
-                    src: enterPhoneNumberMachine,
-                    onDone: 'VerifyPhoneNumber',
-                  },
+                Complete: {
+                  type: 'final' as const,
                 },
-                VerifyPhoneNumber: {},
               },
             },
           },
@@ -105,19 +119,43 @@ export const createClubScreenMachine = ({
     },
     {
       guards: {
-        isNotLoggedIn: ({ authActor }, event) => {
-          return !authActor.getSnapshot()?.context.session;
+        isNotLoggedIn: ({ authActor }) => {
+          const session = authActor.getSnapshot()?.context.session;
+          return !session;
         },
-        isPhoneNumberValid: (_, event) => {
-          assertEventType(event, 'INPUT_CHANGE_PHONE_NUMBER');
-          return (
-            event.phoneNumber.length === 10 &&
-            !!event.phoneNumber.match(/^[0-9]+$/)
-          );
+        isAnonymous: ({ authActor }) => {
+          return !!authActor
+            .getSnapshot()
+            ?.context.session?.user.email?.match('@anon-users.explorers.club');
         },
+        // isPhoneNumberValid: (_, event) => {
+        //   assertEventType(event, 'INPUT_CHANGE_PHONE_NUMBER');
+        //   return event.email.length === 10 && !!event.email.match(/^[0-9]+$/);
+        // },
       },
       services: {
         createAccount: ({ authActor }) => createAnonymousUser(authActor),
+        savePlayerName: async (context) => {
+          const userId = authActor.getSnapshot()?.context.session?.user.id;
+          if (!userId) {
+            throw new Error(
+              'tried to save player name without being logged in'
+            );
+          }
+
+          const playerName = context.hostPlayerName;
+
+          const { error } = await supabaseClient
+            .from('profiles')
+            .update({ player_name: playerName })
+            .eq('user_id', userId);
+
+          if (error) {
+            throw error;
+          }
+
+          return true;
+        },
       },
     }
   );

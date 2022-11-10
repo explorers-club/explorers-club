@@ -2,32 +2,45 @@ import { ContextFrom, EventFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { assertEventType } from './utils';
 
-type FormValueTypes = string | number | boolean | undefined;
-
-type FormValues = Record<string, FormValueTypes>;
-
-const formModel = createModel(
-  {
-    values: {} as FormValues,
-    errorMessage: undefined as string | undefined,
-    // errors: {} as Record<string, string>, // not needed yet
-  },
-  {
-    events: {
-      CHANGE: (key: string, value: FormValueTypes) => ({ key, value }),
-      SUBMIT: () => ({}),
+export function createFormModel<T>(defaultValues: T) {
+  return createModel(
+    {
+      values: defaultValues as T,
+      errors: {} as Record<keyof T, string | undefined>,
+      errorMessage: undefined as string | undefined,
     },
-  }
-);
-export type FormContext = ContextFrom<typeof formModel>;
-export type FormEvent = EventFrom<typeof formModel>;
-
-interface FormServices<T> {
-  handleSubmit: (context: FormContext, event: FormEvent) => Promise<T>;
+    {
+      events: {
+        CHANGE: (values: Partial<T>) => ({ values }),
+        SUBMIT: () => ({}),
+      },
+    }
+  );
 }
 
-export function createFormMachine<T>({ handleSubmit }: FormServices<T>) {
-  return formModel.createMachine(
+interface FormServices<TValues> {
+  handleSubmit: (values: TValues) => Promise<boolean>;
+}
+
+export function createFormModelAndMachine<T>(
+  defaultValues: T,
+  { handleSubmit }: FormServices<T>
+) {
+  const formModel = createModel(
+    {
+      values: defaultValues as T,
+      errors: {} as Record<keyof T, string | undefined>,
+      errorMessage: undefined as string | undefined,
+    },
+    {
+      events: {
+        CHANGE: (values: Partial<T>) => ({ values }),
+        SUBMIT: () => ({}),
+      },
+    }
+  );
+
+  const formMachine = formModel.createMachine(
     {
       initial: 'Editing',
       context: formModel.initialContext,
@@ -71,7 +84,7 @@ export function createFormMachine<T>({ handleSubmit }: FormServices<T>) {
 
             return {
               ...context.values,
-              [event.key]: event.value,
+              ...event.values,
             };
           },
         }),
@@ -80,8 +93,9 @@ export function createFormMachine<T>({ handleSubmit }: FormServices<T>) {
         }),
       },
       services: {
-        onSubmit: (context, event) => handleSubmit(context, event),
+        onSubmit: (context, event) => handleSubmit(context.values),
       },
     }
   );
+  return { formMachine, formModel };
 }

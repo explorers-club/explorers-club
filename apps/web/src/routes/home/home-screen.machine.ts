@@ -1,7 +1,6 @@
 import { ActorRefFrom, assign } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { fetchUserProfileByName } from '../../api/fetchUserProfileByName';
-import { supabaseClient } from '../../lib/supabase';
 import { assertEventType } from '../../state/utils';
 
 const homeScreenModel = createModel(

@@ -1,6 +1,9 @@
 import { useSelector } from '@xstate/react';
 import { useClubScreenActor } from './club-screen.hooks';
-import { EnterPhoneNumber } from './enter-phone-number.component';
+import { EnterEmail } from './enter-email.component';
+import { EnterEmailActor } from './enter-email.machine';
+import { EnterPassword } from './enter-password.component';
+import { EnterPasswordActor } from './enter-password.machine';
 import { Loading } from './loading.component';
 
 export const Claiming = () => {
@@ -11,12 +14,34 @@ export const Claiming = () => {
   //   const isCreatingAccount = useSelector(actor, (state) =>
   //     state.matches('Unclaimed.Claiming.CreateAccount')
   //   );
-  const isEnteringPhoneNumber = useSelector(actor, (state) =>
-    state.matches('Unclaimed.Claiming.EnterPhoneNumber')
+  const isEnteringEmail = useSelector(actor, (state) =>
+    state.matches('Unclaimed.Claiming.EnterEmail')
+  );
+  const isEnteringPassword = useSelector(actor, (state) =>
+    state.matches('Unclaimed.Claiming.EnterPassword')
   );
 
-  if (isEnteringPhoneNumber) {
-    return <EnterPhoneNumber />;
+  const enterEmailActor = useSelector(
+    actor,
+    (state) =>
+      state.children[
+        'ClubScreenMachine.Unclaimed.Claiming.EnterEmail:invocation[0]'
+      ] as EnterEmailActor
+  );
+  const enterPasswordActor = useSelector(
+    actor,
+    (state) =>
+      state.children[
+        'ClubScreenMachine.Unclaimed.Claiming.EnterPassword:invocation[0]'
+      ] as EnterPasswordActor
+  );
+
+  if (isEnteringEmail) {
+    return <EnterEmail formActor={enterEmailActor} />;
+  }
+
+  if (isEnteringPassword) {
+    return <EnterPassword formActor={enterPasswordActor} />;
   }
 
   return <Loading />;
