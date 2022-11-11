@@ -1,6 +1,6 @@
 import { ActorManager, ActorType, getActorId } from '@explorers-club/actor';
 import { matchPath, NavigateFunction } from 'react-router-dom';
-import { ActorRefFrom, ContextFrom, DoneInvokeEvent } from 'xstate';
+import { ActorRefFrom, ContextFrom, DoneInvokeEvent, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { createClubScreenMachine } from '../routes/club/club-screen.machine';
 import { createHomeScreenMachine } from '../routes/home/home-screen.machine';
@@ -79,5 +79,6 @@ export const createNavigationMachine = ({
   );
 };
 
-type NavigationMachine = ReturnType<typeof createNavigationMachine>;
+export type NavigationMachine = ReturnType<typeof createNavigationMachine>;
 export type NavigationActor = ActorRefFrom<NavigationMachine>;
+export type NavigationState = StateFrom<NavigationMachine>;

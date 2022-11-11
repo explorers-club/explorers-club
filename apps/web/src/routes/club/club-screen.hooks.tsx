@@ -1,14 +1,11 @@
 import { useSelector } from '@xstate/react';
 import { useContext } from 'react';
 import { GlobalStateContext } from '../../state/global.provider';
-import { ClubScreenActor } from './club-screen.machine';
+import { selectClubScreenActor } from '../../state/navigation.selectors';
 
 export const useClubScreenActor = () => {
   const { navigationActor } = useContext(GlobalStateContext);
-  return useSelector(
-    navigationActor,
-    (state) => state.children['clubScreenMachine'] as ClubScreenActor
-  );
+  return useSelector(navigationActor, selectClubScreenActor);
 };
 
 export const useHostPlayerName = () => {
