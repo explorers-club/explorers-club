@@ -4,6 +4,7 @@ import MainUI from './main-ui';
 import { GlobalStateProvider } from './state/global.provider';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
+import './styles.css';
 
 const Root = () => (
   // Strict mode was causing xstate to double initialize machines

@@ -1,0 +1,34 @@
+/* https://github.com/radix-ui/design-system/blob/master/styles.css */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Untitled Sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1;
+}
+
+svg {
+  display: block;
+  vertical-align: middle;
+}
+
+html,
+body,
+#root,
+#__next,
+#__next > div,
+.theme-0 {
+  height: 100%;
+}
+
+#__next {
+  position: relative;
+  z-index: 0;
+}
