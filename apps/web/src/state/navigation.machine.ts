@@ -1,3 +1,4 @@
+import { ActorManager, ActorType, getActorId } from '@explorers-club/actor';
 import { matchPath, NavigateFunction } from 'react-router-dom';
 import { ActorRefFrom, ContextFrom, DoneInvokeEvent } from 'xstate';
 import { createModel } from 'xstate/lib/model';
@@ -50,10 +51,13 @@ export const createNavigationMachine = ({
                   'expected playerName from path but was undefined'
                 );
               }
+              const actorId = getActorId(ActorType.PARTY_ACTOR, playerName);
+              const actorManager = new ActorManager(actorId);
 
               return createClubScreenMachine({
                 hostPlayerName: playerName,
                 authActor,
+                actorManager,
               });
             },
           },

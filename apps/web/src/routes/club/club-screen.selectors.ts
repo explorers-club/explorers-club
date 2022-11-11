@@ -14,3 +14,12 @@ export const selectDoesNotExist = (state: ClubScreenState) =>
 
 export const selectIsClaiming = (state: ClubScreenState) =>
   state.matches('Unclaimed.Claiming');
+
+export const selectHasError = (state: ClubScreenState) =>
+  state.matches('Error');
+
+export const selectIsConnecting = (state: ClubScreenState) =>
+  state.matches('Connecting');
+
+export const selectIsConnected = (state: ClubScreenState) =>
+  state.matches('Connected');

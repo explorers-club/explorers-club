@@ -1,7 +1,28 @@
-import { ActorRefFrom, StateFrom } from 'xstate';
+import {
+  SharedActorEvent,
+  SerializedSharedActor,
+  ManagedActor,
+  ActorManager,
+  ActorType,
+  MachineFactory,
+} from '@explorers-club/actor';
+import {
+  createPartyMachine,
+  createPartyPlayerMachine,
+  PartyActor,
+} from '@explorers-club/party';
+import {
+  createTriviaJamMachine,
+  createTriviaJamPlayerMachine,
+} from '@explorers-club/trivia-jam/state';
+import { ref, get, onDisconnect, onValue, push, set } from 'firebase/database';
+import { fromRef, ListenEvent } from 'rxfire/database';
+import { skipWhile, fromEvent, filter, first } from 'rxjs';
+import { ActorRefFrom, assign, DoneInvokeEvent, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { waitFor } from 'xstate/lib/waitFor';
 import { fetchUserProfileByName } from '../../api/fetchUserProfileByName';
+import { db } from '../../lib/firebase';
 import { supabaseClient } from '../../lib/supabase';
 import { AuthActor } from '../../state/auth.machine';
 import { selectAuthIsInitalized } from '../../state/auth.selectors';
@@ -9,11 +30,26 @@ import { createAnonymousUser } from '../../state/auth.utils';
 import { enterEmailMachine } from './enter-email.machine';
 import { enterPasswordMachine } from './enter-password.machine';
 
+MachineFactory.registerMachine(ActorType.PARTY_ACTOR, createPartyMachine);
+MachineFactory.registerMachine(
+  ActorType.PARTY_PLAYER_ACTOR,
+  createPartyPlayerMachine
+);
+MachineFactory.registerMachine(
+  ActorType.TREEHOUSE_TRIVIA_ACTOR,
+  createTriviaJamMachine
+);
+MachineFactory.registerMachine(
+  ActorType.TREEHOUSE_TRIVIA_PLAYER_ACTOR,
+  createTriviaJamPlayerMachine
+);
+
 const clubScreenModel = createModel(
   {
     hostPlayerName: '' as string,
     authActor: {} as AuthActor,
-    email: undefined as string | undefined,
+    actorManager: {} as ActorManager,
+    partyActor: undefined as PartyActor | undefined,
     // hostProfile: undefined as ProfilesRow | undefined,
     //     playerName: undefined as string | undefined,
     //     actorManager: {} as ActorManager,
@@ -32,11 +68,13 @@ export const ClubScreenEvents = clubScreenModel.events;
 interface CreateMachineProps {
   hostPlayerName: string;
   authActor: AuthActor;
+  actorManager: ActorManager;
 }
 
 export const createClubScreenMachine = ({
   hostPlayerName,
   authActor,
+  actorManager,
 }: CreateMachineProps) => {
   // What network calls needs to happen?
   // Fetch to see if this profile has been claimed before
@@ -48,13 +86,14 @@ export const createClubScreenMachine = ({
       context: {
         authActor,
         hostPlayerName,
-        email: undefined,
+        actorManager,
+        partyActor: undefined,
       },
       states: {
         Loading: {
           invoke: {
             src: () => fetchUserProfileByName(hostPlayerName),
-            onDone: 'Connecting', // todo persist data here?
+            onDone: 'Connecting',
             onError: 'Unclaimed',
           },
         },
@@ -84,6 +123,7 @@ export const createClubScreenMachine = ({
             },
             Claiming: {
               initial: 'Initializing',
+              onDone: 'Claimed',
               states: {
                 Initializing: {
                   always: [
@@ -134,7 +174,13 @@ export const createClubScreenMachine = ({
         Connecting: {
           invoke: {
             src: 'connectToParty',
-            onDone: 'Connected',
+            onDone: {
+              target: 'Connected',
+              actions: assign({
+                partyActor: (_, event: DoneInvokeEvent<PartyActor>) =>
+                  event.data,
+              }),
+            },
             onError: 'Error',
           },
         },
@@ -156,12 +202,74 @@ export const createClubScreenMachine = ({
             .getSnapshot()
             ?.context.session?.user.email?.match('@anon-users.explorers.club');
         },
-        // isPhoneNumberValid: (_, event) => {
-        //   assertEventType(event, 'INPUT_CHANGE_PHONE_NUMBER');
-        //   return event.email.length === 10 && !!event.email.match(/^[0-9]+$/);
-        // },
       },
       services: {
+        connectToParty: async ({ hostPlayerName }) => {
+          const stateRef = ref(db, `parties/${hostPlayerName}/actor_state`);
+          const eventsRef = ref(db, `parties/${hostPlayerName}/actor_events`);
+          let initialized = false;
+
+          return new Promise((resolve, reject) => {
+            // Listen for events on all actors in the party
+            const newEvent$ = fromRef(eventsRef, ListenEvent.changed);
+            newEvent$
+              .pipe(skipWhile(() => !initialized))
+              .subscribe((changes) => {
+                const { actorId, event } =
+                  changes.snapshot.val() as SharedActorEvent;
+                console.log('new event', actorId, event);
+
+                // Don't send events on our own actor
+                if (actorManager.myActorId === actorId) {
+                  return;
+                }
+
+                const actor = actorManager.getActor(actorId);
+                if (!actor) {
+                  console.warn("Couldn't find actor " + actorId);
+                  return;
+                }
+
+                actor.send(event);
+              });
+
+            // Listen for new actors and hydrate them
+            const actorAdded$ = fromRef(stateRef, ListenEvent.added);
+            actorAdded$.subscribe((change) => {
+              // Wait until the party actor is initialized before
+              // responding to new changes
+              if (!initialized) {
+                return;
+              }
+
+              const serializedActor =
+                change.snapshot.val() as SerializedSharedActor;
+              actorManager.hydrate(serializedActor);
+            });
+
+            // Get initial state and hydrate it
+            get(stateRef).then((stateSnapshot) => {
+              const stateMap = (stateSnapshot.val() || {}) as Record<
+                string,
+                SerializedSharedActor
+              >;
+              const serializedActors = Object.values(stateMap);
+              actorManager.hydrateAll(serializedActors);
+              initialized = true;
+            });
+
+            wirePartyPresence(hostPlayerName);
+
+            // Once the party is actor is hydrated, we are "connected", resolve the promise
+            const onPartyActorHydrate = fromEvent<ManagedActor>(
+              actorManager,
+              'HYDRATE'
+            ).pipe(filter(isPartyActor), first());
+            onPartyActorHydrate.subscribe(({ actor }) => {
+              resolve(actor);
+            });
+          });
+        },
         createAccount: ({ authActor }) => createAnonymousUser(authActor),
         getHasProfileName: async ({ authActor }) => {
           // Wait for the auth actor to finish fetching
@@ -192,6 +300,28 @@ export const createClubScreenMachine = ({
       },
     }
   );
+};
+
+/**
+ * Add ourselves to `user_party_connections` when we connect
+ * and remove when we disconnect. This is how party server
+ * knows which parties to spawn.
+ */
+const wirePartyPresence = (hostPlayerName: string) => {
+  const userConnectionsRef = ref(db, 'user_party_connections');
+
+  const connectedRef = ref(db, '.info/connected');
+  onValue(connectedRef, (snap) => {
+    if (snap.val()) {
+      const con = push(userConnectionsRef);
+      onDisconnect(con).remove();
+      set(con, hostPlayerName);
+    }
+  });
+};
+
+const isPartyActor = (managedActor: ManagedActor) => {
+  return managedActor.actorType === 'PARTY_ACTOR';
 };
 
 export type ClubScreenMachine = ReturnType<typeof createClubScreenMachine>;
