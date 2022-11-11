@@ -9,7 +9,7 @@ export function MainCanvas() {
   const ContextBridge = useContextBridge(GlobalStateContext);
 
   return (
-    <Box>
+    <Box css={{ height: '100%' }}>
       {/* Configuration: https://github.com/pmndrs/leva/blob/main/docs/configuration.md */}
       <Leva hidden flat collapsed />
       <Canvas
