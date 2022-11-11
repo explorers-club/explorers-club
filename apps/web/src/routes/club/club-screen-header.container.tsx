@@ -26,7 +26,7 @@ export const ClubScreenHeader = () => {
     <Container>
       <Heading size="2">{clubName}</Heading>
       <Badge size="2" variant="red">
-        <Box css={{ mr: '5px', p: '$4' }}>
+        <Box css={{ mr: '$1', }}>
           <Status size="1" variant="red" />
         </Box>
         Live
