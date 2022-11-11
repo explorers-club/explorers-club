@@ -1,7 +1,7 @@
 import { useSelector } from '@xstate/react';
+import { useContext } from 'react';
+import { Box } from '../../../components/atoms/Box';
 import { ConnectedContext } from '../../../state/connected.context';
-import { useContext, useMemo } from 'react';
-import styled from 'styled-components';
 import { useActorManager, usePartyScreenActor } from '../party-screen.hooks';
 import { EnterName } from './enter-name.component';
 import { JoinError } from './join-error.component';
@@ -18,10 +18,10 @@ export const Connected = () => {
   const inGame = useSelector(partyActor, (state) => state.matches('Game'));
 
   return (
-    <Container>
+    <Box>
       {inLobby && <Lobby />}
       {inGame && <Game />}
-    </Container>
+    </Box>
   );
 };
 
@@ -48,7 +48,7 @@ const Lobby = () => {
   );
   const myActor = useSelector(actor, (state) => state.context.myActor);
   return (
-    <Container>
+    <Box>
       {isSpectating && <Spectating />}
       {isJoining && <Joining />}
       {isRejoining && <Rejoining />}
@@ -59,7 +59,7 @@ const Lobby = () => {
         </JoinedContext.Provider>
       )}
       {isJoinError && <JoinError />}
-    </Container>
+    </Box>
   );
 };
 
@@ -68,5 +68,3 @@ const Game = () => {
   const actorManager = useActorManager();
   return <TriviaJamMainUI actorManager={actorManager} />;
 };
-
-const Container = styled.div``;

@@ -20,20 +20,12 @@ import {
   useEffect,
   useMemo,
 } from 'react';
-import styled from 'styled-components';
 import { BufferGeometry, Color, ExtrudeBufferGeometry } from 'three';
 import * as THREE from 'three';
 import { mergeBufferGeometries } from 'three-stdlib';
 import create from 'zustand';
 import { stringify } from 'querystring';
 
-const StyledApp = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-`;
 
 interface HeightmapState {
   heightmap: PNG | undefined;
@@ -71,14 +63,14 @@ export function App() {
   }, [loadFromURL]);
 
   return (
-    <StyledApp>
+    <div>
       <Canvas
         gl={{ physicallyCorrectLights: true }}
         camera={{ position: [0, 0, 2000], far: 5000 }}
       >
         <Editor />
       </Canvas>
-    </StyledApp>
+    </div>
   );
 }
 
@@ -107,10 +99,7 @@ const getHexOrientation: (resolution: number) => Orientation = (resolution) => {
   return resolution % 2 ? Orientation.FLAT : Orientation.POINTY;
 };
 
-class HierarchicalGrid<T extends Hex> extends Grid<T> {
-
-
-};
+class HierarchicalGrid<T extends Hex> extends Grid<T> {}
 
 /**
  * Creates a set of grids from min resolution to max resolution
@@ -145,7 +134,7 @@ const useIndexedHexTree = (heightmap?: PNG) => {
     if (!heightmap) {
       return;
     }
-    console.log("creating grids");
+    console.log('creating grids');
 
     const grids = createGrids();
     const baseGrid = grids[0];

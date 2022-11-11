@@ -1,7 +1,7 @@
 import { useContextBridge } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { Leva } from 'leva';
-import styled from 'styled-components';
+import { Box } from './components/atoms/Box';
 import { Scenes } from './scenes';
 import { GlobalStateContext } from './state/global.provider';
 
@@ -9,7 +9,7 @@ export function MainCanvas() {
   const ContextBridge = useContextBridge(GlobalStateContext);
 
   return (
-    <Container>
+    <Box>
       {/* Configuration: https://github.com/pmndrs/leva/blob/main/docs/configuration.md */}
       <Leva hidden flat collapsed />
       <Canvas
@@ -20,16 +20,8 @@ export function MainCanvas() {
           <Scenes />
         </ContextBridge>
       </Canvas>
-    </Container>
+    </Box>
   );
 }
-
-const Container = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-`;
 
 export default MainCanvas;

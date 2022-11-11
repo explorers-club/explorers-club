@@ -1,6 +1,6 @@
 import { useSelector } from '@xstate/react';
 import { useContext } from 'react';
-import styled from 'styled-components';
+import { Box } from '../../../../components/atoms/Box';
 import { usePartyActor, usePartyScreenActor } from '../../party-screen.hooks';
 import { PlayerList } from '../player-list.component';
 import { JoinedContext } from './joined.context';
@@ -16,13 +16,11 @@ export const Joined = () => {
   );
 
   return (
-    <Container>
+    <Box>
       <h3>Joined!</h3>
       {allReady && <p>All players ready! Starting shortly...</p>}
       <PlayerList />
       {isReady ? <Ready /> : <NotReady />}
-    </Container>
+    </Box>
   );
 };
-
-const Container = styled.div``;

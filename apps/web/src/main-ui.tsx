@@ -3,7 +3,6 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useContext } from 'react';
 import { BottomSheet } from 'react-spring-bottom-sheet';
 import 'react-spring-bottom-sheet/dist/style.css';
-// import styled from 'styled-components';
 import { queryClient } from './api/queryClient';
 import './main-ui.css';
 import { RoutesContainer } from './routes';

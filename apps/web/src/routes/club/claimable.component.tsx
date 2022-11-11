@@ -1,6 +1,6 @@
 import { useSelector } from '@xstate/react';
 import { useCallback } from 'react';
-import styled from 'styled-components';
+import { Box } from '../../components/atoms/Box';
 import { useClubScreenActor } from './club-screen.hooks';
 import { ClubScreenEvents } from './club-screen.machine';
 import { selectHostPlayerName } from './club-screen.selectors';
@@ -14,16 +14,12 @@ export const Claimable = () => {
   }, [actor]);
 
   return (
-    <Container>
+    <Box>
       <h3>{playerName}'s explorers club is unclaimed</h3>
       <p>Make it yours</p>
       <div>
         <button onClick={handlePressClaim}>Claim '{playerName}'</button>
       </div>
-    </Container>
+    </Box>
   );
 };
-
-const Container = styled.div`
-  padding: 16px;
-`;

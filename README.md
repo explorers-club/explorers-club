@@ -47,13 +47,14 @@ We believe that this doesn't have to be the case. We believe that many of the ga
 
 ## Stack, Patterns, Attribution
 
-- supabase / postgres for database
-- firebase for real-time syncing
 - [react-three-fiber](https://github.com/pmndrs/react-three-fiber) for 3D graphics
-- [styled-components](https://styled-components.com/) for styling
+- [stitches](https://stitches.dev/) for CSS-in-JS
+- [radix-ui](https://www.radix-ui.com/) for building design system
 - [xstate](https://xstate.js.org/) for state management + [actor pattern](https://www.youtube.com/watch?v=NTfPtYJORck) for sharing distributed real-time state
 - static site hosting on netlify
 - game server hosting on fly.io
+- supabase / postgres for primary database
+- firebase for real-time data
 - [nx](https://nx.dev/) for managing the monorepo
 - github actions for CI
 - [Honeycomb](https://github.com/flauwekeul/honeycomb) for Hex grids

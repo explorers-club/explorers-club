@@ -1,5 +1,5 @@
 import { useSelector } from '@xstate/react';
-import styled from 'styled-components';
+import { Box } from '../../components/atoms/Box';
 import { ConnectedContext } from '../../state/connected.context';
 import { Connected } from './connected';
 import { Connecting } from './connecting.component';
@@ -27,7 +27,7 @@ export function PartyScreen() {
   const actorManager = useActorManager();
 
   return (
-    <Container>
+    <Box>
       {isConnecting && <Connecting />}
       {isDisconnected && <Disconnected />}
       {isConnected && partyActor && actorManager && (
@@ -35,10 +35,6 @@ export function PartyScreen() {
           <Connected />
         </ConnectedContext.Provider>
       )}
-    </Container>
+    </Box>
   );
 }
-
-const Container = styled.div`
-  padding: 24px;
-`;

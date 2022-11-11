@@ -1,6 +1,6 @@
 import { PartyPlayerEvents } from '@explorers-club/party';
 import { useCallback, useContext } from 'react';
-import styled from 'styled-components';
+import { Box } from '../../../../components/atoms/Box';
 import { JoinedContext } from './joined.context';
 
 export const NotReady = () => {
@@ -11,10 +11,8 @@ export const NotReady = () => {
   }, [myActor]);
 
   return (
-    <Container>
+    <Box>
       <button onClick={handlePressReady}>Ready Up</button>
-    </Container>
+    </Box>
   );
 };
-
-const Container = styled.div``;

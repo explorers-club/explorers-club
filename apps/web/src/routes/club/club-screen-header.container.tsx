@@ -12,6 +12,9 @@ import { useActorLogger } from '../../lib/logging';
 import { Text } from '../../components/atoms/Text';
 import { useClubScreenActor } from './club-screen.hooks';
 import { ClubScreenState } from './club-screen.machine';
+import { Box } from '../../components/atoms/Box';
+import { Badge } from '../../components/atoms/Badge';
+import { Status } from '../../components/atoms/Status';
 
 export const ClubScreenHeader = () => {
   const actor = useClubScreenActor();
@@ -22,6 +25,12 @@ export const ClubScreenHeader = () => {
   return (
     <Container>
       <Heading size="2">{clubName}</Heading>
+      <Badge size="2" variant="red">
+        <Box css={{ mr: '5px', p: '$4' }}>
+          <Status size="1" variant="red" />
+        </Box>
+        Live
+      </Badge>
       <Popover>
         <PopoverTrigger asChild>
           <Avatar

@@ -1,5 +1,5 @@
+import { Box } from '../../../components/atoms/Box';
 import { useCallback, FormEvent, useRef } from 'react';
-import styled from 'styled-components';
 import { usePartyScreenActor } from '../party-screen.hooks';
 import { PartyScreenEvents } from '../party-screen.machine';
 
@@ -28,7 +28,7 @@ export const EnterName = () => {
   );
 
   return (
-    <Container>
+    <Box>
       <h2>Choose a name</h2>
       <form onSubmit={handleSubmit}>
         {/* {errorMessage !== '' && (
@@ -44,8 +44,6 @@ export const EnterName = () => {
         />
         <input type="submit" value="Join" />
       </form>
-    </Container>
+    </Box>
   );
 };
-
-const Container = styled.div``;
