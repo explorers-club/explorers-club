@@ -30,6 +30,7 @@ import { supabaseClient } from '../../lib/supabase';
 import { AuthActor } from '../../state/auth.machine';
 import { selectAuthIsInitalized } from '../../state/auth.selectors';
 import { createAnonymousUser } from '../../state/auth.utils';
+import { LayoutMeta } from '../layout.types';
 import { enterEmailMachine } from './enter-email.machine';
 import { enterPasswordMachine } from './enter-password.machine';
 
@@ -53,16 +54,12 @@ const clubScreenModel = createModel(
     authActor: {} as AuthActor,
     actorManager: {} as ActorManager,
     partyActor: undefined as PartyActor | undefined,
-    // hostProfile: undefined as ProfilesRow | undefined,
-    //     playerName: undefined as string | undefined,
-    //     actorManager: {} as ActorManager,
-    //     partyActor: undefined as PartyActor | undefined,
-    //     myActor: undefined as PartyPlayerActor | undefined,
   },
   {
     events: {
       PRESS_CLAIM: () => ({}),
       PRESS_JOIN: () => ({}),
+      PRESS_PRIMARY: () => ({}),
     },
   }
 );
@@ -210,6 +207,16 @@ export const createClubScreenMachine = ({
               },
             },
             Spectating: {
+              meta: {
+                header: {
+                  headerText: 'Welcome to Explorers Club!',
+                  subheaderText: 'You are spectating. Tap Join Party to play!',
+                },
+                footer: {
+                  visible: true,
+                  primaryLabel: 'Join Party',
+                },
+              } as LayoutMeta,
               on: {
                 PRESS_JOIN: [
                   {

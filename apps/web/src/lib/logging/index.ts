@@ -14,7 +14,7 @@ export const useActorLogger = (actor?: AnyActorRef) => {
       console.log(
         `${actor.id}\n ${state.event.type}\n`,
         ` state: ${JSON.stringify(state.value)}`,
-        { event: state.event, context: state.context }
+        { event: state.event, context: state.context, meta: state.meta }
       );
     });
     return () => {

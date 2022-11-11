@@ -1,28 +1,24 @@
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { useCallback, useContext, useState } from 'react';
+import { useContext } from 'react';
 import { BottomSheet } from 'react-spring-bottom-sheet';
 import 'react-spring-bottom-sheet/dist/style.css';
 // import styled from 'styled-components';
 import { queryClient } from './api/queryClient';
 import './main-ui.css';
 import { RoutesContainer } from './routes';
+import { Footer } from './routes/footer.container';
+import { Header } from './routes/header.container';
 import { GlobalStateContext } from './state/global.provider';
 
 export function MainUI() {
   const { sheetRef } = useContext(GlobalStateContext);
 
-  const [open, setOpen] = useState(true);
-  const handleDismiss = useCallback(() => {
-    setOpen(false);
-  }, []);
-
   return (
     <div>
       <QueryClientProvider client={queryClient}>
         <BottomSheet
-          open={open}
-          // onDismiss={handleDismiss}
+          open={true}
           blocking={false}
           defaultSnap={({ maxHeight }) => maxHeight / 2}
           snapPoints={({ maxHeight }) => [
@@ -32,6 +28,8 @@ export function MainUI() {
           ]}
           expandOnContentDrag={true}
           ref={sheetRef}
+          header={<Header />}
+          footer={<Footer />}
         >
           <RoutesContainer />
         </BottomSheet>
