@@ -10,7 +10,6 @@ import {
   selectIsClaiming,
   selectIsConnected,
   selectIsConnecting,
-  selectIsLoading,
 } from './club-screen.selectors';
 import { Container } from './club.styles';
 import { Connected } from './connected.container';
@@ -20,10 +19,8 @@ import { Loading } from './loading.component';
 
 export const ClubScreen = () => {
   const clubScreenActor = useClubScreenActor();
-  useActorLogger(clubScreenActor);
 
   const playerName = useSelector(clubScreenActor, selectHostPlayerName);
-  const isLoading = useSelector(clubScreenActor, selectIsLoading);
   const isClaimable = useSelector(clubScreenActor, selectIsClaimable);
   const doesNotExist = useSelector(clubScreenActor, selectDoesNotExist);
   const isClaiming = useSelector(clubScreenActor, selectIsClaiming);
@@ -32,10 +29,6 @@ export const ClubScreen = () => {
 
   if (!playerName) {
     return <Container>error parsing URL</Container>;
-  }
-
-  if (isLoading) {
-    return <Loading />;
   }
 
   if (doesNotExist) {
@@ -50,17 +43,13 @@ export const ClubScreen = () => {
     return <Claiming />;
   }
 
-  if (isConnected) {
-    return <Connected />;
-  }
-
   if (isConnecting) {
     return <Connecting />;
   }
 
-  return <Party hostPlayerName={playerName} />;
-};
+  if (isConnected) {
+    return <Connected />;
+  }
 
-const Party = ({ hostPlayerName }: { hostPlayerName: string }) => {
-  return <Container>{hostPlayerName}</Container>;
+  return <Loading />;
 };

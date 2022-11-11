@@ -22,14 +22,24 @@ export function MainUI() {
       <QueryClientProvider client={queryClient}>
         <BottomSheet
           open={open}
-          onDismiss={handleDismiss}
+          // onDismiss={handleDismiss}
           blocking={false}
-          snapPoints={({ minHeight }) => [minHeight + 24]}
+          defaultSnap={({ maxHeight }) => maxHeight / 2}
+          snapPoints={({ maxHeight }) => [
+            maxHeight - maxHeight / 10,
+            maxHeight / 4,
+            maxHeight * 0.6,
+          ]}
+          expandOnContentDrag={true}
           ref={sheetRef}
         >
           <RoutesContainer />
         </BottomSheet>
-        <ReactQueryDevtools initialIsOpen={false} position="top-left" panelPosition='top' />
+        <ReactQueryDevtools
+          initialIsOpen={false}
+          position="top-left"
+          panelPosition="top"
+        />
       </QueryClientProvider>
     </div>
   );

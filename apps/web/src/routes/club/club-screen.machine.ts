@@ -5,11 +5,14 @@ import {
   ActorManager,
   ActorType,
   MachineFactory,
+  getActorId,
+  setActorEvent,
 } from '@explorers-club/actor';
 import {
   createPartyMachine,
   createPartyPlayerMachine,
   PartyActor,
+  PartyPlayerEvents,
 } from '@explorers-club/party';
 import {
   createTriviaJamMachine,
@@ -17,7 +20,7 @@ import {
 } from '@explorers-club/trivia-jam/state';
 import { ref, get, onDisconnect, onValue, push, set } from 'firebase/database';
 import { fromRef, ListenEvent } from 'rxfire/database';
-import { skipWhile, fromEvent, filter, first } from 'rxjs';
+import { skipWhile, fromEvent, filter, first, from } from 'rxjs';
 import { ActorRefFrom, assign, DoneInvokeEvent, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { waitFor } from 'xstate/lib/waitFor';
@@ -59,6 +62,7 @@ const clubScreenModel = createModel(
   {
     events: {
       PRESS_CLAIM: () => ({}),
+      PRESS_JOIN: () => ({}),
     },
   }
 );
@@ -185,10 +189,103 @@ export const createClubScreenMachine = ({
           },
         },
         Error: {},
-        Connected: {},
+        Connected: {
+          initial: 'Initializing',
+          entry: 'wirePartyClient',
+          states: {
+            Initializing: {
+              invoke: {
+                src: 'waitForAuthInit',
+                onDone: [
+                  {
+                    // Resume playing if they were previously connected
+                    cond: 'isInParty',
+                    target: 'Rejoining',
+                    actions: 'assignMyActor',
+                  },
+                  {
+                    target: 'Spectating',
+                  },
+                ],
+              },
+            },
+            Spectating: {
+              on: {
+                PRESS_JOIN: [
+                  {
+                    cond: 'isNotLoggedIn',
+                    target: 'CreateAccount',
+                  },
+                  {
+                    target: 'Joining',
+                  },
+                ],
+              },
+            },
+            CreateAccount: {
+              invoke: {
+                src: 'createAccount',
+                onDone: 'Joining',
+                onError: 'CreateError',
+              },
+            },
+            CreateError: {},
+            Joining: {
+              invoke: {
+                src: 'joinParty',
+                onDone: {
+                  target: 'EnterPlayerName',
+                  actions: 'assignMyActor',
+                },
+                onError: 'JoinError',
+              },
+            },
+            EnterPlayerName: {},
+            Rejoining: {
+              on: {
+                '': { target: 'Joined', actions: 'rejoinParty' },
+              },
+            },
+            JoinError: {},
+            Joined: {},
+          },
+        },
       },
     },
     {
+      actions: {
+        rejoinParty: ({ hostPlayerName }) => {
+          const userId = authActor.getSnapshot()?.context.session?.user.id;
+          if (!userId) {
+            throw new Error('trying to rejoin party without being logged in');
+          }
+
+          const actorId = getActorId(ActorType.PARTY_PLAYER_ACTOR, userId);
+          const myActor = actorManager.getActor(actorId);
+          if (!myActor) {
+            console.warn('couldnt find actor when trying to rejoin');
+            return;
+          }
+          actorManager.myActorId = actorId;
+
+          const myEventRef = ref(
+            db,
+            `parties/${hostPlayerName}/actor_events/${actorId}`
+          );
+          myActor.onEvent(async (event) => {
+            await setActorEvent(myEventRef, { actorId, event });
+          });
+          myActor.send(PartyPlayerEvents.PLAYER_REJOIN());
+
+          // Send disconnect event when we disconnect
+          onDisconnect(myEventRef).set({
+            actorId,
+            event: PartyPlayerEvents.PLAYER_DISCONNECT(),
+          });
+
+          return myActor;
+        },
+      },
       guards: {
         isNotLoggedIn: ({ authActor }) => {
           const session = authActor.getSnapshot()?.context.session;
@@ -202,8 +299,33 @@ export const createClubScreenMachine = ({
             .getSnapshot()
             ?.context.session?.user.email?.match('@anon-users.explorers.club');
         },
+        isInParty: ({ authActor, actorManager }) => {
+          const userId = authActor.getSnapshot()?.context.session?.user.id; // lol
+          if (!userId) {
+            return false;
+          }
+
+          const actorId = getActorId(ActorType.PARTY_PLAYER_ACTOR, userId);
+          const partyActor = actorManager.rootActor as PartyActor;
+
+          return partyActor
+            .getSnapshot()
+            ?.context.playerActorIds.includes(actorId) as boolean;
+        },
       },
       services: {
+        waitForAuthInit: ({ authActor }) => {
+          return new Promise((resolve) => {
+            from(authActor)
+              // Wait for first state not in Initializing
+              // TODO: is there a good way to type the states strings?
+              .pipe(
+                filter((state) => !state.matches('Initializing')),
+                first()
+              )
+              .subscribe(resolve);
+          });
+        },
         connectToParty: async ({ hostPlayerName }) => {
           const stateRef = ref(db, `parties/${hostPlayerName}/actor_state`);
           const eventsRef = ref(db, `parties/${hostPlayerName}/actor_events`);
