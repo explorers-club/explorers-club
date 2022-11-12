@@ -1,16 +1,16 @@
 import { styled } from '@stitches/react';
 import { useSelector } from '@xstate/react';
 import { FormEvent, useCallback, useRef } from 'react';
-import { Box } from '../../components/atoms/Box';
-import { Fieldset } from '../../components/atoms/Fieldset';
-import { Flex } from '../../components/atoms/Flex';
-import { Text } from '../../components/atoms/Text';
-import { TextField } from '../../components/atoms/TextField';
+import { Box } from '@explorers-club/components/atoms/Box';
+import { Fieldset } from '@explorers-club/components/atoms/Fieldset';
+import { Flex } from '@explorers-club/components/atoms/Flex';
+import { Text } from '@explorers-club/components/atoms/Text';
+import { TextField } from '@explorers-club/components/atoms/TextField';
 import { useHomeScreenActor } from './home-screen.hooks';
 import { HomeScreenEvents } from './home-screen.machine';
 import {
   selectNameIsAvailable,
-  selectNameIsUnavailable
+  selectNameIsUnavailable,
 } from './home-screen.selectors';
 
 export function NewUserLanding() {
