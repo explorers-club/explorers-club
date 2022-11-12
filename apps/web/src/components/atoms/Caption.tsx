@@ -31,10 +31,15 @@ export const Caption = React.forwardRef<
 
   // This is the mapping of Caption Variants to Text css
   const textCss: Record<CaptionSizeVariants, CSS> = {
-    1: { fontWeight: 'bold', textTransform: 'uppercase' },
+    1: {
+      fontWeight: 'bold',
+      textTransform: 'uppercase',
+      letterSpacing: '0.05em',
+    },
     2: {
       fontWeight: 'bold',
       textTransform: 'uppercase',
+      letterSpacing: '0.05em',
     },
   };
 

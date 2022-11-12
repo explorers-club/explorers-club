@@ -1,5 +1,6 @@
 import { useSelector } from '@xstate/react';
 import { Caption } from '~/web/components/atoms/Caption';
+import { Card } from '~/web/components/atoms/Card';
 import { Box } from '../../components/atoms/Box';
 import { Text } from '../../components/atoms/Text';
 import { useClubScreenActor } from './club-screen.hooks';
@@ -18,7 +19,7 @@ export const Claimable = () => {
           <Paragraph>Make it yours</Paragraph>
         </Box>
       </Card> */}
-      <Box>
+      <Card variant="interactive">
         <Caption
           css={{
             mb: '$4',
@@ -29,18 +30,12 @@ export const Claimable = () => {
         <Text size="8" css={{ mb: '$4', lineHeight: '37px', fontWeight: 500 }}>
           {playerName} is available
         </Text>
-        <Text size="4" css={{ mb: '$3', lineHeight: '25px', pr: '$9' }}>
-          Almost all design tools are optimised for illustration. Drawing tools
-          are great for exploration but when it comes to designing websites,
-          apps, and user interfaces, we need something more powerful.
-        </Text>
-        <Text size="3" variant="gray" css={{ lineHeight: '23px' }}>
-          It is exceptionally hard to have a great design tool that outputs
-          useful code. Many have tried but in the end the trade offs were too
-          great. That was until Modulz made it their mission.
-        </Text>
-        <Text css={{ fontFamily: '$mono' }}>cool cool</Text>
-      </Box>
+        {/* <Text size="4" css={{ mb: '$3', lineHeight: '25px', pr: '$9' }}>
+          Create an account to claim{' '}
+          <Text css={{ fontFamily: '$mono' }}>explorers.club/{playerName}</Text>{' '}
+          as your hub for playing games with friends and family.
+        </Text> */}
+      </Card>
     </Box>
   );
 };
