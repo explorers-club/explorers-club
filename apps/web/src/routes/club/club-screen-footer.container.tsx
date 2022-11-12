@@ -1,8 +1,6 @@
 import { useSelector } from '@xstate/react';
 import { useCallback } from 'react';
-import { createSelector } from 'reselect';
 import { Button } from '../../components/atoms/Button';
-import { selectLayoutMetadata } from '../layout.selectors';
 import { useClubScreenActor } from './club-screen.hooks';
 import { ClubScreenEvents } from './club-screen.machine';
 import {
@@ -30,8 +28,3 @@ export const ClubScreenFooter = () => {
 
   return <></>;
 };
-
-const selectHeaderMetadata = createSelector(
-  selectLayoutMetadata,
-  (meta) => meta?.footer
-);

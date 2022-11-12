@@ -30,9 +30,9 @@ import { supabaseClient } from '../../lib/supabase';
 import { AuthActor } from '../../state/auth.machine';
 import { selectAuthIsInitalized } from '../../state/auth.selectors';
 import { createAnonymousUser } from '../../state/auth.utils';
-import { LayoutMeta } from '../layout.types';
 import { enterEmailMachine } from './enter-email.machine';
 import { enterPasswordMachine } from './enter-password.machine';
+import { SpectatingFooter } from './spectating-footer.component';
 
 MachineFactory.registerMachine(ActorType.PARTY_ACTOR, createPartyMachine);
 MachineFactory.registerMachine(
@@ -208,15 +208,8 @@ export const createClubScreenMachine = ({
             },
             Spectating: {
               meta: {
-                header: {
-                  headerText: 'Welcome to Explorers Club!',
-                  subheaderText: 'You are spectating. Tap Join Party to play!',
-                },
-                footer: {
-                  visible: true,
-                  primaryLabel: 'Join Party',
-                },
-              } as LayoutMeta,
+                footer: SpectatingFooter,
+              },
               on: {
                 PRESS_JOIN: [
                   {
