@@ -10,11 +10,11 @@ export function MainUI() {
     <div>
       <QueryClientProvider client={queryClient}>
         <RoutesContainer />
-        <ReactQueryDevtools
+        {/* <ReactQueryDevtools
           initialIsOpen={false}
           position="top-left"
           panelPosition="top"
-        />
+        /> */}
       </QueryClientProvider>
     </div>
   );

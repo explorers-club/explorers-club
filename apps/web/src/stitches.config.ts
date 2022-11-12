@@ -204,7 +204,7 @@ export const {
       shadowDark: 'hsl(206 22% 7% / 20%)',
     },
     fonts: {
-      untitled: 'Untitled Sans, -apple-system, system-ui, sans-serif',
+      inter: 'Inter, -apple-system, system-ui, sans-serif',
       mono: 'Söhne Mono, menlo, monospace',
     },
     space: {

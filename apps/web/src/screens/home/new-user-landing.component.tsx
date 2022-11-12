@@ -12,6 +12,7 @@ import {
   selectNameIsAvailable,
   selectNameIsUnavailable,
 } from './home-screen.selectors';
+import { Card } from '~/web/components/atoms/Card';
 
 export function NewUserLanding() {
   const homeActor = useHomeScreenActor();
@@ -37,31 +38,33 @@ export function NewUserLanding() {
   }, [homeActor]);
 
   return (
-    <Box css={{ p: '$4' }}>
-      <Flex style={{ flexDirection: 'column' }}>
-        <form onSubmit={handleFormSubmit}>
-          <Box>Choose a player name you would like to use.</Box>
-          <Fieldset>
-            <Text>explorers.club/</Text>
-            <TextField
-              ref={playerNameRef}
-              size="2"
-              type="text"
-              id="playerName"
-              state={
-                nameIsAvailable
-                  ? 'valid'
-                  : nameIsUnavailable
-                  ? 'invalid'
-                  : undefined
-              }
-              placeholder="Teddy"
-              pattern="^[a-zA-Z0-9_-]*$"
-              fullWidth={false}
-              onChange={handleChangePartyCode}
-            />
-          </Fieldset>
-        </form>
+    <Box css={{ p: '$5' }}>
+      <Flex css={{ fd: 'column' }}>
+        <Card css={{ p: '$4' }}>
+          <form onSubmit={handleFormSubmit}>
+            <Box>Choose a player name you would like to use.</Box>
+            <Fieldset>
+              <Text>explorers.club/</Text>
+              <TextField
+                ref={playerNameRef}
+                size="2"
+                type="text"
+                id="playerName"
+                state={
+                  nameIsAvailable
+                    ? 'valid'
+                    : nameIsUnavailable
+                    ? 'invalid'
+                    : undefined
+                }
+                placeholder="Teddy"
+                pattern="^[a-zA-Z0-9_-]*$"
+                fullWidth={false}
+                onChange={handleChangePartyCode}
+              />
+            </Fieldset>
+          </form>
+        </Card>
       </Flex>
     </Box>
   );
