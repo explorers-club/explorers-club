@@ -1,4 +1,5 @@
 import { useSelector } from '@xstate/react';
+import { Caption } from '~/web/components/atoms/Caption';
 import { Box } from '../../components/atoms/Box';
 import { Text } from '../../components/atoms/Text';
 import { useClubScreenActor } from './club-screen.hooks';
@@ -18,18 +19,13 @@ export const Claimable = () => {
         </Box>
       </Card> */}
       <Box>
-        <Text
-          size="2"
-          variant="pink"
+        <Caption
           css={{
             mb: '$4',
-            lineHeight: '25px',
-            fontWeight: 500,
-            textTransform: 'uppercase',
           }}
         >
           {playerName}'s Explorers Club
-        </Text>
+        </Caption>
         <Text size="8" css={{ mb: '$4', lineHeight: '37px', fontWeight: 500 }}>
           {playerName} is available
         </Text>

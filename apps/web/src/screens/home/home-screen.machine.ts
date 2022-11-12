@@ -6,7 +6,6 @@ import { AuthActor } from '~/web/state/auth.machine';
 import { selectAuthIsInitalized } from '~/web/state/auth.selectors';
 import { assertEventType } from '~/web/state/utils';
 import { NewUserLandingFooter } from './new-user-landing-footer.component';
-import { NewUserLandingHeader } from './new-user-landing-header.component';
 
 const homeScreenModel = createModel(
   {
@@ -58,7 +57,6 @@ export const createHomeScreenMachine = ({
         NewUserLanding: {
           type: 'parallel',
           meta: {
-            header: NewUserLandingHeader,
             footer: NewUserLandingFooter,
           },
           states: {

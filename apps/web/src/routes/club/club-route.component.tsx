@@ -10,7 +10,6 @@ export const ClubRoute = () => {
   const { navigationActor } = useContext(GlobalStateContext);
   const actor = useSelector(navigationActor, selectClubScreenActor);
   const Footer = useSelector(actor, selectFooterComponent);
-  // const header = useSelector(actor, selectHeaderComponent);
 
   return (
     <BottomSheet
