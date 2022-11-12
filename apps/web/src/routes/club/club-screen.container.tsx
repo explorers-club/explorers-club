@@ -1,5 +1,4 @@
 import { useSelector } from '@xstate/react';
-import { useActorLogger } from '../../lib/logging';
 import { Claimable } from './claimable.component';
 import { Claiming } from './claiming.container';
 import { useClubScreenActor } from './club-screen.hooks';

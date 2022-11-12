@@ -21,16 +21,21 @@ export const Claimable = () => {
           <Paragraph>Make it yours</Paragraph>
         </Box>
       </Card> */}
-      <Box css={{ maxWidth: 525, mt: 100 }}>
+      <Box>
         <Text
-          size="5"
+          size="2"
           variant="pink"
-          css={{ mb: '$4', lineHeight: '25px', fontWeight: 500 }}
+          css={{
+            mb: '$4',
+            lineHeight: '25px',
+            fontWeight: 500,
+            textTransform: 'uppercase',
+          }}
         >
-          Why Modulz
+          {playerName}'s Explorers Club
         </Text>
         <Text size="8" css={{ mb: '$4', lineHeight: '37px', fontWeight: 500 }}>
-          Design in the target medium. Prototype with real components.
+          {playerName} is available
         </Text>
         <Text size="4" css={{ mb: '$3', lineHeight: '25px', pr: '$9' }}>
           Almost all design tools are optimised for illustration. Drawing tools
@@ -42,6 +47,7 @@ export const Claimable = () => {
           useful code. Many have tried but in the end the trade offs were too
           great. That was until Modulz made it their mission.
         </Text>
+        <Text css={{ fontFamily: '$mono' }}>cool cool</Text>
       </Box>
     </Box>
   );

@@ -1,13 +1,10 @@
+import { ClubRoute } from './club';
 import { HomeScreen } from './home';
-import { ClubScreen, ClubScreenFooter } from './club';
-import { ClubScreenHeader } from './club/club-screen-header.container';
 
 export interface Route {
   path: string;
   state: string;
   Component: () => JSX.Element;
-  HeaderComponent?: () => JSX.Element;
-  FooterComponent?: () => JSX.Element;
 }
 
 export const routes: Route[] = [
@@ -15,9 +12,7 @@ export const routes: Route[] = [
   {
     path: '/:playerName',
     state: 'Club',
-    Component: ClubScreen,
-    FooterComponent: ClubScreenFooter,
-    HeaderComponent: ClubScreenHeader,
+    Component: ClubRoute,
   },
 ];
 
