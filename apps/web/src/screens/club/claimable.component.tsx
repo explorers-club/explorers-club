@@ -1,5 +1,6 @@
 import { ArrowRightIcon, PlusIcon } from '@radix-ui/react-icons';
 import { useSelector } from '@xstate/react';
+import { useCallback } from 'react';
 import { Avatar } from '~/web/components/atoms/Avatar';
 import { Badge } from '~/web/components/atoms/Badge';
 import { Caption } from '~/web/components/atoms/Caption';
@@ -12,22 +13,20 @@ import { Subheading } from '~/web/components/atoms/Subheading';
 import { Box } from '../../components/atoms/Box';
 import { Text } from '../../components/atoms/Text';
 import { useClubScreenActor } from './club-screen.hooks';
+import { ClubScreenEvents } from './club-screen.machine';
 import { selectHostPlayerName } from './club-screen.selectors';
 
 export const Claimable = () => {
   const actor = useClubScreenActor();
   const playerName = useSelector(actor, selectHostPlayerName);
 
+  const handlePressCard = useCallback(() => {
+    actor.send(ClubScreenEvents.PRESS_CLAIM());
+  }, [actor]);
+
   return (
     <Box css={{ p: '$4' }}>
-      {/* <Card variant="interactive">
-        <Image src="https://images.asos-media.com/products/aape-by-a-bathing-ape-camo-detail-windbreaker-in-green/23274265-1-green?$XXL$&wid=513&fit=constrain" />
-        <Box css={{ p: '$3' }}>
-          <Heading>{playerName}'s explorers club is unclaimed</Heading>
-          <Paragraph>Make it yours</Paragraph>
-        </Box>
-      </Card> */}
-      <Card color="teal" variant="interactive">
+      <Card color="teal" variant="interactive" onClick={handlePressCard}>
         <Box css={{ p: '$4' }}>
           <Heading
             size="3"
@@ -72,14 +71,6 @@ export const Claimable = () => {
             </Box>
           </Badge>
         </Flex>
-        {/* <Text size="8" css={{ mb: '$4', lineHeight: '37px', fontWeight: 500 }}>
-          {playerName} is available
-        </Text> */}
-        {/* <Text size="4" css={{ mb: '$3', lineHeight: '25px', pr: '$9' }}>
-          Create an account to claim{' '}
-          <Text css={{ fontFamily: '$mono' }}>explorers.club/{playerName}</Text>{' '}
-          as your hub for playing games with friends and family.
-        </Text> */}
       </Card>
     </Box>
   );
