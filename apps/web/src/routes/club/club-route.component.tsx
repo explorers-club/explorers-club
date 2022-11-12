@@ -15,14 +15,15 @@ export const ClubRoute = () => {
     <BottomSheet
       open={true}
       blocking={false}
-      defaultSnap={({ lastSnap, snapPoints }) =>
-        lastSnap ?? Math.max(...snapPoints)
-      }
-      snapPoints={({ minHeight, maxHeight }) => [
-        maxHeight - maxHeight / 10,
-        // maxHeight / 4,
-        maxHeight * 0.6,
-      ]}
+      // defaultSnap={({ lastSnap, snapPoints }) =>
+      //   lastSnap ?? Math.max(...snapPoints)
+      // }
+      snapPoints={({ minHeight }) => [minHeight + 24]}
+      // snapPoints={({ minHeight, maxHeight }) => [
+      //   maxHeight - maxHeight / 10,
+      //   maxHeight / 4,
+      //   maxHeight * 0.6,
+      // ]}
       expandOnContentDrag={true}
       footer={Footer && <Footer />}
       // header={header}

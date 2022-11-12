@@ -1,12 +1,13 @@
-import { useSelector } from '@xstate/react';
 import { FC, FormEventHandler, useCallback, useRef } from 'react';
-import { Button } from '../../components/atoms/Button';
+import { Box } from '~/web/components/atoms/Box';
+import { Button } from '~/web/components/atoms/Button';
+import { Flex } from '~/web/components/atoms/Flex';
+import { Heading } from '~/web/components/atoms/Heading';
+import { Subheading } from '~/web/components/atoms/Subheading';
+import { Text } from '~/web/components/atoms/Text';
 import { Fieldset } from '../../components/atoms/Fieldset';
-import { Label } from '../../components/atoms/Label';
-import { Text } from '../../components/atoms/Text';
 import { TextField } from '../../components/atoms/TextField';
 import { useHostPlayerName } from './club-screen.hooks';
-import { Container } from './club.styles';
 import { EnterEmailActor, EnterEmailFormEvents } from './enter-email.machine';
 
 interface Props {
@@ -17,10 +18,10 @@ export const EnterEmail: FC<Props> = ({ formActor }) => {
   const hostPlayerName = useHostPlayerName();
   const emailRef = useRef<HTMLInputElement>(null);
 
-  const canSubmit = useSelector(
-    formActor,
-    (state) => !state.matches('Editing.Error')
-  );
+  // const canSubmit = useSelector(
+  //   formActor,
+  //   (state) => !state.matches('Editing.Error')
+  // );
 
   const handleChangeEmail = useCallback(() => {
     formActor.send(
@@ -39,29 +40,26 @@ export const EnterEmail: FC<Props> = ({ formActor }) => {
   );
 
   return (
-    <Container>
+    <Box css={{ p: '$3' }}>
       <form onSubmit={handleSubmit}>
-        <Text>Enter your email to claim explorers.club/{hostPlayerName}</Text>
-        <Fieldset>
-          <Label>Email</Label>
+        <Flex css={{ fd: 'column', gap: '$2', alignItems: 'center' }}>
+          <Heading size="2">What is your email?</Heading>
+          <Subheading size="2">
+            Set an email to claim explorers.club/
+            <strong>{hostPlayerName}</strong>
+          </Subheading>
           <TextField
             ref={emailRef}
-            type="text"
+            type="email"
             id="email"
             placeholder="e.g. teddy@explorers.club"
             onChange={handleChangeEmail}
           />
-        </Fieldset>
-        <Button
-          disabled={!canSubmit}
-          type="submit"
-          fullWidth
-          size="2"
-          color="green"
-        >
-          Submit
-        </Button>
+          <Button size="3" color="blue" fullWidth>
+            Submit
+          </Button>
+        </Flex>
       </form>
-    </Container>
+    </Box>
   );
 };

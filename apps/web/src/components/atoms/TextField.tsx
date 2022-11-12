@@ -63,22 +63,22 @@ export const TextField = styled('input', {
     size: {
       '1': {
         borderRadius: '$1',
-        height: '$5',
-        fontSize: '$1',
+        height: '$6',
+        fontSize: '$2',
         px: '$1',
         lineHeight: '$sizes$5',
         '&:-webkit-autofill::first-line': {
-          fontSize: '$1',
+          fontSize: '$2',
         },
       },
       '2': {
         borderRadius: '$2',
-        height: '$6',
-        fontSize: '$3',
+        height: '$7',
+        fontSize: '$4',
         px: '$2',
         lineHeight: '$sizes$6',
         '&:-webkit-autofill::first-line': {
-          fontSize: '$3',
+          fontSize: '$4',
         },
       },
     },
@@ -138,7 +138,7 @@ export const TextField = styled('input', {
     },
   },
   defaultVariants: {
-    size: '1',
+    size: '2',
     fullWidth: true,
   },
 });

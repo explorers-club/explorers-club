@@ -1,14 +1,14 @@
 import { useSelector } from '@xstate/react';
 import { FC, FormEventHandler, useCallback, useRef } from 'react';
+import { Box } from '~/web/components/atoms/Box';
+import { Flex } from '~/web/components/atoms/Flex';
+import { Heading } from '~/web/components/atoms/Heading';
+import { Subheading } from '~/web/components/atoms/Subheading';
 import { Button } from '../../components/atoms/Button';
-import { Fieldset } from '../../components/atoms/Fieldset';
-import { Label } from '../../components/atoms/Label';
-import { Text } from '../../components/atoms/Text';
 import { TextField } from '../../components/atoms/TextField';
-import { Container } from './club.styles';
 import {
   EnterPasswordActor,
-  EnterPasswordFormEvents
+  EnterPasswordFormEvents,
 } from './enter-password.machine';
 
 interface Props {
@@ -40,28 +40,28 @@ export const EnterPassword: FC<Props> = ({ formActor }) => {
   );
 
   return (
-    <Container>
+    <Box css={{ p: '$3' }}>
       <form onSubmit={handleSubmit}>
-        <Text>Choose a password</Text>
-        <Fieldset>
-          <Label>Password</Label>
+        <Flex css={{ fd: 'column', gap: '$2', alignItems: 'center' }}>
+          <Heading size="2">Enter a password</Heading>
+          <Subheading size="2">
+            Choose a{' '}
+            <span role="img" aria-label="string">
+              💪
+            </span>{' '}
+            one
+          </Subheading>
           <TextField
             ref={passwordRef}
             type="password"
             id="password"
             onChange={handleChangePassword}
           />
-        </Fieldset>
-        <Button
-          disabled={!canSubmit}
-          type="submit"
-          fullWidth
-          size="2"
-          color="green"
-        >
-          Submit
-        </Button>
+          <Button size="3" color="blue" fullWidth disabled={!canSubmit}>
+            Submit
+          </Button>
+        </Flex>
       </form>
-    </Container>
+    </Box>
   );
 };
