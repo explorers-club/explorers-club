@@ -1,5 +1,5 @@
 import { ClubRoute } from './club';
-import { HomeScreen } from './home';
+import { HomeRoute } from './home';
 
 export interface Route {
   path: string;
@@ -8,7 +8,7 @@ export interface Route {
 }
 
 export const routes: Route[] = [
-  { path: '/', state: 'Home', Component: HomeScreen },
+  { path: '/', state: 'Home', Component: HomeRoute },
   {
     path: '/:playerName',
     state: 'Club',

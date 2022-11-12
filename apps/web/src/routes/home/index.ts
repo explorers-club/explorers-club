@@ -1,1 +1,1 @@
-export * from './home-screen.container';
+export * from './home-route.component';
