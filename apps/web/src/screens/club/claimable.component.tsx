@@ -1,9 +1,5 @@
 import { useSelector } from '@xstate/react';
 import { Box } from '../../components/atoms/Box';
-import { Card } from '../../components/atoms/Card';
-import { Heading } from '../../components/atoms/Heading';
-import { Image } from '../../components/atoms/Image';
-import { Paragraph } from '../../components/atoms/Paragraph';
 import { Text } from '../../components/atoms/Text';
 import { useClubScreenActor } from './club-screen.hooks';
 import { selectHostPlayerName } from './club-screen.selectors';

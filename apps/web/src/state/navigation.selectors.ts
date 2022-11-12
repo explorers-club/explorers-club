@@ -1,5 +1,5 @@
-import { ClubScreenActor } from '../routes/club/club-screen.machine';
-import { HomeScreenActor } from '../routes/home/home-screen.machine';
+import { ClubScreenActor } from '../screens/club/club-screen.machine';
+import { HomeScreenActor } from '../screens/home/home-screen.machine';
 import { NavigationState } from './navigation.machine';
 
 export const selectHomeScreenActor = (state: NavigationState) =>

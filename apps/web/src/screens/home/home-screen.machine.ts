@@ -5,6 +5,7 @@ import { fetchUserProfileByName } from '../../api/fetchUserProfileByName';
 import { AuthActor } from '../../state/auth.machine';
 import { selectAuthIsInitalized } from '../../state/auth.selectors';
 import { assertEventType } from '../../state/utils';
+import { NewUserLandingFooter } from './new-user-landing-footer.component';
 
 const homeScreenModel = createModel(
   {
@@ -55,6 +56,9 @@ export const createHomeScreenMachine = ({
         WelcomeBack: {},
         NewUserLanding: {
           type: 'parallel',
+          meta: {
+            footer: NewUserLandingFooter,
+          },
           states: {
             Valid: {
               initial: 'No',

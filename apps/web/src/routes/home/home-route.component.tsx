@@ -1,11 +1,16 @@
+import { useSelector } from '@xstate/react';
+import { useContext } from 'react';
 import { BottomSheet } from 'react-spring-bottom-sheet';
-import { HomeScreen } from './home-screen.container';
-import { useHomeScreenActor } from './home-screen.hooks';
+import { useActorLogger } from '../../lib/logging';
+import { HomeScreen } from '../../screens/home';
+import { GlobalStateContext } from '../../state/global.provider';
+import { selectFooterComponent } from '../../state/layout.selectors';
+import { selectHomeScreenActor } from '../../state/navigation.selectors';
 
 export const HomeRoute = () => {
-  const actor = useHomeScreenActor();
-  //   const footer = useSelector(actor, selectFooterComponent);
-  //   const header = useSelector(actor, selectHeaderComponent);
+  const { navigationActor } = useContext(GlobalStateContext);
+  const actor = useSelector(navigationActor, selectHomeScreenActor);
+  const Footer = useSelector(actor, selectFooterComponent);
 
   return (
     <BottomSheet
@@ -19,7 +24,7 @@ export const HomeRoute = () => {
       ]}
       expandOnContentDrag={true}
       // header={header}
-      // footer={footer}
+      footer={Footer && <Footer />}
     >
       <HomeScreen />
     </BottomSheet>

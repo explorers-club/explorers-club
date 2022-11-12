@@ -1,12 +1,14 @@
 import { useSelector } from '@xstate/react';
 import { BottomSheet } from 'react-spring-bottom-sheet';
 import { selectFooterComponent } from '../../state/layout.selectors';
-import { ClubScreen } from './club-screen.container';
-import { useClubScreenActor } from './club-screen.hooks';
+import { ClubScreen } from '../../screens/club';
+import { GlobalStateContext } from '../../state/global.provider';
+import { useContext } from 'react';
+import { selectClubScreenActor } from '../../state/navigation.selectors';
 
 export const ClubRoute = () => {
-  const actor = useClubScreenActor();
-
+  const { navigationActor } = useContext(GlobalStateContext);
+  const actor = useSelector(navigationActor, selectClubScreenActor);
   const Footer = useSelector(actor, selectFooterComponent);
   // const header = useSelector(actor, selectHeaderComponent);
 

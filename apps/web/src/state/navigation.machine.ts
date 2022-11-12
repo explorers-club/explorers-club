@@ -2,8 +2,8 @@ import { ActorManager, ActorType, getActorId } from '@explorers-club/actor';
 import { matchPath, NavigateFunction } from 'react-router-dom';
 import { ActorRefFrom, ContextFrom, DoneInvokeEvent, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
-import { createClubScreenMachine } from '../routes/club/club-screen.machine';
-import { createHomeScreenMachine } from '../routes/home/home-screen.machine';
+import { createClubScreenMachine } from '../screens/club/club-screen.machine';
+import { createHomeScreenMachine } from '../screens/home/home-screen.machine';
 import { AuthActor } from './auth.machine';
 
 const navigationModel = createModel({}, { events: { FOO: () => ({} as any) } }); // Fixes TS lol

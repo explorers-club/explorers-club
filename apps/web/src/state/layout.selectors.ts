@@ -12,5 +12,5 @@ export const selectFooterComponent = createSelector(
 
 export const selectHeaderComponent = createSelector(
   selectMetaValue,
-  (meta) => meta?.footer as ReactNode | undefined
+  (meta) => meta?.header as FC<unknown>
 );

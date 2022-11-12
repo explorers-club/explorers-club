@@ -1,10 +1,10 @@
 import { useSelector } from '@xstate/react';
-import { useClubScreenActor } from '../routes/club/club-screen.hooks';
-import { ClubScreenActor } from '../routes/club/club-screen.machine';
+import { useClubScreenActor } from '../screens/club/club-screen.hooks';
 import {
+  ClubScreenActor,
   selectActorManager,
   selectPartyActor,
-} from '../routes/club/club-screen.selectors';
+} from '../screens/club';
 import { ConnectedContext } from '../state/connected.context';
 import { Game } from './game';
 import { Lobby } from './lobby';
