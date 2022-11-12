@@ -1,8 +1,6 @@
-import { Caption } from '~/web/components/atoms/Caption';
-import { Card } from '../../components/atoms/Card';
+import { Box } from '~/web/components/atoms/Box';
 import { useActorLogger } from '../../lib/logging';
 import { useClubScreenActor } from './club-screen.hooks';
-import { Container } from './club.styles';
 import { PlayerList } from './player-list.component';
 
 export const ConnectedComponent = () => {
@@ -10,11 +8,8 @@ export const ConnectedComponent = () => {
   useActorLogger(clubScreenActor);
 
   return (
-    <Container>
-      <Card css={{ p: '$3' }}>
-        <Caption>players</Caption>
-        <PlayerList />
-      </Card>
-    </Container>
+    <Box css={{ px: '$3' }}>
+      <PlayerList />
+    </Box>
   );
 };

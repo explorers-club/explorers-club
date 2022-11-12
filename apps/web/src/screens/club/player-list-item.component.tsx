@@ -1,6 +1,11 @@
 import { PartyEvents, PartyPlayerActor } from '@explorers-club/party';
+import { PersonIcon, PlusIcon } from '@radix-ui/react-icons';
 import { useSelector } from '@xstate/react';
 import { FC, useCallback, useContext } from 'react';
+import { Avatar } from '~/web/components/atoms/Avatar';
+import { Flex } from '~/web/components/atoms/Flex';
+import { Label } from '~/web/components/atoms/Label';
+import { Text } from '~/web/components/atoms/Text';
 import { ConnectedContext } from '../../state/connected.context';
 
 interface Props {
@@ -27,7 +32,7 @@ export const PlayerListItem: FC<Props> = ({ actor }) => {
   }, [partyActor, actorId]);
 
   return (
-    <div>
+    <li>
       {!name ? (
         <span>a new explorer is connecting...</span>
       ) : (
@@ -36,6 +41,19 @@ export const PlayerListItem: FC<Props> = ({ actor }) => {
           {showRemoveButton && <button onClick={handleRemove}>remove</button>}
         </span>
       )}
-    </div>
+    </li>
+  );
+};
+
+export const PlayerListItemPlaceholder = () => {
+  return (
+    <Flex>
+      <Flex css={{ gap: '$3', alignItems: 'center' }}>
+        <Avatar size="3" fallback={<PersonIcon color="var(--colors-gray9)" />} />
+        <Text size="2" css={{ color: '$gray11' }}>
+          Empty
+        </Text>
+      </Flex>
+    </Flex>
   );
 };
