@@ -37,8 +37,7 @@ export function NewUserLanding() {
   }, [homeActor]);
 
   return (
-    <Container>
-      <h2>Welcome to Explorers Club!</h2>
+    <Box css={{ p: '$4' }}>
       <Flex style={{ flexDirection: 'column' }}>
         <form onSubmit={handleFormSubmit}>
           <Box>Choose a player name you would like to use.</Box>
@@ -64,10 +63,6 @@ export function NewUserLanding() {
           </Fieldset>
         </form>
       </Flex>
-    </Container>
+    </Box>
   );
 }
-
-const Container = styled('div', {
-  padding: '16px',
-});
