@@ -21,38 +21,23 @@ export const Caption = React.forwardRef<
 >((props, forwardedRef) => {
   // '2' here is the default Caption size variant
   // 'pink' is the default color variant
-  const { size = '1', variant = 'pink', ...textProps } = props;
-
-  // This is the mapping of Caption Variants to Text variants
-  const textSize: Record<CaptionSizeVariants, TextSizeVariants['size']> = {
-    1: { '@initial': '1' },
-    2: { '@initial': '2' },
-  };
+  const { size = '1', ...textProps } = props;
 
   // This is the mapping of Caption Variants to Text css
   const textCss: Record<CaptionSizeVariants, CSS> = {
     1: {
       fontWeight: 'bold',
-      textTransform: 'uppercase',
+      fontSize: '10px',
       letterSpacing: '0.05em',
     },
     2: {
       fontWeight: 'bold',
-      textTransform: 'uppercase',
+      fontSize: '12px',
       letterSpacing: '0.05em',
     },
   };
 
   const css = merge(textCss[size], props.css);
 
-  return (
-    <Text
-      as={DEFAULT_TAG}
-      {...textProps}
-      ref={forwardedRef}
-      variant={variant}
-      size={textSize[size]}
-      css={css}
-    />
-  );
+  return <Text as={DEFAULT_TAG} {...textProps} ref={forwardedRef} css={css} />;
 });

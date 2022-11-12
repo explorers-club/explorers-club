@@ -1,5 +1,4 @@
 import { QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import 'react-spring-bottom-sheet/dist/style.css';
 import { queryClient } from './api/queryClient';
 import './main-ui.css';

@@ -16,3 +16,35 @@
     --rsbs-mr: auto;
   }
 }
+
+:root {
+  --rsbs-bg: var(--colors-gray1);
+}
+
+/* https://github.com/radix-ui/design-system/blob/master/styles.css */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+    'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1;
+}
+
+svg {
+  display: block;
+  vertical-align: middle;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}

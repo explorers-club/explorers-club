@@ -7,6 +7,7 @@ export const Card = styled('div', {
   font: 'inherit',
   lineHeight: '1',
   outline: 'none',
+  overflow: 'hidden',
   padding: 0,
   textAlign: 'inherit',
   verticalAlign: 'middle',
@@ -17,8 +18,9 @@ export const Card = styled('div', {
   textDecoration: 'none',
   color: 'inherit',
   flexShrink: 0,
-  borderRadius: '$3',
+  borderRadius: '$4',
   position: 'relative',
+  boxShadow: '$shadow4',
 
   '&::before': {
     boxSizing: 'border-box',
@@ -34,18 +36,25 @@ export const Card = styled('div', {
   },
 
   variants: {
+    color: {
+      teal: {
+        backgroundColor: '$teal9',
+      },
+    },
     variant: {
       interactive: {
+        // boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.2)',
         '@hover': {
           '&:hover': {
+            boxShadow: '$shadow5',
             '&::before': {
-              boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.2)',
+              // boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.2)',
             },
           },
         },
         '&:focus': {
           '&::before': {
-            boxShadow: 'inset 0 0 0 1px $colors$blue8, 0 0 0 1px $colors$blue8',
+            // boxShadow: 'inset 0 0 0 1px $colors$blue8, 0 0 0 1px $colors$blue8',
           },
         },
       },
