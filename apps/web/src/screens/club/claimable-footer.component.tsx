@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { Button } from '../../components/atoms/Button';
+import { Button } from '@explorers-club/components/atoms/Button';
 
 export const ClaimableFooter: FC = () => {
   return (

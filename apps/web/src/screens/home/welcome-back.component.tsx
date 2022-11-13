@@ -1,7 +1,7 @@
 import { useSelector } from '@xstate/react';
 import { useContext } from 'react';
-import { selectPlayerName } from '~/web/state/auth.selectors';
-import { GlobalStateContext } from '~/web/state/global.provider';
+import { selectPlayerName } from '@explorers-club/state/auth.selectors';
+import { GlobalStateContext } from '@explorers-club/state/global.provider';
 import { Container } from '../club/club.styles';
 
 export const WelcomeBack = () => {

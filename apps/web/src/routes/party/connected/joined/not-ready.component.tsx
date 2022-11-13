@@ -1,6 +1,6 @@
 import { PartyPlayerEvents } from '@explorers-club/party';
 import { useCallback, useContext } from 'react';
-import { Box } from '../../../../components/atoms/Box';
+import { Box } from '@explorers-club/components/atoms/Box';
 import { JoinedContext } from './joined.context';
 
 export const NotReady = () => {

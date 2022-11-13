@@ -1,7 +1,7 @@
 import { useContextBridge } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { Leva } from 'leva';
-import { Box } from './components/atoms/Box';
+import { Box } from '@explorers-club/components/atoms/Box';
 import { Scenes } from './scenes';
 import { GlobalStateContext } from './state/global.provider';
 

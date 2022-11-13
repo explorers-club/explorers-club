@@ -1,11 +1,10 @@
+import { Button } from '@explorers-club/components/atoms/Button';
 import { useSelector } from '@xstate/react';
-import { FC, FormEvent, useCallback, useRef } from 'react';
-import { Button } from '../../components/atoms/Button';
+import { FC } from 'react';
 import { useHomeScreenActor } from './home-screen.hooks';
-import { HomeScreenEvents } from './home-screen.machine';
 import {
   selectNameIsAvailable,
-  selectNameIsUnavailable,
+  selectNameIsUnavailable
 } from './home-screen.selectors';
 
 export const NewUserLandingFooter: FC = () => {

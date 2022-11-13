@@ -1,4 +1,4 @@
-import { Box } from '~/web/components/atoms/Box';
+import { Box } from '@explorers-club/components/atoms/Box';
 import { useActorLogger } from '../../lib/logging';
 import { useClubScreenActor } from './club-screen.hooks';
 import { PlayerList } from './player-list.component';

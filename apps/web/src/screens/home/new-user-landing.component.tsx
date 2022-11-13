@@ -12,7 +12,7 @@ import {
   selectNameIsAvailable,
   selectNameIsUnavailable,
 } from './home-screen.selectors';
-import { Card } from '~/web/components/atoms/Card';
+import { Card } from '@explorers-club/components/atoms/Card';
 
 export function NewUserLanding() {
   const homeActor = useHomeScreenActor();

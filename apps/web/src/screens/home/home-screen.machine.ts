@@ -1,10 +1,10 @@
 import { ActorRefFrom, assign, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { waitFor } from 'xstate/lib/waitFor';
-import { fetchUserProfileByName } from '~/web/api/fetchUserProfileByName';
-import { AuthActor } from '~/web/state/auth.machine';
-import { selectAuthIsInitalized } from '~/web/state/auth.selectors';
-import { assertEventType } from '~/web/state/utils';
+import { fetchUserProfileByName } from '@explorers-club/api/fetchUserProfileByName';
+import { AuthActor } from '@explorers-club/state/auth.machine';
+import { selectAuthIsInitalized } from '@explorers-club/state/auth.selectors';
+import { assertEventType } from '@explorers-club/state/utils';
 import { NewUserLandingFooter } from './new-user-landing-footer.component';
 
 const homeScreenModel = createModel(

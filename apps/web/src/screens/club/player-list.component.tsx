@@ -1,10 +1,9 @@
 import { PartyPlayerActor } from '@explorers-club/party';
 import { useSelector } from '@xstate/react';
 import { useContext } from 'react';
-import { Caption } from '~/web/components/atoms/Caption';
-import { Card } from '~/web/components/atoms/Card';
-import { Flex } from '~/web/components/atoms/Flex';
-import { Heading } from '~/web/components/atoms/Heading';
+import { Caption } from '@explorers-club/components/atoms/Caption';
+import { Card } from '@explorers-club/components/atoms/Card';
+import { Flex } from '@explorers-club/components/atoms/Flex';
 import { ConnectedContext } from '../../state/connected.context';
 import {
   PlayerListItem,

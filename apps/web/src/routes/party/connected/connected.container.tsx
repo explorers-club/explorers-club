@@ -1,6 +1,6 @@
 import { useSelector } from '@xstate/react';
 import { useContext } from 'react';
-import { Box } from '../../../components/atoms/Box';
+import { Box } from '@explorers-club/components/atoms/Box';
 import { ConnectedContext } from '../../../state/connected.context';
 import { useActorManager, usePartyScreenActor } from '../party-screen.hooks';
 import { EnterName } from './enter-name.component';

@@ -1,5 +1,5 @@
 import { PartyPlayerEvents } from '@explorers-club/party';
-import { Box } from '../../../../components/atoms/Box';
+import { Box } from '@explorers-club/components/atoms/Box';
 import { useCallback, useContext } from 'react';
 import { JoinedContext } from './joined.context';
 

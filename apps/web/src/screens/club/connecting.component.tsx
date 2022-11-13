@@ -1,5 +1,5 @@
 import { Loader } from '@react-three/drei';
-import { Text } from '../../components/atoms/Text';
+import { Text } from '@explorers-club/components/atoms/Text';
 import { Container } from './club.styles';
 
 export const Connecting = () => {

@@ -1,4 +1,4 @@
-import { Box } from '../../../components/atoms/Box';
+import { Box } from '@explorers-club/components/atoms/Box';
 import { useCallback } from 'react';
 import { usePartyScreenActor } from '../party-screen.hooks';
 import { PartyScreenEvents } from '../party-screen.machine';

@@ -1,9 +1,7 @@
 import { useSelector } from '@xstate/react';
 import { useActorLogger } from '../../lib/logging';
 import { useHomeScreenActor } from './home-screen.hooks';
-import {
-  selectShowWelcomeBack
-} from './home-screen.selectors';
+import { HomeScreenState } from './home-screen.machine';
 import { NewUserLanding } from './new-user-landing.component';
 import { WelcomeBack } from './welcome-back.component';
 
@@ -20,10 +18,16 @@ export function HomeScreen() {
   useActorLogger(homeActor);
 
   const showWelcomeBack = useSelector(homeActor, selectShowWelcomeBack);
+  const showNewUserLanding = true;
 
-  if (showWelcomeBack) {
-    return <WelcomeBack />;
-  }
+  return (
+    <>
+      {showWelcomeBack && <WelcomeBack />}
 
-  return <NewUserLanding />;
+      {showNewUserLanding && <NewUserLanding />}
+    </>
+  );
 }
+
+const selectShowWelcomeBack = (state: HomeScreenState) =>
+  state.matches('WelcomeBack');

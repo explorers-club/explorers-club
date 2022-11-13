@@ -15,8 +15,10 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "~/web/*": ["apps/web/src/*"],
-      "@explorers-club/components/*": ["apps/web/src/components/*"],
+      "@explorers-club/components/atoms/*": ["libs/components/src/atoms/*"],
+      "@explorers-club/components/molecules/*": [
+        "libs/components/src/molecules/*"
+      ],
       "@explorers-club/actor": ["libs/actor/src/index.ts"],
       "@explorers-club/contentful": ["libs/contentful/src/index.ts"],
       "@explorers-club/database": ["libs/database/src/index.ts"],
@@ -28,7 +30,8 @@
         "games/trivia-jam/src/state/index.ts"
       ],
       "@explorers-club/trivia-jam/ui": ["games/trivia-jam/src/ui/index.ts"],
-      "@explorers-club/utils": ["libs/utils/src/index.ts"]
+      "@explorers-club/utils": ["libs/utils/src/index.ts"],
+      "@explorers-club/*": ["apps/web/src/*"]
     }
   },
   "exclude": ["node_modules", "tmp"]

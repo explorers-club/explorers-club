@@ -1,11 +1,11 @@
 import { useSelector } from '@xstate/react';
 import { FC, FormEventHandler, useCallback, useRef } from 'react';
-import { Box } from '~/web/components/atoms/Box';
-import { Flex } from '~/web/components/atoms/Flex';
-import { Heading } from '~/web/components/atoms/Heading';
-import { Subheading } from '~/web/components/atoms/Subheading';
-import { Button } from '../../components/atoms/Button';
-import { TextField } from '../../components/atoms/TextField';
+import { Box } from '@explorers-club/components/atoms/Box';
+import { Flex } from '@explorers-club/components/atoms/Flex';
+import { Heading } from '@explorers-club/components/atoms/Heading';
+import { Subheading } from '@explorers-club/components/atoms/Subheading';
+import { Button } from '@explorers-club/components/atoms/Button';
+import { TextField } from '@explorers-club/components/atoms/TextField';
 import {
   EnterPasswordActor,
   EnterPasswordFormEvents,
