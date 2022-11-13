@@ -1,6 +1,17 @@
-import { FC } from 'react';
+import { FC, useCallback } from 'react';
 import { Button } from '../../components/atoms/Button';
+import { useClubScreenActor } from './club-screen.hooks';
+import { ClubScreenEvents } from './club-screen.machine';
 
 export const SpectatingFooter: FC = () => {
-  return <Button fullWidth color="green" size="3">Join</Button>;
+  const actor = useClubScreenActor();
+  const handlePressJoin = useCallback(() => {
+    actor.send(ClubScreenEvents.PRESS_JOIN());
+  }, [actor]);
+
+  return (
+    <Button fullWidth color="green" size="3" onClick={handlePressJoin}>
+      Join
+    </Button>
+  );
 };
