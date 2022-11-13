@@ -34,10 +34,10 @@ export const ClaimClubScreen = () => {
     <>
       {isCreatingAccount && <Box>Creating account</Box>}
       {isEnteringEmail && enterEmailActor && (
-        <EnterEmail actor={enterEmailActor} />
+        <EnterEmail formActor={enterEmailActor} />
       )}
       {isEnteringPassword && enterPasswordActor && (
-        <EnterPassword actor={enterPasswordActor} />
+        <EnterPassword formActor={enterPasswordActor} />
       )}
     </>
   );

@@ -1,12 +1,10 @@
-import { FC, FormEventHandler, useCallback, useRef } from 'react';
 import { Box } from '@atoms/Box';
 import { Button } from '@atoms/Button';
 import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
 import { Subheading } from '@atoms/Subheading';
-import { Text } from '@atoms/Text';
-import { Fieldset } from '@atoms/Fieldset';
 import { TextField } from '@atoms/TextField';
+import { FC, FormEventHandler, useCallback, useRef } from 'react';
 import { useHostPlayerName } from './club-screen.hooks';
 import { EnterEmailActor, EnterEmailFormEvents } from './enter-email.machine';
 
