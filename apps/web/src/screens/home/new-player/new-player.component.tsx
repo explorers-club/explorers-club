@@ -4,21 +4,32 @@ import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
 import { Text } from '@atoms/Text';
 import { TextField } from '@atoms/TextField';
-import { FormEvent, FormEventHandler, useCallback, useRef } from 'react';
+import { GlobalStateContext } from '../../../state/global.provider';
+import { FormEventHandler, useCallback, useContext, useRef } from 'react';
+import { NavigationEvents } from '../../../state/navigation.machine';
 
 export function NewPlayerComponent() {
+  const { navigationActor } = useContext(GlobalStateContext);
   const playerNameRef = useRef<HTMLInputElement>(null);
-  const handleChangePartyCode = useCallback(
-    (e: FormEvent<HTMLInputElement>) => {
-      console.log(playerNameRef.current?.value);
-    },
-    [playerNameRef]
-  );
+  // const handleChangePartyCode = useCallback(
+  //   (e: FormEvent<HTMLInputElement>) => {
+  //     console.log(playerNameRef.current?.value);
+  //   },
+  //   [playerNameRef]
+  // );
 
-  const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>((e) => {
-    console.log('SUBMIT!', playerNameRef.current);
-    e.preventDefault();
-  }, []);
+  const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
+    (e) => {
+      const value = playerNameRef.current?.value;
+      if (!value) {
+        return;
+      }
+
+      navigationActor.send(NavigationEvents.NAVIGATE_CLAIM_CLUB(value));
+      e.preventDefault();
+    },
+    [navigationActor, playerNameRef]
+  );
 
   return (
     <Box css={{ p: '$3' }}>
@@ -71,7 +82,7 @@ export function NewPlayerComponent() {
                 placeholder="your_name_here"
                 pattern="^[a-zA-Z0-9_-]*$"
                 fullWidth={false}
-                onChange={handleChangePartyCode}
+                // onChange={handleChangePartyCode}
               />
             </Flex>
           </form>
