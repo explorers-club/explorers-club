@@ -1,4 +1,3 @@
-import { ContextFrom, EventFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { assertEventType } from './utils';
 

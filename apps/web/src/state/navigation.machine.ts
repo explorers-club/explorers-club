@@ -1,6 +1,6 @@
 import { ActorManager, ActorType, getActorId } from '@explorers-club/actor';
 import { matchPath, NavigateFunction } from 'react-router-dom';
-import { ActorRefFrom, ContextFrom, StateFrom } from 'xstate';
+import { ActorRefFrom, ContextFrom, DoneInvokeEvent, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { createClaimClubScreenMachine } from '../screens/claim-club/claim-club-screen.machine';
 import { createClubScreenMachine } from '../screens/club/club-screen.machine';
@@ -66,12 +66,17 @@ export const createNavigationMachine = ({
                 playerName,
                 authActor,
               });
-
-              // return createClaimClubScreenMachine({
-              //   hostPlayerName: playerName,
-              //   authActor,
-              //   actorManager,
-              // });
+            },
+            onDone: {
+              target: 'Club',
+              actions: (
+                _,
+                {
+                  data: { playerName },
+                }: DoneInvokeEvent<{ playerName: string }>
+              ) => {
+                navigate(`/${playerName}`, { replace: true });
+              },
             },
           },
         },

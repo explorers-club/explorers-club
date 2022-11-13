@@ -12,6 +12,9 @@ const { formModel, formMachine } = createFormModelAndMachine<{
     handleSubmit: async ({ password }) => {
       const { error } = await supabaseClient.auth.updateUser({
         password,
+        data: {
+          has_password: true,
+        },
       });
 
       if (error) {

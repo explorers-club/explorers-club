@@ -1,38 +1,28 @@
 import {
-  SharedActorEvent,
-  SerializedSharedActor,
-  ManagedActor,
   ActorManager,
-  ActorType,
-  MachineFactory,
-  getActorId,
-  setActorEvent,
+  ActorType, getActorId, MachineFactory, ManagedActor, SerializedSharedActor, setActorEvent, SharedActorEvent
 } from '@explorers-club/actor';
 import {
   createPartyMachine,
   createPartyPlayerMachine,
   PartyActor,
-  PartyPlayerEvents,
+  PartyPlayerEvents
 } from '@explorers-club/party';
 import {
   createTriviaJamMachine,
-  createTriviaJamPlayerMachine,
+  createTriviaJamPlayerMachine
 } from '@explorers-club/trivia-jam/state';
-import { ref, get, onDisconnect, onValue, push, set } from 'firebase/database';
+import { get, onDisconnect, onValue, push, ref, set } from 'firebase/database';
 import { fromRef, ListenEvent } from 'rxfire/database';
-import { skipWhile, fromEvent, filter, first, from } from 'rxjs';
+import { filter, first, from, fromEvent, skipWhile } from 'rxjs';
 import { ActorRefFrom, assign, DoneInvokeEvent, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { waitFor } from 'xstate/lib/waitFor';
 import { fetchUserProfileByName } from '../../api/fetchUserProfileByName';
 import { db } from '../../lib/firebase';
-import { supabaseClient } from '../../lib/supabase';
 import { AuthActor } from '../../state/auth.machine';
 import { selectAuthIsInitalized } from '../../state/auth.selectors';
 import { createAnonymousUser } from '../../state/auth.utils';
-import { enterEmailMachine } from './enter-email.machine';
-import { enterPasswordMachine } from './enter-password.machine';
-import { SpectatingFooter } from './spectating-footer.component';
 
 MachineFactory.registerMachine(ActorType.PARTY_ACTOR, createPartyMachine);
 MachineFactory.registerMachine(
@@ -122,51 +112,7 @@ export const createClubScreenMachine = ({
                 PRESS_CLAIM: 'Claiming',
               },
             },
-            Claiming: {
-              initial: 'Initializing',
-              onDone: 'Claimed',
-              states: {
-                Initializing: {
-                  always: [
-                    { target: 'CreateAccount', cond: 'isNotLoggedIn' },
-                    { target: 'EnterEmail', cond: 'isAnonymous' },
-                    { target: 'SavePlayerName' },
-                  ],
-                },
-                CreateAccount: {
-                  invoke: {
-                    src: 'createAccount',
-                    onDone: 'EnterEmail',
-                    onError: 'Error',
-                  },
-                },
-                EnterEmail: {
-                  invoke: {
-                    src: enterEmailMachine,
-                    onDone: 'EnterPassword',
-                    onError: 'Error',
-                  },
-                },
-                EnterPassword: {
-                  invoke: {
-                    src: enterPasswordMachine,
-                    onDone: 'SavePlayerName',
-                    onError: 'Error',
-                  },
-                },
-                SavePlayerName: {
-                  invoke: {
-                    src: 'savePlayerName',
-                    onDone: 'Complete',
-                    onError: 'Error',
-                  },
-                },
-                Error: {},
-                Complete: {
-                  type: 'final' as const,
-                },
-              },
-            },
+            Claiming: {},
             Claimed: {
               type: 'final' as const,
             },
@@ -207,9 +153,6 @@ export const createClubScreenMachine = ({
               },
             },
             Spectating: {
-              meta: {
-                footer: SpectatingFooter,
-              },
               on: {
                 PRESS_JOIN: [
                   {
@@ -290,11 +233,6 @@ export const createClubScreenMachine = ({
         isNotLoggedIn: ({ authActor }) => {
           const session = authActor.getSnapshot()?.context.session;
           return !session;
-        },
-        isAnonymous: ({ authActor }) => {
-          return !!authActor
-            .getSnapshot()
-            ?.context.session?.user.email?.match('@anon-users.explorers.club');
         },
         isInParty: ({ authActor, actorManager }) => {
           const userId = authActor.getSnapshot()?.context.session?.user.id; // lol
@@ -394,27 +332,6 @@ export const createClubScreenMachine = ({
           // Wait for the auth actor to finish fetching
           const authState = await waitFor(authActor, selectAuthIsInitalized);
           return !!authState.context.profile?.player_name;
-        },
-        savePlayerName: async (context) => {
-          const userId = authActor.getSnapshot()?.context.session?.user.id;
-          if (!userId) {
-            throw new Error(
-              'tried to save player name without being logged in'
-            );
-          }
-
-          const playerName = context.hostPlayerName;
-
-          const { error } = await supabaseClient
-            .from('profiles')
-            .update({ player_name: playerName })
-            .eq('user_id', userId);
-
-          if (error) {
-            throw error;
-          }
-
-          return true;
         },
       },
     }

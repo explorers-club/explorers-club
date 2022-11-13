@@ -17,8 +17,6 @@ export function useChildActor<T>(actor: AnyActorRef, stateKey: string) {
   const regex = RegExp(`${stateKey}:invocation\\[0\\]`);
   const key = childKeys.find((key) => key.match(regex));
 
-  console.log(key, childKeys, stateKey);
-
   return useSelector(
     actor,
     (state) => key && (state.children[key] as T | undefined)
