@@ -2,7 +2,7 @@ import { ActorManager, ActorType, getActorId } from '@explorers-club/actor';
 import { matchPath, NavigateFunction } from 'react-router-dom';
 import { ActorRefFrom, ContextFrom, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
-import { createClaimClubScreenMachine } from '../screens/claim-club/claim-club.machine';
+import { createClaimClubScreenMachine } from '../screens/claim-club/claim-club-screen.machine';
 import { createClubScreenMachine } from '../screens/club/club-screen.machine';
 import { createHomeScreenMachine } from '../screens/home/home-screen.machine';
 import { AuthActor } from './auth.machine';
@@ -48,12 +48,13 @@ export const createNavigationMachine = ({
         },
         ClaimClub: {
           invoke: {
-            id: 'claimClubMachine',
+            id: 'claimClubScreenMachine',
             src: (_) => {
               const pathMatch = matchPath(
                 '/:playerName/claim',
                 window.location.pathname
               );
+
               const playerName = pathMatch?.params.playerName;
               if (!playerName) {
                 throw new Error(

@@ -291,9 +291,6 @@ export const createClubScreenMachine = ({
           const session = authActor.getSnapshot()?.context.session;
           return !session;
         },
-        isClaimable: ({ authActor }) => {
-          return false;
-        },
         isAnonymous: ({ authActor }) => {
           return !!authActor
             .getSnapshot()

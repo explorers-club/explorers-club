@@ -1,5 +1,5 @@
 import { BottomSheet } from 'react-spring-bottom-sheet';
-import { HomeScreen } from '../../screens/home';
+import { HomeScreen } from '../screens/home';
 
 export const HomeRoute = () => {
   return (

@@ -1,5 +1,5 @@
 import { BottomSheet } from 'react-spring-bottom-sheet';
-import { ClubScreen } from '../../screens/club';
+import { ClubScreen } from '../screens/club';
 
 export const ClubRoute = () => {
   // const { navigationActor } = useContext(GlobalStateContext);

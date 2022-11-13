@@ -1,5 +1,6 @@
-import { ClubRoute } from './club';
-import { HomeRoute } from './home';
+import { ClaimClubRoute } from './claim-club-route.componet';
+import { ClubRoute } from './club-route.component';
+import { HomeRoute } from './home-route.component';
 
 export interface Route {
   path: string;
@@ -13,6 +14,11 @@ export const routes: Route[] = [
     path: '/:playerName',
     state: 'Club',
     Component: ClubRoute,
+  },
+  {
+    path: '/:playerName/claim',
+    state: 'ClaimClub',
+    Component: ClaimClubRoute,
   },
 ];
 
