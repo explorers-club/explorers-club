@@ -1,5 +1,5 @@
 import { useSelector } from '@xstate/react';
-import { AnyActorRef, EventObject } from 'xstate/lib/types';
+import { AnyActorRef, AnyState, EventObject } from 'xstate/lib/types';
 
 export function assertEventType<
   TE extends EventObject,
@@ -13,9 +13,14 @@ export function assertEventType<
 }
 
 export function useChildActor<T>(actor: AnyActorRef, stateKey: string) {
-  const childKey = `${actor.id}.${stateKey}:invocation[0]`;
-  const childActor = useSelector(actor, (state) => state.children[childKey]) as
-    | T
-    | undefined;
-  return childActor;
+  const childKeys = useSelector(actor, (state) => Object.keys(state.children));
+  const regex = RegExp(`${stateKey}:invocation\\[0\\]`);
+  const key = childKeys.find((key) => key.match(regex));
+
+  console.log(key, childKeys, stateKey);
+
+  return useSelector(
+    actor,
+    (state) => key && (state.children[key] as T | undefined)
+  );
 }
