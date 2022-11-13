@@ -53,7 +53,7 @@
       "options": {
         "buildTarget": "web:build",
         "hmr": true,
-        "host": "jonathans-macbook-air.local"
+        "host": "explorers-club.local"
       },
       "configurations": {
         "development": {
