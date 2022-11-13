@@ -80,6 +80,9 @@ export const createClaimClubScreenMachine = ({
         },
         Error: {
           exit: 'clearError',
+          after: {
+            5000: 'Complete',
+          },
         },
         EnteringEmail: {
           invoke: {
