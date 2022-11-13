@@ -29,6 +29,7 @@ export const retryPromiseWhen = async (
   throw new Error('failed after ' + maxAttempts);
 };
 
+// From https://stackoverflow.com/a/8809472
 export function generateUUID() {
   // Public Domain/MIT
   let d = new Date().getTime(); //Timestamp
