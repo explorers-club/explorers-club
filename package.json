@@ -25,7 +25,6 @@
     "contentful": "^9.2.9",
     "contentful-management": "^10.19.1",
     "core-js": "^3.6.5",
-    "crypto": "^1.0.1",
     "events": "^3.3.0",
     "firebase": "^9.10.0",
     "honeycomb-grid": "^4.0.0",

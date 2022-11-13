@@ -21,7 +21,7 @@ import {
   createTriviaJamPlayerMachine,
   TriviaJamEvents,
 } from '@explorers-club/trivia-jam/state';
-import * as crypto from 'crypto';
+import { generateUUID } from '@explorers-club/utils';
 import {
   get,
   onChildAdded,
@@ -53,7 +53,7 @@ MachineFactory.registerMachine(
 const runningParties = new Set();
 
 async function bootstrap() {
-  const hostId = crypto.randomUUID();
+  const hostId = generateUUID();
 
   const trySpawnPartyHost = async (joinCode: string) => {
     if (runningParties.has(joinCode)) {

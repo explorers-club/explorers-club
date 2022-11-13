@@ -1,5 +1,6 @@
 import { ProfilesRow } from '@explorers-club/database';
 import { Session } from '@supabase/supabase-js';
+import { generateUUID } from '@explorers-club/utils';
 import {
   assign,
   ContextFrom,
@@ -153,7 +154,7 @@ export const createAuthMachine = () =>
             .from('profiles')
             .select()
             .eq('user_id', userId)
-            .single();
+            .maybeSingle();
 
           if (error) {
             throw error;
@@ -161,8 +162,8 @@ export const createAuthMachine = () =>
           return data;
         },
         createAnonymousUser: async () => {
-          const id = crypto.randomUUID();
-          const password = crypto.randomUUID();
+          const id = generateUUID();
+          const password = generateUUID();
 
           const response = await supabaseClient.auth.signUp({
             email: `${id}@anon-users.explorers.club`,
