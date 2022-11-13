@@ -7,6 +7,7 @@ import {
   selectAuthIsInitalized,
   selectHasPasswordSet,
   selectIsAnonymous,
+  selectPlayerName,
 } from '../../state/auth.selectors';
 import { createAnonymousUser } from '../../state/auth.utils';
 import { enterEmailMachine } from './enter-email.machine';
@@ -113,8 +114,11 @@ export const createClaimClubScreenMachine = ({
     {
       actions: {
         setAlreadyHasClubError: claimClubScreenModel.assign({
-          errorMessage: ({ playerName }) =>
-            `You already own explorers.club/${playerName}`,
+          errorMessage: () => {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const playerName = selectPlayerName(authActor.getSnapshot()!);
+            return `You already own explorers.club/${playerName}`;
+          },
         }),
         clearError: claimClubScreenModel.assign({
           errorMessage: () => undefined,
