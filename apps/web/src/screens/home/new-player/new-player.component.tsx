@@ -4,41 +4,21 @@ import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
 import { Text } from '@atoms/Text';
 import { TextField } from '@atoms/TextField';
-import { useSelector } from '@xstate/react';
 import { FormEvent, FormEventHandler, useCallback, useRef } from 'react';
-import { useHomeScreenActor } from '../home-screen.hooks';
-import { HomeScreenEvents } from '../home-screen.machine';
-import {
-  selectNameIsAvailable,
-  selectNameIsUnavailable,
-} from '../home-screen.selectors';
 
 export function NewPlayerComponent() {
-  const homeActor = useHomeScreenActor();
-
   const playerNameRef = useRef<HTMLInputElement>(null);
-
   const handleChangePartyCode = useCallback(
     (e: FormEvent<HTMLInputElement>) => {
-      homeActor.send(
-        HomeScreenEvents.INPUT_CHANGE_PLAYER_NAME(
-          playerNameRef.current?.value || ''
-        )
-      );
+      console.log(playerNameRef.current?.value);
     },
-    [playerNameRef, homeActor]
+    [playerNameRef]
   );
 
-  const nameIsAvailable = useSelector(homeActor, selectNameIsAvailable);
-  const nameIsUnavailable = useSelector(homeActor, selectNameIsUnavailable);
-
-  const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
-    (e) => {
-      homeActor.send(HomeScreenEvents.PRESS_CREATE());
-      e.preventDefault();
-    },
-    [homeActor]
-  );
+  const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>((e) => {
+    console.log('SUBMIT!', playerNameRef.current);
+    e.preventDefault();
+  }, []);
 
   return (
     <Box css={{ p: '$3' }}>
@@ -89,13 +69,6 @@ export function NewPlayerComponent() {
                 type="text"
                 id="playerName"
                 placeholder="your_name_here"
-                state={
-                  nameIsAvailable
-                    ? 'valid'
-                    : nameIsUnavailable
-                    ? 'invalid'
-                    : undefined
-                }
                 pattern="^[a-zA-Z0-9_-]*$"
                 fullWidth={false}
                 onChange={handleChangePartyCode}
