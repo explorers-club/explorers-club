@@ -32,8 +32,7 @@
         "games/trivia-jam/src/state/index.ts"
       ],
       "@explorers-club/trivia-jam/ui": ["games/trivia-jam/src/ui/index.ts"],
-      "@explorers-club/utils": ["libs/utils/src/index.ts"],
-      "@explorers-club/*": ["apps/web/src/*"]
+      "@explorers-club/utils": ["libs/utils/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
