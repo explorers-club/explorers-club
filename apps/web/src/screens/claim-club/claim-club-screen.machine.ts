@@ -129,8 +129,9 @@ export const createClaimClubScreenMachine = ({
       },
       guards: {
         hasClubAlready: () => {
-          console.log('has club');
-          return true;
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const playerName = selectPlayerName(authActor.getSnapshot()!);
+          return !!playerName;
         },
         isNotLoggedIn: () => {
           const session = authActor.getSnapshot()?.context.session;

@@ -59,12 +59,10 @@ export const GlobalStateProvider = ({ children }: { children: ReactNode }) => {
 
   // useActorLogger(appActor);
   useActorLogger(authActor);
-  // useActorLogger(navigationActor);
+  useActorLogger(navigationActor);
 
   return (
-    <GlobalStateContext.Provider
-      value={{ authActor, navigationActor }}
-    >
+    <GlobalStateContext.Provider value={{ authActor, navigationActor }}>
       {children}
     </GlobalStateContext.Provider>
   );

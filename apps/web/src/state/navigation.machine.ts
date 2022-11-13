@@ -40,9 +40,7 @@ export const createNavigationMachine = ({
           on: {
             NAVIGATE_CLAIM_CLUB: {
               target: 'ClaimClub',
-              actions: (_, { playerName }) => {
-                navigate(`/${playerName}/claim`, { replace: true });
-              },
+              actions: 'navigateToClaimClub',
             },
           },
         },
@@ -104,12 +102,22 @@ export const createNavigationMachine = ({
               });
             },
           },
+          on: {
+            NAVIGATE_CLAIM_CLUB: {
+              target: 'ClaimClub',
+              actions: 'navigateToClaimClub',
+            },
+          },
         },
       },
       predictableActionArguments: true, // from xstate v4 warning
     },
     {
       actions: {
+        navigateToClaimClub: (_, { playerName }) => {
+          console.log({ playerName });
+          navigate(`/${playerName}/claim`, { replace: true });
+        },
         // navigateToClubScreen: (context, event: DoneInvokeEvent<string>) => {
         //   const playerName = event.data;
         //   if (!playerName) {

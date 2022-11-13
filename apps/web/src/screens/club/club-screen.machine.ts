@@ -1,21 +1,28 @@
 import {
   ActorManager,
-  ActorType, getActorId, MachineFactory, ManagedActor, SerializedSharedActor, setActorEvent, SharedActorEvent
+  ActorType,
+  getActorId,
+  MachineFactory,
+  ManagedActor,
+  SerializedSharedActor,
+  setActorEvent,
+  SharedActorEvent,
 } from '@explorers-club/actor';
 import {
   createPartyMachine,
   createPartyPlayerMachine,
   PartyActor,
-  PartyPlayerEvents
+  PartyPlayerEvents,
 } from '@explorers-club/party';
 import {
   createTriviaJamMachine,
-  createTriviaJamPlayerMachine
+  createTriviaJamPlayerMachine,
 } from '@explorers-club/trivia-jam/state';
 import { get, onDisconnect, onValue, push, ref, set } from 'firebase/database';
 import { fromRef, ListenEvent } from 'rxfire/database';
 import { filter, first, from, fromEvent, skipWhile } from 'rxjs';
 import { ActorRefFrom, assign, DoneInvokeEvent, StateFrom } from 'xstate';
+import { sendParent } from 'xstate/lib/actions';
 import { createModel } from 'xstate/lib/model';
 import { waitFor } from 'xstate/lib/waitFor';
 import { fetchUserProfileByName } from '../../api/fetchUserProfileByName';
@@ -23,6 +30,7 @@ import { db } from '../../lib/firebase';
 import { AuthActor } from '../../state/auth.machine';
 import { selectAuthIsInitalized } from '../../state/auth.selectors';
 import { createAnonymousUser } from '../../state/auth.utils';
+import { NavigationEvents } from '../../state/navigation.machine';
 
 MachineFactory.registerMachine(ActorType.PARTY_ACTOR, createPartyMachine);
 MachineFactory.registerMachine(
@@ -112,7 +120,11 @@ export const createClubScreenMachine = ({
                 PRESS_CLAIM: 'Claiming',
               },
             },
-            Claiming: {},
+            Claiming: {
+              entry: sendParent(
+                NavigationEvents.NAVIGATE_CLAIM_CLUB(hostPlayerName)
+              ),
+            },
             Claimed: {
               type: 'final' as const,
             },
