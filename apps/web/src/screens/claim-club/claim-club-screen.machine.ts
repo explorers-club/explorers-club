@@ -3,6 +3,8 @@ import { createModel } from 'xstate/lib/model';
 import { waitFor } from 'xstate/lib/waitFor';
 import { AuthActor } from '../../state/auth.machine';
 import { selectAuthIsInitalized } from '../../state/auth.selectors';
+import { createAnonymousUser } from '../../state/auth.utils';
+import { enterEmailMachine } from './enter-email.machine';
 
 const claimClubScreenModel = createModel(
   {
@@ -37,6 +39,10 @@ export const createClaimClubScreenMachine = ({
             src: () => waitFor(authActor, selectAuthIsInitalized),
             onDone: [
               {
+                target: 'CreatingAccount',
+                cond: 'isNotLoggedIn',
+              },
+              {
                 target: 'EnteringEmail',
                 cond: 'isAnonymous',
               },
@@ -46,7 +52,26 @@ export const createClaimClubScreenMachine = ({
             ],
           },
         },
-        EnteringEmail: {},
+        CreatingAccount: {
+          invoke: {
+            src: 'createAccount',
+            onDone: 'EnteringEmail',
+            onError: 'Error',
+          },
+        },
+        Error: {},
+        EnteringEmail: {
+          invoke: {
+            src: enterEmailMachine,
+            onDone: 'EnteringPassword',
+            onError: 'Error',
+          },
+          // invoke: {
+          //   src: enterEmailMachine,
+          //   onDone: 'EnterPassword',
+          //   onError: 'Error',
+          // },
+        },
         EnteringPassword: {},
       },
       predictableActionArguments: true,
@@ -54,13 +79,19 @@ export const createClaimClubScreenMachine = ({
     {
       actions: {},
       guards: {
+        isNotLoggedIn: () => {
+          const session = authActor.getSnapshot()?.context.session;
+          return !session;
+        },
         isAnonymous: () => {
           return !!authActor
             .getSnapshot()
             ?.context.session?.user.email?.match('@anon-users.explorers.club');
         },
       },
-      services: {},
+      services: {
+        createAccount: () => createAnonymousUser(authActor),
+      },
     }
   );
 };
