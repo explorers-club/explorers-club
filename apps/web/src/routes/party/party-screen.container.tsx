@@ -1,5 +1,5 @@
 import { useSelector } from '@xstate/react';
-import { Box } from '@explorers-club/components/atoms/Box';
+import { Box } from '@atoms/Box';
 import { ConnectedContext } from '../../state/connected.context';
 import { Connected } from './connected';
 import { Connecting } from './connecting.component';

@@ -2,10 +2,10 @@ import { PartyEvents, PartyPlayerActor } from '@explorers-club/party';
 import { PersonIcon, PlusIcon } from '@radix-ui/react-icons';
 import { useSelector } from '@xstate/react';
 import { FC, useCallback, useContext } from 'react';
-import { Avatar } from '@explorers-club/components/atoms/Avatar';
-import { Flex } from '@explorers-club/components/atoms/Flex';
-import { Label } from '@explorers-club/components/atoms/Label';
-import { Text } from '@explorers-club/components/atoms/Text';
+import { Avatar } from '@atoms/Avatar';
+import { Flex } from '@atoms/Flex';
+import { Label } from '@atoms/Label';
+import { Text } from '@atoms/Text';
 import { ConnectedContext } from '../../state/connected.context';
 
 interface Props {

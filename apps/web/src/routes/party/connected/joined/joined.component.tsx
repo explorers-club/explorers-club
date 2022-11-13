@@ -1,6 +1,6 @@
 import { useSelector } from '@xstate/react';
 import { useContext } from 'react';
-import { Box } from '@explorers-club/components/atoms/Box';
+import { Box } from '@atoms/Box';
 import { usePartyActor, usePartyScreenActor } from '../../party-screen.hooks';
 import { PlayerList } from '../player-list.component';
 import { JoinedContext } from './joined.context';

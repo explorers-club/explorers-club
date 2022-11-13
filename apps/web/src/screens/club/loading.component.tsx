@@ -1,4 +1,4 @@
-import { ProgressBar } from '@explorers-club/components/molecules/ProgressBar';
+import { ProgressBar } from '@molecules/ProgressBar';
 import { Container } from './club.styles';
 
 export const Loading = () => {

@@ -1,4 +1,4 @@
-import { Button } from '@explorers-club/components/atoms/Button';
+import { Button } from '@atoms/Button';
 import { useSelector } from '@xstate/react';
 import { FC } from 'react';
 import { useHomeScreenActor } from './home-screen.hooks';

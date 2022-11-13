@@ -1,5 +1,5 @@
 import { FC, useCallback } from 'react';
-import { Button } from '@explorers-club/components/atoms/Button';
+import { Button } from '@atoms/Button';
 import { useClubScreenActor } from './club-screen.hooks';
 import { ClubScreenEvents } from './club-screen.machine';
 
