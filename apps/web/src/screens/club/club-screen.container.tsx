@@ -7,9 +7,11 @@ import { PlayerList } from './player-list';
 import { Flex } from '@atoms/Flex';
 import { EnterName } from './enter-name';
 import { memo } from 'react';
+import { useActorLogger } from '../../lib/logging';
 
 export const ClubScreen = memo(() => {
   const clubScreenActor = useClubScreenActor();
+  useActorLogger(clubScreenActor);
 
   const isClaimable = useSelector(clubScreenActor, selectIsClaimable);
   const isEnteringName = useSelector(clubScreenActor, (state) => {

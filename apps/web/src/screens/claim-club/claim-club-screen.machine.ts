@@ -2,7 +2,7 @@ import { ActorRefFrom, assign, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { waitFor } from 'xstate/lib/waitFor';
 import { supabaseClient } from '../../lib/supabase';
-import { AuthActor } from '../../state/auth.machine';
+import { AuthActor, AuthEvents } from '../../state/auth.machine';
 import {
   selectAuthIsInitalized,
   selectHasPasswordSet,
@@ -165,6 +165,9 @@ export const createClaimClubScreenMachine = ({
             throw error;
           }
 
+          // Refresh the data on the actor since we just updated
+          // the player name
+          authActor.send(AuthEvents.REFRESH());
           return true;
         },
       },

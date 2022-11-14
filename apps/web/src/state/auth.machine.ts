@@ -21,6 +21,7 @@ const authModel = createModel(
     events: {
       LOGOUT: () => ({}),
       CREATE_ANONYMOUS_USER: () => ({}),
+      REFRESH: () => ({}),
     },
   }
 );
@@ -118,6 +119,7 @@ export const createAuthMachine = () =>
         },
         Authenticated: {
           on: {
+            REFRESH: 'Initializing',
             LOGOUT: {
               actions: 'logout',
               target: 'Unauthenticated',
