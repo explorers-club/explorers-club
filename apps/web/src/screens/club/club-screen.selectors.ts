@@ -44,3 +44,6 @@ export const selectIsSpectating = (state: ClubScreenState) =>
   state.matches('Connected.Spectating');
 
 export const selectShouldShowParty = (state: ClubScreenState) => true;
+
+export const selectPartyIsJoinable = (state: ClubScreenState) =>
+  state.matches('Connected.Spectating');

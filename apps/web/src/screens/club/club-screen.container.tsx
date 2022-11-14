@@ -1,3 +1,4 @@
+import { Flex } from '@atoms/Flex';
 import { useSelector } from '@xstate/react';
 import { Claimable } from './claimable.component';
 import { useClubScreenActor } from './club-screen.hooks';
@@ -16,11 +17,11 @@ export const ClubScreen = () => {
   }
 
   return (
-    <>
+    <Flex css={{ fd: 'column', gap: '$3' }}>
       <GameSelect />
       <JoinParty />
       <PlayerList />
-    </>
+    </Flex>
   );
 };
 

@@ -1,1 +1,1 @@
-export * from './join-party.component';
+export * from './join-party.container';

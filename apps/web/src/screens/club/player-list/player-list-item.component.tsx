@@ -12,32 +12,32 @@ interface Props {
 }
 
 export const PlayerListItem: FC<Props> = ({ actor, partyActor }) => {
-  const actorId = actor.id;
-  const hostActorId = useSelector(
-    partyActor,
-    (state) => state.context.hostActorId
-  );
+  // const actorId = actor.id;
+  // const hostActorId = useSelector(
+  //   partyActor,
+  //   (state) => state.context.hostActorId
+  // );
 
   // const iAmHost = false; // todo get my actor id from auth
   // const actorIsNotHost = hostActorId !== actorId;
 
   const name = useSelector(actor, (state) => state.context.playerName);
-  // const isReady = useSelector(actor, (state) => !!state.matches('Ready.Yes'));
+  const isReady = useSelector(actor, (state) => !!state.matches('Ready.Yes'));
 
   // const handleRemove = useCallback(() => {
   //   partyActor.send(PartyEvents.PLAYER_REMOVE({ actorId }));
   // }, [partyActor, actorId]);
-  const displayName = name || 'A new explorer...';
+  const displayName = name || 'Explorer';
 
   return (
     <Flex css={{ gap: '$3', alignItems: 'center' }}>
-      <Avatar size="3" fallback={name ? name[0] : 'EXP'} />
+      <Avatar size="3" fallback={name ? name[0] : 'E'} />
       <Flex css={{ fd: 'column', gap: '$1' }}>
-        <Text size="4" css={{ color: '$gray12' }}>
+        <Text size="4" css={{ color: name ? '$gray12' : '$gray11' }}>
           {displayName}
         </Text>
         <Text size="1" css={{ color: '$gray11' }}>
-          Connecting
+          {!name ? 'Connecting...' : isReady ? 'Ready' : 'Not ready'}
         </Text>
       </Flex>
     </Flex>

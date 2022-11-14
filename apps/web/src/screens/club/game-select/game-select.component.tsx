@@ -9,6 +9,8 @@ export const GameSelectComponent = () => {
       css={{
         fd: 'column',
         height: '100%',
+        maxHeight: '240px',
+
         justifyContent: 'flex-end',
         width: '100%',
         p: '$5',
