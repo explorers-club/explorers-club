@@ -401,7 +401,6 @@ export const createPartyScreenMachine = ({
               .subscribe((changes) => {
                 const { actorId, event } =
                   changes.snapshot.val() as SharedActorEvent;
-                console.log('new event', actorId, event);
 
                 // Don't send events on our own actor
                 if (actorManager.myActorId === actorId) {

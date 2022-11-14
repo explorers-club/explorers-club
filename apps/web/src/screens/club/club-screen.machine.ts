@@ -8,18 +8,18 @@ import {
   setActorEvent,
   setActorState,
   SharedActorEvent,
-  SharedActorRef,
+  SharedActorRef
 } from '@explorers-club/actor';
 import {
   createPartyMachine,
   createPartyPlayerMachine,
   PartyActor,
   PartyPlayerActor,
-  PartyPlayerEvents,
+  PartyPlayerEvents
 } from '@explorers-club/party';
 import {
   createTriviaJamMachine,
-  createTriviaJamPlayerMachine,
+  createTriviaJamPlayerMachine
 } from '@explorers-club/trivia-jam/state';
 import { get, onDisconnect, onValue, push, ref, set } from 'firebase/database';
 import { fromRef, ListenEvent } from 'rxfire/database';
@@ -34,10 +34,11 @@ import { AuthActor } from '../../state/auth.machine';
 import {
   selectAuthIsInitalized,
   selectPlayerName,
-  selectUserId,
+  selectUserId
 } from '../../state/auth.selectors';
 import { createAnonymousUser } from '../../state/auth.utils';
 import { NavigationEvents } from '../../state/navigation.machine';
+import { LayoutMeta } from '../../types';
 import { enterNameMachine } from './enter-name/enter-name.machine';
 import { SpectatingFooter } from './spectating-footer.component';
 
@@ -185,7 +186,7 @@ export const createClubScreenMachine = ({
             Spectating: {
               meta: {
                 footer: SpectatingFooter,
-              },
+              } as LayoutMeta,
               on: {
                 PRESS_JOIN: [
                   {
@@ -219,7 +220,24 @@ export const createClubScreenMachine = ({
             EnteringName: {
               invoke: {
                 src: enterNameMachine,
-                onDone: 'Joined',
+                onDone: {
+                  target: 'Joined',
+                  actions: (
+                    { myActor },
+                    event: DoneInvokeEvent<{ name: string }>
+                  ) => {
+                    console.log(event);
+                    if (!myActor) {
+                      throw new Error('expect myActor when saving name');
+                    }
+
+                    myActor.send(
+                      PartyPlayerEvents.SET_PLAYER_NAME({
+                        playerName: event.data.name,
+                      })
+                    );
+                  },
+                },
               },
               on: {
                 '': { target: 'Joined', cond: 'hasPlayerName' },

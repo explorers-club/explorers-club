@@ -1,15 +1,16 @@
-import { SnakeToCamelCaseNested } from './utils';
+// import { SnakeToCamelCaseNested } from './utils';
 
-// When you first connect to a server, what info do you need for each player?
+import { FC } from 'react';
+import {
+  snapPoints,
+  defaultSnapProps,
+} from 'react-spring-bottom-sheet/dist/types';
 
-export type Player = {
-  id: string;
-  name: string;
-};
-
-export type LobbyPlayer = Player & {
-  isReady: boolean;
-};
+export interface LayoutMeta {
+  snapPoints?: snapPoints;
+  defaultSnap?: number | ((props: defaultSnapProps) => number) | undefined;
+  footer?: FC<unknown>;
+}
 
 // export type ProfileDef = definitions['profiles'];
 // export type Profile = SnakeToCamelCaseNested<ProfileDef>;

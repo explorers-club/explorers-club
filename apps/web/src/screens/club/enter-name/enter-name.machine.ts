@@ -9,14 +9,7 @@ const { formModel, formMachine } = createFormModelAndMachine<{
   },
   {
     handleSubmit: async ({ name }) => {
-      // const { data, error } = await supabaseClient.auth.updateUser({
-      //   pl,
-      // });
-      // console.log({ data });
-
-      // if (error) {
-      //   throw error;
-      // }
+      // Do async validation here?
       return true;
     },
   }

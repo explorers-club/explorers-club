@@ -5,12 +5,11 @@ import { selectIsClaimable } from './club-screen.selectors';
 import { GameSelect } from './game-select';
 import { PlayerList } from './player-list';
 import { Flex } from '@atoms/Flex';
-import { useActorLogger } from '../../lib/logging';
 import { EnterName } from './enter-name';
+import { memo } from 'react';
 
-export const ClubScreen = () => {
+export const ClubScreen = memo(() => {
   const clubScreenActor = useClubScreenActor();
-  useActorLogger(clubScreenActor);
 
   const isClaimable = useSelector(clubScreenActor, selectIsClaimable);
   const isEnteringName = useSelector(clubScreenActor, (state) => {
@@ -31,4 +30,4 @@ export const ClubScreen = () => {
       <PlayerList />
     </Flex>
   );
-};
+});

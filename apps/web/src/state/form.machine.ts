@@ -61,6 +61,7 @@ export function createFormModelAndMachine<T>(
           invoke: {
             src: 'onSubmit',
             onDone: 'Success',
+            doneData: ({ values }) => values,
             onError: {
               target: 'Editing.Error',
               actions: 'assignError',

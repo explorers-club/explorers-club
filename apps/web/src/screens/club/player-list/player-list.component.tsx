@@ -11,7 +11,7 @@ import {
   PlayerListItemPlaceholder,
 } from './player-list-item.component';
 
-const DEFAULT_LOBBY_DISPLAY_SIZE = 4;
+const DEFAULT_LOBBY_DISPLAY_SIZE = 6;
 
 interface Props {
   partyActor: PartyActor;

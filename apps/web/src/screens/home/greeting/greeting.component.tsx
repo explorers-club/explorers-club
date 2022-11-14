@@ -1,4 +1,7 @@
-import { Box } from '@atoms/Box';
+import { Avatar } from '@atoms/Avatar';
+import { Flex } from '@atoms/Flex';
+import { Heading } from '@atoms/Heading';
+import { Section } from '@atoms/Section';
 import { useSelector } from '@xstate/react';
 import { useContext } from 'react';
 import { selectPlayerName } from '../../../state/auth.selectors';
@@ -9,8 +12,18 @@ export const Greeting = () => {
   const playerName = useSelector(authActor, selectPlayerName);
 
   return (
-    <Box css={{ p: '$3' }}>
-      Welcome Back{playerName ? `, ${playerName}` : ''}
-    </Box>
+    <Section>
+      <Flex
+        css={{
+          width: '100%',
+          px: '$3',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <Heading size="3">Welcome {playerName ? playerName : 'back'}</Heading>
+        <Avatar size="4" />
+      </Flex>
+    </Section>
   );
 };
