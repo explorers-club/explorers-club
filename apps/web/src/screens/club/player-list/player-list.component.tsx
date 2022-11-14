@@ -2,10 +2,10 @@ import { Box } from '@atoms/Box';
 import { Caption } from '@atoms/Caption';
 import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
-import { PartyPlayerActor } from '@explorers-club/party';
+import { ActorManager } from '@explorers-club/actor';
+import { PartyActor, PartyPlayerActor } from '@explorers-club/party';
 import { useSelector } from '@xstate/react';
-import { useContext } from 'react';
-import { PartyContext } from './party.context';
+import { FC } from 'react';
 import {
   PlayerListItem,
   PlayerListItemPlaceholder,
@@ -13,8 +13,15 @@ import {
 
 const DEFAULT_LOBBY_DISPLAY_SIZE = 4;
 
-export const PlayerList = () => {
-  const { actorManager, partyActor } = useContext(PartyContext);
+interface Props {
+  partyActor: PartyActor;
+  actorManager: ActorManager;
+}
+
+export const PlayerListComponent: FC<Props> = ({
+  partyActor,
+  actorManager,
+}) => {
   const playerActors = useSelector(partyActor, (state) => {
     return state.context.playerActorIds
       .map((actorId) => actorManager.getActor(actorId))
@@ -35,7 +42,7 @@ export const PlayerList = () => {
           {Array.from({ length: DEFAULT_LOBBY_DISPLAY_SIZE }).map((_, i) => {
             const actor = playerActors[i];
             if (actor) {
-              return <PlayerListItem key={actor.id} actor={actor} />;
+              return <PlayerListItem key={actor.id} actor={actor} partyActor={partyActor} />;
             } else {
               return <PlayerListItemPlaceholder key={i} />;
             }

@@ -3,7 +3,8 @@ import { Claimable } from './claimable.component';
 import { useClubScreenActor } from './club-screen.hooks';
 import { selectIsClaimable } from './club-screen.selectors';
 import { GameSelect } from './game-select';
-import { Party } from './party';
+import { JoinParty } from './join-party';
+import { PlayerList } from './player-list';
 
 export const ClubScreen = () => {
   const clubScreenActor = useClubScreenActor();
@@ -17,7 +18,8 @@ export const ClubScreen = () => {
   return (
     <>
       <GameSelect />
-      <Party />
+      <JoinParty />
+      <PlayerList />
     </>
   );
 };

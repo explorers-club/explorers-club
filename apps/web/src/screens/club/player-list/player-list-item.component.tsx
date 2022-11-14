@@ -1,31 +1,28 @@
 import { Avatar } from '@atoms/Avatar';
 import { Flex } from '@atoms/Flex';
-import { Heading } from '@atoms/Heading';
 import { Text } from '@atoms/Text';
-import { PartyEvents, PartyPlayerActor } from '@explorers-club/party';
+import { PartyActor, PartyPlayerActor } from '@explorers-club/party';
 import { PersonIcon } from '@radix-ui/react-icons';
 import { useSelector } from '@xstate/react';
-import { FC, useCallback, useContext } from 'react';
-import { PartyContext } from './party.context';
+import { FC } from 'react';
 
 interface Props {
   actor: PartyPlayerActor;
+  partyActor: PartyActor;
 }
 
-export const PlayerListItem: FC<Props> = ({ actor }) => {
+export const PlayerListItem: FC<Props> = ({ actor, partyActor }) => {
   const actorId = actor.id;
-  const { partyActor } = useContext(PartyContext);
   const hostActorId = useSelector(
     partyActor,
     (state) => state.context.hostActorId
   );
 
-  const iAmHost = false; // todo get my actor id from auth
-  const actorIsNotHost = hostActorId !== actorId;
-  const showRemoveButton = iAmHost && actorIsNotHost;
+  // const iAmHost = false; // todo get my actor id from auth
+  // const actorIsNotHost = hostActorId !== actorId;
 
   const name = useSelector(actor, (state) => state.context.playerName);
-  const isReady = useSelector(actor, (state) => !!state.matches('Ready.Yes'));
+  // const isReady = useSelector(actor, (state) => !!state.matches('Ready.Yes'));
 
   // const handleRemove = useCallback(() => {
   //   partyActor.send(PartyEvents.PLAYER_REMOVE({ actorId }));

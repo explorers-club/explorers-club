@@ -2,10 +2,9 @@ import { Box } from '@atoms/Box';
 import { useSelector } from '@xstate/react';
 import { useClubScreenActor } from '../club-screen.hooks';
 import { selectPartyActor, selectActorManager } from '../club-screen.selectors';
-import { PlayerList } from './player-list.component';
-import { PartyContext } from './party.context';
+import { PlayerListComponent } from './player-list.component';
 
-export const Party = () => {
+export const PlayerList = () => {
   const clubScreenActor = useClubScreenActor();
 
   const partyActor = useSelector(clubScreenActor, selectPartyActor);
@@ -16,9 +15,7 @@ export const Party = () => {
   }
 
   return (
-    <PartyContext.Provider value={{ actorManager, partyActor }}>
-      <PlayerList />
-    </PartyContext.Provider>
+    <PlayerListComponent actorManager={actorManager} partyActor={partyActor} />
   );
 };
 
