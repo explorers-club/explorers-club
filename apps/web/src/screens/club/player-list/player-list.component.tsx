@@ -31,7 +31,7 @@ export const PlayerListComponent: FC<Props> = ({
   });
 
   return (
-    <Box css={{ p: '$3' }}>
+    <Box css={{ p: '$3', pt: '0' }}>
       <Card css={{ p: '$3' }}>
         <Caption
           css={{ color: '$gray11', textTransform: 'uppercase', mb: '$2' }}
@@ -42,7 +42,13 @@ export const PlayerListComponent: FC<Props> = ({
           {Array.from({ length: DEFAULT_LOBBY_DISPLAY_SIZE }).map((_, i) => {
             const actor = playerActors[i];
             if (actor) {
-              return <PlayerListItem key={actor.id} actor={actor} partyActor={partyActor} />;
+              return (
+                <PlayerListItem
+                  key={actor.id}
+                  actor={actor}
+                  partyActor={partyActor}
+                />
+              );
             } else {
               return <PlayerListItemPlaceholder key={i} />;
             }
