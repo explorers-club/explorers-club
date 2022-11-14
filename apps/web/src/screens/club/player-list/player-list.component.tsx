@@ -3,7 +3,11 @@ import { Caption } from '@atoms/Caption';
 import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
 import { ActorManager } from '@explorers-club/actor';
-import { PartyActor, PartyPlayerActor } from '@explorers-club/party';
+import {
+  PartyActor,
+  PartyPlayerActor,
+  selectPartyHostIsJoined,
+} from '@explorers-club/party';
 import { useSelector } from '@xstate/react';
 import { FC } from 'react';
 import {
@@ -22,6 +26,7 @@ export const PlayerListComponent: FC<Props> = ({
   partyActor,
   actorManager,
 }) => {
+  // const hostIsJoined = useSelector(partyActor, selectPartyHostIsJoined);
   const playerActors = useSelector(partyActor, (state) => {
     return state.context.playerActorIds
       .map((actorId) => actorManager.getActor(actorId))
@@ -50,7 +55,7 @@ export const PlayerListComponent: FC<Props> = ({
                 />
               );
             } else {
-              return <PlayerListItemPlaceholder key={i} />;
+              return <PlayerListItemPlaceholder key={i} name="Empty" />;
             }
           })}
         </Flex>

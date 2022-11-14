@@ -1,4 +1,7 @@
-import { PartyPlayerActor } from '@explorers-club/party';
+import { Flex } from '@atoms/Flex';
+import {
+  PartyPlayerActor
+} from '@explorers-club/party';
 import { useSelector } from '@xstate/react';
 import { useActorManager, usePartyActor } from '../party-screen.hooks';
 import { PlayerListItem } from './player-list-item.component';
@@ -15,10 +18,10 @@ export const PlayerList = () => {
   });
 
   return (
-    <ul>
+    <Flex>
       {playerActors.map((actor) => (
         <PlayerListItem key={actor.id} actor={actor} />
       ))}
-    </ul>
+    </Flex>
   );
 };

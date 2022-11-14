@@ -44,12 +44,16 @@ export const PlayerListItem: FC<Props> = ({ actor, partyActor }) => {
   );
 };
 
-export const PlayerListItemPlaceholder = () => {
+interface PlaceholderProps {
+  name: string;
+}
+
+export const PlayerListItemPlaceholder: FC<PlaceholderProps> = ({ name }) => {
   return (
     <Flex css={{ gap: '$3', alignItems: 'center' }}>
       <Avatar size="3" fallback={<PersonIcon color="var(--colors-gray9)" />} />
       <Text size="2" css={{ color: '$gray11' }}>
-        Empty
+        {name}
       </Text>
     </Flex>
   );
