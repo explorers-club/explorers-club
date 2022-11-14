@@ -61,7 +61,6 @@ export function createFormModelAndMachine<T>(
           invoke: {
             src: 'onSubmit',
             onDone: 'Success',
-            doneData: ({ values }) => values,
             onError: {
               target: 'Editing.Error',
               actions: 'assignError',
@@ -70,6 +69,7 @@ export function createFormModelAndMachine<T>(
         },
         Success: {
           type: 'final' as const,
+          data: ({ values }) => values,
         },
       },
     },
@@ -88,9 +88,9 @@ export function createFormModelAndMachine<T>(
             };
           },
         }),
-        clearError: formModel.assign({
-          errorMessage: () => undefined,
-        }),
+        // clearError: formModel.assign({
+        //   errorMessage: () => undefined,
+        // }),
       },
       services: {
         onSubmit: (context, event) => handleSubmit(context.values),
