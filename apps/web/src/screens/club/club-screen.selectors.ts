@@ -1,7 +1,4 @@
-import { PartyActor } from '@explorers-club/party';
-import { FC } from 'react';
-import { snapPoints } from 'react-spring-bottom-sheet/dist/types';
-import { createSelector } from 'reselect';
+import { PartyActor, PartyPlayerActor } from '@explorers-club/party';
 import { AnyState } from 'xstate';
 import { LayoutMeta } from '../../types';
 import { ClubScreenState } from './club-screen.machine';
@@ -15,9 +12,8 @@ export const selectPartyActor = (state: ClubScreenState) =>
 export const selectLayoutMeta = (state: AnyState) =>
   Object.assign({}, ...Object.values(state?.meta || {})) as LayoutMeta;
 
-
-export const selectGameSelectionActor = (state: ClubScreenState) =>
-  state.context.partyActor as PartyActor | undefined;
+export const selectMyPartyPlayerActor = (state: ClubScreenState) =>
+  state.context.myActor as PartyPlayerActor | undefined;
 
 export const selectActorManager = (state: ClubScreenState) =>
   state.context.actorManager;

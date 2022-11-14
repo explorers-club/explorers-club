@@ -1,4 +1,4 @@
-import { ActorRefFrom, assign, StateFrom } from 'xstate';
+import { ActorRefFrom, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { waitFor } from 'xstate/lib/waitFor';
 import { supabaseClient } from '../../lib/supabase';
@@ -7,7 +7,7 @@ import {
   selectAuthIsInitalized,
   selectHasPasswordSet,
   selectIsAnonymous,
-  selectPlayerName,
+  selectPlayerName
 } from '../../state/auth.selectors';
 import { createAnonymousUser } from '../../state/auth.utils';
 import { enterEmailMachine } from './enter-email.machine';

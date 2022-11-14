@@ -8,18 +8,18 @@ import {
   setActorEvent,
   setActorState,
   SharedActorEvent,
-  SharedActorRef
+  SharedActorRef,
 } from '@explorers-club/actor';
 import {
   createPartyMachine,
   createPartyPlayerMachine,
   PartyActor,
   PartyPlayerActor,
-  PartyPlayerEvents
+  PartyPlayerEvents,
 } from '@explorers-club/party';
 import {
   createTriviaJamMachine,
-  createTriviaJamPlayerMachine
+  createTriviaJamPlayerMachine,
 } from '@explorers-club/trivia-jam/state';
 import { get, onDisconnect, onValue, push, ref, set } from 'firebase/database';
 import { fromRef, ListenEvent } from 'rxfire/database';
@@ -34,13 +34,14 @@ import { AuthActor } from '../../state/auth.machine';
 import {
   selectAuthIsInitalized,
   selectPlayerName,
-  selectUserId
+  selectUserId,
 } from '../../state/auth.selectors';
 import { createAnonymousUser } from '../../state/auth.utils';
 import { NavigationEvents } from '../../state/navigation.machine';
 import { LayoutMeta } from '../../types';
 import { enterNameMachine } from './enter-name/enter-name.machine';
 import { SpectatingFooter } from './spectating-footer.component';
+import { JoinedFooter } from './joined-footer.container';
 
 MachineFactory.registerMachine(ActorType.PARTY_ACTOR, createPartyMachine);
 MachineFactory.registerMachine(
@@ -251,7 +252,11 @@ export const createClubScreenMachine = ({
               },
             },
             JoinError: {},
-            Joined: {},
+            Joined: {
+              meta: {
+                footer: JoinedFooter,
+              } as LayoutMeta,
+            },
           },
         },
       },

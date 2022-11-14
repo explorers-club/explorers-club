@@ -1,14 +1,9 @@
 import { Box } from '@atoms/Box';
-import { useSelector } from '@xstate/react';
-import { useClubScreenActor } from '../club-screen.hooks';
-import { selectPartyActor } from '../club-screen.selectors';
+import { usePartyActor } from '../club-screen.hooks';
 import { GameSelectComponent } from './game-select.component';
 
 export const GameSelect = () => {
-  const clubScreenActor = useClubScreenActor();
-
-  const partyActor = useSelector(clubScreenActor, selectPartyActor);
-
+  const partyActor = usePartyActor();
   if (!partyActor) {
     return <Placeholder />;
   }
