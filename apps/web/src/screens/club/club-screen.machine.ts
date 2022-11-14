@@ -6,7 +6,9 @@ import {
   ManagedActor,
   SerializedSharedActor,
   setActorEvent,
+  setActorState,
   SharedActorEvent,
+  SharedActorRef,
 } from '@explorers-club/actor';
 import {
   createPartyMachine,
@@ -28,7 +30,11 @@ import { waitFor } from 'xstate/lib/waitFor';
 import { fetchUserProfileByName } from '../../api/fetchUserProfileByName';
 import { db } from '../../lib/firebase';
 import { AuthActor } from '../../state/auth.machine';
-import { selectAuthIsInitalized } from '../../state/auth.selectors';
+import {
+  selectAuthIsInitalized,
+  selectPlayerName,
+  selectUserId,
+} from '../../state/auth.selectors';
 import { createAnonymousUser } from '../../state/auth.utils';
 import { NavigationEvents } from '../../state/navigation.machine';
 
@@ -75,6 +81,8 @@ export const createClubScreenMachine = ({
   authActor,
   actorManager,
 }: CreateMachineProps) => {
+  const partyActorId = getActorId(ActorType.PARTY_ACTOR, hostPlayerName);
+
   // What network calls needs to happen?
   // Fetch to see if this profile has been claimed before
   // We can do that with useQuery and firebase I think
@@ -159,6 +167,11 @@ export const createClubScreenMachine = ({
                     actions: 'assignMyActor',
                   },
                   {
+                    // Auto join party if they are hots
+                    cond: 'isHost',
+                    target: 'Joining',
+                  },
+                  {
                     target: 'Spectating',
                   },
                 ],
@@ -209,6 +222,54 @@ export const createClubScreenMachine = ({
     },
     {
       actions: {
+        wirePartyClient: (context) => {
+          if (!context.partyActor) {
+            throw new Error('expected party actor');
+          }
+
+          /**
+           * Spawns the actor on the actor manager and initializes actor in the db.
+           */
+          const spawnPlayerActor = async () => {
+            const userId =
+              context.authActor.getSnapshot()?.context.session?.user.id;
+            if (!userId) {
+              throw new Error('expected user id');
+            }
+
+            const actorType = ActorType.TREEHOUSE_TRIVIA_PLAYER_ACTOR;
+            const actorId = getActorId(actorType, userId);
+            const playerActor = actorManager.spawn({ actorId, actorType });
+            const eventRef = ref(
+              db,
+              `parties/${hostPlayerName}/actor_events/${actorId}`
+            );
+            const stateRef = ref(
+              db,
+              `parties/${hostPlayerName}/actor_state/${actorId}`
+            );
+
+            await setActorState(stateRef, actorManager.serialize(actorId));
+            await setActorEvent(eventRef, {
+              actorId,
+              event: { type: 'INIT' },
+            });
+
+            playerActor.onEvent(async (event) => {
+              await setActorEvent(eventRef, { actorId, event });
+            });
+
+            // TODO maybe set up a disconnect send even here if we need it
+            console.log('spawned player actor!', actorId);
+          };
+
+          // When party machine enters Game state, spawn the game actor
+          const state$ = from(context.partyActor);
+          const enterGame$ = state$.pipe(
+            filter((state) => state.matches('Lobby.CreatingGame'))
+          );
+          enterGame$.subscribe(spawnPlayerActor);
+        },
         rejoinParty: ({ hostPlayerName }) => {
           const userId = authActor.getSnapshot()?.context.session?.user.id;
           if (!userId) {
@@ -242,6 +303,11 @@ export const createClubScreenMachine = ({
         },
       },
       guards: {
+        isHost: ({ authActor, hostPlayerName }) => {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const playerName = selectPlayerName(authActor.getSnapshot()!);
+          return playerName === hostPlayerName;
+        },
         isNotLoggedIn: ({ authActor }) => {
           const session = authActor.getSnapshot()?.context.session;
           return !session;
@@ -261,17 +327,54 @@ export const createClubScreenMachine = ({
         },
       },
       services: {
-        waitForAuthInit: ({ authActor }) => {
-          return new Promise((resolve) => {
-            from(authActor)
-              // Wait for first state not in Initializing
-              // TODO: is there a good way to type the states strings?
-              .pipe(
-                filter((state) => !state.matches('Initializing')),
-                first()
-              )
-              .subscribe(resolve);
+        waitForAuthInit: ({ authActor }) =>
+          waitFor(authActor, (state) => !state.matches('Initializing')),
+        joinParty: async () => {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const userId = selectUserId(authActor.getSnapshot()!);
+          if (!userId) {
+            throw new Error('trying to join party without being logged in');
+          }
+
+          // Create my actor, persist its state, then
+          // add it to the list of actors on the network
+          const sharedActorRef: SharedActorRef = {
+            actorId: getActorId(ActorType.PARTY_PLAYER_ACTOR, userId),
+            actorType: ActorType.PARTY_PLAYER_ACTOR,
+          };
+          const { actorId } = sharedActorRef;
+
+          const myActor = actorManager.spawn(sharedActorRef);
+          actorManager.myActorId = actorId;
+          const myActorRef = ref(
+            db,
+            `parties/${hostPlayerName}/actor_state/${actorId}`
+          );
+          const myEventRef = ref(
+            db,
+            `parties/${hostPlayerName}/actor_events/${actorId}`
+          );
+
+          const stateJSON = JSON.stringify(myActor.getSnapshot());
+
+          // todo: do in transaction ?
+          await setActorState(myActorRef, { ...sharedActorRef, stateJSON });
+          await setActorEvent(myEventRef, {
+            actorId: partyActorId,
+            event: { type: 'INIT' },
           });
+
+          myActor.onEvent(async (event) => {
+            await setActorEvent(myEventRef, { actorId, event });
+          });
+
+          // Send disconnect event when we disconnect
+          onDisconnect(myEventRef).set({
+            actorId,
+            event: PartyPlayerEvents.PLAYER_DISCONNECT(),
+          });
+
+          return myActor;
         },
         connectToParty: async ({ hostPlayerName }) => {
           const stateRef = ref(db, `parties/${hostPlayerName}/actor_state`);

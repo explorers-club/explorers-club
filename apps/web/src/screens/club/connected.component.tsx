@@ -1,7 +1,7 @@
 import { Box } from '@atoms/Box';
 import { useActorLogger } from '../../lib/logging';
 import { useClubScreenActor } from './club-screen.hooks';
-import { PlayerList } from './player-list.component';
+// import { PlayerList } from './player-list.component';
 
 export const ConnectedComponent = () => {
   const clubScreenActor = useClubScreenActor();
@@ -9,7 +9,7 @@ export const ConnectedComponent = () => {
 
   return (
     <Box css={{ px: '$3' }}>
-      <PlayerList />
+      {/* <PlayerList /> */}
     </Box>
   );
 };

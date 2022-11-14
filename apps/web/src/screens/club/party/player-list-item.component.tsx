@@ -1,12 +1,11 @@
-import { PartyEvents, PartyPlayerActor } from '@explorers-club/party';
-import { PersonIcon, PlusIcon } from '@radix-ui/react-icons';
-import { useSelector } from '@xstate/react';
-import { FC, useCallback, useContext } from 'react';
 import { Avatar } from '@atoms/Avatar';
 import { Flex } from '@atoms/Flex';
-import { Label } from '@atoms/Label';
 import { Text } from '@atoms/Text';
-import { ConnectedContext } from '../../state/connected.context';
+import { PartyEvents, PartyPlayerActor } from '@explorers-club/party';
+import { PersonIcon } from '@radix-ui/react-icons';
+import { useSelector } from '@xstate/react';
+import { FC, useCallback, useContext } from 'react';
+import { PartyContext } from './party.context';
 
 interface Props {
   actor: PartyPlayerActor;
@@ -14,7 +13,7 @@ interface Props {
 
 export const PlayerListItem: FC<Props> = ({ actor }) => {
   const actorId = actor.id;
-  const { partyActor } = useContext(ConnectedContext);
+  const { partyActor } = useContext(PartyContext);
   const hostActorId = useSelector(
     partyActor,
     (state) => state.context.hostActorId
@@ -49,7 +48,10 @@ export const PlayerListItemPlaceholder = () => {
   return (
     <Flex>
       <Flex css={{ gap: '$3', alignItems: 'center' }}>
-        <Avatar size="3" fallback={<PersonIcon color="var(--colors-gray9)" />} />
+        <Avatar
+          size="3"
+          fallback={<PersonIcon color="var(--colors-gray9)" />}
+        />
         <Text size="2" css={{ color: '$gray11' }}>
           Empty
         </Text>

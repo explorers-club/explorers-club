@@ -4,14 +4,14 @@ import { useContext } from 'react';
 import { Caption } from '@atoms/Caption';
 import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
-import { ConnectedContext } from '../../state/connected.context';
 import {
   PlayerListItem,
   PlayerListItemPlaceholder,
 } from './player-list-item.component';
+import { PartyContext } from './party.context';
 
 export const PlayerList = () => {
-  const { actorManager, partyActor } = useContext(ConnectedContext);
+  const { actorManager, partyActor } = useContext(PartyContext);
   const playerActors = useSelector(partyActor, (state) => {
     return state.context.playerActorIds
       .map((actorId) => actorManager.getActor(actorId))

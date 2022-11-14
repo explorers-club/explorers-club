@@ -16,6 +16,8 @@ export const selectUser = createSelector(
   (session) => session?.user
 );
 
+export const selectUserId = createSelector(selectUser, (user) => user?.id);
+
 const selectUserProfile = createSelector(
   selectAuthContext,
   (context) => context.profile

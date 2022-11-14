@@ -4,7 +4,7 @@ import {
   ActorType,
   fromActorEvents,
   ManagedActor,
-  SharedMachineProps
+  SharedMachineProps,
 } from '@explorers-club/actor';
 import { filter, first, fromEvent } from 'rxjs';
 import { ActorRefFrom, StateFrom } from 'xstate';

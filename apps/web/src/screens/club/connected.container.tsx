@@ -14,8 +14,8 @@ export const Connected = () => {
   const actorManager = useSelector(clubScreenActor, selectActorManager);
 
   return (
-    <ConnectedContext.Provider value={{ actorManager, partyActor }}>
-      <ConnectedComponent />
-    </ConnectedContext.Provider>
+    // <ConnectedContext.Provider value={{ actorManager, partyActor }}>
+    //   <ConnectedComponent />
+    // </ConnectedContext.Provider>
   );
 };

@@ -5,7 +5,10 @@ export const selectHostPlayerName = (state: ClubScreenState) =>
   state.context.hostPlayerName;
 
 export const selectPartyActor = (state: ClubScreenState) =>
-  state.context.partyActor as PartyActor;
+  state.context.partyActor as PartyActor | undefined;
+
+export const selectGameSelectionActor = (state: ClubScreenState) =>
+  state.context.partyActor as PartyActor | undefined;
 
 export const selectActorManager = (state: ClubScreenState) =>
   state.context.actorManager;
@@ -39,3 +42,5 @@ export const selectIsJoining = (state: ClubScreenState) =>
 
 export const selectIsSpectating = (state: ClubScreenState) =>
   state.matches('Connected.Spectating');
+
+export const selectShouldShowParty = (state: ClubScreenState) => true;
