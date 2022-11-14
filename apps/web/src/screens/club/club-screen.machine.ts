@@ -14,6 +14,7 @@ import {
   createPartyMachine,
   createPartyPlayerMachine,
   PartyActor,
+  PartyPlayerActor,
   PartyPlayerEvents,
 } from '@explorers-club/party';
 import {
@@ -37,6 +38,7 @@ import {
 } from '../../state/auth.selectors';
 import { createAnonymousUser } from '../../state/auth.utils';
 import { NavigationEvents } from '../../state/navigation.machine';
+import { enterNameMachine } from './enter-name/enter-name.machine';
 import { SpectatingFooter } from './spectating-footer.component';
 
 MachineFactory.registerMachine(ActorType.PARTY_ACTOR, createPartyMachine);
@@ -59,6 +61,7 @@ const clubScreenModel = createModel(
     authActor: {} as AuthActor,
     actorManager: {} as ActorManager,
     partyActor: undefined as PartyActor | undefined,
+    myActor: undefined as PartyPlayerActor | undefined,
   },
   {
     events: {
@@ -92,6 +95,7 @@ export const createClubScreenMachine = ({
       id: 'ClubScreenMachine',
       initial: 'Loading',
       context: {
+        myActor: undefined,
         authActor,
         hostPlayerName,
         actorManager,
@@ -206,16 +210,26 @@ export const createClubScreenMachine = ({
               invoke: {
                 src: 'joinParty',
                 onDone: {
-                  target: 'EnterPlayerName',
+                  target: 'EnteringName',
                   actions: 'assignMyActor',
                 },
                 onError: 'JoinError',
               },
             },
-            EnterPlayerName: {},
-            Rejoining: {
+            EnteringName: {
+              invoke: {
+                src: enterNameMachine,
+                onDone: 'Joined',
+              },
               on: {
-                '': { target: 'Joined', actions: 'rejoinParty' },
+                '': { target: 'Joined', cond: 'hasPlayerName' },
+              },
+            },
+            Rejoining: {
+              invoke: {
+                src: 'rejoinParty',
+                onDone: 'EnteringName',
+                onError: 'JoinError',
               },
             },
             JoinError: {},
@@ -226,6 +240,17 @@ export const createClubScreenMachine = ({
     },
     {
       actions: {
+        assignMyActor: clubScreenModel.assign({
+          myActor: ({ authActor }) => {
+            const userId = authActor.getSnapshot()?.context.session?.user.id;
+            if (!userId) {
+              throw new Error('trying to assign actor without being logged in');
+            }
+
+            const actorId = getActorId(ActorType.PARTY_PLAYER_ACTOR, userId);
+            return actorManager.getActor(actorId);
+          },
+        }),
         wirePartyClient: (context) => {
           if (!context.partyActor) {
             throw new Error('expected party actor');
@@ -274,39 +299,11 @@ export const createClubScreenMachine = ({
           );
           enterGame$.subscribe(spawnPlayerActor);
         },
-        rejoinParty: ({ hostPlayerName }) => {
-          const userId = authActor.getSnapshot()?.context.session?.user.id;
-          if (!userId) {
-            throw new Error('trying to rejoin party without being logged in');
-          }
-
-          const actorId = getActorId(ActorType.PARTY_PLAYER_ACTOR, userId);
-          const myActor = actorManager.getActor(actorId);
-          if (!myActor) {
-            console.warn('couldnt find actor when trying to rejoin');
-            return;
-          }
-          actorManager.myActorId = actorId;
-
-          const myEventRef = ref(
-            db,
-            `parties/${hostPlayerName}/actor_events/${actorId}`
-          );
-          myActor.onEvent(async (event) => {
-            await setActorEvent(myEventRef, { actorId, event });
-          });
-          myActor.send(PartyPlayerEvents.PLAYER_REJOIN());
-
-          // Send disconnect event when we disconnect
-          onDisconnect(myEventRef).set({
-            actorId,
-            event: PartyPlayerEvents.PLAYER_DISCONNECT(),
-          });
-
-          return myActor;
-        },
       },
       guards: {
+        hasPlayerName: ({ myActor }) => {
+          return !!myActor?.getSnapshot()?.context.playerName;
+        },
         isHost: ({ authActor, hostPlayerName }) => {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           const playerName = selectPlayerName(authActor.getSnapshot()!);
@@ -317,7 +314,8 @@ export const createClubScreenMachine = ({
           return !session;
         },
         isInParty: ({ authActor, actorManager }) => {
-          const userId = authActor.getSnapshot()?.context.session?.user.id; // lol
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const userId = selectUserId(authActor.getSnapshot()!);
           if (!userId) {
             return false;
           }
@@ -383,6 +381,37 @@ export const createClubScreenMachine = ({
           if (playerName) {
             myActor.send(PartyPlayerEvents.SET_PLAYER_NAME({ playerName }));
           }
+
+          return myActor;
+        },
+        rejoinParty: async ({ hostPlayerName }) => {
+          const userId = authActor.getSnapshot()?.context.session?.user.id;
+          if (!userId) {
+            throw new Error('trying to rejoin party without being logged in');
+          }
+
+          const actorId = getActorId(ActorType.PARTY_PLAYER_ACTOR, userId);
+          const myActor = actorManager.getActor(actorId);
+          if (!myActor) {
+            console.warn('couldnt find actor when trying to rejoin');
+            return;
+          }
+          actorManager.myActorId = actorId;
+
+          const myEventRef = ref(
+            db,
+            `parties/${hostPlayerName}/actor_events/${actorId}`
+          );
+          myActor.onEvent(async (event) => {
+            await setActorEvent(myEventRef, { actorId, event });
+          });
+          myActor.send(PartyPlayerEvents.PLAYER_REJOIN());
+
+          // Send disconnect event when we disconnect
+          onDisconnect(myEventRef).set({
+            actorId,
+            event: PartyPlayerEvents.PLAYER_DISCONNECT(),
+          });
 
           return myActor;
         },

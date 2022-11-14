@@ -5,14 +5,24 @@ import { selectIsClaimable } from './club-screen.selectors';
 import { GameSelect } from './game-select';
 import { PlayerList } from './player-list';
 import { Flex } from '@atoms/Flex';
+import { useActorLogger } from '../../lib/logging';
+import { EnterName } from './enter-name';
 
 export const ClubScreen = () => {
   const clubScreenActor = useClubScreenActor();
+  useActorLogger(clubScreenActor);
 
   const isClaimable = useSelector(clubScreenActor, selectIsClaimable);
+  const isEnteringName = useSelector(clubScreenActor, (state) => {
+    return state.matches('Connected.EnteringName');
+  });
 
   if (isClaimable) {
     return <Claimable />;
+  }
+
+  if (isEnteringName) {
+    return <EnterName />;
   }
 
   return (
