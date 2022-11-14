@@ -27,11 +27,11 @@ export const PlayerListItem: FC<Props> = ({ actor, partyActor }) => {
   // const handleRemove = useCallback(() => {
   //   partyActor.send(PartyEvents.PLAYER_REMOVE({ actorId }));
   // }, [partyActor, actorId]);
-  const displayName = name || 'Explorer';
+  const displayName = name || 'UnknownExplorer';
 
   return (
     <Flex css={{ gap: '$3', alignItems: 'center' }}>
-      <Avatar size="3" fallback={name ? name[0] : 'E'} />
+      <Avatar size="3" fallback={name ? name[0] : '?'} />
       <Flex css={{ fd: 'column', gap: '$1' }}>
         <Text size="4" css={{ color: name ? '$gray12' : '$gray11' }}>
           {displayName}

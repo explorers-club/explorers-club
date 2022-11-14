@@ -37,6 +37,7 @@ import {
 } from '../../state/auth.selectors';
 import { createAnonymousUser } from '../../state/auth.utils';
 import { NavigationEvents } from '../../state/navigation.machine';
+import { SpectatingFooter } from './spectating-footer.component';
 
 MachineFactory.registerMachine(ActorType.PARTY_ACTOR, createPartyMachine);
 MachineFactory.registerMachine(
@@ -178,6 +179,9 @@ export const createClubScreenMachine = ({
               },
             },
             Spectating: {
+              meta: {
+                footer: SpectatingFooter,
+              },
               on: {
                 PRESS_JOIN: [
                   {

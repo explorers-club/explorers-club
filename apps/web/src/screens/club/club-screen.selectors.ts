@@ -1,4 +1,7 @@
 import { PartyActor } from '@explorers-club/party';
+import { FC } from 'react';
+import { createSelector } from 'reselect';
+import { AnyState } from 'xstate';
 import { ClubScreenState } from './club-screen.machine';
 
 export const selectHostPlayerName = (state: ClubScreenState) =>
@@ -6,6 +9,14 @@ export const selectHostPlayerName = (state: ClubScreenState) =>
 
 export const selectPartyActor = (state: ClubScreenState) =>
   state.context.partyActor as PartyActor | undefined;
+
+const selectMetaValue = (state: AnyState) =>
+  Object.assign({}, ...Object.values(state?.meta || {}));
+
+export const selectFooterComponent = createSelector(
+  selectMetaValue,
+  (meta) => meta?.footer as FC<unknown>
+);
 
 export const selectGameSelectionActor = (state: ClubScreenState) =>
   state.context.partyActor as PartyActor | undefined;
