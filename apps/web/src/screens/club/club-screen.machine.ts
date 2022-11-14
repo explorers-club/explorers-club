@@ -374,6 +374,12 @@ export const createClubScreenMachine = ({
             event: PartyPlayerEvents.PLAYER_DISCONNECT(),
           });
 
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const playerName = selectPlayerName(authActor.getSnapshot()!);
+          if (playerName) {
+            myActor.send(PartyPlayerEvents.SET_PLAYER_NAME({ playerName }));
+          }
+
           return myActor;
         },
         connectToParty: async ({ hostPlayerName }) => {

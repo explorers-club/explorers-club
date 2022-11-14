@@ -10,10 +10,9 @@ const { formModel, formMachine } = createFormModelAndMachine<{
   },
   {
     handleSubmit: async ({ email }) => {
-      const { data, error } = await supabaseClient.auth.updateUser({
+      const { error } = await supabaseClient.auth.updateUser({
         email,
       });
-      console.log({ data });
 
       if (error) {
         throw error;

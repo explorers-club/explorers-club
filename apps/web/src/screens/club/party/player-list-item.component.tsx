@@ -1,5 +1,6 @@
 import { Avatar } from '@atoms/Avatar';
 import { Flex } from '@atoms/Flex';
+import { Heading } from '@atoms/Heading';
 import { Text } from '@atoms/Text';
 import { PartyEvents, PartyPlayerActor } from '@explorers-club/party';
 import { PersonIcon } from '@radix-ui/react-icons';
@@ -26,36 +27,33 @@ export const PlayerListItem: FC<Props> = ({ actor }) => {
   const name = useSelector(actor, (state) => state.context.playerName);
   const isReady = useSelector(actor, (state) => !!state.matches('Ready.Yes'));
 
-  const handleRemove = useCallback(() => {
-    partyActor.send(PartyEvents.PLAYER_REMOVE({ actorId }));
-  }, [partyActor, actorId]);
+  // const handleRemove = useCallback(() => {
+  //   partyActor.send(PartyEvents.PLAYER_REMOVE({ actorId }));
+  // }, [partyActor, actorId]);
+  const displayName = name || 'A new explorer...';
 
   return (
-    <li>
-      {!name ? (
-        <span>a new explorer is connecting...</span>
-      ) : (
-        <span>
-          {name} - {isReady ? 'Ready' : 'Not Ready'}
-          {showRemoveButton && <button onClick={handleRemove}>remove</button>}
-        </span>
-      )}
-    </li>
+    <Flex css={{ gap: '$3', alignItems: 'center' }}>
+      <Avatar size="3" fallback={name ? name[0] : 'EXP'} />
+      <Flex css={{ fd: 'column', gap: '$1' }}>
+        <Text size="4" css={{ color: '$gray12' }}>
+          {displayName}
+        </Text>
+        <Text size="1" css={{ color: '$gray11' }}>
+          Connecting
+        </Text>
+      </Flex>
+    </Flex>
   );
 };
 
 export const PlayerListItemPlaceholder = () => {
   return (
-    <Flex>
-      <Flex css={{ gap: '$3', alignItems: 'center' }}>
-        <Avatar
-          size="3"
-          fallback={<PersonIcon color="var(--colors-gray9)" />}
-        />
-        <Text size="2" css={{ color: '$gray11' }}>
-          Empty
-        </Text>
-      </Flex>
+    <Flex css={{ gap: '$3', alignItems: 'center' }}>
+      <Avatar size="3" fallback={<PersonIcon color="var(--colors-gray9)" />} />
+      <Text size="2" css={{ color: '$gray11' }}>
+        Empty
+      </Text>
     </Flex>
   );
 };
