@@ -1,26 +1,22 @@
-import { ActorManager } from '@explorers-club/actor';
-import { FC, useEffect } from 'react';
-import { Leaderboard } from '../components/Leaderboard';
+import { FC } from 'react';
 import { GameContext } from '../state/game.context';
-import { contentfulClient } from '@explorers-club/contentful';
+import { TriviaJamActor } from '../state';
+import { Screens } from '../screens';
 
 interface Props {
-  actorManager: ActorManager;
+  gameActor: TriviaJamActor;
 }
 
-export const TriviaJamMainUI: FC<Props> = ({ actorManager }) => {
-  useEffect(() => {
-    contentfulClient.getEntry('6THg9TlFzbKerSDrniPxL0').then((f) => {
-      console.log({ f });
-    });
-  }, []);
+export const TriviaJamMainUI: FC<Props> = ({ gameActor }) => {
+  // useEffect(() => {
+  //   contentfulClient.getEntry('6THg9TlFzbKerSDrniPxL0').then((f) => {
+  //     console.log({ f });
+  //   });
+  // }, []);
 
   return (
-    <GameContext.Provider value={{ actorManager }}>
-      <div>
-        <h2>Welcome to Trivia Jam!</h2>
-        <Leaderboard />
-      </div>
+    <GameContext.Provider value={{ gameActor }}>
+      <Screens />
     </GameContext.Provider>
   );
 };

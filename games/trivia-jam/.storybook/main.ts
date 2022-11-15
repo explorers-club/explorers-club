@@ -8,8 +8,8 @@ const config: StorybookConfig = {
 
   stories: [
     ...rootMain.stories,
-    '../src/ui/**/*.stories.mdx',
-    '../src/ui/**/*.stories.@(js|jsx|ts|tsx)',
+    '../src/**/*.stories.mdx',
+    '../src/**/*.stories.@(js|jsx|ts|tsx)',
   ],
   addons: [...(rootMain.addons || []), '@nrwl/react/plugins/storybook'],
   webpackFinal: async (config, { configType }: Options) => {

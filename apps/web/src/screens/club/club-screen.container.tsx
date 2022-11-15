@@ -1,13 +1,11 @@
 import { useSelector } from '@xstate/react';
+import { memo } from 'react';
+import { useActorLogger } from '../../lib/logging';
 import { Claimable } from './claimable.component';
 import { useClubScreenActor } from './club-screen.hooks';
 import { selectIsClaimable } from './club-screen.selectors';
-import { GameSelect } from './game-select';
-import { PlayerList } from './player-list';
-import { Flex } from '@atoms/Flex';
+import { Connected } from './connected.container';
 import { EnterName } from './enter-name';
-import { memo } from 'react';
-import { useActorLogger } from '../../lib/logging';
 
 export const ClubScreen = memo(() => {
   const clubScreenActor = useClubScreenActor();
@@ -18,6 +16,8 @@ export const ClubScreen = memo(() => {
     return state.matches('Connected.EnteringName');
   });
 
+  // TODO refactor how the business logic works on this
+  // instead of if/returns, considering using a switch or conditional rendering
   if (isClaimable) {
     return <Claimable />;
   }
@@ -26,10 +26,5 @@ export const ClubScreen = memo(() => {
     return <EnterName />;
   }
 
-  return (
-    <Flex css={{ fd: 'column', gap: '$3' }}>
-      <GameSelect />
-      <PlayerList />
-    </Flex>
-  );
+  return <Connected />;
 });

@@ -1,6 +1,6 @@
-import { ActorManager } from '@explorers-club/actor';
 import { createContext } from 'react';
+import { TriviaJamActor } from './trivia-jam.machine';
 
 export const GameContext = createContext({
-  actorManager: {} as ActorManager,
+  gameActor: {} as TriviaJamActor,
 });

@@ -1,26 +1,22 @@
 import {
   ActorID,
+  ActorManager,
   fromActorEvents,
   SharedMachineProps,
 } from '@explorers-club/actor';
 import { map, first } from 'rxjs';
-import { ActorRefFrom, assign, StateFrom } from 'xstate';
+import { ActorRefFrom, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
-
-interface Props {
-  playerActorIds: string[];
-  hostId: string;
-}
 
 const triviaJamModel = createModel(
   {
     playerActorIds: [] as ActorID[],
     hostId: '' as string,
     correctCounts: {} as Record<string, number>,
+    actorManager: {} as ActorManager,
   },
   {
     events: {
-      INITIALIZE: (props: Props) => props,
       PLAYER_LOADED: () => ({}),
     },
   }
@@ -31,29 +27,39 @@ export const TriviaJamEvents = triviaJamModel.events;
 export const createTriviaJamMachine = ({
   actorId,
   actorManager,
-}: SharedMachineProps) =>
-  triviaJamModel.createMachine(
+}: SharedMachineProps) => {
+  // Should the actor manager itself be a machine
+
+  // const playerActorIds = selectPlayerActors()
+
+  return triviaJamModel.createMachine(
     {
       id: actorId,
-      initial: 'Unitialized',
+      initial: 'Loading',
+      context: {
+        playerActorIds: [], // TODO maybe we don't need to do this initialize event
+        hostId: '',
+        correctCounts: {},
+        actorManager,
+      },
       states: {
-        Unitialized: {
-          on: {
-            INITIALIZE: {
-              actions: assign({
-                playerActorIds: (_, event) => event.playerActorIds,
-                hostId: (_, event) => event.hostId,
-                correctCounts: (_, event) =>
-                  event.playerActorIds.reduce((result, cur) => {
-                    return {
-                      ...result,
-                      [cur]: 0,
-                    };
-                  }, {}),
-              }),
-            },
-          },
-        },
+        // Unitialized: {
+        //   on: {
+        //     INITIALIZE: {
+        //       actions: assign({
+        //         playerActorIds: (_, event) => event.playerActorIds,
+        //         hostId: (_, event) => event.hostId,
+        //         correctCounts: (_, event) =>
+        //           event.playerActorIds.reduce((result, cur) => {
+        //             return {
+        //               ...result,
+        //               [cur]: 0,
+        //             };
+        //           }, {}),
+        //       }),
+        //     },
+        //   },
+        // },
         Loading: {
           invoke: {
             src: 'waitForAllPlayersLoaded',
@@ -124,9 +130,8 @@ export const createTriviaJamMachine = ({
       },
     }
   );
+};
 
-export type TriviaJamMachine = ReturnType<
-  typeof createTriviaJamMachine
->;
+export type TriviaJamMachine = ReturnType<typeof createTriviaJamMachine>;
 export type TriviaJamActor = ActorRefFrom<TriviaJamMachine>;
 export type TriviaJamState = StateFrom<TriviaJamMachine>;
