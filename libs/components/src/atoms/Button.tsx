@@ -38,8 +38,8 @@ export const Button = styled('button', {
   variants: {
     fullWidth: {
       true: {
-        width: "100%"
-      }
+        width: '100%',
+      },
     },
     size: {
       '1': {
