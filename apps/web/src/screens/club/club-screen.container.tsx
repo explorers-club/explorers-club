@@ -16,14 +16,16 @@ export const ClubScreen = memo(() => {
     return state.matches('Connected.EnteringName');
   });
 
-  // TODO rename these to Screens
-  if (isClaimable) {
-    return <ClaimableScreen />;
+  switch (true) {
+    case isClaimable: {
+      return <ClaimableScreen />;
+    }
+    case isEnteringName: {
+      return <EnterNameScreen />;
+    }
+    default: {
+      // TODO this default is wrong, need disconnected, joining, etc states
+      return <ConnectedScreen />;
+    }
   }
-
-  if (isEnteringName) {
-    return <EnterNameScreen />;
-  }
-
-  return <ConnectedScreen />;
 });
