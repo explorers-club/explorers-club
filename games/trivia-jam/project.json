@@ -1,6 +1,6 @@
 {
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "games/trivia-jam/src",
+  "sourceRoot": "games/trivia-jam/src/ui",
   "projectType": "library",
   "tags": [],
   "targets": {
@@ -17,6 +17,37 @@
       "options": {
         "jestConfig": "games/trivia-jam/jest.config.ts",
         "passWithNoTests": true
+      }
+    },
+    "storybook": {
+      "executor": "@nrwl/storybook:storybook",
+      "options": {
+        "uiFramework": "@storybook/react",
+        "port": 4400,
+        "config": {
+          "configFolder": "games/trivia-jam/.storybook"
+        }
+      },
+      "configurations": {
+        "ci": {
+          "quiet": true
+        }
+      }
+    },
+    "build-storybook": {
+      "executor": "@nrwl/storybook:build",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "uiFramework": "@storybook/react",
+        "outputPath": "dist/storybook/trivia-jam",
+        "config": {
+          "configFolder": "games/trivia-jam/.storybook"
+        }
+      },
+      "configurations": {
+        "ci": {
+          "quiet": true
+        }
       }
     }
   }
