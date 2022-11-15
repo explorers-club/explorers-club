@@ -1,1 +1,1 @@
-export * from './enter-name.container';
+export * from './enter-name-screen.container';

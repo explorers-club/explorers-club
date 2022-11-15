@@ -11,7 +11,7 @@ interface Props {
   formActor: EnterNameActor;
 }
 
-export const EnterNameComponent: FC<Props> = ({ formActor }) => {
+export const EnterName: FC<Props> = ({ formActor }) => {
   const nameRef = useRef<HTMLInputElement>(null);
 
   // const canSubmit = useSelector(

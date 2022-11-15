@@ -1,11 +1,11 @@
 import { useSelector } from '@xstate/react';
 import { memo } from 'react';
 import { useActorLogger } from '../../lib/logging';
-import { Claimable } from './claimable.component';
+import { ClaimableScreen } from './claimable';
 import { useClubScreenActor } from './club-screen.hooks';
 import { selectIsClaimable } from './club-screen.selectors';
-import { Connected } from './connected.container';
-import { EnterName } from './enter-name';
+import { ConnectedScreen } from './connected';
+import { EnterNameScreen } from './enter-name';
 
 export const ClubScreen = memo(() => {
   const clubScreenActor = useClubScreenActor();
@@ -16,15 +16,14 @@ export const ClubScreen = memo(() => {
     return state.matches('Connected.EnteringName');
   });
 
-  // TODO refactor how the business logic works on this
-  // instead of if/returns, considering using a switch or conditional rendering
+  // TODO rename these to Screens
   if (isClaimable) {
-    return <Claimable />;
+    return <ClaimableScreen />;
   }
 
   if (isEnteringName) {
-    return <EnterName />;
+    return <EnterNameScreen />;
   }
 
-  return <Connected />;
+  return <ConnectedScreen />;
 });

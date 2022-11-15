@@ -1,7 +1,7 @@
 import { Box } from '@atoms/Box';
 import { useSelector } from '@xstate/react';
-import { useClubScreenActor } from '../club-screen.hooks';
-import { selectPartyActor, selectActorManager } from '../club-screen.selectors';
+import { useClubScreenActor } from '../../club-screen.hooks';
+import { selectPartyActor, selectActorManager } from '../../club-screen.selectors';
 import { PlayerListComponent } from './player-list.component';
 
 export const PlayerList = () => {

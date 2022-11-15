@@ -1,5 +1,5 @@
 import { Box } from '@atoms/Box';
-import { usePartyActor } from '../club-screen.hooks';
+import { usePartyActor } from '../../club-screen.hooks';
 import { GameSelectComponent } from './game-select.component';
 
 export const GameSelect = () => {

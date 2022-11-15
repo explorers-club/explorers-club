@@ -1,4 +1,3 @@
-import { Box } from '@atoms/Box';
 import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
 import { Subheading } from '@atoms/Subheading';
