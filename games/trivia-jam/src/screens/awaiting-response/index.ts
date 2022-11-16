@@ -1,1 +1,1 @@
-export * from './awaiting-response.container';
+export * from './awaiting-response-screen.container';

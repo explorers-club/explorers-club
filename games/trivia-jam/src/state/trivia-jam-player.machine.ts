@@ -33,11 +33,3 @@ export const createTriviaJamPlayerMachine = ({
     },
     {}
   );
-
-export type TriviaJamPlayerMachine = ReturnType<
-  typeof createTriviaJamPlayerMachine
->;
-export type TriviaJamPlayerState =
-  StateFrom<TriviaJamPlayerMachine>;
-export type TriviaJamPlayerActor =
-  ActorRefFrom<TriviaJamPlayerMachine>;

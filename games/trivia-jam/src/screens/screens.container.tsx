@@ -3,14 +3,15 @@ import { useContext } from 'react';
 import {
   selectIsAwaitingJudgement,
   selectIsAwaitingQuestion,
-  selectIsAwaitingResponse
+  selectIsAwaitingResponse,
 } from '../state';
 import { GameContext } from '../state/game.context';
-import { AwaitingJudgement } from './awaiting-judgement';
+import { AwaitingJudgementScreen } from './awaiting-judgement';
+import { AwaitingQuestionScreen } from './awaiting-question';
+import { AwaitingResponseScreen } from './awaiting-response';
 
 export const Screens = () => {
   const { gameActor } = useContext(GameContext);
-  console.log({ gameActor });
 
   const isAwaitingJudgement = useSelector(gameActor, selectIsAwaitingJudgement);
   const isAwaitingQuestion = useSelector(gameActor, selectIsAwaitingQuestion);
@@ -18,13 +19,13 @@ export const Screens = () => {
 
   switch (true) {
     case isAwaitingJudgement: {
-      return <AwaitingJudgement />;
+      return <AwaitingJudgementScreen />;
     }
     case isAwaitingQuestion: {
-      return <AwaitingJudgement />;
+      return <AwaitingQuestionScreen />;
     }
     case isAwaitingResponse: {
-      return <AwaitingJudgement />;
+      return <AwaitingResponseScreen />;
     }
     default: {
       return null;

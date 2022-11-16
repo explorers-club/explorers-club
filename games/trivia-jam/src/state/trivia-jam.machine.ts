@@ -5,8 +5,13 @@ import {
   SharedMachineProps,
 } from '@explorers-club/actor';
 import { map, first } from 'rxjs';
-import { ActorRefFrom, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
+import { FooterProps } from '@explorers-club/utils';
+
+interface IntializeProps {
+  hostId: string;
+  playerActorIds: ActorID[];
+}
 
 const triviaJamModel = createModel(
   {
@@ -14,10 +19,15 @@ const triviaJamModel = createModel(
     hostId: '' as string,
     correctCounts: {} as Record<string, number>,
     actorManager: {} as ActorManager,
+    footerProps: {} as FooterProps,
   },
   {
     events: {
       PLAYER_LOADED: () => ({}),
+      INITIALIZE: ({ playerActorIds, hostId }: IntializeProps) => ({
+        playerActorIds,
+        hostId,
+      }),
     },
   }
 );
@@ -41,6 +51,9 @@ export const createTriviaJamMachine = ({
         hostId: '',
         correctCounts: {},
         actorManager,
+        footerProps: {
+          visible: false,
+        },
       },
       states: {
         // Unitialized: {
@@ -131,7 +144,3 @@ export const createTriviaJamMachine = ({
     }
   );
 };
-
-export type TriviaJamMachine = ReturnType<typeof createTriviaJamMachine>;
-export type TriviaJamActor = ActorRefFrom<TriviaJamMachine>;
-export type TriviaJamState = StateFrom<TriviaJamMachine>;

@@ -1,1 +1,1 @@
-export * from './awaiting-judgement.container';
+export * from './awaiting-judgement-screen.container';

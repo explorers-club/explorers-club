@@ -1,5 +1,5 @@
 import { Box } from '@atoms/Box';
 
-export const AwaitingJudgementComponent = () => {
+export const AwaitingJudgement = () => {
   return <Box>Awaiting Judgement</Box>;
 };

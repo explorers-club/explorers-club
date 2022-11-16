@@ -1,1 +1,1 @@
-export * from './awaiting-question.container';
+export * from './awaiting-question-screen.container';
