@@ -1,5 +1,5 @@
 import { createContext } from 'react';
-import { TriviaJamActor } from './trivia-jam.machine';
+import { TriviaJamActor } from './types';
 
 export const GameContext = createContext({
   gameActor: {} as TriviaJamActor,

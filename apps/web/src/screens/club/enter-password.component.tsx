@@ -55,6 +55,7 @@ export const EnterPassword: FC<Props> = ({ formActor }) => {
             ref={passwordRef}
             type="password"
             id="password"
+            autoFocus
             onChange={handleChangePassword}
           />
           <Button size="3" color="blue" fullWidth disabled={!canSubmit}>

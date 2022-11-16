@@ -42,11 +42,11 @@ MachineFactory.registerMachine(
   createPartyPlayerMachine
 );
 MachineFactory.registerMachine(
-  ActorType.TREEHOUSE_TRIVIA_ACTOR,
+  ActorType.TRIVIA_JAM_ACTOR,
   createTriviaJamMachine
 );
 MachineFactory.registerMachine(
-  ActorType.TREEHOUSE_TRIVIA_PLAYER_ACTOR,
+  ActorType.TRIVIA_JAM_PLAYER_ACTOR,
   createTriviaJamPlayerMachine
 );
 
@@ -230,7 +230,7 @@ function wirePartyServer(
    * Spawns the actor on the actor manager and initializes actor in the db.
    */
   const spawnGameActor = async () => {
-    const actorType = ActorType.TREEHOUSE_TRIVIA_ACTOR;
+    const actorType = ActorType.TRIVIA_JAM_ACTOR;
     const actorId = getActorId(actorType, joinCode);
     const eventRef = ref(db, `parties/${joinCode}/actor_events/${actorId}`);
     const stateRef = ref(db, `parties/${joinCode}/actor_state/${actorId}`);
@@ -244,15 +244,12 @@ function wirePartyServer(
       (actor) => actor.getSnapshot().context.userId
     );
     const gamePlayerActorIds = userIds.map((userId) =>
-      getActorId(ActorType.TREEHOUSE_TRIVIA_PLAYER_ACTOR, userId)
+      getActorId(ActorType.TRIVIA_JAM_PLAYER_ACTOR, userId)
     );
 
     const hostUserId = actorManager.getActor(hostActorId).getSnapshot()
       .context.userId;
-    const hostId = getActorId(
-      ActorType.TREEHOUSE_TRIVIA_PLAYER_ACTOR,
-      hostUserId
-    );
+    const hostId = getActorId(ActorType.TRIVIA_JAM_PLAYER_ACTOR, hostUserId);
 
     TriviaJamEvents.INITIALIZE({
       playerActorIds: gamePlayerActorIds,

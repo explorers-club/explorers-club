@@ -29,6 +29,7 @@ import { sendParent } from 'xstate/lib/actions';
 import { createModel } from 'xstate/lib/model';
 import { waitFor } from 'xstate/lib/waitFor';
 import { fetchUserProfileByName } from '../../api/fetchUserProfileByName';
+import { FooterProps } from '../../layout/footer';
 import { db } from '../../lib/firebase';
 import { AuthActor } from '../../state/auth.machine';
 import {
@@ -41,7 +42,6 @@ import { NavigationEvents } from '../../state/navigation.machine';
 import { LayoutMeta } from '../../types';
 import { enterNameMachine } from './enter-name/enter-name.machine';
 import { SpectatingFooter } from './spectating-footer.component';
-import { JoinedFooter } from './joined-footer.container';
 
 MachineFactory.registerMachine(ActorType.PARTY_ACTOR, createPartyMachine);
 MachineFactory.registerMachine(
@@ -64,6 +64,7 @@ const clubScreenModel = createModel(
     actorManager: {} as ActorManager,
     partyActor: undefined as PartyActor | undefined,
     myActor: undefined as PartyPlayerActor | undefined,
+    footerProps: {} as FooterProps,
   },
   {
     events: {
@@ -102,6 +103,9 @@ export const createClubScreenMachine = ({
         hostPlayerName,
         actorManager,
         partyActor: undefined,
+        footerProps: {
+          visible: false,
+        },
       },
       states: {
         Loading: {
@@ -185,9 +189,8 @@ export const createClubScreenMachine = ({
               },
             },
             Spectating: {
-              meta: {
-                footer: SpectatingFooter,
-              } as LayoutMeta,
+              entry: 'showJoinButtonInFooter',
+              exit: 'hideFooter',
               on: {
                 PRESS_JOIN: [
                   {
@@ -252,17 +255,24 @@ export const createClubScreenMachine = ({
               },
             },
             JoinError: {},
-            Joined: {
-              meta: {
-                footer: JoinedFooter,
-              } as LayoutMeta,
-            },
+            Joined: {},
           },
         },
       },
     },
     {
       actions: {
+        hideFooter: clubScreenModel.assign({
+          footerProps: {
+            visible: false,
+          },
+        }),
+        showJoinButtonInFooter: clubScreenModel.assign({
+          footerProps: {
+            visible: true,
+            label: 'Join',
+          },
+        }),
         assignMyActor: clubScreenModel.assign({
           myActor: ({ authActor }) => {
             const userId = authActor.getSnapshot()?.context.session?.user.id;

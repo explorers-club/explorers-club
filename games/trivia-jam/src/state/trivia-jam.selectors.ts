@@ -1,5 +1,4 @@
 import { createSelector } from 'reselect';
-import { AnyState } from 'xstate';
 import { TriviaJamState } from './types';
 
 const selectTriviaJamState = (state: TriviaJamState) => state;
@@ -13,11 +12,6 @@ export const selectConnectedPlayers = createSelector(
 
 export const selectIsLoading = createSelector(selectTriviaJamState, (state) =>
   state.matches('Loading')
-);
-
-export const selectFooterProps = createSelector(
-  selectTriviaJamContext,
-  (context) => context.footerProps
 );
 
 export const selectIsAwaitingQuestion = createSelector(

@@ -32,9 +32,9 @@ export const getActorId: (actorType: ActorType, uniqueId: string) => ActorID = (
       return `Party-${uniqueId}`;
     case ActorType.PARTY_PLAYER_ACTOR:
       return `PartyPlayer-${uniqueId}`;
-    case ActorType.TREEHOUSE_TRIVIA_ACTOR:
+    case ActorType.TRIVIA_JAM_ACTOR:
       return `TriviaJam-${uniqueId}`;
-    case ActorType.TREEHOUSE_TRIVIA_PLAYER_ACTOR:
+    case ActorType.TRIVIA_JAM_PLAYER_ACTOR:
       return `TriviaJamPlayer-${uniqueId}`;
     default:
       throw new Error(`Non-existent actor type in switch: ${actorType}`);

@@ -9,4 +9,5 @@ type VisibleFooterProps = {
 };
 export type FooterProps = HiddenFooterProps | VisibleFooterProps;
 
-export const seletFooterProps = (state: AnyState) => state.context.footerProps as FooterProps | undefined;
+export const selectFooterProps = (state: AnyState) =>
+  state?.context?.footerProps as FooterProps | undefined;

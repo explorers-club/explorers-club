@@ -64,7 +64,8 @@ const Lobby = () => {
 };
 
 const Game = () => {
+  return <Box />;
   // Game context...
-  const actorManager = useActorManager();
-  return <TriviaJamMainUI actorManager={actorManager} />;
+  // const actorManager = useActorManager();
+  // return <TriviaJamMainUI actorManager={actorManager} />;
 };

@@ -128,7 +128,7 @@ export const createPartyMachine = ({
             const spawn$ = fromEvent<ManagedActor>(actorManager, 'SPAWN');
             spawn$
               .pipe(
-                filter((e) => e.actorType === ActorType.TREEHOUSE_TRIVIA_ACTOR),
+                filter((e) => e.actorType === ActorType.TRIVIA_JAM_ACTOR),
                 first()
               )
               .subscribe(resolve);

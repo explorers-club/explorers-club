@@ -50,6 +50,7 @@ export const EnterEmail: FC<Props> = ({ formActor }) => {
             ref={emailRef}
             type="email"
             id="email"
+            autoFocus
             placeholder="e.g. teddy@explorers.club"
             onChange={handleChangeEmail}
           />

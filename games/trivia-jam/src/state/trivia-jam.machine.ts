@@ -4,9 +4,8 @@ import {
   fromActorEvents,
   SharedMachineProps,
 } from '@explorers-club/actor';
-import { map, first } from 'rxjs';
+import { first, map } from 'rxjs';
 import { createModel } from 'xstate/lib/model';
-import { FooterProps } from '@explorers-club/utils';
 
 interface IntializeProps {
   hostId: string;
@@ -19,7 +18,6 @@ const triviaJamModel = createModel(
     hostId: '' as string,
     correctCounts: {} as Record<string, number>,
     actorManager: {} as ActorManager,
-    footerProps: {} as FooterProps,
   },
   {
     events: {
@@ -51,9 +49,6 @@ export const createTriviaJamMachine = ({
         hostId: '',
         correctCounts: {},
         actorManager,
-        footerProps: {
-          visible: false,
-        },
       },
       states: {
         // Unitialized: {
