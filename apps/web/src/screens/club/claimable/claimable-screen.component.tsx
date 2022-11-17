@@ -10,7 +10,7 @@ import { ArrowRightIcon } from '@radix-ui/react-icons';
 import { useSelector } from '@xstate/react';
 import { useCallback } from 'react';
 import { useClubScreenActor } from '../club-screen.hooks';
-import { ClubScreenEvents } from '../club-screen.machine';
+import { ClubScreenEvents } from '../club-screen.machine.old';
 import { selectHostPlayerName } from '../club-screen.selectors';
 
 export const ClaimableScreen = () => {

@@ -1,3 +1,3 @@
 export * from './club-screen.container';
 export * from './club-screen.selectors';
-export * from './club-screen.machine';
+export * from './club-screen.machine.old';

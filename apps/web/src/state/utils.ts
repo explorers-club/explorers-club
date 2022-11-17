@@ -1,5 +1,5 @@
 import { useSelector } from '@xstate/react';
-import { AnyActorRef, AnyState, EventObject } from 'xstate/lib/types';
+import { AnyActorRef, EventObject } from 'xstate/lib/types';
 
 export function assertEventType<
   TE extends EventObject,

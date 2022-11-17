@@ -24,11 +24,21 @@ import {
 import { get, onDisconnect, onValue, push, ref, set } from 'firebase/database';
 import { fromRef, ListenEvent } from 'rxfire/database';
 import { filter, first, from, fromEvent, skipWhile } from 'rxjs';
-import { ActorRefFrom, assign, DoneInvokeEvent } from 'xstate';
+import { ActorRefFrom, assign, DoneInvokeEvent, StateFrom } from 'xstate';
+import { sendParent } from 'xstate/lib/actions';
 import { createModel } from 'xstate/lib/model';
+import { waitFor } from 'xstate/lib/waitFor';
+import { fetchUserProfileByName } from '../../api/fetchUserProfileByName';
 import { db } from '../../lib/firebase';
 import { AuthActor } from '../../state/auth.machine';
+import {
+  selectAuthIsInitalized,
+  selectPlayerName,
+  selectUserId,
+} from '../../state/auth.selectors';
 import { createAnonymousUser } from '../../state/auth.utils';
+import { NavigationEvents } from '../../state/navigation.machine';
+import { enterNameMachine } from './enter-name/enter-name.machine';
 
 MachineFactory.registerMachine(ActorType.PARTY_ACTOR, createPartyMachine);
 MachineFactory.registerMachine(
@@ -44,61 +54,108 @@ MachineFactory.registerMachine(
   createTriviaJamPlayerMachine
 );
 
-const partyScreenModel = createModel(
+const clubScreenModel = createModel(
   {
-    playerName: undefined as string | undefined,
+    hostPlayerName: '' as string,
+    authActor: {} as AuthActor,
     actorManager: {} as ActorManager,
     partyActor: undefined as PartyActor | undefined,
     myActor: undefined as PartyPlayerActor | undefined,
-    authActor: {} as AuthActor,
   },
   {
     events: {
-      INPUT_CHANGE_PLAYER_NAME: (value: string) => ({ playerName: value }),
-      PRESS_SUBMIT: () => ({}),
+      PRESS_CLAIM: () => ({}),
       PRESS_JOIN: () => ({}),
+      PRESS_PRIMARY: () => ({}),
     },
   }
 );
 
-export const PartyScreenEvents = partyScreenModel.events;
+export const ClubScreenEvents = clubScreenModel.events;
 
 interface CreateMachineProps {
-  joinCode: string;
+  hostPlayerName: string;
   authActor: AuthActor;
+  actorManager: ActorManager;
 }
 
-export const createPartyScreenMachine = ({
-  joinCode,
+export const createClubScreenMachine = ({
+  hostPlayerName,
   authActor,
+  actorManager,
 }: CreateMachineProps) => {
-  const partyActorId = getActorId(ActorType.PARTY_ACTOR, joinCode);
-  const actorManager = new ActorManager(partyActorId);
+  const partyActorId = getActorId(ActorType.PARTY_ACTOR, hostPlayerName);
 
-  return partyScreenModel.createMachine(
+  // What network calls needs to happen?
+  // Fetch to see if this profile has been claimed before
+  // We can do that with useQuery and firebase I think
+  return clubScreenModel.createMachine(
     {
-      initial: 'Connecting',
+      id: 'ClubScreenMachine',
+      initial: 'Loading',
       context: {
         myActor: undefined,
-        partyActor: undefined,
-        playerName: undefined,
-        actorManager,
         authActor,
+        hostPlayerName,
+        actorManager,
+        partyActor: undefined,
       },
       states: {
+        Loading: {
+          invoke: {
+            src: () => fetchUserProfileByName(hostPlayerName),
+            onDone: 'Connecting',
+            onError: 'Unclaimed',
+          },
+        },
+        Unclaimed: {
+          initial: 'Indeterminate',
+          onDone: 'Connecting',
+          states: {
+            Indeterminate: {
+              invoke: {
+                src: 'getHasProfileName',
+                onDone: [
+                  {
+                    target: 'NotExist',
+                    cond: (_, event) => !!event.data,
+                  },
+                  {
+                    target: 'Claimable',
+                  },
+                ],
+              },
+            },
+            NotExist: {},
+            Claimable: {
+              on: {
+                PRESS_CLAIM: 'Claiming',
+              },
+            },
+            Claiming: {
+              entry: sendParent(
+                NavigationEvents.NAVIGATE_CLAIM_CLUB(hostPlayerName)
+              ),
+            },
+            Claimed: {
+              type: 'final' as const,
+            },
+          },
+        },
         Connecting: {
           invoke: {
             src: 'connectToParty',
             onDone: {
               target: 'Connected',
               actions: assign({
-                partyActor: (context, event: DoneInvokeEvent<PartyActor>) =>
+                partyActor: (_, event: DoneInvokeEvent<PartyActor>) =>
                   event.data,
               }),
             },
-            onError: 'Disconnected',
+            onError: 'Error',
           },
         },
+        Error: {},
         Connected: {
           initial: 'Initializing',
           entry: 'wirePartyClient',
@@ -114,12 +171,19 @@ export const createPartyScreenMachine = ({
                     actions: 'assignMyActor',
                   },
                   {
+                    // Auto join party if they are hots
+                    cond: 'isHost',
+                    target: 'Joining',
+                  },
+                  {
                     target: 'Spectating',
                   },
                 ],
               },
             },
             Spectating: {
+              entry: 'showJoinButtonInFooter',
+              exit: 'hideFooter',
               on: {
                 PRESS_JOIN: [
                   {
@@ -133,24 +197,13 @@ export const createPartyScreenMachine = ({
               },
             },
             CreateAccount: {
-              initial: 'Creating',
-              states: {
-                Creating: {
-                  invoke: {
-                    src: 'createAccount',
-                    onDone: {
-                      target: 'Created',
-                    },
-                    onError: 'CreateError',
-                  },
-                },
-                CreateError: {},
-                Created: {
-                  type: 'final' as const,
-                },
+              invoke: {
+                src: 'createAccount',
+                onDone: 'Joining',
+                onError: 'CreateError',
               },
-              onDone: 'Joining',
             },
+            CreateError: {},
             Joining: {
               invoke: {
                 src: 'joinParty',
@@ -162,40 +215,57 @@ export const createPartyScreenMachine = ({
               },
             },
             EnteringName: {
+              invoke: {
+                src: enterNameMachine,
+                onDone: {
+                  target: 'Joined',
+                  actions: (
+                    { myActor },
+                    event: DoneInvokeEvent<{ name: string }>
+                  ) => {
+                    console.log(event);
+                    if (!myActor) {
+                      throw new Error('expect myActor when saving name');
+                    }
+
+                    myActor.send(
+                      PartyPlayerEvents.SET_PLAYER_NAME({
+                        playerName: event.data.name,
+                      })
+                    );
+                  },
+                },
+              },
               on: {
                 '': { target: 'Joined', cond: 'hasPlayerName' },
-                INPUT_CHANGE_PLAYER_NAME: {
-                  target: 'EnteringName',
-                  actions: 'assignPlayerName',
-                },
-                PRESS_SUBMIT: [
-                  {
-                    target: 'Joined',
-                    cond: 'isPlayerNameValid',
-                    actions: 'savePlayerName',
-                  },
-                  {
-                    target: 'EnteringName',
-                    // TODO action to set validation error here
-                  },
-                ],
               },
             },
             Rejoining: {
-              on: {
-                '': { target: 'Joined', actions: 'rejoinParty' },
+              invoke: {
+                src: 'rejoinParty',
+                onDone: 'EnteringName',
+                onError: 'JoinError',
               },
             },
             JoinError: {},
             Joined: {},
           },
         },
-        Disconnected: {},
       },
-      predictableActionArguments: true,
     },
     {
       actions: {
+        assignMyActor: clubScreenModel.assign({
+          myActor: ({ authActor }) => {
+            const userId = authActor.getSnapshot()?.context.session?.user.id;
+            if (!userId) {
+              throw new Error('trying to assign actor without being logged in');
+            }
+
+            const actorId = getActorId(ActorType.PARTY_PLAYER_ACTOR, userId);
+            return actorManager.getActor(actorId);
+          },
+        }),
         wirePartyClient: (context) => {
           if (!context.partyActor) {
             throw new Error('expected party actor');
@@ -216,11 +286,11 @@ export const createPartyScreenMachine = ({
             const playerActor = actorManager.spawn({ actorId, actorType });
             const eventRef = ref(
               db,
-              `parties/${joinCode}/actor_events/${actorId}`
+              `parties/${hostPlayerName}/actor_events/${actorId}`
             );
             const stateRef = ref(
               db,
-              `parties/${joinCode}/actor_state/${actorId}`
+              `parties/${hostPlayerName}/actor_state/${actorId}`
             );
 
             await setActorState(stateRef, actorManager.serialize(actorId));
@@ -244,74 +314,23 @@ export const createPartyScreenMachine = ({
           );
           enterGame$.subscribe(spawnPlayerActor);
         },
-        // TODO try up with join party function
-        rejoinParty: () => {
-          const userId = authActor.getSnapshot()?.context.session?.user.id;
-          if (!userId) {
-            throw new Error('trying to rejoin party without being logged in');
-          }
-
-          const actorId = getActorId(ActorType.PARTY_PLAYER_ACTOR, userId);
-          const myActor = actorManager.getActor(actorId);
-          if (!myActor) {
-            console.warn('couldnt find actor when trying to rejoin');
-            return;
-          }
-          actorManager.myActorId = actorId;
-
-          const myEventRef = ref(
-            db,
-            `parties/${joinCode}/actor_events/${actorId}`
-          );
-          myActor.onEvent(async (event) => {
-            await setActorEvent(myEventRef, { actorId, event });
-          });
-          myActor.send(PartyPlayerEvents.PLAYER_REJOIN());
-
-          // Send disconnect event when we disconnect
-          onDisconnect(myEventRef).set({
-            actorId,
-            event: PartyPlayerEvents.PLAYER_DISCONNECT(),
-          });
-
-          return myActor;
-        },
-        savePlayerName: ({ myActor, playerName }) => {
-          if (!playerName || !myActor) {
-            console.warn('expected player name and actor');
-            return;
-          }
-
-          myActor.send(PartyPlayerEvents.SET_PLAYER_NAME({ playerName }));
-        },
-        assignMyActor: partyScreenModel.assign({
-          myActor: ({ authActor }) => {
-            const userId = authActor.getSnapshot()?.context.session?.user.id;
-            if (!userId) {
-              throw new Error('trying to assign actor without being logged in');
-            }
-
-            const actorId = getActorId(ActorType.PARTY_PLAYER_ACTOR, userId);
-            return actorManager.getActor(actorId);
-          },
-        }),
-        assignPlayerName: partyScreenModel.assign({
-          playerName: (context, event) => {
-            switch (event.type) {
-              case 'INPUT_CHANGE_PLAYER_NAME':
-                return event.playerName;
-              default:
-                return context.playerName;
-            }
-          },
-        }),
       },
       guards: {
         hasPlayerName: ({ myActor }) => {
           return !!myActor?.getSnapshot()?.context.playerName;
         },
+        isHost: ({ authActor, hostPlayerName }) => {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const playerName = selectPlayerName(authActor.getSnapshot()!);
+          return playerName === hostPlayerName;
+        },
+        isNotLoggedIn: ({ authActor }) => {
+          const session = authActor.getSnapshot()?.context.session;
+          return !session;
+        },
         isInParty: ({ authActor, actorManager }) => {
-          const userId = authActor.getSnapshot()?.context.session?.user.id; // lol
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const userId = selectUserId(authActor.getSnapshot()!);
           if (!userId) {
             return false;
           }
@@ -323,27 +342,13 @@ export const createPartyScreenMachine = ({
             .getSnapshot()
             ?.context.playerActorIds.includes(actorId) as boolean;
         },
-        isNotLoggedIn: ({ authActor }) =>
-          !authActor.getSnapshot()?.matches('Authenticated'),
-        isPlayerNameValid: (context) => !!context.playerName,
       },
       services: {
-        waitForAuthInit: ({ authActor }) => {
-          return new Promise((resolve) => {
-            from(authActor)
-              // Wait for first state not in Initializing
-              // TODO: is there a good way to type the states strings?
-              .pipe(
-                filter((state) => !state.matches('Initializing')),
-                first()
-              )
-              .subscribe(resolve);
-          });
-        },
-        createAccount: ({ authActor }) => createAnonymousUser(authActor),
+        waitForAuthInit: ({ authActor }) =>
+          waitFor(authActor, (state) => !state.matches('Initializing')),
         joinParty: async () => {
-          // Make sure we're logged in
-          const userId = authActor.getSnapshot()?.context.session?.user.id;
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const userId = selectUserId(authActor.getSnapshot()!);
           if (!userId) {
             throw new Error('trying to join party without being logged in');
           }
@@ -360,16 +365,16 @@ export const createPartyScreenMachine = ({
           actorManager.myActorId = actorId;
           const myActorRef = ref(
             db,
-            `parties/${joinCode}/actor_state/${actorId}`
+            `parties/${hostPlayerName}/actor_state/${actorId}`
           );
           const myEventRef = ref(
             db,
-            `parties/${joinCode}/actor_events/${actorId}`
+            `parties/${hostPlayerName}/actor_events/${actorId}`
           );
 
           const stateJSON = JSON.stringify(myActor.getSnapshot());
 
-          // TODO do in transation ?
+          // todo: do in transaction ?
           await setActorState(myActorRef, { ...sharedActorRef, stateJSON });
           await setActorEvent(myEventRef, {
             actorId: partyActorId,
@@ -386,11 +391,48 @@ export const createPartyScreenMachine = ({
             event: PartyPlayerEvents.PLAYER_DISCONNECT(),
           });
 
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const playerName = selectPlayerName(authActor.getSnapshot()!);
+          if (playerName) {
+            myActor.send(PartyPlayerEvents.SET_PLAYER_NAME({ playerName }));
+          }
+
           return myActor;
         },
-        connectToParty: async () => {
-          const stateRef = ref(db, `parties/${joinCode}/actor_state`);
-          const eventsRef = ref(db, `parties/${joinCode}/actor_events`);
+        rejoinParty: async ({ hostPlayerName }) => {
+          const userId = authActor.getSnapshot()?.context.session?.user.id;
+          if (!userId) {
+            throw new Error('trying to rejoin party without being logged in');
+          }
+
+          const actorId = getActorId(ActorType.PARTY_PLAYER_ACTOR, userId);
+          const myActor = actorManager.getActor(actorId);
+          if (!myActor) {
+            console.warn('couldnt find actor when trying to rejoin');
+            return;
+          }
+          actorManager.myActorId = actorId;
+
+          const myEventRef = ref(
+            db,
+            `parties/${hostPlayerName}/actor_events/${actorId}`
+          );
+          myActor.onEvent(async (event) => {
+            await setActorEvent(myEventRef, { actorId, event });
+          });
+          myActor.send(PartyPlayerEvents.PLAYER_REJOIN());
+
+          // Send disconnect event when we disconnect
+          onDisconnect(myEventRef).set({
+            actorId,
+            event: PartyPlayerEvents.PLAYER_DISCONNECT(),
+          });
+
+          return myActor;
+        },
+        connectToParty: async ({ hostPlayerName }) => {
+          const stateRef = ref(db, `parties/${hostPlayerName}/actor_state`);
+          const eventsRef = ref(db, `parties/${hostPlayerName}/actor_events`);
           let initialized = false;
 
           return new Promise((resolve, reject) => {
@@ -401,6 +443,7 @@ export const createPartyScreenMachine = ({
               .subscribe((changes) => {
                 const { actorId, event } =
                   changes.snapshot.val() as SharedActorEvent;
+                console.log('new event', actorId, event);
 
                 // Don't send events on our own actor
                 if (actorManager.myActorId === actorId) {
@@ -441,7 +484,7 @@ export const createPartyScreenMachine = ({
               initialized = true;
             });
 
-            wirePartyPresence(joinCode);
+            wirePartyPresence(hostPlayerName);
 
             // Once the party is actor is hydrated, we are "connected", resolve the promise
             const onPartyActorHydrate = fromEvent<ManagedActor>(
@@ -453,13 +496,15 @@ export const createPartyScreenMachine = ({
             });
           });
         },
+        createAccount: ({ authActor }) => createAnonymousUser(authActor),
+        getHasProfileName: async ({ authActor }) => {
+          // Wait for the auth actor to finish fetching
+          const authState = await waitFor(authActor, selectAuthIsInitalized);
+          return !!authState.context.profile?.player_name;
+        },
       },
     }
   );
-};
-
-const isPartyActor = (managedActor: ManagedActor) => {
-  return managedActor.actorType === 'PARTY_ACTOR';
 };
 
 /**
@@ -467,7 +512,7 @@ const isPartyActor = (managedActor: ManagedActor) => {
  * and remove when we disconnect. This is how party server
  * knows which parties to spawn.
  */
-const wirePartyPresence = (joinCode: string) => {
+const wirePartyPresence = (hostPlayerName: string) => {
   const userConnectionsRef = ref(db, 'user_party_connections');
 
   const connectedRef = ref(db, '.info/connected');
@@ -475,11 +520,15 @@ const wirePartyPresence = (joinCode: string) => {
     if (snap.val()) {
       const con = push(userConnectionsRef);
       onDisconnect(con).remove();
-      set(con, joinCode);
+      set(con, hostPlayerName);
     }
   });
 };
 
-export type PartyScreenActor = ActorRefFrom<
-  ReturnType<typeof createPartyScreenMachine>
->;
+const isPartyActor = (managedActor: ManagedActor) => {
+  return managedActor.actorType === 'PARTY_ACTOR';
+};
+
+export type ClubScreenMachine = ReturnType<typeof createClubScreenMachine>;
+export type ClubScreenActor = ActorRefFrom<ClubScreenMachine>;
+export type ClubScreenState = StateFrom<ClubScreenMachine>;

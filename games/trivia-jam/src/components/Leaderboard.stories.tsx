@@ -13,7 +13,10 @@ export default {
   decorators: [
     (Story) => {
       const gameMachine = useMemo(() => {
-        const actorId = getActorId(ActorType.TREEHOUSE_TRIVIA_ACTOR, 'partner');
+        const actorId = getActorId(
+          ActorType.TRIVIA_JAM_PLAYER_ACTOR,
+          'partner'
+        );
         const actorManager = new ActorManager(actorId);
         const gameMachine = createTriviaJamMachine({ actorId, actorManager });
         return gameMachine;

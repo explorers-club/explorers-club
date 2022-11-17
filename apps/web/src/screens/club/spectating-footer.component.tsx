@@ -1,7 +1,7 @@
 import { FC, useCallback } from 'react';
 import { Button } from '@atoms/Button';
 import { useClubScreenActor } from './club-screen.hooks';
-import { ClubScreenEvents } from './club-screen.machine';
+import { ClubScreenEvents } from './club-screen.machine.old';
 
 export const SpectatingFooter: FC = () => {
   const actor = useClubScreenActor();

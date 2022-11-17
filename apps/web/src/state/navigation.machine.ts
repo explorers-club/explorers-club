@@ -98,7 +98,6 @@ export const createNavigationMachine = ({
               return createClubScreenMachine({
                 hostPlayerName: playerName,
                 authActor,
-                actorManager,
               });
             },
           },

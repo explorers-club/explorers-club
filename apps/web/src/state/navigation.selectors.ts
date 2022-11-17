@@ -2,7 +2,7 @@ import {
   ClaimClubScreenActor,
   ClaimClubScreenState,
 } from '../screens/claim-club/claim-club-screen.machine';
-import { ClubScreenActor } from '../screens/club/club-screen.machine';
+import { ClubScreenActor } from '../screens/club/club-screen.machine.old';
 import { HomeScreenActor } from '../screens/home/home-screen.machine';
 import { NavigationState } from './navigation.machine';
 

@@ -16,11 +16,7 @@ export const createHomeScreenMachine = () => {
   return homeScreenModel.createMachine({
     id: 'HomeScreenMachine',
     context: {},
-    type: 'parallel',
-    states: {
-      Footer: {},
-      Header: {},
-    },
+    states: {},
     predictableActionArguments: true,
   });
 };

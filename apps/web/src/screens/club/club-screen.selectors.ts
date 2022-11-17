@@ -1,16 +1,25 @@
 import { PartyActor, PartyPlayerActor } from '@explorers-club/party';
-import { AnyState } from 'xstate';
-import { LayoutMeta } from '../../types';
-import { ClubScreenState } from './club-screen.machine';
+import { ClubScreenState } from './club-screen.machine.old';
+import { GameScreenActor } from './game/game-screen.machine';
+import { LobbyScreenActor } from './lobby/lobby-screen.machine';
+import { UnclaimedScreenActor } from './unclaimed';
 
+// Invoked child actors
+export const selectUnclaimedScreenActor = (state: ClubScreenState) =>
+  state.children['unclaimedScreen'] as UnclaimedScreenActor;
+
+export const selectGameScreenActor = (state: ClubScreenState) =>
+  state.children['gameScreen'] as GameScreenActor;
+
+export const selectLobbyScreenActor = (state: ClubScreenState) =>
+  state.children['lobbyScreen'] as LobbyScreenActor;
+
+// Context selectors
 export const selectHostPlayerName = (state: ClubScreenState) =>
   state.context.hostPlayerName;
 
 export const selectPartyActor = (state: ClubScreenState) =>
   state.context.partyActor as PartyActor | undefined;
-
-export const selectLayoutMeta = (state: AnyState) =>
-  Object.assign({}, ...Object.values(state?.meta || {})) as LayoutMeta;
 
 export const selectMyPartyPlayerActor = (state: ClubScreenState) =>
   state.context.myActor as PartyPlayerActor | undefined;
@@ -18,6 +27,7 @@ export const selectMyPartyPlayerActor = (state: ClubScreenState) =>
 export const selectActorManager = (state: ClubScreenState) =>
   state.context.actorManager;
 
+// Computed states
 export const selectIsClaimable = (state: ClubScreenState) =>
   state.matches('Unclaimed.Claimable');
 
@@ -48,7 +58,7 @@ export const selectIsJoining = (state: ClubScreenState) =>
 export const selectIsSpectating = (state: ClubScreenState) =>
   state.matches('Connected.Spectating');
 
-export const selectShouldShowParty = (state: ClubScreenState) => true;
-
 export const selectPartyIsJoinable = (state: ClubScreenState) =>
   state.matches('Connected.Spectating');
+
+export const selectShouldShowParty = (state: ClubScreenState) => true;
