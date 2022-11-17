@@ -22,28 +22,7 @@ export const ClubScreen = memo(() => {
       return <GameScreen />;
     }
     default: {
-      throw new Error('Unrecognized club screen state');
+      return null;
     }
   }
-
-  // const clubScreenActor = useClubScreenActor();
-  // useActorLogger(clubScreenActor);
-
-  // const isClaimable = useSelector(clubScreenActor, selectIsClaimable);
-  // const isEnteringName = useSelector(clubScreenActor, (state) => {
-  //   return state.matches('Connected.EnteringName');
-  // });
-
-  // switch (true) {
-  //   case isClaimable: {
-  //     return <ClaimableScreen />;
-  //   }
-  //   case isEnteringName: {
-  //     return <EnterNameScreen />;
-  //   }
-  //   default: {
-  //     // TODO this default is wrong, need disconnected, joining, etc states
-  //     return <ConnectedScreen />;
-  //   }
-  // }
 });

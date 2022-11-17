@@ -1,13 +1,7 @@
-import { useSelector } from '@xstate/react';
-import { useClubScreenActor } from '../screens/club/club-screen.hooks';
 import {
-  ClubScreenActor,
-  selectActorManager,
-  selectPartyActor,
+  ClubScreenActor
 } from '../screens/club';
-import { ConnectedContext } from '../state/connected.context';
-import { Game } from './game';
-import { Lobby } from './lobby';
+import { useClubScreenActor } from '../screens/club/club-screen.hooks';
 
 export const Scenes = () => {
   const clubScreenActor = useClubScreenActor();
@@ -25,8 +19,10 @@ const AllScenes = ({
 }: {
   clubScreenActor: ClubScreenActor;
 }) => {
-  const partyActor = useSelector(clubScreenActor, selectPartyActor);
-  const actorManager = useSelector(clubScreenActor, selectActorManager);
+  // TODO add back in to get scene back when we update how the actors are selected
+  // const partyActor = useSelector(clubScreenActor, selectPartyActor);
+  const partyActor = undefined;
+  // const actorManager = useSelector(clubScreenActor, selectActorManager);
 
   if (!partyActor) {
     // eslint-disable-next-line react/jsx-no-useless-fragment
@@ -34,9 +30,10 @@ const AllScenes = ({
   }
 
   return (
-    <ConnectedContext.Provider value={{ partyActor, actorManager }}>
-      <Lobby />
-      <Game />
-    </ConnectedContext.Provider>
-  );
+    null
+    // <ConnectedContext.Provider value={{ partyActor, actorManager }}>
+    //   <Lobby />
+    //   <Game />
+    // </ConnectedContext.Provider>
+  )
 };

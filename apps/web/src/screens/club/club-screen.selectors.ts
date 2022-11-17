@@ -1,10 +1,10 @@
 import { PartyActor, PartyPlayerActor } from '@explorers-club/party';
-import { ClubScreenState } from './club-screen.machine.old';
+import { ClubScreenState } from './club-screen.machine';
 import { GameScreenActor } from './game/game-screen.machine';
 import { LobbyScreenActor } from './lobby/lobby-screen.machine';
 import { UnclaimedScreenActor } from './unclaimed';
 
-// Invoked child actors
+// Invoked shild actors
 export const selectUnclaimedScreenActor = (state: ClubScreenState) =>
   state.children['unclaimedScreen'] as UnclaimedScreenActor;
 
@@ -17,15 +17,6 @@ export const selectLobbyScreenActor = (state: ClubScreenState) =>
 // Context selectors
 export const selectHostPlayerName = (state: ClubScreenState) =>
   state.context.hostPlayerName;
-
-export const selectPartyActor = (state: ClubScreenState) =>
-  state.context.partyActor as PartyActor | undefined;
-
-export const selectMyPartyPlayerActor = (state: ClubScreenState) =>
-  state.context.myActor as PartyPlayerActor | undefined;
-
-export const selectActorManager = (state: ClubScreenState) =>
-  state.context.actorManager;
 
 // Computed states
 export const selectIsClaimable = (state: ClubScreenState) =>

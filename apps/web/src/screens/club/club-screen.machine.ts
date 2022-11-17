@@ -34,7 +34,7 @@ import { createUnclaimedScreenMachine } from './unclaimed';
 // };
 
 type ClubScreenContext = {
-  foo: string;
+  hostPlayerName: string;
 };
 
 const loadData = async () => {
@@ -68,14 +68,14 @@ export const createClubScreenMachine = ({
               {
                 target: 'Unclaimed',
                 cond: (_, event) => {
-                  assertEventType(event, 'done.invoke.Loading');
+                  console.log(event);
                   return !event.data.isClaimed;
                 },
               },
               {
                 target: 'Game',
                 cond: (_, event) => {
-                  assertEventType(event, 'done.invoke.Loading');
+                  // assertEventType(event, 'done.invoke.Loading');
                   return event.data.isPlaying;
                 },
               },
