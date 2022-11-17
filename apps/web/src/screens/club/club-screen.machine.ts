@@ -43,9 +43,15 @@ const loadData = async () => {
 
 type LoadingResult = ReturnType<typeof loadData>;
 
+const LOADING_DONE_EVENT =
+  'done.invoke.ClubScreenMachine.Loading:invocation[0]' as string;
+
 type ClubScreenEvents =
   | { type: 'PRESS_JOIN' }
-  | { type: 'done.invoke.Loading'; data: LoadingResult };
+  | {
+      type: typeof LOADING_DONE_EVENT;
+      data: LoadingResult;
+    };
 
 interface CreateMachineProps {
   hostPlayerName: string;
@@ -68,14 +74,14 @@ export const createClubScreenMachine = ({
               {
                 target: 'Unclaimed',
                 cond: (_, event) => {
-                  console.log(event);
+                  assertEventType(event, LOADING_DONE_EVENT);
                   return !event.data.isClaimed;
                 },
               },
               {
                 target: 'Game',
                 cond: (_, event) => {
-                  // assertEventType(event, 'done.invoke.Loading');
+                  assertEventType(event, LOADING_DONE_EVENT);
                   return event.data.isPlaying;
                 },
               },
