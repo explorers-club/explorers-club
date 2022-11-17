@@ -46,7 +46,7 @@
     "three-stdlib": "^2.14.3",
     "tiny-invariant": "^1.2.0",
     "tslib": "^2.3.0",
-    "xstate": "^4.33.5"
+    "xstate": "^4.34.0"
   },
   "devDependencies": {
     "@babel/core": "7.12.13",

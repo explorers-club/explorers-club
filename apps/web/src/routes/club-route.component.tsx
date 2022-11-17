@@ -1,10 +1,13 @@
+import { useSelector } from '@xstate/react';
+import { ReactNode, useContext, useState } from 'react';
 import { BottomSheet } from 'react-spring-bottom-sheet';
 import {
   defaultSnapProps,
-  SnapPointProps
+  SnapPointProps,
 } from 'react-spring-bottom-sheet/dist/types';
 import { ClubScreen } from '../screens/club';
 import { useClubScreenActor } from '../screens/club/club-screen.hooks';
+import { FooterContext } from '../state/footer.context';
 
 const DEFAULT_SNAP_POINTS = ({ footerHeight, maxHeight }: SnapPointProps) => [
   footerHeight + 20,
@@ -15,18 +18,21 @@ const DEFAULT_SNAP_POINTS = ({ footerHeight, maxHeight }: SnapPointProps) => [
 const DEFAULT_SNAP = ({ snapPoints }: defaultSnapProps) => snapPoints[1];
 
 export const ClubRoute = () => {
-  const actor = useClubScreenActor();
+  // const actor = useClubScreenActor();
+  // const state = useSelector(actor, (state) => state);
+  // console.log({ actor, state });
 
-  // TODO move this in to a sub component to prevent re-renders
-  // if we need to change the button state (i.e. disable/enable)
-  // const handlePressFooter = useCallback(() => {
-  //   if (!footerProps || !footerProps.visible) {
-  //     return;
-  //   }
+  const [FooterComponent, setFooterComponent] = useState<ReactNode>(undefined);
 
-  //   actor.send(ClubScreenEvents.PRESS_PRIMARY());
-  // }, [actor, footerProps]);
+  return (
+    <FooterContext.Provider value={{ FooterComponent, setFooterComponent }}>
+      <ClubRouteComponent />
+    </FooterContext.Provider>
+  );
+};
 
+const ClubRouteComponent = () => {
+  const { FooterComponent } = useContext(FooterContext);
   return (
     <BottomSheet
       open={true}
@@ -35,11 +41,7 @@ export const ClubRoute = () => {
       // snapPoints={({ minHeight }) => [minHeight + 24]}
       snapPoints={DEFAULT_SNAP_POINTS}
       expandOnContentDrag={true}
-      // footer={
-      //   footerProps?.visible ? (
-      //     <Button onClick={handlePressFooter}>{footerProps.label}</Button>
-      //   ) : null
-      // }
+      footer={FooterComponent}
       // header={header}
     >
       <ClubScreen />

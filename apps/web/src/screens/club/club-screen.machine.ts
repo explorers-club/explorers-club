@@ -38,7 +38,7 @@ type ClubScreenContext = {
 };
 
 const loadData = async () => {
-  return { isClaimed: false, isPlaying: false };
+  return { isUnclaimed: false, isPlaying: false };
 };
 
 type LoadingResult = ReturnType<typeof loadData>;
@@ -62,58 +62,56 @@ export const createClubScreenMachine = ({
   hostPlayerName,
   authActor,
 }: CreateMachineProps) => {
-  return createMachine<ClubScreenContext, ClubScreenEvents>(
-    {
-      id: 'ClubScreenMachine',
-      initial: 'Loading',
-      states: {
-        Loading: {
-          invoke: {
-            src: loadData,
-            onDone: [
-              {
-                target: 'Unclaimed',
-                cond: (_, event) => {
-                  assertEventType(event, LOADING_DONE_EVENT);
-                  return !event.data.isClaimed;
-                },
+  return createMachine({
+    id: 'ClubScreenMachine',
+    initial: 'Loading',
+    schema: {
+      context: {} as ClubScreenContext,
+      events: {} as ClubScreenEvents,
+    },
+    states: {
+      Loading: {
+        invoke: {
+          src: loadData,
+          onDone: [
+            {
+              target: 'Unclaimed',
+              cond: (_, event) => {
+                assertEventType(event, LOADING_DONE_EVENT);
+                return event.data.isUnclaimed;
               },
-              {
-                target: 'Game',
-                cond: (_, event) => {
-                  assertEventType(event, LOADING_DONE_EVENT);
-                  return event.data.isPlaying;
-                },
+            },
+            {
+              target: 'Game',
+              cond: (_, event) => {
+                assertEventType(event, LOADING_DONE_EVENT);
+                return event.data.isPlaying;
               },
-              { target: 'Lobby' },
-            ],
-          },
+            },
+            { target: 'Lobby' },
+          ],
         },
-        Unclaimed: {
-          invoke: {
-            id: 'unclaimedScreen',
-            src: () => createUnclaimedScreenMachine(),
-          },
+      },
+      Unclaimed: {
+        invoke: {
+          id: 'unclaimedScreen',
+          src: () => createUnclaimedScreenMachine(),
         },
-        Lobby: {
-          invoke: {
-            id: 'lobbyScreen',
-            src: () => createLobbyScreenMachine(),
-          },
+      },
+      Lobby: {
+        invoke: {
+          id: 'lobbyScreen',
+          src: () => createLobbyScreenMachine(),
         },
-        Game: {
-          invoke: {
-            id: 'gameScreen',
-            src: () => createGameScreenMachine(),
-          },
+      },
+      Game: {
+        invoke: {
+          id: 'gameScreen',
+          src: () => createGameScreenMachine(),
         },
       },
     },
-    {
-      actions: {},
-      guards: {},
-    }
-  );
+  });
 };
 
 /**

@@ -5,7 +5,15 @@ import { selectClubScreenActor } from '../../state/navigation.selectors';
 
 export const useClubScreenActor = () => {
   const { navigationActor } = useContext(GlobalStateContext);
-  return useSelector(navigationActor, selectClubScreenActor);
+  const actor = useSelector(navigationActor, selectClubScreenActor);
+
+  if (!actor) {
+    throw new Error(
+      'tried to access club screen actor out of expected context'
+    );
+  }
+
+  return actor;
 };
 
 export const useHostPlayerName = () => {
