@@ -4,14 +4,15 @@ import {
 import { useClubScreenActor } from '../screens/club/club-screen.hooks';
 
 export const Scenes = () => {
-  const clubScreenActor = useClubScreenActor();
+  return null;
+  // const clubScreenActor = useClubScreenActor();
 
-  if (!clubScreenActor) {
-    // eslint-disable-next-line react/jsx-no-useless-fragment
-    return <></>;
-  }
+  // if (!clubScreenActor) {
+  //   // eslint-disable-next-line react/jsx-no-useless-fragment
+  //   return <></>;
+  // }
 
-  return <AllScenes clubScreenActor={clubScreenActor} />;
+  // return <AllScenes clubScreenActor={clubScreenActor} />;
 };
 
 const AllScenes = ({

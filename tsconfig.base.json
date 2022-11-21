@@ -19,6 +19,7 @@
       "@explorers-club/actor": ["libs/actor/src/index.ts"],
       "@explorers-club/contentful": ["libs/contentful/src/index.ts"],
       "@explorers-club/database": ["libs/database/src/index.ts"],
+      "@explorers-club/lobby": ["libs/lobby/src/index.ts"],
       "@explorers-club/party": ["libs/party/src/index.ts"],
       "@explorers-club/trivia-jam/scene": [
         "games/trivia-jam/src/scene/index.ts"

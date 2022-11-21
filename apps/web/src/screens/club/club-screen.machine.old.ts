@@ -2,7 +2,7 @@ import {
   ActorManager,
   ActorType,
   getActorId,
-  MachineFactory,
+  // MachineFactory,
   ManagedActor,
   SerializedSharedActor,
   setActorEvent,
@@ -40,19 +40,19 @@ import { createAnonymousUser } from '../../state/auth.utils';
 import { NavigationEvents } from '../../state/navigation.machine';
 import { enterNameMachine } from './enter-name/enter-name.machine';
 
-MachineFactory.registerMachine(ActorType.PARTY_ACTOR, createPartyMachine);
-MachineFactory.registerMachine(
-  ActorType.PARTY_PLAYER_ACTOR,
-  createPartyPlayerMachine
-);
-MachineFactory.registerMachine(
-  ActorType.TRIVIA_JAM_ACTOR,
-  createTriviaJamMachine
-);
-MachineFactory.registerMachine(
-  ActorType.TRIVIA_JAM_PLAYER_ACTOR,
-  createTriviaJamPlayerMachine
-);
+// MachineFactory.registerMachine(ActorType.PARTY_ACTOR, createPartyMachine);
+// MachineFactory.registerMachine(
+//   ActorType.PARTY_PLAYER_ACTOR,
+//   createPartyPlayerMachine
+// );
+// MachineFactory.registerMachine(
+//   ActorType.TRIVIA_JAM_ACTOR,
+//   createTriviaJamMachine
+// );
+// MachineFactory.registerMachine(
+//   ActorType.TRIVIA_JAM_PLAYER_ACTOR,
+//   createTriviaJamPlayerMachine
+// );
 
 const clubScreenModel = createModel(
   {

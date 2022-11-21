@@ -92,8 +92,6 @@ export const createNavigationMachine = ({
                   'expected playerName from path but was undefined'
                 );
               }
-              const actorId = getActorId(ActorType.PARTY_ACTOR, playerName);
-              const actorManager = new ActorManager(actorId);
 
               return createClubScreenMachine({
                 hostPlayerName: playerName,

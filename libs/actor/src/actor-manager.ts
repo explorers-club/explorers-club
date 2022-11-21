@@ -1,41 +1,16 @@
+import { EventEmitter } from 'events';
 import {
   AnyActorRef,
   AnyInterpreter,
-  AnyState,
-  AnyStateMachine,
-  interpret,
-  State,
+  AnyState, interpret,
+  State
 } from 'xstate';
-import { EventEmitter } from 'events';
+import { MachineFactory } from './machine-factory';
 import {
   ActorID,
-  ActorType,
-  SharedMachineProps,
-  SharedActorRef,
-  SerializedSharedActor,
-  SharedActorEvent,
+  ActorType, SerializedSharedActor,
+  SharedActorEvent, SharedActorRef
 } from './types';
-
-type CreateMachineFunction = (props: SharedMachineProps) => AnyStateMachine;
-
-/**
- * Class to be imported on client and server, and each will register the different
- * type of machines it needs
- */
-export class MachineFactory {
-  private static map: Map<ActorType, CreateMachineFunction> = new Map();
-
-  static registerMachine(
-    type: ActorType,
-    createMachine: CreateMachineFunction
-  ) {
-    this.map.set(type, createMachine);
-  }
-
-  static getCreateMachineFunction(type: ActorType) {
-    return this.map.get(type);
-  }
-}
 
 export interface ManagedActor {
   actorId: ActorID;
@@ -78,7 +53,7 @@ export class ActorManager extends EventEmitter {
 
     const machine = createMachine({
       actorId,
-      actorManager: this,
+      // actorManager: this,
     });
     const actor = interpret(machine).start();
 
@@ -111,7 +86,7 @@ export class ActorManager extends EventEmitter {
 
     const machine = createMachine({
       actorId,
-      actorManager: this,
+      // actorManager: this,
     });
 
     const state = JSON.parse(stateJSON) as AnyState;

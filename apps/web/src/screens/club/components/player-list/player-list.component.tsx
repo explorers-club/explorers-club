@@ -6,7 +6,7 @@ import { ActorManager } from '@explorers-club/actor';
 import {
   PartyActor,
   PartyPlayerActor,
-  selectPartyHostIsJoined,
+  // selectPartyHostIsJoined,
 } from '@explorers-club/party';
 import { useSelector } from '@xstate/react';
 import { FC } from 'react';

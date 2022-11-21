@@ -1,6 +1,6 @@
 import {
   ActorID,
-  ActorManager,
+  // ActorManager,
   ActorType,
   fromActorEvents,
   ManagedActor,
@@ -17,7 +17,7 @@ const partyModel = createModel(
   {
     playerActorIds: [] as ActorID[],
     hostActorId: '' as ActorID,
-    actorManager: {} as ActorManager,
+    // actorManager: {} as ActorManager,
     startingAt: undefined as Date | undefined,
     gameActorId: undefined as ActorID | undefined,
   },
@@ -34,7 +34,7 @@ export const PartyEvents = partyModel.events;
 
 export const createPartyMachine = ({
   actorId,
-  actorManager,
+  // actorManager,
 }: SharedMachineProps) =>
   partyModel.createMachine(
     {
@@ -42,7 +42,7 @@ export const createPartyMachine = ({
       context: {
         playerActorIds: [],
         hostActorId: '',
-        actorManager,
+        // actorManager,
         startingAt: undefined,
         gameActorId: undefined,
       },
@@ -122,64 +122,64 @@ export const createPartyMachine = ({
           },
         }),
       },
-      services: {
-        onSpawnGameActor: () =>
-          new Promise((resolve) => {
-            const spawn$ = fromEvent<ManagedActor>(actorManager, 'SPAWN');
-            spawn$
-              .pipe(
-                filter((e) => e.actorType === ActorType.TRIVIA_JAM_ACTOR),
-                first()
-              )
-              .subscribe(resolve);
-          }),
+      // services: {
+      //   onSpawnGameActor: () =>
+      //     new Promise((resolve) => {
+      //       const spawn$ = fromEvent<ManagedActor>(actorManager, 'SPAWN');
+      //       spawn$
+      //         .pipe(
+      //           filter((e) => e.actorType === ActorType.TRIVIA_JAM_ACTOR),
+      //           first()
+      //         )
+      //         .subscribe(resolve);
+      //     }),
 
-        onAnyPlayerNotReady: () =>
-          new Promise((resolve) => {
-            const playerEvents$ = fromActorEvents(actorManager, [
-              'PLAYER_JOINED',
-              'PLAYER_LEFT',
-              'PLAYER_READY',
-              'PLAYER_UNREADY',
-            ]);
-            playerEvents$
-              .pipe(
-                first() // Take the first
-              )
-              .subscribe(resolve);
-          }),
-        onAllPlayersReady: () =>
-          new Promise((resolve) => {
-            const playerEvents$ = fromActorEvents(actorManager, [
-              'PLAYER_JOINED',
-              'PLAYER_LEFT',
-              'PLAYER_READY',
-              'PLAYER_UNREADY',
-            ]);
-            playerEvents$
-              .pipe(
-                filter(() => {
-                  const partyActor = actorManager.rootActor as PartyActor;
-                  const playerActors = actorManager.getActorsForType(
-                    ActorType.PARTY_PLAYER_ACTOR
-                  ) as PartyPlayerActor[];
-                  const readyCount = playerActors
-                    .map((actor) => actor.getSnapshot()?.matches('Ready.Yes'))
-                    .filter((isReady) => isReady).length;
-                  const playerCount =
-                    partyActor.getSnapshot()?.context.playerActorIds.length ||
-                    0;
+      //   onAnyPlayerNotReady: () =>
+      //     new Promise((resolve) => {
+      //       const playerEvents$ = fromActorEvents(actorManager, [
+      //         'PLAYER_JOINED',
+      //         'PLAYER_LEFT',
+      //         'PLAYER_READY',
+      //         'PLAYER_UNREADY',
+      //       ]);
+      //       playerEvents$
+      //         .pipe(
+      //           first() // Take the first
+      //         )
+      //         .subscribe(resolve);
+      //     }),
+      //   onAllPlayersReady: () =>
+      //     new Promise((resolve) => {
+      //       const playerEvents$ = fromActorEvents(actorManager, [
+      //         'PLAYER_JOINED',
+      //         'PLAYER_LEFT',
+      //         'PLAYER_READY',
+      //         'PLAYER_UNREADY',
+      //       ]);
+      //       playerEvents$
+      //         .pipe(
+      //           filter(() => {
+      //             const partyActor = actorManager.rootActor as PartyActor;
+      //             const playerActors = actorManager.getActorsForType(
+      //               ActorType.PARTY_PLAYER_ACTOR
+      //             ) as PartyPlayerActor[];
+      //             const readyCount = playerActors
+      //               .map((actor) => actor.getSnapshot()?.matches('Ready.Yes'))
+      //               .filter((isReady) => isReady).length;
+      //             const playerCount =
+      //               partyActor.getSnapshot()?.context.playerActorIds.length ||
+      //               0;
 
-                  const allReady = readyCount === playerCount;
-                  const minReady = playerCount >= MIN_PLAYER_COUNT;
+      //             const allReady = readyCount === playerCount;
+      //             const minReady = playerCount >= MIN_PLAYER_COUNT;
 
-                  return allReady && minReady;
-                }),
-                first()
-              )
-              .subscribe(resolve);
-          }),
-      },
+      //             return allReady && minReady;
+      //           }),
+      //           first()
+      //         )
+      //         .subscribe(resolve);
+      //     }),
+      // },
     }
   );
 

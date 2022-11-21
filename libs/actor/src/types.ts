@@ -1,5 +1,8 @@
-import { AnyEventObject, AnyState } from 'xstate';
-import { ActorManager } from './actor-manager';
+import { AnyEventObject, AnyState, AnyStateMachine } from 'xstate';
+
+export type CreateMachineFunction = (
+  props: SharedMachineProps
+) => AnyStateMachine;
 
 export type ActorID = string;
 
@@ -8,6 +11,8 @@ export enum ActorType {
   PARTY_PLAYER_ACTOR = 'PARTY_PLAYER_ACTOR',
   TRIVIA_JAM_ACTOR = 'TRIVIA_JAM_ACTOR',
   TRIVIA_JAM_PLAYER_ACTOR = 'TRIVIA_JAM_PLAYER_ACTOR',
+  LOBBY_SERVER_ACTOR = 'LOBBY_SERVER_ACTOR',
+  LOBBY_PLAYER_ACTOR = 'LOBBY_PLAYER_ACTOR',
 }
 
 export enum ActorEventType {
@@ -39,5 +44,4 @@ export type SerializedSharedActor = SharedActorRef & {
  */
 export interface SharedMachineProps {
   actorId: ActorID;
-  actorManager: ActorManager;
 }

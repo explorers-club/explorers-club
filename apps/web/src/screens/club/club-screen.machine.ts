@@ -1,6 +1,8 @@
 import { ActorRefFrom, createMachine, StateFrom } from 'xstate';
+import { db } from '../../lib/firebase';
 import { AuthActor } from '../../state/auth.machine';
-import { assertEventType } from '../../state/utils';
+import { selectUserId } from '../../state/auth.selectors';
+import { ClubScreenContext, ClubScreenEvents } from './club-screen.types';
 import { createGameScreenMachine } from './game/game-screen.machine';
 import { createLobbyScreenMachine } from './lobby/lobby-screen.machine';
 import { createUnclaimedScreenMachine } from './unclaimed';
@@ -33,25 +35,9 @@ import { createUnclaimedScreenMachine } from './unclaimed';
 //   return { hi: 'bye' };
 // };
 
-type ClubScreenContext = {
-  hostPlayerName: string;
-};
-
 const loadData = async () => {
   return { isUnclaimed: false, isPlaying: false };
 };
-
-type LoadingResult = ReturnType<typeof loadData>;
-
-const LOADING_DONE_EVENT =
-  'done.invoke.ClubScreenMachine.Loading:invocation[0]' as string;
-
-type ClubScreenEvents =
-  | { type: 'PRESS_JOIN' }
-  | {
-      type: typeof LOADING_DONE_EVENT;
-      data: LoadingResult;
-    };
 
 interface CreateMachineProps {
   hostPlayerName: string;
@@ -77,14 +63,12 @@ export const createClubScreenMachine = ({
             {
               target: 'Unclaimed',
               cond: (_, event) => {
-                assertEventType(event, LOADING_DONE_EVENT);
                 return event.data.isUnclaimed;
               },
             },
             {
               target: 'Game',
               cond: (_, event) => {
-                assertEventType(event, LOADING_DONE_EVENT);
                 return event.data.isPlaying;
               },
             },
@@ -101,7 +85,15 @@ export const createClubScreenMachine = ({
       Lobby: {
         invoke: {
           id: 'lobbyScreen',
-          src: () => createLobbyScreenMachine(),
+          src: () => {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const userId = selectUserId(authActor.getSnapshot()!);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            return createLobbyScreenMachine({ hostPlayerName, userId, db });
+          },
+        },
+        on: {
+          PRESS_JOIN: 'Game',
         },
       },
       Game: {

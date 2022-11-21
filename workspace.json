@@ -6,6 +6,7 @@
     "components": "libs/components",
     "contentful": "libs/contentful",
     "database": "libs/database",
+    "lobby": "libs/lobby",
     "party": "libs/party",
     "party-server": "apps/party-server",
     "trivia-jam": "games/trivia-jam",

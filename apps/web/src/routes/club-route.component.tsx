@@ -1,12 +1,10 @@
-import { useSelector } from '@xstate/react';
 import { ReactNode, useContext, useState } from 'react';
 import { BottomSheet } from 'react-spring-bottom-sheet';
 import {
   defaultSnapProps,
-  SnapPointProps,
+  SnapPointProps
 } from 'react-spring-bottom-sheet/dist/types';
 import { ClubScreen } from '../screens/club';
-import { useClubScreenActor } from '../screens/club/club-screen.hooks';
 import { FooterContext } from '../state/footer.context';
 
 const DEFAULT_SNAP_POINTS = ({ footerHeight, maxHeight }: SnapPointProps) => [
