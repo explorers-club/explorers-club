@@ -230,6 +230,7 @@ export const createSharedCollectionMachine = ({
               }
 
               const { stateJSON } = event.actors[actorId];
+
               const actorType = getActorType(actorId);
               const createMachine = getCreateMachine(actorType);
               const machine = createMachine({

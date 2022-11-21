@@ -57,7 +57,7 @@ export const getActorId: (actorType: ActorType, uniqueId: string) => ActorID = (
     case ActorType.TRIVIA_JAM_PLAYER_ACTOR:
       return `TriviaJamPlayer-${uniqueId}`;
     case ActorType.LOBBY_PLAYER_ACTOR:
-      return `LobbyPLayer-${uniqueId}`;
+      return `LobbyPlayer-${uniqueId}`;
     case ActorType.LOBBY_SERVER_ACTOR:
       return `LobbyServer-${uniqueId}`;
     default:
