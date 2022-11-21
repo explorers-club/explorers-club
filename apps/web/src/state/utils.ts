@@ -20,5 +20,5 @@ export function useChildActor<T>(actor: AnyActorRef, stateKey: string) {
   return useSelector(
     actor,
     (state) => key && (state.children[key] as T | undefined)
-  );
+  ) as T;
 }

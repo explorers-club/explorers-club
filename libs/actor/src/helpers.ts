@@ -34,6 +34,10 @@ export const getActorType = (actorId: ActorID) => {
       return ActorType.TRIVIA_JAM_ACTOR;
     case !!actorId.match('TriviaJamPlayer-'):
       return ActorType.TRIVIA_JAM_PLAYER_ACTOR;
+    case !!actorId.match('LobbyPlayer-'):
+      return ActorType.LOBBY_PLAYER_ACTOR;
+    case !!actorId.match('LobbyServer-'):
+      return ActorType.LOBBY_SERVER_ACTOR;
     default:
       throw new Error("couldn't find actor type for " + actorId);
   }
@@ -52,6 +56,10 @@ export const getActorId: (actorType: ActorType, uniqueId: string) => ActorID = (
       return `TriviaJam-${uniqueId}`;
     case ActorType.TRIVIA_JAM_PLAYER_ACTOR:
       return `TriviaJamPlayer-${uniqueId}`;
+    case ActorType.LOBBY_PLAYER_ACTOR:
+      return `LobbyPLayer-${uniqueId}`;
+    case ActorType.LOBBY_SERVER_ACTOR:
+      return `LobbyServer-${uniqueId}`;
     default:
       throw new Error(`Non-existent actor type in switch: ${actorType}`);
   }

@@ -44,7 +44,7 @@ async function bootstrap() {
 
     const sharedActorService = interpret(sharedCollectionMachine).start();
 
-    const actorId = getActorId(ActorType.PARTY_ACTOR, hostPlayerName);
+    const actorId = getActorId(ActorType.LOBBY_SERVER_ACTOR, hostPlayerName);
 
     await waitFor(sharedActorService, selectActorsInitialized);
     const selectPartyActor = createActorByIdSelector(actorId);

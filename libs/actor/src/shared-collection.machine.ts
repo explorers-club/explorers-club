@@ -134,7 +134,6 @@ export const createSharedCollectionMachine = ({
                   target: 'Initialized',
                   actions: assign({
                     actorRefs: (_, event) => {
-                      console.log(event);
                       const actorState = event.data as Partial<
                         Record<ActorID, string>
                       >;
@@ -143,16 +142,14 @@ export const createSharedCollectionMachine = ({
                         {};
                       Object.entries(actorState).forEach(
                         ([actorId, stateJSON]) => {
+                          console.log([actorId, stateJSON]);
                           const actorType = getActorType(actorId);
-                          console.log({ actorState, stateJSON });
                           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                           const state = JSON.parse(stateJSON!);
-                          console.log(JSON.parse(state));
                           const previousState = State.create(state);
 
                           const createMachine = getCreateMachine(actorType);
                           const machine = createMachine({ actorId });
-
                           const actor = interpret(machine).start(previousState);
                           actorRefs[actorId] = actor;
                         }
@@ -208,10 +205,12 @@ export const createSharedCollectionMachine = ({
             const myStateRef = ref(db, `${rootPath}/actor_state/${actorId}`);
             const myEventRef = ref(db, `${rootPath}/actor_events/${actorId}`);
 
-            const stateJSON = JSON.stringify(actor.getSnapshot());
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const state = actor.getSnapshot()!;
+            const stateJSON = JSON.stringify(state);
 
             set(myStateRef, stateJSON).then(noop); // todo handle error
-            set(myEventRef, { type: 'INIT' }).then(noop);
+            set(myEventRef, state.event).then(noop);
 
             return {
               ...actorRefs,
