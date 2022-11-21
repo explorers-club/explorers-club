@@ -17,7 +17,6 @@ import { useUserId } from '../../../state/auth.hooks';
 export const LobbyScreen = memo(() => {
   const actor = useClubScreenActor();
   const lobbyActor = useSelector(actor, selectLobbyScreenActor);
-  useActorLogger(lobbyActor);
   useFooter(<LobbyFooter />);
   console.log({ lobbyActor });
 
@@ -26,8 +25,8 @@ export const LobbyScreen = memo(() => {
 
 const LobbyFooter = () => {
   const userId = useUserId();
-
   const sharedCollectionActor = useSharedCollectionActor();
+
   const handlePress = useCallback(() => {
     if (!userId) {
       console.error('tried to join without being logged in');

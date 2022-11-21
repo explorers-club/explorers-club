@@ -4,11 +4,10 @@
  *
  * It aims to remain generic and re-usable across different use cases.
  */
-import { ActorID, ActorType, SharedMachineProps } from './types';
 import { noop } from '@explorers-club/utils';
 import { Database, get, ref, set } from 'firebase/database';
-import { fromRef, list, ListenEvent } from 'rxfire/database';
-import { map, skip } from 'rxjs';
+import { fromRef, ListenEvent } from 'rxfire/database';
+import { map } from 'rxjs';
 import {
   ActorRefFrom,
   AnyActorRef,
@@ -20,11 +19,12 @@ import {
   interpret,
   spawn,
   State,
-  StateFrom,
+  StateFrom
 } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { ModelContextFrom, ModelEventsFrom } from 'xstate/lib/model.types';
 import { assertEventType, getActorType } from './helpers';
+import { ActorID, ActorType, SharedMachineProps } from './types';
 
 const sharedCollectionModel = createModel(
   {
@@ -32,8 +32,9 @@ const sharedCollectionModel = createModel(
   },
   {
     events: {
-      HYDRATE: (actors: { actorId: ActorID; stateJSON: string }[]) => ({
-        actors,
+      HYDRATE: (actorId: ActorID, stateJSON: string) => ({
+        actorId,
+        stateJSON,
       }),
       SPAWN: (actorId: ActorID) => ({
         actorId,
@@ -69,19 +70,23 @@ export const createSharedCollectionMachine = ({
 
   // Listens for event writes in firebase and emits
   // a HYDRATE on the share machine
-  const actorAdded$ = list(stateRef, {
-    events: [ListenEvent.added],
-  }).pipe(
+  const hydrateActors$ = fromRef(stateRef, ListenEvent.added).pipe(
     map((changes) => {
+      // const actors: AnyActorRef[] = [];
+
+      const actorId = changes.snapshot.key;
+      const stateJSON = changes.snapshot.val();
+
       // TODO there's probably a bug here where we are triggering events
       // on rejoin where we shouldnt be
-      const actors = changes.map((change) => {
-        const actorId = change.snapshot.key;
-        const stateJSON = change.snapshot.val();
-        return { actorId, stateJSON };
-      });
+      // console.log({ changes, val });
+      // const actors = changes.map((change) => {
+      //   const actorId = change.snapshot.key;
+      //   const stateJSON = change.snapshot.val();
+      //   return { actorId, stateJSON };
+      // });
 
-      return { type: 'HYDRATE', actors };
+      return { type: 'HYDRATE', actorId, stateJSON };
     })
   );
 
@@ -142,7 +147,6 @@ export const createSharedCollectionMachine = ({
                         {};
                       Object.entries(actorState).forEach(
                         ([actorId, stateJSON]) => {
-                          console.log([actorId, stateJSON]);
                           const actorType = getActorType(actorId);
                           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                           const state = JSON.parse(stateJSON!);
@@ -163,7 +167,7 @@ export const createSharedCollectionMachine = ({
             },
             Initialized: {
               invoke: {
-                src: () => actorAdded$.pipe(skip(1)), // ignore the first one
+                src: () => hydrateActors$,
               },
               on: {
                 HYDRATE: {
@@ -221,31 +225,26 @@ export const createSharedCollectionMachine = ({
         hydrateActors: assign({
           actorRefs: ({ actorRefs }, event) => {
             assertEventType(event, 'HYDRATE');
+            const { actorId, stateJSON } = event;
 
-            const newActorRefs: Record<ActorID, AnyActorRef> = {};
-            for (const actorId in event.actors) {
-              if (actorId in actorRefs) {
-                // Already exists/hydrated
-                continue;
-              }
-
-              const { stateJSON } = event.actors[actorId];
-
-              const actorType = getActorType(actorId);
-              const createMachine = getCreateMachine(actorType);
-              const machine = createMachine({
-                actorId,
-              });
-              const state = JSON.parse(stateJSON) as AnyState;
-              const previousState = State.create(state);
-
-              const actor = interpret(machine).start(previousState);
-              newActorRefs[actorId] = actor;
+            // do nothing if already exists/hydrated
+            if (actorId in actorRefs) {
+              return actorRefs;
             }
+
+            const actorType = getActorType(actorId);
+            const createMachine = getCreateMachine(actorType);
+            const machine = createMachine({
+              actorId,
+            });
+            const state = JSON.parse(stateJSON) as AnyState;
+            const previousState = State.create(state);
+
+            const actor = interpret(machine).start(previousState);
 
             return {
               ...actorRefs,
-              ...newActorRefs,
+              [actorId]: actor,
             };
           },
         }),
