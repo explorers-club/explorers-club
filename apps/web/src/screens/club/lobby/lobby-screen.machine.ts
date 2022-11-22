@@ -1,11 +1,15 @@
 import {
   ActorType,
+  createActorByIdSelector,
   CreateMachineFunction,
   createSharedCollectionMachine,
+  getActorId,
+  SharedCollectionActor,
 } from '@explorers-club/actor';
 import {
   createLobbyPlayerMachine,
   createLobbyServerMachine,
+  selectLobbyServerActor,
 } from '@explorers-club/lobby';
 import {
   createPartyMachine,
@@ -15,6 +19,7 @@ import {
   createTriviaJamMachine,
   createTriviaJamPlayerMachine,
 } from '@explorers-club/trivia-jam/state';
+import { AuthActor } from '../../../state/auth.machine';
 import {
   Database,
   onDisconnect,
@@ -23,19 +28,30 @@ import {
   ref,
   set,
 } from 'firebase/database';
-import { ActorRefFrom, createMachine, StateFrom } from 'xstate';
+import { ActorRefFrom, createMachine, StateFrom, interpret } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { ModelContextFrom, ModelEventsFrom } from 'xstate/lib/model.types';
+import { waitFor } from 'xstate/lib/waitFor';
+import { createSelector } from 'reselect';
+import {
+  selectAuthIsInitalized,
+  selectUser,
+  selectUserId,
+} from '../../../state/auth.selectors';
+import { createAnonymousUser } from '../../../state/auth.utils';
 
 const lobbyScreenModel = createModel(
-  {},
+  {
+    sharedCollectionActor: {} as SharedCollectionActor,
+  },
   {
     events: {
-      CONNECT: () => ({}),
-      JOIN_PARTY: (userId: string) => ({ userId }),
+      PRESS_JOIN: () => ({}),
     },
   }
 );
+
+export const LobbyScreenEvents = lobbyScreenModel.events;
 
 // TODO better way to set up this type to be inferrable
 // type LobbyScreenServices = {
@@ -61,19 +77,20 @@ type LobbyScreenContext = ModelContextFrom<typeof lobbyScreenModel>;
 interface CreateProps {
   db: Database;
   hostPlayerName: string;
-  userId?: string;
+  authActor: AuthActor;
 }
 
 export const createLobbyScreenMachine = ({
   hostPlayerName,
   db,
-  userId,
+  authActor,
 }: CreateProps) => {
   const sharedCollectionMachine = createSharedCollectionMachine({
     db,
     rootPath: `lobby/${hostPlayerName}`,
     getCreateMachine,
   });
+  const sharedCollectionActor = interpret(sharedCollectionMachine).start();
 
   return createMachine<
     LobbyScreenContext,
@@ -83,20 +100,92 @@ export const createLobbyScreenMachine = ({
   >(
     {
       id: 'LobbyScreenMachine',
-      initial: 'Running',
+      // ALgorithm
+      // 1. spawn the shared collection machine
+      // 2. wait for it to initialize
+      // 3. assign it as a ref
+      // 4. transition
+      initial: 'Loading',
+      context: {
+        sharedCollectionActor,
+      },
       states: {
-        Running: {
-          entry: 'connectPresence',
+        Loading: {
+          entry: 'initializePresence',
           invoke: {
-            src: sharedCollectionMachine,
+            src: 'waitForServerActor',
+            onDone: 'Connected',
+          },
+        },
+        Connected: {
+          initial: 'Initializing',
+          states: {
+            Initializing: {
+              invoke: {
+                src: 'waitForAuthInit',
+                onDone: [
+                  {
+                    // Resume playing if they were previously connected
+                    cond: 'isInParty',
+                    target: 'Rejoining',
+                  },
+                  {
+                    target: 'Spectating',
+                  },
+                ],
+              },
+            },
+            Rejoining: {},
+            Spectating: {
+              on: {
+                PRESS_JOIN: [
+                  {
+                    cond: 'isNotLoggedIn',
+                    target: 'CreateAccount',
+                  },
+                  {
+                    target: 'Joining',
+                  },
+                ],
+              },
+            },
+            CreateAccount: {
+              invoke: {
+                src: 'createAccount',
+                onDone: 'Joining',
+              },
+            },
+            Joining: {},
           },
         },
       },
       predictableActionArguments: true,
     },
     {
+      guards: {
+        isNotLoggedIn: () => {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          return !selectUser(authActor.getSnapshot()!);
+        },
+        isInParty: ({ sharedCollectionActor }) => {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const userId = selectUserId(authActor.getSnapshot()!);
+          if (!userId) {
+            return false;
+          }
+
+          const actorId = getActorId(ActorType.LOBBY_PLAYER_ACTOR, userId);
+          const selectActor = createActorByIdSelector(actorId);
+
+          const lobbyPlayerActor = selectActor(
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            sharedCollectionActor.getSnapshot()!
+          );
+          return !!lobbyPlayerActor;
+        },
+      },
       actions: {
-        connectPresence: () => {
+        initializePresence: () => {
           const lobbyConnectionsRef = ref(db, 'lobby_connections');
 
           const connectedRef = ref(db, '.info/connected');
@@ -118,6 +207,19 @@ export const createLobbyScreenMachine = ({
         // },
       },
       services: {
+        createAccount: () => {
+          return createAnonymousUser(authActor);
+        },
+        waitForAuthInit: async () => {
+          await waitFor(authActor, selectAuthIsInitalized);
+        },
+        waitForServerActor: async ({ sharedCollectionActor }) => {
+          const selectServerActorIsLoaded = createSelector(
+            selectLobbyServerActor,
+            (actor) => !!actor
+          );
+          await waitFor(sharedCollectionActor, selectServerActorIsLoaded);
+        },
         // fetchAllActors: async (_, event) => {
         //   return [] as string[];
         // },

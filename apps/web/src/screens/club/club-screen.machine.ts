@@ -85,12 +85,8 @@ export const createClubScreenMachine = ({
       Lobby: {
         invoke: {
           id: 'lobbyScreen',
-          src: () => {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const userId = selectUserId(authActor.getSnapshot()!);
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            return createLobbyScreenMachine({ hostPlayerName, userId, db });
-          },
+          src: () =>
+            createLobbyScreenMachine({ hostPlayerName, authActor, db }),
         },
         on: {
           PRESS_JOIN: 'Game',

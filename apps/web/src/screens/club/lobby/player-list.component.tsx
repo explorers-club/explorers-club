@@ -1,4 +1,5 @@
 import { Box } from '@atoms/Box';
+import { Button } from '@atoms/Button';
 import { Caption } from '@atoms/Caption';
 import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
@@ -7,13 +8,21 @@ import {
   selectLobbyPlayerActors,
 } from '@explorers-club/lobby';
 import { useSelector } from '@xstate/react';
-import { FC } from 'react';
-import { useSharedCollectionActor } from './lobby-screen.hooks';
+import { FC, useCallback } from 'react';
+import {
+  useLobbyScreenActor,
+  useSharedCollectionActor,
+} from './lobby-screen.hooks';
+import { LobbyScreenEvents } from './lobby-screen.machine';
+import { selectIsJoined, selectIsSpectating } from './lobby-screen.selectors';
 
 const DEFAULT_LOBBY_DISPLAY_SIZE = 6;
 
 export const PlayerList = () => {
   const actor = useSharedCollectionActor();
+  const lobbyScreenActor = useLobbyScreenActor();
+  const canJoin = useSelector(lobbyScreenActor, selectIsSpectating);
+  const canReady = useSelector(lobbyScreenActor, selectIsJoined);
 
   const playerActors = useSelector(actor, selectLobbyPlayerActors);
   return (
@@ -34,6 +43,8 @@ export const PlayerList = () => {
             }
           })}
         </Flex>
+        {canJoin && <JoinButton />}
+        {canReady && <ReadyButton />}
       </Card>
     </Box>
   );
@@ -42,6 +53,27 @@ export const PlayerList = () => {
 interface ItemProps {
   actor: LobbyPlayerActor;
 }
+
+const JoinButton = () => {
+  const actor = useLobbyScreenActor();
+  const handlePressJoin = useCallback(() => {
+    actor.send(LobbyScreenEvents.PRESS_JOIN());
+  }, [actor]);
+
+  return (
+    <Button size="3" fullWidth onClick={handlePressJoin}>
+      Join Party
+    </Button>
+  );
+};
+
+const ReadyButton = () => {
+  return (
+    <Button size="3" fullWidth>
+      Ready
+    </Button>
+  );
+};
 
 const PlayerListItem: FC<ItemProps> = ({ actor }) => {
   //   const playerName = useSelector(actor, selectPlayerName);

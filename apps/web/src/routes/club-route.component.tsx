@@ -2,7 +2,7 @@ import { ReactNode, useContext, useState } from 'react';
 import { BottomSheet } from 'react-spring-bottom-sheet';
 import {
   defaultSnapProps,
-  SnapPointProps
+  SnapPointProps,
 } from 'react-spring-bottom-sheet/dist/types';
 import { ClubScreen } from '../screens/club';
 import { FooterContext } from '../state/footer.context';
@@ -30,6 +30,7 @@ export const ClubRoute = () => {
 
 const ClubRouteComponent = () => {
   const { FooterComponent } = useContext(FooterContext);
+  console.log('club route render', FooterComponent);
   return (
     <BottomSheet
       open={true}

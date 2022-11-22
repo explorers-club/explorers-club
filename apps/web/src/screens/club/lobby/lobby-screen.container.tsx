@@ -1,44 +1,25 @@
-import { useSelector } from '@xstate/react';
 import { useActorLogger } from '../../../lib/logging';
-import { memo, useCallback } from 'react';
-import { useClubScreenActor } from '../club-screen.hooks';
-import { selectLobbyScreenActor } from '../club-screen.selectors';
-import { Button } from '@atoms/Button';
-import { useFooter } from '../../../state/footer.hooks';
+import { memo } from 'react';
 import { LobbyScreenComponent } from './lobby-screen.component';
-import { useSharedCollectionActor } from './lobby-screen.hooks';
-import {
-  ActorType,
-  getActorId,
-  SharedCollectionEvents,
-} from '@explorers-club/actor';
-import { useUserId } from '../../../state/auth.hooks';
+import { useLobbyScreenActor } from './lobby-screen.hooks';
 
 export const LobbyScreen = memo(() => {
-  const actor = useClubScreenActor();
-  const lobbyActor = useSelector(actor, selectLobbyScreenActor);
-  useFooter(<LobbyFooter />);
-  console.log({ lobbyActor });
+  const actor = useLobbyScreenActor();
+  useActorLogger(actor);
+  // const footerComponent = useFooterComponent();
+  // useFooter(footerComponent);
 
   return <LobbyScreenComponent />;
 });
 
-const LobbyFooter = () => {
-  const userId = useUserId();
-  const sharedCollectionActor = useSharedCollectionActor();
+// const useFooterComponent = () => {
+//   const actor = useLobbyScreenActor();
+//   useActorLogger(actor);
+//   const isSpectating = useSelector(actor, selectIsSpectating);
 
-  const handlePress = useCallback(() => {
-    if (!userId) {
-      console.error('tried to join without being logged in');
-      return;
-    }
+//   if (isSpectating) {
+//     return <JoinFooter />;
+//   }
 
-    const actorId = getActorId(ActorType.LOBBY_PLAYER_ACTOR, userId);
-    sharedCollectionActor.send(SharedCollectionEvents.SPAWN(actorId));
-  }, [sharedCollectionActor, userId]);
-  return (
-    <Button size="3" color="blue" fullWidth onClick={handlePress}>
-      Join Party
-    </Button>
-  );
-};
+//   return null;
+// };
