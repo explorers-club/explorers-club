@@ -7,7 +7,7 @@
 import { noop } from '@explorers-club/utils';
 import { Database, get, ref, set } from 'firebase/database';
 import { fromRef, ListenEvent } from 'rxfire/database';
-import { BehaviorSubject, from, map } from 'rxjs';
+import { BehaviorSubject, from, map, skip } from 'rxjs';
 import {
   ActorRefFrom,
   AnyActorRef,
@@ -204,9 +204,17 @@ export const createSharedCollectionMachine = ({
             return;
           }
 
-          from(localActor).subscribe((state) => {
-            console.log('helo there', localActorId, state.event);
-          });
+          // log our events to firebase
+          // skip the first once since that event should already exist
+          const myEventRef = ref(
+            db,
+            `${rootPath}/actor_events/${localActorId}`
+          );
+          from(localActor)
+            .pipe(skip(1))
+            .subscribe((state) => {
+              set(myEventRef, state.event).then(noop);
+            });
         },
         spawnActor: assign({
           actorRefs: ({ actorRefs }, event) => {
