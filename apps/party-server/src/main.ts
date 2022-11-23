@@ -4,7 +4,9 @@ import {
   CreateMachineFunction,
   createSharedCollectionMachine,
   getActorId,
+  selectActorRefs,
   selectActorsInitialized,
+  SharedCollectionActor,
   SharedCollectionEvents,
 } from '@explorers-club/actor';
 import {
@@ -14,19 +16,21 @@ import {
 import {
   createPartyMachine,
   createPartyPlayerMachine,
+  selectPartyHostActorId,
 } from '@explorers-club/party';
 import {
   createTriviaJamMachine,
   createTriviaJamPlayerMachine,
 } from '@explorers-club/trivia-jam/state';
-import { generateUUID } from '@explorers-club/utils';
+import { generateUUID, noop } from '@explorers-club/utils';
 import {
   onChildAdded,
   onDisconnect,
   ref,
   runTransaction,
+  set,
 } from 'firebase/database';
-import { BehaviorSubject, from, map } from 'rxjs';
+import { BehaviorSubject, filter, from, map } from 'rxjs';
 import { interpret } from 'xstate';
 import { waitFor } from 'xstate/lib/waitFor';
 import { db } from './lib/firebase';
@@ -39,11 +43,12 @@ async function bootstrap() {
     const localActorId$ = new BehaviorSubject(
       getActorId(ActorType.LOBBY_SERVER_ACTOR, hostPlayerName)
     );
+    const rootPath = `lobby/${hostPlayerName}`;
 
     console.log('running', hostPlayerName);
     const sharedCollectionMachine = createSharedCollectionMachine({
       db,
-      rootPath: `lobby/${hostPlayerName}`,
+      rootPath,
       localActorId$,
       getCreateMachine,
     });
@@ -59,6 +64,32 @@ async function bootstrap() {
     if (!actor) {
       sharedActorService.send(SharedCollectionEvents.SPAWN(actorId));
     }
+
+    from(sharedActorService)
+      .pipe(filter((state) => state.event.type === 'SEND_EVENT'))
+      .subscribe(({ event }) => {
+        const { actorId } = event;
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const actorRefs = selectActorRefs(sharedActorService.getSnapshot()!);
+        const actor = actorRefs[actorId];
+        if (!actor) {
+          console.error(
+            'unexpected to find actor when trying to save actor state'
+          );
+          return;
+        }
+        const actorStateRef = ref(db, `${rootPath}/actor_state/${actorId}`);
+
+        const state = actor.getSnapshot();
+        const stateJSON = JSON.stringify(state);
+
+        set(actorStateRef, stateJSON).then(noop); // todo handle error
+      });
+
+    // sharedActorService.
+
+    // Listen for changes on actor events, and then grab the correct actor and log it
+    // setupBroadcastListeners(rootPath, sharedActorService);
   };
 
   const trySpawnPartyHost = async (hostPlayerName: string) => {
@@ -387,3 +418,10 @@ const getCreateMachine: (actorType: ActorType) => CreateMachineFunction = (
       return createTriviaJamPlayerMachine;
   }
 };
+
+// const setupBroadcastListeners = (
+//   rootPath: string,
+//   actor: SharedCollectionActor
+// ) => {
+//   rootPath
+// };

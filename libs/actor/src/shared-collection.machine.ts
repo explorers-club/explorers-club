@@ -100,10 +100,8 @@ export const createSharedCollectionMachine = ({
   // only emits "changes" to children, not "new" children
   const newEvent$ = fromRef(eventsRef, ListenEvent.changed).pipe(
     map((changes) => {
-      const { actorId, event } = changes.snapshot.val() as {
-        actorId: ActorID;
-        event: AnyEventObject;
-      };
+      const actorId = changes.snapshot.key;
+      const event = changes.snapshot.val() as AnyEventObject;
       return { type: 'SEND_EVENT', actorId, event };
     })
   );
@@ -198,6 +196,9 @@ export const createSharedCollectionMachine = ({
       actions: {
         setupLocalActorBroadcast: ({ actorRefs }) => {
           const localActorId = localActorId$.getValue();
+          if (!localActorId) {
+            return;
+          }
 
           const localActor = actorRefs[localActorId];
           if (!localActor) {
