@@ -212,7 +212,6 @@ export const createLobbyScreenMachine = ({
             },
             Joined: {
               initial: 'Initializing',
-              entry: 'setupActorBroadcast',
               states: {
                 Initializing: {
                   on: {
@@ -312,32 +311,6 @@ export const createLobbyScreenMachine = ({
         },
       },
       actions: {
-        setupActorBroadcast: () => {
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          const userId = selectUserId(authActor.getSnapshot()!);
-          if (!userId) {
-            throw new Error('tried to set up broadcast but no user id found');
-          }
-
-          const selectMyPlayerActor = createPlayerActorByUserIdSelector(userId);
-          const myActor = selectMyPlayerActor(
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            sharedCollectionActor.getSnapshot()!
-          );
-
-          if (!myActor) {
-            throw new Error(
-              'tried to set up broadcast but no player actor found'
-            );
-          }
-
-          const state$ = from(myActor);
-          state$.subscribe((state) => {
-            const event = state.event as AnyEventObject;
-
-            // console.log('state21', state);
-          });
-        },
         initializePresence: () => {
           const lobbyConnectionsRef = ref(db, 'lobby_connections');
 
