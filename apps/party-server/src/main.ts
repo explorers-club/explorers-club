@@ -26,7 +26,7 @@ import {
   ref,
   runTransaction,
 } from 'firebase/database';
-import { from, map } from 'rxjs';
+import { BehaviorSubject, from, map } from 'rxjs';
 import { interpret } from 'xstate';
 import { waitFor } from 'xstate/lib/waitFor';
 import { db } from './lib/firebase';
@@ -36,9 +36,9 @@ const runningParties = new Set();
 
 async function bootstrap() {
   const initializeLobby = async (hostPlayerName: string) => {
-    const localActorId$ = from([
-      getActorId(ActorType.LOBBY_SERVER_ACTOR, hostPlayerName),
-    ]);
+    const localActorId$ = new BehaviorSubject(
+      getActorId(ActorType.LOBBY_SERVER_ACTOR, hostPlayerName)
+    );
 
     console.log('running', hostPlayerName);
     const sharedCollectionMachine = createSharedCollectionMachine({

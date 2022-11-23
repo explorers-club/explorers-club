@@ -7,7 +7,7 @@
 import { noop } from '@explorers-club/utils';
 import { Database, get, ref, set } from 'firebase/database';
 import { fromRef, ListenEvent } from 'rxfire/database';
-import { map, Observable } from 'rxjs';
+import { BehaviorSubject, from, map } from 'rxjs';
 import {
   ActorRefFrom,
   AnyActorRef,
@@ -55,7 +55,7 @@ type SharedCollectionContext = ModelContextFrom<typeof sharedCollectionModel>;
 interface CreateProps {
   rootPath: string; // e.g. 'lobby/bakery'
   db: Database;
-  localActorId$: Observable<ActorID | undefined>;
+  localActorId$: BehaviorSubject<ActorID | undefined>;
   getCreateMachine: (
     actorType: ActorType
   ) => (props: SharedMachineProps) => AnyStateMachine;
@@ -168,6 +168,7 @@ export const createSharedCollectionMachine = ({
               },
             },
             Initialized: {
+              entry: 'setupLocalActorBroadcast',
               invoke: {
                 src: () => hydrateActors$,
               },
@@ -176,7 +177,7 @@ export const createSharedCollectionMachine = ({
                   actions: 'hydrateActors',
                 },
                 SPAWN: {
-                  actions: 'spawnActor',
+                  actions: ['spawnActor', 'setupLocalActorBroadcast'],
                 },
               },
             },
@@ -195,6 +196,18 @@ export const createSharedCollectionMachine = ({
         },
       },
       actions: {
+        setupLocalActorBroadcast: ({ actorRefs }) => {
+          const localActorId = localActorId$.getValue();
+
+          const localActor = actorRefs[localActorId];
+          if (!localActor) {
+            return;
+          }
+
+          from(localActor).subscribe((state) => {
+            console.log('helo there', localActorId, state.event);
+          });
+        },
         spawnActor: assign({
           actorRefs: ({ actorRefs }, event) => {
             assertEventType(event, 'SPAWN');

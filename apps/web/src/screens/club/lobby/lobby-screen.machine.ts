@@ -51,7 +51,7 @@ import {
 } from '../../../state/auth.selectors';
 import { createAnonymousUser } from '../../../state/auth.utils';
 import { enterNameMachine } from '@organisms/enter-name-form';
-import { from, map } from 'rxjs';
+import { BehaviorSubject, from, map } from 'rxjs';
 import { assign } from 'lodash';
 
 const lobbyScreenModel = createModel(
@@ -101,15 +101,31 @@ export const createLobbyScreenMachine = ({
   db,
   authActor,
 }: CreateProps) => {
-  const localActorId$ = from(authActor).pipe(
-    map(selectUserId),
-    map((userId) => {
-      if (userId) {
-        return getActorId(ActorType.LOBBY_PLAYER_ACTOR, userId);
-      }
-      return undefined;
-    })
-  );
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const userId = selectUserId(authActor.getSnapshot()!);
+  const initialActorId = userId
+    ? getActorId(ActorType.LOBBY_PLAYER_ACTOR, userId)
+    : undefined;
+  const localActorId$ = new BehaviorSubject(initialActorId);
+  // todo? apply generic to convert obs -> behavior subjects https://stackoverflow.com/a/54352114
+  from(authActor)
+    .pipe(
+      map(selectUserId),
+      map(
+        (userId) => userId && getActorId(ActorType.LOBBY_PLAYER_ACTOR, userId)
+      )
+    )
+    .subscribe(localActorId$);
+
+  // const localActorId$ = from(authActor).pipe(
+  // map(selectUserId),
+  // map((userId) => {
+  //   if (userId) {
+  //     return getActorId(ActorType.LOBBY_PLAYER_ACTOR, userId);
+  //   }
+  //   return undefined;
+  // })
+  // );
 
   const sharedCollectionMachine = createSharedCollectionMachine({
     db,

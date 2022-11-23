@@ -30,7 +30,7 @@ export const ClubRoute = () => {
 
 const ClubRouteComponent = () => {
   const { FooterComponent } = useContext(FooterContext);
-  console.log('club route render', FooterComponent);
+
   return (
     <BottomSheet
       open={true}
