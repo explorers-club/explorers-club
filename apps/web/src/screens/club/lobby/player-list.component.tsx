@@ -11,6 +11,7 @@ import {
 import {
   LobbyPlayerActor,
   selectLobbyPlayerActors,
+  selectLobbyPlayerName,
 } from '@explorers-club/lobby';
 import { useSelector } from '@xstate/react';
 import { useAuthActor } from '../../../state/auth.hooks';
@@ -90,7 +91,6 @@ const ReadyButton = () => {
     sharedCollectionActor,
     selectMyLobbyPlayerActor
   );
-  console.log({ playerActor });
 
   // const selectPlayer;
 
@@ -115,8 +115,9 @@ const ReadyButton = () => {
 };
 
 const PlayerListItem: FC<ItemProps> = ({ actor }) => {
+  const playerName = useSelector(actor, selectLobbyPlayerName);
   //   const playerName = useSelector(actor, selectPlayerName);
-  return <Box>1</Box>;
+  return <Box>{playerName}</Box>;
 };
 
 const PlayerListItemPlaceholder = () => {

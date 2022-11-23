@@ -11,6 +11,7 @@ import {
   createLobbyPlayerMachine,
   createLobbyServerMachine,
   createPlayerActorByUserIdSelector,
+  LobbyPlayerEvents,
   selectLobbyPlayerName,
   selectLobbyServerActor,
 } from '@explorers-club/lobby';
@@ -196,10 +197,26 @@ export const createLobbyScreenMachine = ({
                     onDone: {
                       target: 'Waiting',
                       actions: (
-                        _,
+                        { sharedCollectionActor },
                         event: DoneInvokeEvent<{ name: string }>
                       ) => {
-                        console.log(event.data.name);
+                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                        const userId = selectUserId(authActor.getSnapshot()!);
+                        if (!userId) {
+                          throw new Error('expected user id');
+                        }
+
+                        const selectMyPlayerActor =
+                          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                          createPlayerActorByUserIdSelector(userId!);
+
+                        const myPlayerActor = selectMyPlayerActor(
+                          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                          sharedCollectionActor.getSnapshot()!
+                        );
+                        myPlayerActor?.send(
+                          LobbyPlayerEvents.PLAYER_SET_NAME(event.data.name)
+                        );
                       },
                     },
                   },

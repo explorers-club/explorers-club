@@ -18,6 +18,8 @@ const LobbyPlayerModel = createModel(
   }
 );
 
+export const LobbyPlayerEvents = LobbyPlayerModel.events;
+
 export type LobbyPlayerContext = ModelContextFrom<typeof LobbyPlayerModel>;
 export type LobbyPlayerEvent = ModelEventsFrom<typeof LobbyPlayerModel>;
 
