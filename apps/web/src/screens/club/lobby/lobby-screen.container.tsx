@@ -4,7 +4,7 @@ import { LobbyScreenComponent } from './lobby-screen.component';
 import { useLobbyScreenActor } from './lobby-screen.hooks';
 import { useSelector } from '@xstate/react';
 import { selectIsEnteringName } from './lobby-screen.selectors';
-import { EnterName } from './enter-name.container';
+import { EnterNameScreen } from './enter-name-screen.container';
 
 export const LobbyScreen = memo(() => {
   const actor = useLobbyScreenActor();
@@ -15,20 +15,8 @@ export const LobbyScreen = memo(() => {
   const isEnteringName = useSelector(lobbyScreenActor, selectIsEnteringName);
 
   if (isEnteringName) {
-    return <EnterName />;
+    return <EnterNameScreen />;
   }
 
   return <LobbyScreenComponent />;
 });
-
-// const useFooterComponent = () => {
-//   const actor = useLobbyScreenActor();
-//   useActorLogger(actor);
-//   const isSpectating = useSelector(actor, selectIsSpectating);
-
-//   if (isSpectating) {
-//     return <JoinFooter />;
-//   }
-
-//   return null;
-// };

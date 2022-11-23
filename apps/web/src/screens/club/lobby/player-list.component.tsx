@@ -4,19 +4,16 @@ import { Caption } from '@atoms/Caption';
 import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
 import {
-  ActorType,
-  createActorByIdSelector,
-  getActorId,
-} from '@explorers-club/actor';
-import {
+  createPlayerActorByUserIdSelector,
   LobbyPlayerActor,
   selectLobbyPlayerActors,
+  selectLobbyPlayerIsReady,
   selectLobbyPlayerName,
 } from '@explorers-club/lobby';
 import { useSelector } from '@xstate/react';
+import { FC, useCallback, useMemo } from 'react';
 import { useAuthActor } from '../../../state/auth.hooks';
 import { selectUserId } from '../../../state/auth.selectors';
-import { FC, useCallback, useMemo } from 'react';
 import {
   useLobbyScreenActor,
   useSharedCollectionActor,
@@ -81,10 +78,8 @@ const ReadyButton = () => {
   const sharedCollectionActor = useSharedCollectionActor();
   const userId = useSelector(authActor, selectUserId);
   const selectMyLobbyPlayerActor = useMemo(
-    () =>
-      createActorByIdSelector(
-        getActorId(ActorType.LOBBY_PLAYER_ACTOR, userId!)
-      ),
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    () => createPlayerActorByUserIdSelector(userId!),
     [userId]
   );
   const playerActor = useSelector(
@@ -92,12 +87,9 @@ const ReadyButton = () => {
     selectMyLobbyPlayerActor
   );
 
-  // const selectPlayer;
-
-  // const myPlayerActor = useSelector(
-  //   sharedCollectionActor,
-  //   selectMyLobbyPlayerActor
-  // );
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const isReady = useSelector(playerActor!, selectLobbyPlayerIsReady);
+  console.log({ playerActor, isReady });
 
   const handlePressReady = useCallback(() => {
     actor.send(LobbyScreenEvents.PRESS_READY());
@@ -108,15 +100,18 @@ const ReadyButton = () => {
   }, [actor]);
 
   return (
-    <Button size="3" fullWidth onClick={handlePressReady}>
-      Ready
+    <Button
+      size="3"
+      fullWidth
+      onClick={isReady ? handlePressUnready : handlePressReady}
+    >
+      {isReady ? 'Not Ready' : 'Ready'}
     </Button>
   );
 };
 
 const PlayerListItem: FC<ItemProps> = ({ actor }) => {
   const playerName = useSelector(actor, selectLobbyPlayerName);
-  //   const playerName = useSelector(actor, selectPlayerName);
   return <Box>{playerName}</Box>;
 };
 

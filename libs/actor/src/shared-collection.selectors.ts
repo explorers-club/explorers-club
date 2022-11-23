@@ -29,5 +29,11 @@ export function createActorByTypeSelector<T extends AnyActorRef>(
   );
 }
 
-export const createActorByIdSelector = (actorId: ActorID) =>
-  createSelector(selectActorRefs, (actors) => actors[actorId]);
+export function createActorByIdSelector<T extends AnyActorRef>(
+  actorId: ActorID
+) {
+  return createSelector(
+    selectActorRefs,
+    (actors) => actors[actorId] as T | undefined
+  );
+}

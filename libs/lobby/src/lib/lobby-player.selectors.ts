@@ -7,3 +7,6 @@ export const selectLobbyPlayerName = createSelector(
   selectLobbyPlayerContext,
   (context) => context.playerName
 );
+
+export const selectLobbyPlayerIsReady = (state: LobbyPlayerState) =>
+  state.matches('Ready.Yes');

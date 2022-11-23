@@ -34,6 +34,7 @@ import {
 import { createSelector } from 'reselect';
 import {
   ActorRefFrom,
+  AnyEventObject,
   createMachine,
   DoneInvokeEvent,
   interpret,
@@ -50,6 +51,8 @@ import {
 } from '../../../state/auth.selectors';
 import { createAnonymousUser } from '../../../state/auth.utils';
 import { enterNameMachine } from '@organisms/enter-name-form';
+import { from, map } from 'rxjs';
+import { assign } from 'lodash';
 
 const lobbyScreenModel = createModel(
   {
@@ -98,8 +101,19 @@ export const createLobbyScreenMachine = ({
   db,
   authActor,
 }: CreateProps) => {
+  const localActorId$ = from(authActor).pipe(
+    map(selectUserId),
+    map((userId) => {
+      if (userId) {
+        return getActorId(ActorType.LOBBY_PLAYER_ACTOR, userId);
+      }
+      return undefined;
+    })
+  );
+
   const sharedCollectionMachine = createSharedCollectionMachine({
     db,
+    localActorId$,
     rootPath: `lobby/${hostPlayerName}`,
     getCreateMachine,
   });
@@ -182,6 +196,7 @@ export const createLobbyScreenMachine = ({
             },
             Joined: {
               initial: 'Initializing',
+              entry: 'setupActorBroadcast',
               states: {
                 Initializing: {
                   on: {
@@ -221,7 +236,16 @@ export const createLobbyScreenMachine = ({
                     },
                   },
                 },
-                Waiting: {},
+                Waiting: {
+                  on: {
+                    PRESS_READY: {
+                      actions: 'sendReadyEvent',
+                    },
+                    PRESS_UNREADY: {
+                      actions: 'sendUnreadyEvent',
+                    },
+                  },
+                },
               },
             },
           },
@@ -272,6 +296,32 @@ export const createLobbyScreenMachine = ({
         },
       },
       actions: {
+        setupActorBroadcast: () => {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const userId = selectUserId(authActor.getSnapshot()!);
+          if (!userId) {
+            throw new Error('tried to set up broadcast but no user id found');
+          }
+
+          const selectMyPlayerActor = createPlayerActorByUserIdSelector(userId);
+          const myActor = selectMyPlayerActor(
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            sharedCollectionActor.getSnapshot()!
+          );
+
+          if (!myActor) {
+            throw new Error(
+              'tried to set up broadcast but no player actor found'
+            );
+          }
+
+          const state$ = from(myActor);
+          state$.subscribe((state) => {
+            const event = state.event as AnyEventObject;
+
+            // console.log('state21', state);
+          });
+        },
         initializePresence: () => {
           const lobbyConnectionsRef = ref(db, 'lobby_connections');
 
@@ -294,6 +344,35 @@ export const createLobbyScreenMachine = ({
           const actorId = getActorId(ActorType.LOBBY_PLAYER_ACTOR, userId);
           sharedCollectionActor.send(SharedCollectionEvents.SPAWN(actorId));
         },
+        sendReadyEvent: ({ sharedCollectionActor }) => {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const userId = selectUserId(authActor.getSnapshot()!);
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const selectMyPlayerActor = createPlayerActorByUserIdSelector(
+            userId!
+          );
+          const myActor = selectMyPlayerActor(
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            sharedCollectionActor.getSnapshot()!
+          );
+
+          myActor?.send(LobbyPlayerEvents.PLAYER_READY());
+        },
+        sendUnreadyEvent: ({ sharedCollectionActor }) => {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const userId = selectUserId(authActor.getSnapshot()!);
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const selectMyPlayerActor = createPlayerActorByUserIdSelector(
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            userId!
+          );
+          const myActor = selectMyPlayerActor(
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            sharedCollectionActor.getSnapshot()!
+          );
+
+          myActor?.send(LobbyPlayerEvents.PLAYER_UNREADY());
+        },
       },
       services: {
         createAccount: () => {
@@ -313,9 +392,7 @@ export const createLobbyScreenMachine = ({
             (actor) => !!actor
           );
 
-          console.log('waiting', sharedCollectionActor.getSnapshot());
           await waitFor(sharedCollectionActor, selectMyPlayerActorIsLoaded);
-          console.log('done waiting', sharedCollectionActor.getSnapshot());
         },
         waitForAuthInit: async () => {
           await waitFor(authActor, selectAuthIsInitalized);

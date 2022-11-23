@@ -17,4 +17,6 @@ export const selectLobbyServerActor = createSelector(
 );
 
 export const createPlayerActorByUserIdSelector = (userId: string) =>
-  createActorByIdSelector(getActorId(ActorType.LOBBY_PLAYER_ACTOR, userId));
+  createActorByIdSelector<LobbyPlayerActor>(
+    getActorId(ActorType.LOBBY_PLAYER_ACTOR, userId)
+  );

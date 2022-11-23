@@ -7,7 +7,7 @@
 import { noop } from '@explorers-club/utils';
 import { Database, get, ref, set } from 'firebase/database';
 import { fromRef, ListenEvent } from 'rxfire/database';
-import { map } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import {
   ActorRefFrom,
   AnyActorRef,
@@ -55,6 +55,7 @@ type SharedCollectionContext = ModelContextFrom<typeof sharedCollectionModel>;
 interface CreateProps {
   rootPath: string; // e.g. 'lobby/bakery'
   db: Database;
+  localActorId$: Observable<ActorID | undefined>;
   getCreateMachine: (
     actorType: ActorType
   ) => (props: SharedMachineProps) => AnyStateMachine;
@@ -63,6 +64,7 @@ interface CreateProps {
 export const createSharedCollectionMachine = ({
   db,
   rootPath,
+  localActorId$,
   getCreateMachine,
 }: CreateProps) => {
   const eventsRef = ref(db, `${rootPath}/actor_events`);
