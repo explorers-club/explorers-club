@@ -1,19 +1,19 @@
 import { CreateMachineFunction } from '@explorers-club/actor';
-import { Database, get, ref } from 'firebase/database';
-import { ActorRefFrom, createMachine, StateFrom } from 'xstate';
+import { ActorRefFrom, assign, createMachine, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { ModelContextFrom, ModelEventsFrom } from 'xstate/lib/model.types';
 
 const LobbyPlayerModel = createModel(
   {
-    userId: '' as string,
     playerName: undefined as string | undefined,
   },
   {
     events: {
-      READY: () => ({}),
-      SET_NAME: (name: string) => ({ name }),
-      UNREADY: () => ({}),
+      PLAYER_SET_NAME: (playerName: string) => ({ playerName }),
+      PLAYER_UNREADY: () => ({}),
+      PLAYER_READY: () => ({}),
+      PLAYER_REJOIN: () => ({}),
+      PLAYER_DISCONNECT: () => ({}),
     },
   }
 );
@@ -28,6 +28,9 @@ export const createLobbyPlayerMachine: CreateMachineFunction = () =>
     {
       id: 'LobbyPlayerMachine',
       type: 'parallel',
+      context: {
+        playerName: undefined,
+      },
       states: {
         Ready: {
           initial: 'No',
@@ -38,16 +41,38 @@ export const createLobbyPlayerMachine: CreateMachineFunction = () =>
         },
         Connected: {
           initial: 'Yes',
+          on: {
+            PLAYER_SET_NAME: {
+              actions: 'assignPlayerName',
+            },
+          },
           states: {
-            Yes: {},
-            No: {},
+            No: {
+              on: {
+                PLAYER_REJOIN: 'Yes',
+              },
+            },
+            Yes: {
+              on: {
+                PLAYER_DISCONNECT: 'No',
+              },
+            },
           },
         },
       },
     },
     {
-      guards: {},
-      services: {},
+      actions: {
+        assignPlayerName: assign({
+          playerName: (context, event) => {
+            if (event.type === 'PLAYER_SET_NAME') {
+              return event.playerName;
+            } else {
+              return context.playerName;
+            }
+          },
+        }),
+      },
     }
   );
 

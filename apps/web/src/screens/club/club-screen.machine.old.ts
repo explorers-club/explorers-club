@@ -8,19 +8,14 @@ import {
   setActorEvent,
   setActorState,
   SharedActorEvent,
-  SharedActorRef,
+  SharedActorRef
 } from '@explorers-club/actor';
 import {
-  createPartyMachine,
-  createPartyPlayerMachine,
   PartyActor,
   PartyPlayerActor,
-  PartyPlayerEvents,
+  PartyPlayerEvents
 } from '@explorers-club/party';
-import {
-  createTriviaJamMachine,
-  createTriviaJamPlayerMachine,
-} from '@explorers-club/trivia-jam/state';
+import { enterNameMachine } from '@organisms/enter-name-form';
 import { get, onDisconnect, onValue, push, ref, set } from 'firebase/database';
 import { fromRef, ListenEvent } from 'rxfire/database';
 import { filter, first, from, fromEvent, skipWhile } from 'rxjs';
@@ -34,25 +29,10 @@ import { AuthActor } from '../../state/auth.machine';
 import {
   selectAuthIsInitalized,
   selectPlayerName,
-  selectUserId,
+  selectUserId
 } from '../../state/auth.selectors';
 import { createAnonymousUser } from '../../state/auth.utils';
 import { NavigationEvents } from '../../state/navigation.machine';
-import { enterNameMachine } from './enter-name/enter-name.machine';
-
-// MachineFactory.registerMachine(ActorType.PARTY_ACTOR, createPartyMachine);
-// MachineFactory.registerMachine(
-//   ActorType.PARTY_PLAYER_ACTOR,
-//   createPartyPlayerMachine
-// );
-// MachineFactory.registerMachine(
-//   ActorType.TRIVIA_JAM_ACTOR,
-//   createTriviaJamMachine
-// );
-// MachineFactory.registerMachine(
-//   ActorType.TRIVIA_JAM_PLAYER_ACTOR,
-//   createTriviaJamPlayerMachine
-// );
 
 const clubScreenModel = createModel(
   {

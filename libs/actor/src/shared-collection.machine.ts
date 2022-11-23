@@ -19,7 +19,7 @@ import {
   interpret,
   spawn,
   State,
-  StateFrom
+  StateFrom,
 } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { ModelContextFrom, ModelEventsFrom } from 'xstate/lib/model.types';

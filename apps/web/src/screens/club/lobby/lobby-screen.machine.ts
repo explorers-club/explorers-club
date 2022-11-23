@@ -5,10 +5,13 @@ import {
   createSharedCollectionMachine,
   getActorId,
   SharedCollectionActor,
+  SharedCollectionEvents,
 } from '@explorers-club/actor';
 import {
   createLobbyPlayerMachine,
   createLobbyServerMachine,
+  createPlayerActorByUserIdSelector,
+  selectLobbyPlayerName,
   selectLobbyServerActor,
 } from '@explorers-club/lobby';
 import {
@@ -19,7 +22,6 @@ import {
   createTriviaJamMachine,
   createTriviaJamPlayerMachine,
 } from '@explorers-club/trivia-jam/state';
-import { AuthActor } from '../../../state/auth.machine';
 import {
   Database,
   onDisconnect,
@@ -28,17 +30,25 @@ import {
   ref,
   set,
 } from 'firebase/database';
-import { ActorRefFrom, createMachine, StateFrom, interpret } from 'xstate';
+import { createSelector } from 'reselect';
+import {
+  ActorRefFrom,
+  createMachine,
+  DoneInvokeEvent,
+  interpret,
+  StateFrom,
+} from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { ModelContextFrom, ModelEventsFrom } from 'xstate/lib/model.types';
 import { waitFor } from 'xstate/lib/waitFor';
-import { createSelector } from 'reselect';
+import { AuthActor } from '../../../state/auth.machine';
 import {
   selectAuthIsInitalized,
   selectUser,
   selectUserId,
 } from '../../../state/auth.selectors';
 import { createAnonymousUser } from '../../../state/auth.utils';
+import { enterNameMachine } from '@organisms/enter-name-form';
 
 const lobbyScreenModel = createModel(
   {
@@ -47,6 +57,8 @@ const lobbyScreenModel = createModel(
   {
     events: {
       PRESS_JOIN: () => ({}),
+      PRESS_READY: () => ({}),
+      PRESS_UNREADY: () => ({}),
     },
   }
 );
@@ -118,9 +130,9 @@ export const createLobbyScreenMachine = ({
           },
         },
         Connected: {
-          initial: 'Initializing',
+          initial: 'Loading',
           states: {
-            Initializing: {
+            Loading: {
               invoke: {
                 src: 'waitForAuthInit',
                 onDone: [
@@ -135,7 +147,12 @@ export const createLobbyScreenMachine = ({
                 ],
               },
             },
-            Rejoining: {},
+            Rejoining: {
+              invoke: {
+                src: 'waitForMyPlayerActor',
+                onDone: 'Joined',
+              },
+            },
             Spectating: {
               on: {
                 PRESS_JOIN: [
@@ -155,7 +172,41 @@ export const createLobbyScreenMachine = ({
                 onDone: 'Joining',
               },
             },
-            Joining: {},
+            Joining: {
+              entry: 'spawnPlayerActor',
+              invoke: {
+                src: 'waitForMyPlayerActor',
+                onDone: 'Joined',
+              },
+            },
+            Joined: {
+              initial: 'Initializing',
+              states: {
+                Initializing: {
+                  on: {
+                    '': [
+                      { target: 'Waiting', cond: 'hasPlayerName' },
+                      { target: 'EnteringName' },
+                    ],
+                  },
+                },
+                EnteringName: {
+                  invoke: {
+                    src: enterNameMachine,
+                    onDone: {
+                      target: 'Waiting',
+                      actions: (
+                        _,
+                        event: DoneInvokeEvent<{ name: string }>
+                      ) => {
+                        console.log(event.data.name);
+                      },
+                    },
+                  },
+                },
+                Waiting: {},
+              },
+            },
           },
         },
       },
@@ -163,6 +214,27 @@ export const createLobbyScreenMachine = ({
     },
     {
       guards: {
+        hasPlayerName: () => {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const userId = selectUserId(authActor.getSnapshot()!);
+          if (!userId) {
+            return false;
+          }
+
+          const selectMyPlayerActor = createPlayerActorByUserIdSelector(userId);
+          const myActor = selectMyPlayerActor(
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            sharedCollectionActor.getSnapshot()!
+          );
+
+          if (!myActor) {
+            return false;
+          }
+
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const playerName = selectLobbyPlayerName(myActor.getSnapshot()!);
+          return !!playerName;
+        },
         isNotLoggedIn: () => {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           return !selectUser(authActor.getSnapshot()!);
@@ -174,14 +246,12 @@ export const createLobbyScreenMachine = ({
             return false;
           }
 
-          const actorId = getActorId(ActorType.LOBBY_PLAYER_ACTOR, userId);
-          const selectActor = createActorByIdSelector(actorId);
-
-          const lobbyPlayerActor = selectActor(
+          const selectMyPlayerActor = createPlayerActorByUserIdSelector(userId);
+          const myActor = selectMyPlayerActor(
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             sharedCollectionActor.getSnapshot()!
           );
-          return !!lobbyPlayerActor;
+          return !!myActor;
         },
       },
       actions: {
@@ -197,18 +267,38 @@ export const createLobbyScreenMachine = ({
             }
           });
         },
-        // initializeActors: (_, event) => {
-        //   assertEventType(
-        //     event,
-        //     'done.invoke.LobbyScreenMachine.Fetching:invocation[0]'
-        //   );
-        //   event.data.stateJSON
-        //   return;
-        // },
+        spawnPlayerActor: ({ sharedCollectionActor }) => {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const userId = selectUserId(authActor.getSnapshot()!);
+          if (!userId) {
+            throw new Error('expected user id');
+          }
+
+          const actorId = getActorId(ActorType.LOBBY_PLAYER_ACTOR, userId);
+          sharedCollectionActor.send(SharedCollectionEvents.SPAWN(actorId));
+        },
       },
       services: {
         createAccount: () => {
           return createAnonymousUser(authActor);
+        },
+        waitForMyPlayerActor: async () => {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const userId = selectUserId(authActor.getSnapshot()!);
+          if (!userId) {
+            throw new Error('expected user id');
+          }
+
+          const actorId = getActorId(ActorType.LOBBY_PLAYER_ACTOR, userId);
+          const selectMyPlayerActor = createActorByIdSelector(actorId);
+          const selectMyPlayerActorIsLoaded = createSelector(
+            selectMyPlayerActor,
+            (actor) => !!actor
+          );
+
+          console.log('waiting', sharedCollectionActor.getSnapshot());
+          await waitFor(sharedCollectionActor, selectMyPlayerActorIsLoaded);
+          console.log('done waiting', sharedCollectionActor.getSnapshot());
         },
         waitForAuthInit: async () => {
           await waitFor(authActor, selectAuthIsInitalized);

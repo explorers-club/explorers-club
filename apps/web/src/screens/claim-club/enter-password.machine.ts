@@ -1,6 +1,6 @@
 import { ActorRefFrom, ContextFrom, EventFrom } from 'xstate';
 import { supabaseClient } from '../../lib/supabase';
-import { createFormModelAndMachine } from '../../state/form.machine';
+import { createFormModelAndMachine } from '../../../../../libs/components/src/state/form.machine';
 
 const { formModel, formMachine } = createFormModelAndMachine<{
   password: string;

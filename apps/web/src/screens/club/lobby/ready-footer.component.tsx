@@ -6,9 +6,9 @@ interface Props {
   screenActor: LobbyScreenActor;
 }
 
-export const LobbyFooter: FC<Props> = ({ screenActor }) => {
+export const ReadyFooter: FC<Props> = ({ screenActor }) => {
   const handlePress = useCallback(() => {
-    screenActor.send(LobbyScreenEvents.JOIN_PARTY());
+    screenActor.send(LobbyScreenEvents.PRESS_READY());
   }, [screenActor]);
   //     if (!userId) {
   //       console.error('tried to join without being logged in');
@@ -21,7 +21,7 @@ export const LobbyFooter: FC<Props> = ({ screenActor }) => {
 
   return (
     <Button size="3" color="blue" fullWidth onClick={handlePress}>
-	Ready Up
+      Ready Up
     </Button>
   );
 };

@@ -1,5 +1,5 @@
 import { createModel } from 'xstate/lib/model';
-import { assertEventType } from './utils';
+import { assertEventType } from '@explorers-club/actor';
 
 export function createFormModel<T>(defaultValues: T) {
   return createModel(

@@ -4,11 +4,18 @@ import { Caption } from '@atoms/Caption';
 import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
 import {
+  ActorType,
+  createActorByIdSelector,
+  getActorId,
+} from '@explorers-club/actor';
+import {
   LobbyPlayerActor,
   selectLobbyPlayerActors,
 } from '@explorers-club/lobby';
 import { useSelector } from '@xstate/react';
-import { FC, useCallback } from 'react';
+import { useAuthActor } from '../../../state/auth.hooks';
+import { selectUserId } from '../../../state/auth.selectors';
+import { FC, useCallback, useMemo } from 'react';
 import {
   useLobbyScreenActor,
   useSharedCollectionActor,
@@ -68,8 +75,40 @@ const JoinButton = () => {
 };
 
 const ReadyButton = () => {
+  const actor = useLobbyScreenActor();
+  const authActor = useAuthActor();
+  const sharedCollectionActor = useSharedCollectionActor();
+  const userId = useSelector(authActor, selectUserId);
+  const selectMyLobbyPlayerActor = useMemo(
+    () =>
+      createActorByIdSelector(
+        getActorId(ActorType.LOBBY_PLAYER_ACTOR, userId!)
+      ),
+    [userId]
+  );
+  const playerActor = useSelector(
+    sharedCollectionActor,
+    selectMyLobbyPlayerActor
+  );
+  console.log({ playerActor });
+
+  // const selectPlayer;
+
+  // const myPlayerActor = useSelector(
+  //   sharedCollectionActor,
+  //   selectMyLobbyPlayerActor
+  // );
+
+  const handlePressReady = useCallback(() => {
+    actor.send(LobbyScreenEvents.PRESS_READY());
+  }, [actor]);
+
+  const handlePressUnready = useCallback(() => {
+    actor.send(LobbyScreenEvents.PRESS_UNREADY());
+  }, [actor]);
+
   return (
-    <Button size="3" fullWidth>
+    <Button size="3" fullWidth onClick={handlePressReady}>
       Ready
     </Button>
   );

@@ -1,5 +1,5 @@
 import { ActorRefFrom, ContextFrom, EventFrom } from 'xstate';
-import { createFormModelAndMachine } from '../../../state/form.machine';
+import { createFormModelAndMachine } from '../../state/form.machine';
 
 const { formModel, formMachine } = createFormModelAndMachine<{
   name: string;

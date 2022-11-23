@@ -1,7 +1,6 @@
 import { useChildActor } from '../../../state/utils';
 import { useClubScreenActor } from '../club-screen.hooks';
-import { EnterName } from './enter-name.component';
-import { EnterNameActor } from './enter-name.machine';
+import { EnterNameForm, EnterNameActor } from '@organisms/enter-name-form';
 
 export const EnterNameScreen = () => {
   const clubScreenActor = useClubScreenActor();
@@ -10,5 +9,5 @@ export const EnterNameScreen = () => {
     'EnteringName'
   );
   // eslint-disable-next-line react/jsx-no-useless-fragment
-  return <>{formActor && <EnterName formActor={formActor} />}</>;
+  return <>{formActor && <EnterNameForm formActor={formActor} />}</>;
 };

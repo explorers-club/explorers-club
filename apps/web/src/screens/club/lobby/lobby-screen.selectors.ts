@@ -1,3 +1,4 @@
+import { ActorType, createActorByIdSelector, getActorId } from '@explorers-club/actor';
 import { createSelector } from 'reselect';
 import { LobbyScreenState } from './lobby-screen.machine';
 
@@ -19,3 +20,6 @@ export const selectIsJoining = (state: LobbyScreenState) =>
 
 export const selectIsJoined = (state: LobbyScreenState) =>
   state.matches('Connected.Joined');
+
+export const selectIsEnteringName = (state: LobbyScreenState) =>
+  state.matches('Connected.Joined.EnteringName');

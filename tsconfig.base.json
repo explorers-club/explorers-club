@@ -29,7 +29,8 @@
       ],
       "@explorers-club/trivia-jam/ui": ["games/trivia-jam/src/ui/index.ts"],
       "@explorers-club/utils": ["libs/utils/src/index.ts"],
-      "@molecules/*": ["libs/components/src/molecules/*"]
+      "@molecules/*": ["libs/components/src/molecules/*"],
+      "@organisms/*": ["libs/components/src/organisms/*"]
     }
   },
   "exclude": ["node_modules", "tmp"]
