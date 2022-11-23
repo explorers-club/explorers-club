@@ -37,8 +37,17 @@ export const createLobbyPlayerMachine: CreateMachineFunction = () =>
         Ready: {
           initial: 'No',
           states: {
-            Yes: {},
-            No: {},
+            No: {
+              on: {
+                PLAYER_READY: 'Yes',
+              },
+            },
+            Yes: {
+              on: {
+                PLAYER_UNREADY: 'No',
+                PLAYER_DISCONNECT: 'No',
+              },
+            },
           },
         },
         Connected: {
