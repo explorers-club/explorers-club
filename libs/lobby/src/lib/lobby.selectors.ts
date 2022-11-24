@@ -1,3 +1,4 @@
+import { createSelector } from 'reselect';
 import {
   ActorType,
   createActorByIdSelector,
@@ -10,8 +11,10 @@ import { LobbySharedActor } from './lobby-shared.machine';
 export const selectLobbyPlayerActors =
   createActorByTypeSelector<LobbyPlayerActor>(ActorType.LOBBY_PLAYER_ACTOR);
 
-export const selectLobbySharedActor =
-  createActorByTypeSelector<LobbySharedActor>(ActorType.LOBBY_SHARED_ACTOR);
+export const selectLobbySharedActor = createSelector(
+  createActorByTypeSelector<LobbySharedActor>(ActorType.LOBBY_SHARED_ACTOR),
+  (actors) => actors[0]
+);
 
 export const createPlayerActorByUserIdSelector = (userId: string) =>
   createActorByIdSelector<LobbyPlayerActor>(

@@ -5,7 +5,7 @@
  * It aims to remain generic and re-usable across different use cases.
  */
 import { noop } from '@explorers-club/utils';
-import { Database, get, ref, set } from 'firebase/database';
+import { Database, get, onDisconnect, ref, set } from 'firebase/database';
 import { fromRef, ListenEvent } from 'rxfire/database';
 import { BehaviorSubject, from, map, skip } from 'rxjs';
 import {
@@ -94,6 +94,7 @@ export const createSharedCollectionMachine = ({
     map((changes) => {
       const actorId = changes.snapshot.key;
       const event = changes.snapshot.val() as AnyEventObject;
+      console.log('new event', actorId, event);
       return { type: 'SEND_EVENT', actorId, event };
     })
   );
@@ -134,6 +135,7 @@ export const createSharedCollectionMachine = ({
                       const actorState = event.data as Partial<
                         Record<ActorID, string>
                       >;
+                      console.log({ actorState });
 
                       const actorRefs: Partial<Record<ActorID, AnyActorRef>> =
                         {};
@@ -164,7 +166,7 @@ export const createSharedCollectionMachine = ({
                 src: () => hydrateActors$,
               },
               on: {
-                  HYDRATE: {
+                HYDRATE: {
                   actions: 'hydrateActor',
                 },
                 SPAWN: {
@@ -210,6 +212,9 @@ export const createSharedCollectionMachine = ({
               const event = JSON.parse(JSON.stringify(state.event));
               set(myEventRef, event).then(noop);
             });
+
+          // Send disconnect event when we disconnect
+          onDisconnect(myEventRef).set({ type: 'DISCONNECT' });
         },
         spawnActor: assign({
           actorRefs: ({ actorRefs }, event) => {
@@ -281,6 +286,7 @@ export const createSharedCollectionMachine = ({
             return;
           }
 
+          console.log('sending event', event);
           actor.send(event.event);
         },
       },

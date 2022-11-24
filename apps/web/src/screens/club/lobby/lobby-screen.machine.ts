@@ -5,22 +5,23 @@ import {
   createSharedCollectionMachine,
   getActorId,
   SharedCollectionActor,
-  SharedCollectionEvents
+  SharedCollectionEvents,
 } from '@explorers-club/actor';
 import {
-  createLobbyPlayerMachine, createLobbySharedMachine,
+  createLobbyPlayerMachine,
+  createLobbySharedMachine,
   createPlayerActorByUserIdSelector,
   LobbyPlayerEvents,
   selectLobbyPlayerName,
-  selectLobbySharedActor
+  selectLobbySharedActor,
 } from '@explorers-club/lobby';
 import {
   createPartyMachine,
-  createPartyPlayerMachine
+  createPartyPlayerMachine,
 } from '@explorers-club/party';
 import {
   createTriviaJamMachine,
-  createTriviaJamPlayerMachine
+  createTriviaJamPlayerMachine,
 } from '@explorers-club/trivia-jam/state';
 import { enterNameMachine } from '@organisms/enter-name-form';
 import {
@@ -29,15 +30,16 @@ import {
   onValue,
   push,
   ref,
-  set
+  set,
 } from 'firebase/database';
 import { createSelector } from 'reselect';
 import { BehaviorSubject, from, map } from 'rxjs';
 import {
-  ActorRefFrom, createMachine,
+  ActorRefFrom,
+  createMachine,
   DoneInvokeEvent,
   interpret,
-  StateFrom
+  StateFrom,
 } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { ModelContextFrom, ModelEventsFrom } from 'xstate/lib/model.types';
@@ -46,7 +48,7 @@ import { AuthActor } from '../../../state/auth.machine';
 import {
   selectAuthIsInitalized,
   selectUser,
-  selectUserId
+  selectUserId,
 } from '../../../state/auth.selectors';
 import { createAnonymousUser } from '../../../state/auth.utils';
 
@@ -103,16 +105,6 @@ export const createLobbyScreenMachine = ({
       )
     )
     .subscribe(localActorId$);
-
-  // const localActorId$ = from(authActor).pipe(
-  // map(selectUserId),
-  // map((userId) => {
-  //   if (userId) {
-  //     return getActorId(ActorType.LOBBY_PLAYER_ACTOR, userId);
-  //   }
-  //   return undefined;
-  // })
-  // );
 
   const sharedCollectionMachine = createSharedCollectionMachine({
     db,
@@ -285,6 +277,7 @@ export const createLobbyScreenMachine = ({
         isInParty: ({ sharedCollectionActor }) => {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           const userId = selectUserId(authActor.getSnapshot()!);
+          console.log('in party check for ', userId);
           if (!userId) {
             return false;
           }
@@ -294,6 +287,7 @@ export const createLobbyScreenMachine = ({
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             sharedCollectionActor.getSnapshot()!
           );
+          console.log(myActor, sharedCollectionActor.getSnapshot());
           return !!myActor;
         },
       },

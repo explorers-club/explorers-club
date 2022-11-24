@@ -13,7 +13,7 @@ const LobbyPlayerModel = createModel(
       PLAYER_UNREADY: () => ({}),
       PLAYER_READY: () => ({}),
       PLAYER_REJOIN: () => ({}),
-      PLAYER_DISCONNECT: () => ({}),
+      DISCONNECT: () => ({}),
     },
   }
 );
@@ -45,7 +45,7 @@ export const createLobbyPlayerMachine: CreateMachineFunction = () =>
             Yes: {
               on: {
                 PLAYER_UNREADY: 'No',
-                PLAYER_DISCONNECT: 'No',
+                DISCONNECT: 'No',
               },
             },
           },
@@ -65,7 +65,7 @@ export const createLobbyPlayerMachine: CreateMachineFunction = () =>
             },
             Yes: {
               on: {
-                PLAYER_DISCONNECT: 'No',
+                DISCONNECT: 'No',
               },
             },
           },
