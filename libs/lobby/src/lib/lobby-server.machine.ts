@@ -1,34 +1,13 @@
 import {
   ActorID,
   createActorByIdSelector,
-  SharedCollectionActor
+  SharedCollectionActor,
 } from '@explorers-club/actor';
-import { filter, first, from, lastValueFrom } from 'rxjs';
+import { filter, first, from, lastValueFrom, take } from 'rxjs';
 import { ActorRefFrom, createMachine, StateFrom } from 'xstate';
-import { createModel } from 'xstate/lib/model';
-import { ModelContextFrom, ModelEventsFrom } from 'xstate/lib/model.types';
 import { LobbyPlayerActor } from './lobby-player.machine';
 import { LobbySharedEvents } from './lobby-shared.machine';
 import { selectLobbyPlayerActors } from './lobby.selectors';
-
-const LobbyServerModel = createModel(
-  {
-    userId: '' as string,
-    playerName: undefined as string | undefined,
-  },
-  {
-    events: {
-      ALL_PLAYERS_READY: () => ({}),
-      PLAYER_NOT_READY: () => ({}),
-      GAME_CREATED: () => ({}),
-    },
-  }
-);
-
-export type LobbyServerContext = ModelContextFrom<typeof LobbyServerModel>;
-export type LobbyServerEvent = ModelEventsFrom<typeof LobbyServerModel>;
-
-export const LobbyServerEvents = LobbyServerModel.events;
 
 interface CreateProps {
   sharedCollectionActor: SharedCollectionActor;
@@ -45,22 +24,12 @@ export const createLobbyServerMachine = ({
   sharedCollectionActor,
   sharedActorId,
 }: CreateProps) => {
-  console.log('shared collection actor on lobby server', sharedActorId);
   const selectSharedActor = createActorByIdSelector(sharedActorId);
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const sharedActor = selectSharedActor(sharedCollectionActor.getSnapshot()!);
   const initial = sharedActor?.getSnapshot()?.value;
-  console.log({ initial });
-  // const lobbySharedActor:
-  // sharedCollectionActor(j0)
 
-  from(sharedCollectionActor)
-    .pipe()
-    .subscribe((state) => {
-      console.log('sub state', state.event);
-    });
-
-  return createMachine<LobbyServerContext, LobbyServerEvent>(
+  return createMachine(
     {
       id: 'LobbyServerMachine',
       initial,
@@ -78,7 +47,12 @@ export const createLobbyServerMachine = ({
         },
         AllReady: {
           after: {
-            5000: 'CreatingGame',
+            5000: {
+              target: 'CreatingGame',
+              actions: () => {
+                sharedActor?.send(LobbySharedEvents.START_GAME());
+              },
+            },
           },
           invoke: {
             src: 'waitForAnyPlayerNotReady',
@@ -97,35 +71,42 @@ export const createLobbyServerMachine = ({
     },
     {
       services: {
-        waitForAllPlayersReady: async () => {
-          const allPlayersReady$ = from(sharedCollectionActor).pipe(
-            filter((state) => {
-              const actors: LobbyPlayerActor[] = selectLobbyPlayerActors(
-                state
-              ) as LobbyPlayerActor[];
-              const readyActors = actors.filter((actor) =>
-                actor.getSnapshot()?.matches('Ready.Yes')
-              );
-              return actors.length >= 2 && readyActors.length === actors.length;
-            }, first())
-          );
-          await lastValueFrom(allPlayersReady$); // https://rxjs.dev/deprecations/to-promise#lastvaluefrom
-        },
-
-        waitForAnyPlayerNotReady: async () => {
-          const anyPlayerNotReady$ = from(sharedCollectionActor).pipe(
-            filter((state) => {
-              const actors: LobbyPlayerActor[] = selectLobbyPlayerActors(
-                state
-              ) as LobbyPlayerActor[];
-              const readyActors = actors.filter((actor) =>
-                actor.getSnapshot()?.matches('Ready.Yes')
-              );
-              return readyActors.length !== actors.length;
-            }, first())
-          );
-          await lastValueFrom(anyPlayerNotReady$); // https://rxjs.dev/deprecations/to-promise#lastvaluefrom
-        },
+        waitForAllPlayersReady: async () =>
+          new Promise((resolve) => {
+            from(sharedCollectionActor)
+              .pipe(
+                filter((state) => {
+                  const actors: LobbyPlayerActor[] = selectLobbyPlayerActors(
+                    state
+                  ) as LobbyPlayerActor[];
+                  const readyActors = actors.filter((actor) =>
+                    actor.getSnapshot()?.matches('Ready.Yes')
+                  );
+                  return (
+                    actors.length >= 2 && readyActors.length === actors.length
+                  );
+                }, take(1))
+              )
+              .subscribe(resolve);
+          }),
+        waitForAnyPlayerNotReady: async () =>
+          new Promise((resolve) => {
+            from(sharedCollectionActor)
+              .pipe(
+                filter((state) => {
+                  const actors: LobbyPlayerActor[] = selectLobbyPlayerActors(
+                    state
+                  ) as LobbyPlayerActor[];
+                  const readyActors = actors.filter((actor) =>
+                    actor.getSnapshot()?.matches('Ready.Yes')
+                  );
+                  return (
+                    actors.length < 2 || readyActors.length !== actors.length
+                  );
+                }, take(1))
+              )
+              .subscribe(resolve);
+          }),
       },
     }
   );

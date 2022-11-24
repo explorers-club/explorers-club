@@ -4,13 +4,9 @@ import { createModel } from 'xstate/lib/model';
 import { ModelContextFrom, ModelEventsFrom } from 'xstate/lib/model.types';
 
 const LobbySharedModel = createModel(
-  {
-    playerActorIds: [],
-  },
+  {},
   {
     events: {
-      PLAYER_JOINED: () => ({}),
-      PLAYER_LEFT: () => ({}),
       ALL_PLAYERS_READY: () => ({}),
       START_GAME: () => ({}),
       PLAYER_NOT_READY: () => ({}),
@@ -37,7 +33,7 @@ export const createLobbySharedMachine: CreateMachineFunction = () => {
       AllReady: {
         on: {
           PLAYER_NOT_READY: 'Waiting',
-          START_GAME: "CreatingGame"
+          START_GAME: 'CreatingGame',
         },
       },
       CreatingGame: {
