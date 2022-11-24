@@ -6,17 +6,16 @@ import {
   getActorId,
   selectActorRefs,
   selectActorsInitialized,
-  SharedCollectionActor,
   SharedCollectionEvents,
 } from '@explorers-club/actor';
 import {
   createLobbyPlayerMachine,
   createLobbyServerMachine,
+  createLobbySharedMachine,
 } from '@explorers-club/lobby';
 import {
   createPartyMachine,
   createPartyPlayerMachine,
-  selectPartyHostActorId,
 } from '@explorers-club/party';
 import {
   createTriviaJamMachine,
@@ -30,18 +29,19 @@ import {
   runTransaction,
   set,
 } from 'firebase/database';
-import { BehaviorSubject, filter, from, map } from 'rxjs';
+import { BehaviorSubject, filter, from } from 'rxjs';
 import { interpret } from 'xstate';
 import { waitFor } from 'xstate/lib/waitFor';
 import { db } from './lib/firebase';
 
 const serverInstanceId = generateUUID();
-const runningParties = new Set();
+const runningLobbies = new Set();
 
 async function bootstrap() {
+  // todo generalize this to work for 'lobby' and 'game' root paths and actor types
   const initializeLobby = async (hostPlayerName: string) => {
     const localActorId$ = new BehaviorSubject(
-      getActorId(ActorType.LOBBY_SERVER_ACTOR, hostPlayerName)
+      getActorId(ActorType.LOBBY_SHARED_ACTOR, hostPlayerName)
     );
     const rootPath = `lobby/${hostPlayerName}`;
 
@@ -53,24 +53,37 @@ async function bootstrap() {
       getCreateMachine,
     });
 
-    const sharedActorService = interpret(sharedCollectionMachine).start();
+    // Run the shared actor service, which fetches and manages all the actors locally
+    const sharedCollectionActor = interpret(sharedCollectionMachine).start();
 
-    const actorId = getActorId(ActorType.LOBBY_SERVER_ACTOR, hostPlayerName);
+    const sharedActorId = getActorId(
+      ActorType.LOBBY_SHARED_ACTOR,
+      hostPlayerName
+    );
 
-    await waitFor(sharedActorService, selectActorsInitialized);
-    const selectPartyActor = createActorByIdSelector(actorId);
+    // Wait for actors to be loaded
+    await waitFor(sharedCollectionActor, selectActorsInitialized);
 
-    const actor = selectPartyActor(sharedActorService.getSnapshot());
-    if (!actor) {
-      sharedActorService.send(SharedCollectionEvents.SPAWN(actorId));
+    // Spawn the shared actor if we don't have one yet
+    const selectSharedActor = createActorByIdSelector(sharedActorId);
+    const sharedActor = selectSharedActor(sharedCollectionActor.getSnapshot());
+    if (!sharedActor) {
+      sharedCollectionActor.send(SharedCollectionEvents.SPAWN(sharedActorId));
     }
 
-    from(sharedActorService)
+    const lobbyServerMachine = createLobbyServerMachine({
+      sharedCollectionActor,
+      sharedActorId,
+    });
+    interpret(lobbyServerMachine).start(); // todo persist state/resume server state
+
+    // After we process an event, save the updated state
+    from(sharedCollectionActor)
       .pipe(filter((state) => state.event.type === 'SEND_EVENT'))
       .subscribe(({ event }) => {
         const { actorId } = event;
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const actorRefs = selectActorRefs(sharedActorService.getSnapshot()!);
+        const actorRefs = selectActorRefs(sharedCollectionActor.getSnapshot()!);
         const actor = actorRefs[actorId];
         if (!actor) {
           console.error(
@@ -82,18 +95,14 @@ async function bootstrap() {
 
         const state = actor.getSnapshot();
         const stateJSON = JSON.stringify(state);
+        // console.log(state, stateJSON, event);
 
         set(actorStateRef, stateJSON).then(noop); // todo handle error
       });
-
-    // sharedActorService.
-
-    // Listen for changes on actor events, and then grab the correct actor and log it
-    // setupBroadcastListeners(rootPath, sharedActorService);
   };
 
-  const trySpawnPartyHost = async (hostPlayerName: string) => {
-    if (runningParties.has(hostPlayerName)) {
+  const trySpawnLobbyServer = async (hostPlayerName: string) => {
+    if (runningLobbies.has(hostPlayerName)) {
       return;
     }
 
@@ -108,7 +117,7 @@ async function bootstrap() {
       }
 
       initializeLobby(hostPlayerName);
-      runningParties.add(hostPlayerName);
+      runningLobbies.add(hostPlayerName);
 
       onDisconnect(serverInstanceRef).remove();
       return serverInstanceId;
@@ -118,34 +127,8 @@ async function bootstrap() {
   const lobbyConnectionsRef = ref(db, 'lobby_connections');
   onChildAdded(lobbyConnectionsRef, (data) => {
     const joinCode = data.val();
-    trySpawnPartyHost(joinCode);
+    trySpawnLobbyServer(joinCode);
   });
-
-  // const lobbyRef = ref(db, 'lobby');
-  // const lobbyAdded$ = list(lobbyRef, { events: [ListenEvent.added] });
-
-  // lobbyAdded$
-  //   .pipe(
-  //     map((changes) => {
-  //       const keys = [];
-  //       changes.forEach((change) => {
-  //         keys.push(change.snapshot.key);
-  //       });
-  //       return keys;
-  //     })
-  //   )
-  //   .subscribe((changes) => {
-  //     // changes.forEach((change) => {
-  //     //   console.log(change.snapshot.val());
-  //     // });
-  //     console.log(changes);
-  //   });
-
-  // const userConnectionsRef = ref(db, 'user_party_connections');
-  // onChildAdded(userConnectionsRef, (data) => {
-  //   const joinCode = data.val();
-  //   trySpawnPartyHost(joinCode);
-  // });
 }
 
 bootstrap();
@@ -406,8 +389,8 @@ const getCreateMachine: (actorType: ActorType) => CreateMachineFunction = (
   switch (actorType) {
     case ActorType.LOBBY_PLAYER_ACTOR:
       return createLobbyPlayerMachine;
-    case ActorType.LOBBY_SERVER_ACTOR:
-      return createLobbyServerMachine;
+    case ActorType.LOBBY_SHARED_ACTOR:
+      return createLobbySharedMachine;
     case ActorType.PARTY_ACTOR:
       return createPartyMachine;
     case ActorType.PARTY_PLAYER_ACTOR:

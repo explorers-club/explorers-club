@@ -89,7 +89,6 @@ const ReadyButton = () => {
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const isReady = useSelector(playerActor!, selectLobbyPlayerIsReady);
-  console.log({ playerActor, isReady });
 
   const handlePressReady = useCallback(() => {
     actor.send(LobbyScreenEvents.PRESS_READY());

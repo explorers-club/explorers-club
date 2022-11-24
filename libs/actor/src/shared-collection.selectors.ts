@@ -15,17 +15,14 @@ export const selectActorRefs = createSelector(
 export const selectActorsInitialized = (state: SharedCollectionState) =>
   state.matches('Actors.Initialized');
 
-// Selector creatores
-export function createActorByTypeSelector<T extends AnyActorRef>(
-  actorType: ActorType
-) {
+export function createActorByTypeSelector<TActor extends AnyActorRef>(actorType: ActorType) {
   return createSelector(
     selectActorRefs,
     (actors) =>
       Object.entries(actors)
         .filter(([actorId]) => getActorType(actorId) === actorType)
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        .map(([_, actor]) => actor) as T[]
+        .map(([_, actor]) => actor) as TActor[]
   );
 }
 

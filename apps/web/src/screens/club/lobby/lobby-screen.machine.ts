@@ -5,40 +5,39 @@ import {
   createSharedCollectionMachine,
   getActorId,
   SharedCollectionActor,
-  SharedCollectionEvents,
+  SharedCollectionEvents
 } from '@explorers-club/actor';
 import {
-  createLobbyPlayerMachine,
-  createLobbyServerMachine,
+  createLobbyPlayerMachine, createLobbySharedMachine,
   createPlayerActorByUserIdSelector,
   LobbyPlayerEvents,
   selectLobbyPlayerName,
-  selectLobbyServerActor,
+  selectLobbySharedActor
 } from '@explorers-club/lobby';
 import {
   createPartyMachine,
-  createPartyPlayerMachine,
+  createPartyPlayerMachine
 } from '@explorers-club/party';
 import {
   createTriviaJamMachine,
-  createTriviaJamPlayerMachine,
+  createTriviaJamPlayerMachine
 } from '@explorers-club/trivia-jam/state';
+import { enterNameMachine } from '@organisms/enter-name-form';
 import {
   Database,
   onDisconnect,
   onValue,
   push,
   ref,
-  set,
+  set
 } from 'firebase/database';
 import { createSelector } from 'reselect';
+import { BehaviorSubject, from, map } from 'rxjs';
 import {
-  ActorRefFrom,
-  AnyEventObject,
-  createMachine,
+  ActorRefFrom, createMachine,
   DoneInvokeEvent,
   interpret,
-  StateFrom,
+  StateFrom
 } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { ModelContextFrom, ModelEventsFrom } from 'xstate/lib/model.types';
@@ -47,12 +46,9 @@ import { AuthActor } from '../../../state/auth.machine';
 import {
   selectAuthIsInitalized,
   selectUser,
-  selectUserId,
+  selectUserId
 } from '../../../state/auth.selectors';
 import { createAnonymousUser } from '../../../state/auth.utils';
-import { enterNameMachine } from '@organisms/enter-name-form';
-import { BehaviorSubject, from, map } from 'rxjs';
-import { assign } from 'lodash';
 
 const lobbyScreenModel = createModel(
   {
@@ -68,15 +64,6 @@ const lobbyScreenModel = createModel(
 );
 
 export const LobbyScreenEvents = lobbyScreenModel.events;
-
-// TODO better way to set up this type to be inferrable
-// type LobbyScreenServices = {
-//   fetchAllActors: {
-//     data: {
-//       stateJSON?: string;
-//     };
-//   };
-// };
 
 type LobbyScreenUserEvent = ModelEventsFrom<typeof lobbyScreenModel>;
 type LobbyScreenInvokeEvent = {
@@ -156,7 +143,7 @@ export const createLobbyScreenMachine = ({
         Loading: {
           entry: 'initializePresence',
           invoke: {
-            src: 'waitForServerActor',
+            src: 'waitForSharedActor',
             onDone: 'Connected',
           },
         },
@@ -386,12 +373,12 @@ export const createLobbyScreenMachine = ({
         waitForAuthInit: async () => {
           await waitFor(authActor, selectAuthIsInitalized);
         },
-        waitForServerActor: async ({ sharedCollectionActor }) => {
-          const selectServerActorIsLoaded = createSelector(
-            selectLobbyServerActor,
+        waitForSharedActor: async ({ sharedCollectionActor }) => {
+          const selectSharedActorIsLoaded = createSelector(
+            selectLobbySharedActor,
             (actor) => !!actor
           );
-          await waitFor(sharedCollectionActor, selectServerActorIsLoaded);
+          await waitFor(sharedCollectionActor, selectSharedActorIsLoaded);
         },
         // fetchAllActors: async (_, event) => {
         //   return [] as string[];
@@ -415,8 +402,8 @@ const getCreateMachine: (actorType: ActorType) => CreateMachineFunction = (
   switch (actorType) {
     case ActorType.LOBBY_PLAYER_ACTOR:
       return createLobbyPlayerMachine;
-    case ActorType.LOBBY_SERVER_ACTOR:
-      return createLobbyServerMachine;
+    case ActorType.LOBBY_SHARED_ACTOR:
+      return createLobbySharedMachine;
     case ActorType.PARTY_ACTOR:
       return createPartyMachine;
     case ActorType.PARTY_PLAYER_ACTOR:

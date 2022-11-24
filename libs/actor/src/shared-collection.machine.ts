@@ -74,19 +74,11 @@ export const createSharedCollectionMachine = ({
   // a HYDRATE on the share machine
   const hydrateActors$ = fromRef(stateRef, ListenEvent.added).pipe(
     map((changes) => {
-      // const actors: AnyActorRef[] = [];
-
       const actorId = changes.snapshot.key;
       const stateJSON = changes.snapshot.val();
 
       // TODO there's probably a bug here where we are triggering events
       // on rejoin where we shouldnt be
-      // console.log({ changes, val });
-      // const actors = changes.map((change) => {
-      //   const actorId = change.snapshot.key;
-      //   const stateJSON = change.snapshot.val();
-      //   return { actorId, stateJSON };
-      // });
 
       return { type: 'HYDRATE', actorId, stateJSON };
     })
@@ -154,6 +146,7 @@ export const createSharedCollectionMachine = ({
 
                           const createMachine = getCreateMachine(actorType);
                           const machine = createMachine({ actorId });
+
                           const actor = interpret(machine).start(previousState);
                           actorRefs[actorId] = actor;
                         }
@@ -171,8 +164,8 @@ export const createSharedCollectionMachine = ({
                 src: () => hydrateActors$,
               },
               on: {
-                HYDRATE: {
-                  actions: 'hydrateActors',
+                  HYDRATE: {
+                  actions: 'hydrateActor',
                 },
                 SPAWN: {
                   actions: ['spawnActor', 'setupLocalActorBroadcast'],
@@ -214,7 +207,8 @@ export const createSharedCollectionMachine = ({
           from(localActor)
             .pipe(skip(1))
             .subscribe((state) => {
-              set(myEventRef, state.event).then(noop);
+              const event = JSON.parse(JSON.stringify(state.event));
+              set(myEventRef, event).then(noop);
             });
         },
         spawnActor: assign({
@@ -246,7 +240,7 @@ export const createSharedCollectionMachine = ({
             };
           },
         }),
-        hydrateActors: assign({
+        hydrateActor: assign({
           actorRefs: ({ actorRefs }, event) => {
             assertEventType(event, 'HYDRATE');
             const { actorId, stateJSON } = event;
@@ -255,6 +249,7 @@ export const createSharedCollectionMachine = ({
             if (actorId in actorRefs) {
               return actorRefs;
             }
+            console.log('hydrating', actorId);
 
             const actorType = getActorType(actorId);
             const createMachine = getCreateMachine(actorType);
