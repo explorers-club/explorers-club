@@ -6,7 +6,7 @@ export const HomeRoute = () => {
     <BottomSheet
       open={true}
       blocking={false}
-      defaultSnap={({ maxHeight }) => maxHeight / 2}
+      defaultSnap={({ maxHeight }) => maxHeight / 4}
       snapPoints={({ maxHeight }) => [
         maxHeight - maxHeight / 10,
         maxHeight / 4,
