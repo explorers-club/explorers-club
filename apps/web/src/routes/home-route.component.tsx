@@ -1,17 +1,25 @@
 import { BottomSheet } from 'react-spring-bottom-sheet';
+import {
+  SnapPointProps,
+  defaultSnapProps,
+} from 'react-spring-bottom-sheet/dist/types';
 import { HomeScreen } from '../screens/home';
+
+const DEFAULT_SNAP_POINTS = ({ footerHeight, maxHeight }: SnapPointProps) => [
+  footerHeight + 24,
+  maxHeight * 0.2,
+  maxHeight * 0.9,
+];
+
+const DEFAULT_SNAP = ({ snapPoints }: defaultSnapProps) => snapPoints[1];
 
 export const HomeRoute = () => {
   return (
     <BottomSheet
       open={true}
       blocking={false}
-      defaultSnap={({ maxHeight }) => maxHeight / 4}
-      snapPoints={({ maxHeight }) => [
-        maxHeight - maxHeight / 10,
-        maxHeight / 4,
-        maxHeight * 0.6,
-      ]}
+      defaultSnap={DEFAULT_SNAP}
+      snapPoints={DEFAULT_SNAP_POINTS}
       expandOnContentDrag={true}
     >
       <HomeScreen />

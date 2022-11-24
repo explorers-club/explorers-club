@@ -8,6 +8,7 @@ import { ClubScreen } from '../screens/club';
 import { FooterContext } from '../state/footer.context';
 
 const DEFAULT_SNAP_POINTS = ({ footerHeight, maxHeight }: SnapPointProps) => [
+  footerHeight + 24,
   maxHeight * 0.6,
   maxHeight * 0.9,
 ];
