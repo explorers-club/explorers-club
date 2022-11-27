@@ -15,14 +15,6 @@ import {
   selectLobbyPlayerName,
   selectLobbySharedActor,
 } from '@explorers-club/lobby';
-import {
-  createPartyMachine,
-  createPartyPlayerMachine,
-} from '@explorers-club/party';
-import {
-  createTriviaJamMachine,
-  createTriviaJamPlayerMachine,
-} from '@explorers-club/trivia-jam/state';
 import { enterNameMachine } from '@organisms/enter-name-form';
 import {
   Database,
@@ -398,13 +390,9 @@ const getCreateMachine: (actorType: ActorType) => CreateMachineFunction = (
       return createLobbyPlayerMachine;
     case ActorType.LOBBY_SHARED_ACTOR:
       return createLobbySharedMachine;
-    case ActorType.PARTY_ACTOR:
-      return createPartyMachine;
-    case ActorType.PARTY_PLAYER_ACTOR:
-      return createPartyPlayerMachine;
-    case ActorType.TRIVIA_JAM_ACTOR:
-      return createTriviaJamMachine;
-    case ActorType.TRIVIA_JAM_PLAYER_ACTOR:
-      return createTriviaJamPlayerMachine;
+    default:
+      throw new Error(
+        'Tried to create an unregistered machine of type' + actorType
+      );
   }
 };

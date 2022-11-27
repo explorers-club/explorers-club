@@ -6,6 +6,6 @@ const useGameContext = () => {
 };
 
 export const useGameSharedService = () => {
-  const { sharedService } = useGameContext();
-  return sharedService;
+  const { sharedGameService } = useGameContext();
+  return sharedGameService;
 };

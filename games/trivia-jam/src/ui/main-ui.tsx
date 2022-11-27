@@ -1,15 +1,35 @@
 import { FC } from 'react';
 import { GameContext } from '../state/game.context';
-import { TriviaJamActor } from '../state';
 import { Screens } from '../screens';
+import {
+  ActorType,
+  createActorByTypeSelector,
+  selectActorRefs,
+  SharedCollectionActor,
+} from '@explorers-club/actor';
+import { useSelector } from '@xstate/react';
+import { createSelector } from 'reselect';
+import { TriviaJamSharedActor } from '../state';
 
 interface Props {
-  gameActor: TriviaJamActor;
+  sharedCollectionActor: SharedCollectionActor;
 }
 
-export const TriviaJamMainUI: FC<Props> = ({ gameActor }) => {
+export const selectTriviaJamSharedActor = createSelector(
+  createActorByTypeSelector<TriviaJamSharedActor>(
+    ActorType.TRIVIA_JAM_SHARED_ACTOR
+  ),
+  (actors) => actors[0]
+);
+
+export const TriviaJamMainUI: FC<Props> = ({ sharedCollectionActor }) => {
+  const sharedGameService = useSelector(
+    sharedCollectionActor,
+    selectTriviaJamSharedActor
+  );
+
   return (
-    <GameContext.Provider value={{ gameActor }}>
+    <GameContext.Provider value={{ sharedGameService }}>
       <Screens />
     </GameContext.Provider>
   );

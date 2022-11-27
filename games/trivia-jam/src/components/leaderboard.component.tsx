@@ -23,8 +23,8 @@ export const Leaderboard = () => {
       <Flex direction="column">
         {userIds.map((userId) => (
           <Flex key={userId} justify="between">
-            <Heading>{userId}</Heading>
-            <Heading>{scores[userId]}</Heading>
+            <Heading size='4'>{userId}</Heading>
+            <Heading size='4'>{scores[userId]}</Heading>
           </Flex>
         ))}
       </Flex>
