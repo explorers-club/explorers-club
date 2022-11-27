@@ -1,14 +1,14 @@
 // Inspired by https://github.com/chakra-ui/chakra-ui/blob/main/packages/components/button/stories/button.stories.tsx
 import { ComponentMeta, ComponentStory } from '@storybook/react';
-import { useInterpret, useMachine } from '@xstate/react';
+import { useInterpret } from '@xstate/react';
 import { BottomSheet } from 'react-spring-bottom-sheet';
 import 'react-spring-bottom-sheet/dist/style.css';
 import {
   defaultSnapProps,
-  SnapPointProps,
+  SnapPointProps
 } from 'react-spring-bottom-sheet/dist/types';
-import { triviaJamSharedMachine } from '../state';
-import { GameContext } from '../state/game.context';
+import { triviaJamSharedMachine } from '../../state';
+import { GameContext } from '../../state/game.context';
 import { Leaderboard } from './leaderboard.component';
 
 const DEFAULT_SNAP_POINTS = ({ footerHeight, maxHeight }: SnapPointProps) => [

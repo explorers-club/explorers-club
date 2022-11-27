@@ -3,11 +3,11 @@ import { Caption } from '@atoms/Caption';
 import { Heading } from '@atoms/Heading';
 import { Flex } from '@atoms/Flex';
 import { useSelector } from '@xstate/react';
-import { useGameSharedService } from '../state/game.hooks';
+import { useGameSharedService } from '../../state/game.hooks';
 import {
   selectPlayerUserIds,
   selectScores,
-} from '../state/trivia-jam-shared.selectors';
+} from '../../state/trivia-jam-shared.selectors';
 
 export const Leaderboard = () => {
   const sharedService = useGameSharedService();
@@ -23,8 +23,8 @@ export const Leaderboard = () => {
       <Flex direction="column">
         {userIds.map((userId) => (
           <Flex key={userId} justify="between">
-            <Heading size='4'>{userId}</Heading>
-            <Heading size='4'>{scores[userId]}</Heading>
+            <Heading size="4">{userId}</Heading>
+            <Heading size="4">{scores[userId]}</Heading>
           </Flex>
         ))}
       </Flex>
