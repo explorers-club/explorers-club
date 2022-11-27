@@ -1,19 +1,33 @@
 import { Box } from '@atoms/Box';
+import { Caption } from '@atoms/Caption';
+import { Heading } from '@atoms/Heading';
+import { Flex } from '@atoms/Flex';
 import { useSelector } from '@xstate/react';
-import { useContext } from 'react';
-import { selectConnectedPlayers } from '../state';
+import { useGameSharedService } from '../state/game.hooks';
+import {
+  selectPlayerUserIds,
+  selectScores,
+} from '../state/trivia-jam-shared.selectors';
 
 export const Leaderboard = () => {
-  // const connectedPlayers = useSelector(gameActor, selectConnectedPlayers);
+  const sharedService = useGameSharedService();
+  const userIds = useSelector(sharedService, selectPlayerUserIds);
+  const scores = useSelector(sharedService, selectScores);
 
   return (
-    <Box>
-      Leaderboard
-      <ol>
-        {/* {connectedPlayers.map((p) => (
-          <Box>{p}</Box>
-        ))} */}
-      </ol>
+    <Box css={{ p: '$3' }}>
+      <Flex justify="between">
+        <Caption>Player</Caption>
+        <Caption>Score</Caption>
+      </Flex>
+      <Flex direction="column">
+        {userIds.map((userId) => (
+          <Flex key={userId} justify="between">
+            <Heading>{userId}</Heading>
+            <Heading>{scores[userId]}</Heading>
+          </Flex>
+        ))}
+      </Flex>
     </Box>
   );
 };

@@ -12,3 +12,8 @@ export const selectPlayerUserIds = createSelector(
   selectTriviaJamSharedContext,
   (context) => context.playerUserIds
 );
+
+export const selectScores = createSelector(
+  selectTriviaJamSharedContext,
+  (context) => context.scores
+);

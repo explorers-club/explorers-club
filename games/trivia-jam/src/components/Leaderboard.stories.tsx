@@ -4,7 +4,8 @@ import { useMachine } from '@xstate/react';
 import { BottomSheet } from 'react-spring-bottom-sheet';
 import 'react-spring-bottom-sheet/dist/style.css';
 import {
-  defaultSnapProps, SnapPointProps
+  defaultSnapProps,
+  SnapPointProps,
 } from 'react-spring-bottom-sheet/dist/types';
 import { triviaJamSharedMachine } from '../state';
 import { GameContext } from '../state/game.context';
@@ -23,7 +24,16 @@ export default {
   title: 'Components/Leaderboard',
   decorators: [
     (Story) => {
-      const [state, send, sharedService] = useMachine(triviaJamSharedMachine);
+      const [state, send, sharedService] = useMachine(triviaJamSharedMachine, {
+        context: {
+          playerUserIds: ['foo', 'bar'],
+          hostUserId: 'buzz',
+          scores: {
+            foo: 0,
+            bar: 0,
+          },
+        },
+      });
 
       return (
         <GameContext.Provider value={{ sharedService }}>
