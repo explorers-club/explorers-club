@@ -2,7 +2,7 @@ import type { StorybookConfig } from '@storybook/core-common';
 
 export const rootMain: StorybookConfig = {
   stories: [],
-  addons: ['@storybook/addon-essentials'],
+  addons: ['@storybook/addon-essentials', 'storybook-xstate-addon/preset'],
   // webpackFinal: async (config, { configType }) => {
   //   // Make whatever fine-grained changes you need that should apply to all storybook configs
 

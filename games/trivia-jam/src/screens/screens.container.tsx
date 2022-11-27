@@ -1,34 +1,16 @@
-import { useSelector } from '@xstate/react';
-import { useContext } from 'react';
-import {
-  selectIsAwaitingJudgement,
-  selectIsAwaitingQuestion,
-  selectIsAwaitingResponse,
-} from '../state';
-import { GameContext } from '../state/game.context';
-import { AwaitingJudgementScreen } from './awaiting-judgement';
-import { AwaitingQuestionScreen } from './awaiting-question';
-import { AwaitingResponseScreen } from './awaiting-response';
+import { useInterpret } from '@xstate/react';
+import { ScreensComponent } from './screens.compontent';
+import { ScreensContext } from './screens.context';
+import { screensMachine } from './screens.machine';
 
 export const Screens = () => {
-  const { gameActor } = useContext(GameContext);
+  const screensActor = useInterpret(screensMachine, {
+    context: {},
+  });
 
-  const isAwaitingJudgement = useSelector(gameActor, selectIsAwaitingJudgement);
-  const isAwaitingQuestion = useSelector(gameActor, selectIsAwaitingQuestion);
-  const isAwaitingResponse = useSelector(gameActor, selectIsAwaitingResponse);
-
-  switch (true) {
-    case isAwaitingJudgement: {
-      return <AwaitingJudgementScreen />;
-    }
-    case isAwaitingQuestion: {
-      return <AwaitingQuestionScreen />;
-    }
-    case isAwaitingResponse: {
-      return <AwaitingResponseScreen />;
-    }
-    default: {
-      return null;
-    }
-  }
+  return (
+    <ScreensContext.Provider value={{ screensActor }}>
+      <ScreensComponent />
+    </ScreensContext.Provider>
+  );
 };
