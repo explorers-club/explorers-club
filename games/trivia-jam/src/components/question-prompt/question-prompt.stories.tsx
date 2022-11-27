@@ -1,5 +1,5 @@
 // Inspired by https://github.com/chakra-ui/chakra-ui/blob/main/packages/components/button/stories/button.stories.tsx
-import { ComponentMeta, ComponentStory } from '@storybook/react';
+import { ComponentMeta, ComponentStory, Story } from '@storybook/react';
 import { BottomSheet } from 'react-spring-bottom-sheet';
 import 'react-spring-bottom-sheet/dist/style.css';
 import {
@@ -36,10 +36,12 @@ export default {
   ],
 } as ComponentMeta<typeof QuestionPrompt>;
 
-export const main: ComponentStory<typeof QuestionPrompt> = (props) => (
-  <QuestionPrompt
-    eyebrow="Round 1"
-    question="How many ounces are in an gallon of milk?"
-    inputLabel="Enter your guess"
-  />
+export const SimpleExample: ComponentStory<typeof QuestionPrompt> = (args) => (
+  <QuestionPrompt {...args} />
 );
+
+SimpleExample.args = {
+  eyebrow: 'Round 1',
+  question: 'How many ounces are in an gallon of milk?',
+  inputLabel: 'Enter your guess',
+};
