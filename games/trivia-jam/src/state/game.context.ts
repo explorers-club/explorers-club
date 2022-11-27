@@ -1,6 +1,6 @@
 import { createContext } from 'react';
-import { TriviaJamActor } from './types';
+import { TriviaJamSharedActor } from './trivia-jam-shared.machine';
 
 export const GameContext = createContext({
-  gameActor: {} as TriviaJamActor,
+  sharedService: {} as TriviaJamSharedActor,
 });
