@@ -36,11 +36,11 @@ export default {
   ],
 } as ComponentMeta<typeof QuestionPrompt>;
 
-export const SimpleExample: ComponentStory<typeof QuestionPrompt> = (args) => (
+export const Default: ComponentStory<typeof QuestionPrompt> = (args) => (
   <QuestionPrompt {...args} />
 );
 
-SimpleExample.args = {
+Default.args = {
   eyebrow: 'Round 1',
   question: 'How many ounces are in an gallon of milk?',
   inputLabel: 'Enter your guess',

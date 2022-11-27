@@ -1,19 +1,14 @@
 import { Box } from '@atoms/Box';
 import { Caption } from '@atoms/Caption';
-import { Heading } from '@atoms/Heading';
 import { Flex } from '@atoms/Flex';
-import { useSelector } from '@xstate/react';
-import { useGameSharedService } from '../../state/game.hooks';
-import {
-  selectPlayerUserIds,
-  selectScores,
-} from '../../state/trivia-jam-shared.selectors';
+import { Heading } from '@atoms/Heading';
+import { FC } from 'react';
 
-export const Leaderboard = () => {
-  const sharedService = useGameSharedService();
-  const userIds = useSelector(sharedService, selectPlayerUserIds);
-  const scores = useSelector(sharedService, selectScores);
+interface Props {
+  scoresByPlayerName: Record<string, number>;
+}
 
+export const Leaderboard: FC<Props> = ({ scoresByPlayerName }) => {
   return (
     <Box css={{ p: '$3' }}>
       <Flex justify="between">
@@ -21,10 +16,10 @@ export const Leaderboard = () => {
         <Caption>Score</Caption>
       </Flex>
       <Flex direction="column">
-        {userIds.map((userId) => (
-          <Flex key={userId} justify="between">
-            <Heading size="4">{userId}</Heading>
-            <Heading size="4">{scores[userId]}</Heading>
+        {Object.entries(scoresByPlayerName).map(([playerName, score]) => (
+          <Flex key={playerName} justify="between">
+            <Heading size="4">{playerName}</Heading>
+            <Heading size="4">{score}</Heading>
           </Flex>
         ))}
       </Flex>
