@@ -1,10 +1,6 @@
 import {
-  ActorID,
-  ActorManager,
-  fromActorEvents,
-  SharedMachineProps,
+  ActorID, SharedMachineProps
 } from '@explorers-club/actor';
-import { first, map } from 'rxjs';
 import { createModel } from 'xstate/lib/model';
 
 interface IntializeProps {
