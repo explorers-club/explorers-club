@@ -1,4 +1,10 @@
-import { ActorRefFrom, createMachine, StateFrom } from 'xstate';
+import {
+  ActorRefFrom,
+  assign,
+  createMachine,
+  DoneInvokeEvent,
+  StateFrom,
+} from 'xstate';
 
 interface ClosestValueQuestionData {
   type: 'ClosestValue';
@@ -36,10 +42,19 @@ export const createQuestionScreenMachine = (questionId: string) => {
           src: 'fetchQuestion',
           data: {
             url: ({ questionId }: QuestionScreenContext) => {
+              // TODO create a machine for fetching from supabase instead of from URL
               return `https://api.explorers.club/content_types/questions/${questionId}`;
             },
           },
-          onDone: 'ShowingQuestion',
+          onDone: {
+            target: 'ShowingQuestion',
+            actions: assign<
+              QuestionScreenContext,
+              DoneInvokeEvent<QuestionData>
+            >({
+              data: (_, event) => event.data,
+            }),
+          },
         },
       },
       ShowingQuestion: {},

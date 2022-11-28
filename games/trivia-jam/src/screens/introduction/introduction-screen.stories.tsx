@@ -1,5 +1,5 @@
 // Inspired by https://github.com/chakra-ui/chakra-ui/blob/main/packages/components/button/stories/button.stories.tsx
-import { createMockFetchMachine } from '../../../.storybook/mocks';
+import { createMockFetchMachine } from '../../../.storybook/service-mocks';
 import { ComponentMeta, Story } from '@storybook/react';
 import { useInterpret } from '@xstate/react';
 import { useMemo } from 'react';

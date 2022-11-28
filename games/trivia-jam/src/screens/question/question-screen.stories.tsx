@@ -2,15 +2,16 @@
 import { useMemo } from '@storybook/addons';
 import { ComponentMeta, Story } from '@storybook/react';
 import { useInterpret } from '@xstate/react';
+import { useContext } from 'react';
 import { BottomSheet } from 'react-spring-bottom-sheet';
 import 'react-spring-bottom-sheet/dist/style.css';
 import {
   defaultSnapProps,
-  SnapPointProps,
+  SnapPointProps
 } from 'react-spring-bottom-sheet/dist/types';
 import {
   TriviaJamServiceContext,
-  TriviaJamServices,
+  TriviaJamServices
 } from '../../state/services.context';
 import { QuestionScreenComponent } from './question-screen.component';
 import { createQuestionScreenMachine } from './question-screen.machine';
@@ -59,11 +60,15 @@ const meta = {
 } as ComponentMeta<typeof QuestionScreenComponent>;
 
 export const Default: Story = () => {
+  const services = useContext(TriviaJamServices);
+
   const questionScreenMachine = useMemo(
     () => createQuestionScreenMachine('foo'),
     []
   );
-  const actor = useInterpret(questionScreenMachine);
+  const actor = useInterpret(questionScreenMachine, {
+    services,
+  });
   return <QuestionScreenComponent actor={actor} />;
 };
 

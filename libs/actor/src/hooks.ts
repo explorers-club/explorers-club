@@ -1,28 +1,7 @@
 import { useSelector } from '@xstate/react';
 import { AnyActorRef } from 'xstate';
+import { useEffect } from 'react';
 
-// export const useSelectActors = (
-//   actorManager: ActorManager,
-//   { actorType }: { actorType: ActorType }
-// ) => {
-//   const [actors, setActors] = useState<AnyActorRef[]>(
-//     actorManager.getActorsForType(actorType)
-//   );
-
-//   useEffect(() => {
-//     const handleHydrate = () => {
-//       setActors(actorManager.getActorsForType(actorType));
-//     };
-
-//     actorManager.on('HYDRATE', handleHydrate);
-
-//     return () => {
-//       actorManager.off('HYDRATE', handleHydrate);
-//     };
-//   }, [actorManager, actorType]);
-
-//   return actors;
-// };
 
 export function useChildActor<T>(actor: AnyActorRef, stateKey: string) {
   const childKeys = useSelector(actor, (state) => Object.keys(state.children));
@@ -34,3 +13,23 @@ export function useChildActor<T>(actor: AnyActorRef, stateKey: string) {
     (state) => key && (state.children[key] as T | undefined)
   ) as T;
 }
+
+export const useActorLogger = (actor?: AnyActorRef) => {
+  useEffect(() => {
+    if (!actor) {
+      return;
+    }
+
+    const subscription = actor.subscribe((state) => {
+      // TODO only do in dev
+      console.log(
+        `${actor.id}\n ${state.event.type}\n`,
+        ` state: ${JSON.stringify(state.value)}`,
+        { event: state.event, context: state.context, meta: state.meta }
+      );
+    });
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [actor]);
+};
