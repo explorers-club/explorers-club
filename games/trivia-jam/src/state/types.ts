@@ -26,3 +26,20 @@ type CocoCouriersProps = {
 };
 
 export type GameProps = TriviaJamProps | CocoCouriersProps;
+
+interface ClosestValueQuestionData {
+  type: 'ClosestValue';
+  question: string;
+  answer: number;
+}
+
+interface FreeResponseQuestionData {
+  type: 'FreeResponse';
+  question: string;
+  answer: string;
+}
+
+export type QuestionData = { id: string } & (
+  | ClosestValueQuestionData
+  | FreeResponseQuestionData
+);

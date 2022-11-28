@@ -6,6 +6,9 @@ import { createScoreboardScreenMachine } from './scoreboard/scoreboard-screen.ma
 export const screensMachine = createMachine({
   id: 'TriviaJamScreensMachine',
   initial: 'Introduction',
+  schema: {
+    events: {} as { type: 'NEXT_QUESTION'; questionId: string },
+  },
   states: {
     Introduction: {
       invoke: {
@@ -20,7 +23,7 @@ export const screensMachine = createMachine({
     },
     Question: {
       invoke: {
-        src: () => createQuestionScreenMachine(),
+        src: () => createQuestionScreenMachine('foo'),
       },
     },
   },

@@ -1,16 +1,5 @@
 import { useSelector } from '@xstate/react';
-import { AnyActorRef, EventObject } from 'xstate/lib/types';
-
-export function assertEventType<
-  TE extends EventObject,
-  TType extends TE['type']
->(event: TE, eventType: TType): asserts event is TE & { type: TType } {
-  if (event.type !== eventType) {
-    throw new Error(
-      `Invalid event: expected "${eventType}", got "${event.type}"`
-    );
-  }
-}
+import { AnyActorRef } from 'xstate/lib/types';
 
 export function useChildActor<T>(actor: AnyActorRef, stateKey: string) {
   const childKeys = useSelector(actor, (state) => Object.keys(state.children));

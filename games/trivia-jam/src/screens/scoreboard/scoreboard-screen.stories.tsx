@@ -21,7 +21,6 @@ const DEFAULT_SNAP = ({ snapPoints }: defaultSnapProps) => snapPoints[1];
 
 export default {
   component: ScoreboardScreenComponent,
-  title: 'Screens/Scoreboard',
   decorators: [
     (Story) => {
       return (

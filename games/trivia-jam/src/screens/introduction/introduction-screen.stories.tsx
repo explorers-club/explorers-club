@@ -20,7 +20,6 @@ const DEFAULT_SNAP = ({ snapPoints }: defaultSnapProps) => snapPoints[1];
 
 export default {
   component: IntroductionScreenComponent,
-  title: 'Screens/Introduction',
   decorators: [
     (Story) => {
       return (
