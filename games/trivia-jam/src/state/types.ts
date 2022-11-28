@@ -43,3 +43,8 @@ export type QuestionData = { id: string } & (
   | ClosestValueQuestionData
   | FreeResponseQuestionData
 );
+
+export type ProfileData = {
+  userId: string;
+  name: string;
+};

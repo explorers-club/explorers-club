@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 import { createMachine } from 'xstate';
-import { QuestionData } from './types';
+import { QuestionData, ProfileData } from './types';
 
 function createFetchMachine<T>() {
   return createMachine({
@@ -27,4 +27,5 @@ function createFetchMachine<T>() {
 
 export const TriviaJamServiceMap = createContext({
   fetchQuestion: createFetchMachine<QuestionData>(),
+  fetchProfile: createFetchMachine<ProfileData>(),
 });
