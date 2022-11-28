@@ -1,5 +1,7 @@
 import { ActorRefFrom, createMachine, StateFrom } from 'xstate';
 import { createIntroductionScreenMachine } from './introduction/introduction-screen.machine';
+import { createQuestionScreenMachine } from './question/question-screen.machine';
+import { createScoreboardScreenMachine } from './scoreboard/scoreboard-screen.machine';
 
 export const screensMachine = createMachine({
   id: 'TriviaJamScreensMachine',
@@ -8,12 +10,17 @@ export const screensMachine = createMachine({
     Introduction: {
       invoke: {
         src: () => createIntroductionScreenMachine(),
-        onDone: 'AwaitingQuestion',
+        onDone: 'Scoreboard',
       },
     },
-    AwaitingQuestion: {
+    Scoreboard: {
       invoke: {
-        src: 'waitForQuestion',
+        src: () => createScoreboardScreenMachine(),
+      },
+    },
+    Question: {
+      invoke: {
+        src: () => createQuestionScreenMachine(),
       },
     },
   },
