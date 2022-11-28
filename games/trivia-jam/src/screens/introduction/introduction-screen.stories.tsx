@@ -1,14 +1,17 @@
 // Inspired by https://github.com/chakra-ui/chakra-ui/blob/main/packages/components/button/stories/button.stories.tsx
-import { ComponentMeta, ComponentStory } from '@storybook/react';
+import { createMockFetchMachine } from '../../../.storybook/mocks';
+import { ComponentMeta, Story } from '@storybook/react';
+import { useInterpret } from '@xstate/react';
+import { useMemo } from 'react';
 import { BottomSheet } from 'react-spring-bottom-sheet';
-import { createIntroductionScreenMachine } from './introduction-screen.machine';
 import 'react-spring-bottom-sheet/dist/style.css';
 import {
   defaultSnapProps,
   SnapPointProps,
 } from 'react-spring-bottom-sheet/dist/types';
-import { createMachine, interpret } from 'xstate';
+import { QuestionData } from '../../state/types';
 import { IntroductionScreenComponent } from './introduction-screen.component';
+import { createIntroductionScreenMachine } from './introduction-screen.machine';
 
 const DEFAULT_SNAP_POINTS = ({ footerHeight, maxHeight }: SnapPointProps) => [
   footerHeight + 24,
@@ -18,10 +21,10 @@ const DEFAULT_SNAP_POINTS = ({ footerHeight, maxHeight }: SnapPointProps) => [
 
 const DEFAULT_SNAP = ({ snapPoints }: defaultSnapProps) => snapPoints[1];
 
-export default {
+const meta = {
   component: IntroductionScreenComponent,
   decorators: [
-    (Story) => {
+    (Story, props) => {
       return (
         <BottomSheet
           open={true}
@@ -37,21 +40,27 @@ export default {
   ],
 } as ComponentMeta<typeof IntroductionScreenComponent>;
 
-export const Default: ComponentStory<typeof IntroductionScreenComponent> = (
-  args
-) => <IntroductionScreenComponent {...args} />;
-
-// const actor = createIntroduc
-const machine = createIntroductionScreenMachine();
-const actor = interpret(machine);
-
-Default.args = {
-  title: 'Example title',
-  actor,
+export const Default: Story = (args) => {
+  console.log('story', args);
+  const questionScreenMachine = useMemo(
+    () => createIntroductionScreenMachine(),
+    []
+  );
+  const actor = useInterpret(questionScreenMachine, {
+    services: {
+      fetchQuestion: createMockFetchMachine<QuestionData>({
+        id: 'foo',
+        type: 'ClosestValue',
+        question: 'How many ounces are in a gallon of milk',
+        answer: 128,
+      }),
+    },
+  });
+  return <IntroductionScreenComponent actor={actor} />;
 };
-
-actor.start(); // todo how to handle hot reload
 
 Default.parameters = {
   xstate: true,
 };
+
+export default meta;

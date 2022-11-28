@@ -1,4 +1,4 @@
-import { createContext } from 'react';
+import React, { createContext } from 'react';
 import { createMachine } from 'xstate';
 import { QuestionData, ProfileData } from './types';
 
@@ -25,7 +25,10 @@ function createFetchMachine<T>() {
   });
 }
 
-export const TriviaJamServiceMap = createContext({
+export const TriviaJamServices = createContext({
   fetchQuestion: createFetchMachine<QuestionData>(),
   fetchProfile: createFetchMachine<ProfileData>(),
 });
+
+export type TriviaJamServiceContext =
+  typeof TriviaJamServices extends React.Context<infer U> ? U : never;

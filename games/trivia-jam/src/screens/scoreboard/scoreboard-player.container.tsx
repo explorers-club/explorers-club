@@ -1,6 +1,6 @@
 import { useInterpret } from '@xstate/react';
 import { FC, useContext } from 'react';
-import { TriviaJamServiceMap } from '../../state/service-map.context';
+import { TriviaJamServices } from '../../state/services.context';
 import { ScoreboardPlayerComponent } from './scoreboard-player.component';
 import { scoreboardPlayerMachine } from './scoreboard-player.machine';
 
@@ -10,7 +10,7 @@ interface Props {
 }
 
 export const ScoreboardPlayer: FC<Props> = ({ userId, score }) => {
-  const { fetchProfile } = useContext(TriviaJamServiceMap);
+  const { fetchProfile } = useContext(TriviaJamServices);
   const actor = useInterpret(scoreboardPlayerMachine, {
     context: {
       userId,
