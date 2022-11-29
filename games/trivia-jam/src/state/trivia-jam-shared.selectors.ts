@@ -17,3 +17,12 @@ export const selectScores = createSelector(
   selectTriviaJamSharedContext,
   (context) => context.scores
 );
+
+export const selectIsStaging = (state: TriviaJamSharedState) =>
+  state.matches('Staging');
+
+export const selectIsAwaitingQuestion = (state: TriviaJamSharedState) =>
+  state.matches('Playing.AwaitingQuestion');
+
+export const selectIsShowingQuestion = (state: TriviaJamSharedState) =>
+  state.matches('Playing.Question');

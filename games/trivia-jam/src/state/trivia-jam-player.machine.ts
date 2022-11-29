@@ -1,27 +1,26 @@
-import { SharedMachineProps } from '@explorers-club/actor';
-import { createModel } from 'xstate/lib/model';
+import { createMachine } from 'xstate';
 
-const triviaJamPlayerModel = createModel(
-  {
-    playerName: '' as string,
-  },
-  {
-    events: {
-      PLAYER_PRESS_NEXT_QUESTION: () => ({}),
-      PLAYER_PRESS_ANSWER: () => ({}),
-      PLAYER_PRESS_CORRECT: () => ({}),
-      PLAYER_PRESS_INCORRECT: () => ({}),
-    },
-  }
-);
+// const triviaJamPlayerModel = createModel(
+//   {
+//     playerName: '' as string,
+//   },
+//   {
+//     events: {},
+//   }
+// );
 
-export const TriviaJamPlayerEvents = triviaJamPlayerModel.events;
+// export const TriviaJamPlayerEvents = triviaJamPlayerModel.events;
+interface TriviaJamPlayerContext {
+  playerName: string;
+}
 
 export const createTriviaJamPlayerMachine = () =>
-  triviaJamPlayerModel.createMachine(
+  createMachine(
     {
       id: 'TriviaJamPlayer',
-      type: 'parallel',
+      schema: {
+        context: {} as TriviaJamPlayerContext,
+      },
       initial: 'Playing',
       states: {
         Playing: {

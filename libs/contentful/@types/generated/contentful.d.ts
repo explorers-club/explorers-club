@@ -3,9 +3,9 @@
 import { Asset, Entry } from 'contentful';
 import { Document } from '@contentful/rich-text-types';
 
-export interface IMultipleAnswerQuestionFields {
-  /** Question */
-  question: string;
+export interface IMultipleAnswerFields {
+  /** Prompt */
+  prompt: string;
 
   /** Correct Answers */
   correctAnswers?: string[] | undefined;
@@ -14,10 +14,9 @@ export interface IMultipleAnswerQuestionFields {
   incorrectAnswers?: string[] | undefined;
 }
 
-/** A question that has multiple correct answers */
+/** Choose multiple answers from a set of possible answers. */
 
-export interface IMultipleAnswerQuestion
-  extends Entry<IMultipleAnswerQuestionFields> {
+export interface IMultipleAnswer extends Entry<IMultipleAnswerFields> {
   sys: {
     id: string;
     type: string;
@@ -26,7 +25,7 @@ export interface IMultipleAnswerQuestion
     locale: string;
     contentType: {
       sys: {
-        id: 'multipleAnswerQuestion';
+        id: 'multipleAnswer';
         linkType: 'ContentType';
         type: 'Link';
       };
@@ -35,8 +34,8 @@ export interface IMultipleAnswerQuestion
 }
 
 export interface IMultipleChoiceFields {
-  /** Question */
-  question: string;
+  /** Prompt */
+  prompt: string;
 
   /** Correct Answer */
   correctAnswer: string;
@@ -65,12 +64,14 @@ export interface IMultipleChoice extends Entry<IMultipleChoiceFields> {
 }
 
 export interface INumberInputFields {
-  /** Question */
-  question: string;
+  /** Prompt */
+  prompt: string;
 
   /** Correct Value */
   correctValue: number;
 }
+
+/** Input a number response to a prompt */
 
 export interface INumberInput extends Entry<INumberInputFields> {
   sys: {
@@ -89,12 +90,46 @@ export interface INumberInput extends Entry<INumberInputFields> {
   };
 }
 
-export interface ITextInputFields {
+export interface IQuestionSetFields {
+  /** Name */
+  name: string;
+
   /** Question */
-  question: string;
+  question: (
+    | IMultipleAnswer
+    | IMultipleChoice
+    | INumberInput
+    | ITextInput
+    | ITrueOrFalse
+  )[];
 }
 
-/** Free text input question */
+export interface IQuestionSet extends Entry<IQuestionSetFields> {
+  sys: {
+    id: string;
+    type: string;
+    createdAt: string;
+    updatedAt: string;
+    locale: string;
+    contentType: {
+      sys: {
+        id: 'questionSet';
+        linkType: 'ContentType';
+        type: 'Link';
+      };
+    };
+  };
+}
+
+export interface ITextInputFields {
+  /** Prompt */
+  prompt: string;
+
+  /** Correct Answer */
+  correctAnswer?: string | undefined;
+}
+
+/** Input a text response */
 
 export interface ITextInput extends Entry<ITextInputFields> {
   sys: {
@@ -114,8 +149,8 @@ export interface ITextInput extends Entry<ITextInputFields> {
 }
 
 export interface ITrueOrFalseFields {
-  /** Question */
-  question: string;
+  /** Prompt */
+  prompt: string;
 
   /** Answer */
   answer?: boolean | undefined;
@@ -141,16 +176,18 @@ export interface ITrueOrFalse extends Entry<ITrueOrFalseFields> {
 }
 
 export type CONTENT_TYPE =
-  | 'multipleAnswerQuestion'
+  | 'multipleAnswer'
   | 'multipleChoice'
   | 'numberInput'
+  | 'questionSet'
   | 'textInput'
   | 'trueOrFalse';
 
 export type IEntry =
-  | IMultipleAnswerQuestion
+  | IMultipleAnswer
   | IMultipleChoice
   | INumberInput
+  | IQuestionSet
   | ITextInput
   | ITrueOrFalse;
 

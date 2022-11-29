@@ -1,5 +1,19 @@
 import { ActorRefFrom, ContextFrom, createMachine, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
+import type {
+  IMultipleAnswerQuestionFields,
+  IMultipleChoiceFields,
+  ITextInputFields,
+  INumberInputFields,
+  ITrueOrFalseFields,
+} from '@explorers-club/contentful-types';
+
+type QuestionFields =
+  | IMultipleAnswerQuestionFields
+  | IMultipleChoiceFields
+  | ITextInputFields
+  | INumberInputFields
+  | ITrueOrFalseFields;
 
 const triviaJamSharedModel = createModel({
   playerUserIds: [] as string[],
@@ -28,7 +42,7 @@ export const triviaJamSharedMachine = createMachine({
       states: {
         AwaitingQuestion: {
           invoke: {
-            src: 'onHostPressNextQuestion',
+            src: 'waitForNextQuestion',
           },
         },
         Question: {
