@@ -1,25 +1,15 @@
-import { useInterpret } from '@xstate/react';
-import { FC, useContext } from 'react';
-import { TriviaJamServices } from '../../state/services.context';
+import { useSelector } from '@xstate/react';
+import { FC } from 'react';
+import { TriviaJamPlayerActor } from '../../state/types';
 import { ScoreboardPlayerComponent } from './scoreboard-player.component';
-import { scoreboardPlayerMachine } from './scoreboard-player.machine';
 
 interface Props {
-  userId: string;
+  actor: TriviaJamPlayerActor;
   score: number;
 }
 
-export const ScoreboardPlayer: FC<Props> = ({ userId, score }) => {
-  const { fetchProfile } = useContext(TriviaJamServices);
-  const actor = useInterpret(scoreboardPlayerMachine, {
-    context: {
-      userId,
-      score,
-    },
-    services: {
-      fetchProfile,
-    },
-  });
+export const ScoreboardPlayer: FC<Props> = ({ actor, score }) => {
+  const playerName = useSelector(actor, (state) => state.context.playerName);
 
-  return <ScoreboardPlayerComponent actor={actor} />;
+  return <ScoreboardPlayerComponent name={playerName} score={score} />;
 };

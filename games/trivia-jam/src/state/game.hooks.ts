@@ -5,7 +5,12 @@ const useGameContext = () => {
   return useContext(GameContext);
 };
 
-export const useGameSharedService = () => {
-  const { sharedGameService } = useGameContext();
-  return sharedGameService;
+export const useTriviaJamSharedActor = () => {
+  const { triviaJamSharedActor } = useGameContext();
+  return triviaJamSharedActor;
+};
+
+export const useSharedCollectionActor = () => {
+  const { sharedCollectionActor } = useGameContext();
+  return sharedCollectionActor;
 };

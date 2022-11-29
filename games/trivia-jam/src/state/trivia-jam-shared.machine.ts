@@ -11,12 +11,12 @@ export type TriviaJamSharedContext = ContextFrom<typeof triviaJamSharedModel>;
 
 export const triviaJamSharedMachine = createMachine({
   id: 'TriviaJamShared',
-  initial: 'Loading',
+  initial: 'Staging',
   schema: {
     context: {} as TriviaJamSharedContext,
   },
   states: {
-    Loading: {
+    Staging: {
       invoke: {
         src: 'onAllPlayersLoaded',
         onDone: {

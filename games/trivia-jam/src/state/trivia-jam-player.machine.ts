@@ -1,9 +1,10 @@
 import { SharedMachineProps } from '@explorers-club/actor';
-import { ActorRefFrom, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 
 const triviaJamPlayerModel = createModel(
-  {},
+  {
+    playerName: '' as string,
+  },
   {
     events: {
       PLAYER_PRESS_NEXT_QUESTION: () => ({}),
@@ -16,12 +17,10 @@ const triviaJamPlayerModel = createModel(
 
 export const TriviaJamPlayerEvents = triviaJamPlayerModel.events;
 
-export const createTriviaJamPlayerMachine = ({
-  actorId,
-}: SharedMachineProps) =>
+export const createTriviaJamPlayerMachine = () =>
   triviaJamPlayerModel.createMachine(
     {
-      id: actorId,
+      id: 'TriviaJamPlayer',
       type: 'parallel',
       initial: 'Playing',
       states: {

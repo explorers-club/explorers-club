@@ -1,6 +1,8 @@
+import { SharedCollectionActor } from '@explorers-club/actor';
 import { createContext } from 'react';
 import { TriviaJamSharedActor } from './trivia-jam-shared.machine';
 
 export const GameContext = createContext({
-  sharedGameService: {} as TriviaJamSharedActor,
+  triviaJamSharedActor: {} as TriviaJamSharedActor,
+  sharedCollectionActor: {} as SharedCollectionActor,
 });

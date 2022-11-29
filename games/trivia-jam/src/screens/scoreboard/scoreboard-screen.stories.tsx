@@ -1,5 +1,5 @@
 // Inspired by https://github.com/chakra-ui/chakra-ui/blob/main/packages/components/button/stories/button.stories.tsx
-import { ComponentMeta, ComponentStory } from '@storybook/react';
+import { ComponentMeta, ComponentStory, Story } from '@storybook/react';
 import { useInterpret, useMachine } from '@xstate/react';
 import { BottomSheet } from 'react-spring-bottom-sheet';
 import 'react-spring-bottom-sheet/dist/style.css';
@@ -9,7 +9,9 @@ import {
 } from 'react-spring-bottom-sheet/dist/types';
 import { interpret } from 'xstate';
 import { ScoreboardScreenComponent } from './scoreboard-screen.component';
-import { createScoreboardScreenMachine } from './scoreboard-screen.machine';
+import { ScoreboardPlayer } from './scoreboard-player.container';
+import { createTriviaJamPlayerMachine } from '../../state/trivia-jam-player.machine';
+import { useMemo } from '@storybook/addons';
 
 const DEFAULT_SNAP_POINTS = ({ footerHeight, maxHeight }: SnapPointProps) => [
   footerHeight + 24,
@@ -21,6 +23,7 @@ const DEFAULT_SNAP = ({ snapPoints }: defaultSnapProps) => snapPoints[1];
 
 export default {
   component: ScoreboardScreenComponent,
+  subcomponents: { ScoreboardPlayer },
   decorators: [
     (Story) => {
       return (
@@ -38,29 +41,52 @@ export default {
   ],
 } as ComponentMeta<typeof ScoreboardScreenComponent>;
 
-const machine = createScoreboardScreenMachine();
+const Template: Story<{
+  players: { playerName: string; score: number }[];
+}> = (args) => {
+  const actors = useMemo(() => {
+    const { players } = args;
+    return players.map(({ playerName }) => {
+      const machine = createTriviaJamPlayerMachine().withContext({
+        playerName,
+      });
+      const actor = interpret(machine);
+      actor.start();
+      return actor;
+    });
+  }, [args]);
 
-export const Default: ComponentStory<typeof ScoreboardScreenComponent> = (
-  args
-) => {
-  const actor = useInterpret(machine, {
-    context: {
-      scoresByUserId: {
-        foo: 3,
-        bar: 4,
-        buz: 5,
-        bat: 6,
-        fuz: 7,
-      },
-    },
-  });
-  return <ScoreboardScreenComponent actor={actor} />;
+  return (
+    <ScoreboardScreenComponent>
+      {actors.map((actor, index) => (
+        <ScoreboardPlayer actor={actor} score={args.players[index].score} />
+      ))}
+    </ScoreboardScreenComponent>
+  );
 };
 
-// Default.args = {
-//   //   actor,
-// };
+export const OneItem = Template.bind({});
 
-Default.parameters = {
-  xstate: true,
+OneItem.args = {
+  players: [
+    {
+      playerName: 'Foo',
+      score: 2,
+    },
+  ],
+};
+
+export const TwoItems = Template.bind({});
+
+TwoItems.args = {
+  players: [
+    {
+      playerName: 'Bar',
+      score: 3,
+    },
+    {
+      playerName: 'Foo',
+      score: 2,
+    },
+  ],
 };

@@ -1,11 +1,14 @@
 import { Flex } from '@atoms/Flex';
-import { FC } from 'react';
-import { IntroductionScreenActor } from './introduction-screen.machine';
+import { useLottie } from 'lottie-react';
+import animationData from './introduction-animation.json';
 
-interface Props {
-  actor: IntroductionScreenActor;
-}
+export const IntroductionScreenComponent = () => {
+  const options = {
+    animationData,
+    loop: true,
+  };
 
-export const IntroductionScreenComponent: FC<Props> = ({ actor }) => {
-  return <Flex>Intro screen</Flex>;
+  const { View } = useLottie(options);
+
+  return <Flex>{View}</Flex>;
 };

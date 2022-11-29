@@ -13,11 +13,15 @@
     "lib": ["es2017", "dom"],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
+    "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
       "@atoms/*": ["libs/components/src/atoms/*"],
       "@explorers-club/actor": ["libs/actor/src/index.ts"],
       "@explorers-club/contentful": ["libs/contentful/src/index.ts"],
+      "@explorers-club/contentful-types": [
+        "libs/contentful/@types/generated/contentful"
+      ],
       "@explorers-club/database": ["libs/database/src/index.ts"],
       "@explorers-club/lobby": ["libs/lobby/src/index.ts"],
       "@explorers-club/party": ["libs/party/src/index.ts"],

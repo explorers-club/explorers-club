@@ -1,16 +1,21 @@
 import { useInterpret } from '@xstate/react';
-import { ScreensComponent } from './screens.compontent';
-import { ScreensContext } from './screens.context';
+import {
+  useSharedCollectionActor,
+  useTriviaJamSharedActor,
+} from '../state/game.hooks';
+import { ScreensComponent } from './screens.component';
 import { screensMachine } from './screens.machine';
 
 export const Screens = () => {
+  const sharedCollectionActor = useSharedCollectionActor();
+  const triviaJamSharedActor = useTriviaJamSharedActor();
+
   const screensActor = useInterpret(screensMachine, {
-    context: {},
+    context: {
+      sharedCollectionActor,
+      triviaJamSharedActor,
+    },
   });
 
-  return (
-    <ScreensContext.Provider value={{ screensActor }}>
-      <ScreensComponent />
-    </ScreensContext.Provider>
-  );
+  return <ScreensComponent actor={screensActor} />;
 };

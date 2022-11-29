@@ -5,13 +5,13 @@ import { Document } from '@contentful/rich-text-types';
 
 export interface IMultipleAnswerQuestionFields {
   /** Question */
-  question?: Document | undefined;
+  question: string;
 
   /** Correct Answers */
   correctAnswers?: string[] | undefined;
 
-  /** Tags */
-  tags?: ('tag1' | 'tag2')[] | undefined;
+  /** Incorrect Answers */
+  incorrectAnswers?: string[] | undefined;
 }
 
 /** A question that has multiple correct answers */
@@ -34,7 +34,125 @@ export interface IMultipleAnswerQuestion
   };
 }
 
-export type CONTENT_TYPE = 'multipleAnswerQuestion';
+export interface IMultipleChoiceFields {
+  /** Question */
+  question: string;
+
+  /** Correct Answer */
+  correctAnswer: string;
+
+  /** Incorrect Answers */
+  incorrectAnswers: string[];
+}
+
+/** Choose one answer from a set of possible answers. */
+
+export interface IMultipleChoice extends Entry<IMultipleChoiceFields> {
+  sys: {
+    id: string;
+    type: string;
+    createdAt: string;
+    updatedAt: string;
+    locale: string;
+    contentType: {
+      sys: {
+        id: 'multipleChoice';
+        linkType: 'ContentType';
+        type: 'Link';
+      };
+    };
+  };
+}
+
+export interface INumberInputFields {
+  /** Question */
+  question: string;
+
+  /** Correct Value */
+  correctValue: number;
+}
+
+export interface INumberInput extends Entry<INumberInputFields> {
+  sys: {
+    id: string;
+    type: string;
+    createdAt: string;
+    updatedAt: string;
+    locale: string;
+    contentType: {
+      sys: {
+        id: 'numberInput';
+        linkType: 'ContentType';
+        type: 'Link';
+      };
+    };
+  };
+}
+
+export interface ITextInputFields {
+  /** Question */
+  question: string;
+}
+
+/** Free text input question */
+
+export interface ITextInput extends Entry<ITextInputFields> {
+  sys: {
+    id: string;
+    type: string;
+    createdAt: string;
+    updatedAt: string;
+    locale: string;
+    contentType: {
+      sys: {
+        id: 'textInput';
+        linkType: 'ContentType';
+        type: 'Link';
+      };
+    };
+  };
+}
+
+export interface ITrueOrFalseFields {
+  /** Question */
+  question: string;
+
+  /** Answer */
+  answer?: boolean | undefined;
+}
+
+/** A question that is either true or false */
+
+export interface ITrueOrFalse extends Entry<ITrueOrFalseFields> {
+  sys: {
+    id: string;
+    type: string;
+    createdAt: string;
+    updatedAt: string;
+    locale: string;
+    contentType: {
+      sys: {
+        id: 'trueOrFalse';
+        linkType: 'ContentType';
+        type: 'Link';
+      };
+    };
+  };
+}
+
+export type CONTENT_TYPE =
+  | 'multipleAnswerQuestion'
+  | 'multipleChoice'
+  | 'numberInput'
+  | 'textInput'
+  | 'trueOrFalse';
+
+export type IEntry =
+  | IMultipleAnswerQuestion
+  | IMultipleChoice
+  | INumberInput
+  | ITextInput
+  | ITrueOrFalse;
 
 export type LOCALE_CODE = 'en-US';
 

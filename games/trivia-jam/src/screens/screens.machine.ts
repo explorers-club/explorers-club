@@ -1,24 +1,44 @@
+import { SharedCollectionActor } from '@explorers-club/actor';
 import { ActorRefFrom, createMachine, StateFrom } from 'xstate';
-import { createIntroductionScreenMachine } from './introduction/introduction-screen.machine';
+import { waitFor } from 'xstate/lib/waitFor';
+import { TriviaJamSharedActor } from '../state';
 import { createQuestionScreenMachine } from './question/question-screen.machine';
-import { createScoreboardScreenMachine } from './scoreboard/scoreboard-screen.machine';
+
+interface ScreensMachineContext {
+  sharedCollectionActor: SharedCollectionActor;
+  triviaJamSharedActor: TriviaJamSharedActor;
+}
 
 export const screensMachine = createMachine({
   id: 'TriviaJamScreensMachine',
   initial: 'Introduction',
   schema: {
+    context: {} as ScreensMachineContext,
     events: {} as { type: 'NEXT_QUESTION'; questionId: string },
   },
   states: {
     Introduction: {
       invoke: {
-        src: () => createIntroductionScreenMachine(),
+        src: async ({ triviaJamSharedActor }) => {
+          waitFor(triviaJamSharedActor, (state) => state.matches('Playing'), {
+            timeout: 9999999,
+          });
+        },
         onDone: 'Scoreboard',
       },
     },
     Scoreboard: {
       invoke: {
-        src: () => createScoreboardScreenMachine(),
+        src: async ({ triviaJamSharedActor }) => {
+          // TODO refactor to use observable so it doesnt timeout
+          waitFor(
+            triviaJamSharedActor,
+            (state) => !state.matches('AwaitingQuestion'),
+            {
+              timeout: 9999999,
+            }
+          );
+        },
       },
     },
     Question: {
