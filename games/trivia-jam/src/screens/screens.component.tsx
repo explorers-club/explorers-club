@@ -1,33 +1,29 @@
 import { useSelector } from '@xstate/react';
 import { FC } from 'react';
+import { selectIsAwaitingQuestion, TriviaJamSharedActor } from '../state';
+import { selectIsShowingQuestion } from '../state/trivia-jam-shared.selectors';
 import { IntroductionScreen } from './introduction/introduction-screen.container';
 import { QuestionScreen } from './question/question-screen.container';
 import { ScoreboardScreen } from './scoreboard/scoreboard-screen.container';
-import { ScreensActor } from './screens.machine';
-import {
-  selectIsShowingIntroduction,
-  selectIsShowingQuestion,
-  selectIsShowingScoreboard,
-} from './screens.selectors';
 
 interface Props {
-  actor: ScreensActor;
+  actor: TriviaJamSharedActor;
 }
 
 export const ScreensComponent: FC<Props> = ({ actor }) => {
-  const isShowingIntroduction = useSelector(actor, selectIsShowingIntroduction);
+  const isStaging = useSelector(actor, (state) => state.matches('Staging'));
+  const isAwaitingQuestion = useSelector(actor, selectIsAwaitingQuestion);
   const isShowingQuestion = useSelector(actor, selectIsShowingQuestion);
-  const isShowingScoreboard = useSelector(actor, selectIsShowingScoreboard);
 
   switch (true) {
-    case isShowingIntroduction: {
+    case isStaging: {
       return <IntroductionScreen />;
+    }
+    case isAwaitingQuestion: {
+      return <ScoreboardScreen />;
     }
     case isShowingQuestion: {
       return <QuestionScreen />;
-    }
-    case isShowingScoreboard: {
-      return <ScoreboardScreen />;
     }
     default: {
       return null;

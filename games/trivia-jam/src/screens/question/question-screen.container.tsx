@@ -1,7 +1,8 @@
+import { useTriviaJamSharedActor } from '../../state/game.hooks';
 import { QuestionScreenComponent } from './question-screen.component';
-import { useQuestionScreenActor } from './question-screen.hooks';
 
 export const QuestionScreen = () => {
-  const actor = useQuestionScreenActor();
+  const actor = useTriviaJamSharedActor();
+
   return <QuestionScreenComponent actor={actor} />;
 };
