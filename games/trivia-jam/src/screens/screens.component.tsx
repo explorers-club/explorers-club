@@ -1,3 +1,4 @@
+import { SharedCollectionActor } from '@explorers-club/actor';
 import { useSelector } from '@xstate/react';
 import { FC } from 'react';
 import { selectIsAwaitingQuestion, TriviaJamSharedActor } from '../state';
@@ -11,9 +12,17 @@ interface Props {
 }
 
 export const ScreensComponent: FC<Props> = ({ actor }) => {
+  console.log({ actor });
   const isStaging = useSelector(actor, (state) => state.matches('Staging'));
-  const isAwaitingQuestion = useSelector(actor, selectIsAwaitingQuestion);
-  const isShowingQuestion = useSelector(actor, selectIsShowingQuestion);
+  const isAwaitingQuestion = useSelector(actor, (state) =>
+    state.matches('Playing.AwaitingQuestion')
+  );
+  const isPlayingQuestion = useSelector(actor, (state) =>
+    state.matches('Playing.Question')
+  );
+  const isGameOver = useSelector(actor, (state) => state.matches('GameOver'));
+  // const isAwaitingQuestion = useSelector(actor, selectIsAwaitingQuestion);
+  // const isShowingQuestion = useSelector(actor, selectIsShowingQuestion);
 
   switch (true) {
     case isStaging: {
@@ -22,8 +31,12 @@ export const ScreensComponent: FC<Props> = ({ actor }) => {
     case isAwaitingQuestion: {
       return <ScoreboardScreen />;
     }
-    case isShowingQuestion: {
+    case isPlayingQuestion: {
       return <QuestionScreen />;
+    }
+    case isGameOver: {
+      // TODO game over screen
+      return null;
     }
     default: {
       return null;

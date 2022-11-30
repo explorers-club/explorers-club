@@ -1,9 +1,9 @@
 import {
   ActorID,
   createActorByIdSelector,
-  SharedCollectionActor,
+  SharedCollectionActor
 } from '@explorers-club/actor';
-import { filter, first, from, lastValueFrom, take } from 'rxjs';
+import { filter, from, take } from 'rxjs';
 import { ActorRefFrom, createMachine, StateFrom } from 'xstate';
 import { LobbyPlayerActor } from './lobby-player.machine';
 import { LobbySharedEvents } from './lobby-shared.machine';

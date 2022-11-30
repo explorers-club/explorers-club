@@ -1,6 +1,4 @@
-import {
-  useTriviaJamSharedActor
-} from '../state/game.hooks';
+import { useTriviaJamSharedActor } from '../state/game.hooks';
 import { ScreensComponent } from './screens.component';
 
 export const Screens = () => {

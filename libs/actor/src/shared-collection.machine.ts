@@ -6,8 +6,8 @@
  */
 import { noop } from '@explorers-club/utils';
 import { Database, get, onDisconnect, ref, set } from 'firebase/database';
+import { from, map, Observable, skip } from 'rxjs';
 import { fromRef, ListenEvent } from 'rxfire/database';
-import { BehaviorSubject, from, map, skip } from 'rxjs';
 import {
   ActorRefFrom,
   AnyActorRef,
@@ -24,11 +24,14 @@ import {
 import { createModel } from 'xstate/lib/model';
 import { ModelContextFrom, ModelEventsFrom } from 'xstate/lib/model.types';
 import { assertEventType, getActorType } from './helpers';
-import { ActorID, ActorType, SharedMachineProps } from './types';
+import { ActorID, ActorType } from './types';
 
 const sharedCollectionModel = createModel(
   {
     actorRefs: {} as Partial<Record<ActorID, AnyActorRef>>,
+    rootPath: '' as string,
+    myActorId: undefined as ActorID | undefined,
+    db: {} as Database,
   },
   {
     events: {
@@ -39,7 +42,7 @@ const sharedCollectionModel = createModel(
       SPAWN: (actorId: ActorID) => ({
         actorId,
       }),
-      SEND_EVENT: (actorId: ActorID, event: AnyEventObject) => ({
+      NEW_EVENT: (actorId: ActorID, event: AnyEventObject) => ({
         actorId,
         event,
       }),
@@ -47,64 +50,71 @@ const sharedCollectionModel = createModel(
   }
 );
 
-export const SharedCollectionEvents = sharedCollectionModel.events;
+export type SharedCollectionContext = ModelContextFrom<
+  typeof sharedCollectionModel
+>;
 
-type SharedCollectionEvent = ModelEventsFrom<typeof sharedCollectionModel>;
-type SharedCollectionContext = ModelContextFrom<typeof sharedCollectionModel>;
+export const SharedCollectionEvents = sharedCollectionModel.events;
+type NewEventEvent = ReturnType<typeof SharedCollectionEvents.NEW_EVENT>;
+type HydrateEvent = ReturnType<typeof SharedCollectionEvents.HYDRATE>;
+
+interface SharedCollectionServices {
+  /**
+   * Returns an observable that emits each time any actor in the collection
+   * logs an event in the database so that the actor running locally can update itself.
+   */
+  onNewEvent: (
+    context: SharedCollectionContext,
+    event: SharedCollectionEvent
+  ) => Observable<NewEventEvent>;
+
+  /**
+   * Returns an observable that emits each time a new actor comes to exist
+   * in the shared collection containing that actors current state
+   */
+  onHydrateActor: (
+    context: SharedCollectionContext,
+    event: SharedCollectionEvent
+  ) => Observable<HydrateEvent>;
+
+  /**
+   * Returns a promise that returns a map of all actors to their current JSON state
+   * Used for when we are initializing the collection at startup.
+   */
+  fetchActors: (
+    context: SharedCollectionContext
+  ) => Promise<Record<ActorID, string>>;
+}
+
+// todo: typescript magic to infer this better automatically
+type FetchActorsDoneEvent = {
+  type: 'done.invoke.fetchActors';
+  data: Awaited<ReturnType<SharedCollectionServices['fetchActors']>>;
+};
+
+// Union model events with the done invoke events
+export type SharedCollectionEvent =
+  | ModelEventsFrom<typeof sharedCollectionModel>
+  | FetchActorsDoneEvent;
+
+type MachineMap = Partial<Record<ActorType, AnyStateMachine>>;
 
 interface CreateProps {
-  rootPath: string; // e.g. 'lobby/bakery'
-  db: Database;
-  localActorId$: BehaviorSubject<ActorID | undefined>;
-  getCreateMachine: (
-    actorType: ActorType
-  ) => (props: SharedMachineProps) => AnyStateMachine;
+  services: Partial<SharedCollectionServices>;
+  machines: MachineMap;
 }
 
 export const createSharedCollectionMachine = ({
-  db,
-  rootPath,
-  localActorId$,
-  getCreateMachine,
+  services,
+  machines,
 }: CreateProps) => {
-  const eventsRef = ref(db, `${rootPath}/actor_events`);
-  const stateRef = ref(db, `${rootPath}/actor_state`);
-
-  // Listens for event writes in firebase and emits
-  // a HYDRATE on the share machine
-  const hydrateActors$ = fromRef(stateRef, ListenEvent.added).pipe(
-    map((changes) => {
-      const actorId = changes.snapshot.key;
-      const stateJSON = changes.snapshot.val();
-
-      // TODO there's probably a bug here where we are triggering events
-      // on rejoin where we shouldnt be
-
-      return { type: 'HYDRATE', actorId, stateJSON };
-    })
-  );
-
-  // Listens for event writes in firebase and emits
-  // a SEND_EVENT on the share machine
-  //
-  // It assumes that the ref is created first before the first
-  // true "write" happens for an actor, because this firebase listener
-  // only emits "changes" to children, not "new" children
-  const newEvent$ = fromRef(eventsRef, ListenEvent.changed).pipe(
-    map((changes) => {
-      const actorId = changes.snapshot.key;
-      const event = changes.snapshot.val() as AnyEventObject;
-      console.log('new event', actorId, event);
-      return { type: 'SEND_EVENT', actorId, event };
-    })
-  );
-
-  return createMachine<SharedCollectionContext, SharedCollectionEvent>(
+  return createMachine(
     {
       id: 'SharedCollectionMachine',
       type: 'parallel',
-      context: {
-        actorRefs: {},
+      schema: {
+        context: {} as SharedCollectionContext,
+        events: {} as SharedCollectionEvent,
       },
       states: {
         Events: {
@@ -112,12 +122,13 @@ export const createSharedCollectionMachine = ({
           states: {
             Listening: {
               invoke: {
-                src: () => newEvent$,
+                id: 'onNewEvent',
+                src: 'onNewEvent',
               },
             },
           },
           on: {
-            SEND_EVENT: {
+            NEW_EVENT: {
               actions: 'sendEvent',
             },
           },
@@ -127,50 +138,26 @@ export const createSharedCollectionMachine = ({
           states: {
             Loading: {
               invoke: {
+                id: 'fetchActors',
                 src: 'fetchActors',
                 onDone: {
                   target: 'Initialized',
-                  actions: assign({
-                    actorRefs: (_, event) => {
-                      const actorState = event.data as Partial<
-                        Record<ActorID, string>
-                      >;
-                      console.log({ actorState });
-
-                      const actorRefs: Partial<Record<ActorID, AnyActorRef>> =
-                        {};
-                      Object.entries(actorState).forEach(
-                        ([actorId, stateJSON]) => {
-                          const actorType = getActorType(actorId);
-                          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                          const state = JSON.parse(stateJSON!);
-                          const previousState = State.create(state);
-
-                          const createMachine = getCreateMachine(actorType);
-                          const machine = createMachine({ actorId });
-
-                          const actor = interpret(machine).start(previousState);
-                          actorRefs[actorId] = actor;
-                        }
-                      );
-
-                      return actorRefs;
-                    },
-                  }),
+                  actions: 'initializeActorRefs',
                 },
               },
             },
             Initialized: {
-              entry: 'setupLocalActorBroadcast',
+              entry: 'initializeActorBroadcast',
               invoke: {
-                src: () => hydrateActors$,
+                id: 'onHydrateActor',
+                src: 'onHydrateActor',
               },
               on: {
                 HYDRATE: {
                   actions: 'hydrateActor',
                 },
                 SPAWN: {
-                  actions: ['spawnActor', 'setupLocalActorBroadcast'],
+                  actions: ['spawnActor', 'initializeActorBroadcast'],
                 },
               },
             },
@@ -180,33 +167,45 @@ export const createSharedCollectionMachine = ({
       predictableActionArguments: true,
     },
     {
-      services: {
-        fetchActors: async () => {
-          const actorStateSnapshot = await get(stateRef);
-          return (actorStateSnapshot.val() || {}) as Partial<
-            Record<ActorID, string>
-          >;
-        },
-      },
+      services,
       actions: {
-        setupLocalActorBroadcast: ({ actorRefs }) => {
-          const localActorId = localActorId$.getValue();
-          if (!localActorId) {
-            return;
-          }
+        initializeActorRefs: assign<
+          SharedCollectionContext,
+          SharedCollectionEvent
+        >({
+          actorRefs: (_, event) => {
+            assertEventType(event, 'done.invoke.fetchActors');
+            const actorState = event.data as Partial<Record<ActorID, string>>;
 
-          const localActor = actorRefs[localActorId];
-          if (!localActor) {
+            const actorRefs: Partial<Record<ActorID, AnyActorRef>> = {};
+            Object.entries(actorState).forEach(([actorId, stateJSON]) => {
+              const actorType = getActorType(actorId);
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              const state = JSON.parse(stateJSON!);
+              const previousState = State.create(state);
+
+              const machine = machines[actorType] as AnyStateMachine;
+              if (!machine) {
+                throw new Error('couldnt find machine for ' + actorType);
+              }
+
+              const actor = interpret(machine).start(previousState);
+              actorRefs[actorId] = actor;
+            });
+
+            return actorRefs;
+          },
+        }),
+        initializeActorBroadcast: ({ actorRefs, db, rootPath, myActorId }) => {
+          const myActor = actorRefs[myActorId];
+          if (!myActor) {
             return;
           }
 
           // log our events to firebase
           // skip the first once since that event should already exist
-          const myEventRef = ref(
-            db,
-            `${rootPath}/actor_events/${localActorId}`
-          );
-          from(localActor)
+          const myEventRef = ref(db, `${rootPath}/actor_events/${myActorId}`);
+          from(myActor)
             .pipe(skip(1))
             .subscribe((state) => {
               const event = JSON.parse(JSON.stringify(state.event));
@@ -217,16 +216,15 @@ export const createSharedCollectionMachine = ({
           onDisconnect(myEventRef).set({ type: 'DISCONNECT' });
         },
         spawnActor: assign({
-          actorRefs: ({ actorRefs }, event) => {
+          actorRefs: ({ actorRefs, rootPath, db }, event) => {
             assertEventType(event, 'SPAWN');
             const { actorId } = event;
 
             const actorType = getActorType(actorId);
-            const createMachine = getCreateMachine(actorType);
-            const machine = createMachine({
-              actorId,
-            });
-
+            const machine = machines[actorType] as AnyStateMachine;
+            if (!machine) {
+              throw new Error('couldnt find machine for ' + actorType);
+            }
             const actor = spawn(machine, actorId);
 
             const myStateRef = ref(db, `${rootPath}/actor_state/${actorId}`);
@@ -246,7 +244,7 @@ export const createSharedCollectionMachine = ({
           },
         }),
         hydrateActor: assign({
-          actorRefs: ({ actorRefs }, event) => {
+          actorRefs: ({ actorRefs, myActorId }, event) => {
             assertEventType(event, 'HYDRATE');
             const { actorId, stateJSON } = event;
 
@@ -254,17 +252,17 @@ export const createSharedCollectionMachine = ({
             if (actorId in actorRefs) {
               return actorRefs;
             }
-            console.log('hydrating', actorId);
 
             const actorType = getActorType(actorId);
-            const createMachine = getCreateMachine(actorType);
-            const machine = createMachine({
-              actorId,
-            });
             const state = JSON.parse(stateJSON) as AnyState;
             const previousState = State.create(state);
 
-            const actor = interpret(machine).start(previousState);
+            const execute = actorId === myActorId; // only run actions/services on our own actor
+            const machine = machines[actorType] as AnyStateMachine;
+            if (!machine) {
+              throw new Error('couldnt find machine for ' + actorType);
+            }
+            const actor = interpret(machine, { execute }).start(previousState);
 
             return {
               ...actorRefs,
@@ -273,7 +271,7 @@ export const createSharedCollectionMachine = ({
           },
         }),
         sendEvent: ({ actorRefs }, event) => {
-          assertEventType(event, 'SEND_EVENT');
+          assertEventType(event, 'NEW_EVENT');
           const { actorId } = event;
 
           const actor = actorRefs[actorId];
@@ -286,12 +284,45 @@ export const createSharedCollectionMachine = ({
             return;
           }
 
-          console.log('sending event', event);
           actor.send(event.event);
         },
       },
     }
   );
+};
+
+export const sharedCollectionServices: SharedCollectionServices = {
+  onNewEvent({ db, rootPath }) {
+    const eventsRef = ref(db, `${rootPath}/actor_events`);
+    return fromRef(eventsRef, ListenEvent.changed).pipe(
+      map((changes) => {
+        const actorId = changes.snapshot.key;
+        const event = changes.snapshot.val() as AnyEventObject;
+        return { type: 'NEW_EVENT', actorId, event };
+      })
+    );
+  },
+
+  onHydrateActor({ db, rootPath }) {
+    const stateRef = ref(db, `${rootPath}/actor_state`);
+    return fromRef(stateRef, ListenEvent.added).pipe(
+      map((changes) => {
+        const actorId = changes.snapshot.key;
+        const stateJSON = changes.snapshot.val();
+
+        // TODO there's probably a bug here where we are triggering events
+        // on rejoin where we shouldnt be
+
+        return { type: 'HYDRATE', actorId, stateJSON };
+      })
+    );
+  },
+
+  async fetchActors({ db, rootPath }) {
+    const stateRef = ref(db, `${rootPath}/actor_state`);
+    const actorStateSnapshot = await get(stateRef);
+    return (actorStateSnapshot.val() || {}) as Partial<Record<ActorID, string>>;
+  },
 };
 
 export type SharedCollectionMachine = ReturnType<

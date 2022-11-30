@@ -23,6 +23,7 @@ export const QuestionPrompt: FC<Props> = ({
       <TextField
         type="text"
         id="email"
+        data-testid="email"
         fullWidth={true}
         autoFocus={true}
         css={{ textAlign: 'center' }}

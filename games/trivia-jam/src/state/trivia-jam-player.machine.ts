@@ -1,18 +1,10 @@
 import { createMachine } from 'xstate';
 
-// const triviaJamPlayerModel = createModel(
-//   {
-//     playerName: '' as string,
-//   },
-//   {
-//     events: {},
-//   }
-// );
-
-// export const TriviaJamPlayerEvents = triviaJamPlayerModel.events;
-interface TriviaJamPlayerContext {
+export interface TriviaJamPlayerContext {
   playerName: string;
 }
+
+export type TriviaJamPlayerEvent = { type: 'JOIN' };
 
 export const createTriviaJamPlayerMachine = () =>
   createMachine(
@@ -20,6 +12,7 @@ export const createTriviaJamPlayerMachine = () =>
       id: 'TriviaJamPlayer',
       schema: {
         context: {} as TriviaJamPlayerContext,
+        events: {} as TriviaJamPlayerEvent,
       },
       initial: 'Playing',
       states: {
@@ -31,3 +24,7 @@ export const createTriviaJamPlayerMachine = () =>
     },
     {}
   );
+
+export type TriviaJamPlayerMachine = ReturnType<
+  typeof createTriviaJamPlayerMachine
+>;

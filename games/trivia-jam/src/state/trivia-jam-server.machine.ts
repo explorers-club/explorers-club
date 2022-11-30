@@ -1,16 +1,14 @@
-import {
-  ActorID,
-  createActorByIdSelector,
-  SharedCollectionActor,
-} from '@explorers-club/actor';
-import { filter, from, take } from 'rxjs';
+import { ActorID, SharedCollectionActor } from '@explorers-club/actor';
 import { ActorRefFrom, createMachine, StateFrom } from 'xstate';
-
-// Test entry id dSX6kC0PNliXTl7qHYJLH
+import { TriviaJamSharedEvents } from './trivia-jam-shared.machine';
 
 interface CreateProps {
   sharedCollectionActor: SharedCollectionActor;
   sharedActorId: ActorID;
+}
+
+export interface TriviaJamServerContext {
+  questionSetEntryId: string;
 }
 
 /**
@@ -23,92 +21,40 @@ export const createTriviaJamServerMachine = ({
   sharedCollectionActor,
   sharedActorId,
 }: CreateProps) => {
-  const selectSharedActor = createActorByIdSelector(sharedActorId);
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const sharedActor = selectSharedActor(sharedCollectionActor.getSnapshot()!);
-  const initial = sharedActor?.getSnapshot()?.value;
 
-  return createMachine(
-    {
-      id: 'TriviaJamServerMachine',
-      initial,
-      states: {
-        Waiting: {
-          invoke: {
-            src: 'waitForAllPlayersReady',
-            onDone: {
-              target: 'AllReady',
-              actions: () => {
-                sharedActor?.send(LobbySharedEvents.ALL_PLAYERS_READY());
-              },
-            },
-          },
-        },
-        AllReady: {
-          after: {
-            5000: {
-              target: 'CreatingGame',
-              actions: () => {
-                sharedActor?.send(LobbySharedEvents.START_GAME());
-              },
-            },
-          },
-          invoke: {
-            src: 'waitForAnyPlayerNotReady',
-            onDone: {
-              target: 'Waiting',
-              actions: () => {
-                sharedActor?.send(LobbySharedEvents.PLAYER_NOT_READY());
-              },
-            },
-          },
-        },
-        CreatingGame: {},
-        EnteringGame: {},
-      },
-      predictableActionArguments: true,
-    },
-    {
-      services: {
-        waitForAllPlayersReady: async () =>
-          new Promise((resolve) => {
-            from(sharedCollectionActor)
-              .pipe(
-                filter((state) => {
-                  const actors: LobbyPlayerActor[] = selectLobbyPlayerActors(
-                    state
-                  ) as LobbyPlayerActor[];
-                  const readyActors = actors.filter((actor) =>
-                    actor.getSnapshot()?.matches('Ready.Yes')
-                  );
-                  return (
-                    actors.length >= 2 && readyActors.length === actors.length
-                  );
-                }, take(1))
-              )
-              .subscribe(resolve);
-          }),
-        waitForAnyPlayerNotReady: async () =>
-          new Promise((resolve) => {
-            from(sharedCollectionActor)
-              .pipe(
-                filter((state) => {
-                  const actors: LobbyPlayerActor[] = selectLobbyPlayerActors(
-                    state
-                  ) as LobbyPlayerActor[];
-                  const readyActors = actors.filter((actor) =>
-                    actor.getSnapshot()?.matches('Ready.Yes')
-                  );
-                  return (
-                    actors.length < 2 || readyActors.length !== actors.length
-                  );
-                }, take(1))
-              )
-              .subscribe(resolve);
-          }),
-      },
-    }
-  );
+  // return createMachine({
+  //   id: "TriviaJamServerMachine",
+  //   initial: "Initialize",
+  //   states: {
+  //     Initialize: {
+  //       invoke: {
+  //         src: 
+  //       }
+  //     }
+  //   }
+  // })
+  // const selectSharedActor = createActorByIdSelector(sharedActorId);
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  // const sharedActor = selectSharedActor(sharedCollectionActor.getSnapshot()!);
+  // const initial = sharedActor?.getSnapshot()?.value;
+
+  // return createMachine({
+  //   id: 'TriviaJamServerMachine',
+  //   initial: 'Initializing',
+  //   schema: {
+  //     context: {} as TriviaJamServerContext,
+  //   },
+  //   states: {
+  //     Staging: {
+  //       invoke: {
+  //         src: 'waitForAllPlayersReady',
+  //         onDone: 'Playing',
+  //       },
+  //     },
+  //     Playing: {},
+  //   },
+  //   predictableActionArguments: true,
+  // });
 };
 
 export type TriviaJamServerMachine = ReturnType<
