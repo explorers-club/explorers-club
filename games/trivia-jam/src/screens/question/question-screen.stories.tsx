@@ -72,8 +72,4 @@ export const Default: Story = () => {
   return <QuestionScreenComponent actor={actor} />;
 };
 
-Default.parameters = {
-  xstate: true,
-};
-
 export default meta;

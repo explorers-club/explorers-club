@@ -30,8 +30,8 @@ export const getActorType = (actorId: ActorID) => {
       return ActorType.PARTY_ACTOR;
     case !!actorId.match('PartyPlayer-'):
       return ActorType.PARTY_PLAYER_ACTOR;
-    case !!actorId.match('TriviaJam-'):
-      return ActorType.TRIVIA_JAM_ACTOR;
+    case !!actorId.match('TriviaJamShared-'):
+      return ActorType.TRIVIA_JAM_SHARED_ACTOR;
     case !!actorId.match('TriviaJamPlayer-'):
       return ActorType.TRIVIA_JAM_PLAYER_ACTOR;
     case !!actorId.match('LobbyPlayer-'):
@@ -52,8 +52,8 @@ export const getActorId: (actorType: ActorType, uniqueId: string) => ActorID = (
       return `Party-${uniqueId}`;
     case ActorType.PARTY_PLAYER_ACTOR:
       return `PartyPlayer-${uniqueId}`;
-    case ActorType.TRIVIA_JAM_ACTOR:
-      return `TriviaJam-${uniqueId}`;
+    case ActorType.TRIVIA_JAM_SHARED_ACTOR:
+      return `TriviaJamShared-${uniqueId}`;
     case ActorType.TRIVIA_JAM_PLAYER_ACTOR:
       return `TriviaJamPlayer-${uniqueId}`;
     case ActorType.LOBBY_PLAYER_ACTOR:

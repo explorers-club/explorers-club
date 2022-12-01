@@ -1,101 +1,109 @@
 import {
+  ActorID,
   ActorType,
   createSharedCollectionMachine,
+  getActorId,
+  SharedCollectionActor,
 } from '@explorers-club/actor';
-import { sleep } from '@explorers-club/utils';
-import { Story } from '@storybook/react';
+import { useEffect } from '@storybook/addons';
+import { Meta, Story } from '@storybook/react';
 import { useInterpret } from '@xstate/react';
-import { BottomSheet } from 'react-spring-bottom-sheet';
+import { Database } from 'firebase/database';
+import { createContext, useContext, useMemo } from 'react';
+import { Observable } from 'rxjs';
+import { interpret } from 'xstate';
 import {
-  SnapPointProps,
-  defaultSnapProps,
-} from 'react-spring-bottom-sheet/dist/types';
-import {
-  TriviaJamSharedContext,
-  TriviaJamSharedServices,
-  createTriviaJamSharedMachine,
   createTriviaJamPlayerMachine,
+  createTriviaJamSharedMachine,
+  TriviaJamSharedAllPlayersLoadedEvent,
+  TriviaJamSharedHostPressContinueEvent,
+  TriviaJamSharedResponseCompleteEvent,
+  TriviaJamSharedShowQuestionPromptCompleteEvent,
 } from '../state';
 import { GameContext } from '../state/game.context';
-import { ScreensComponent } from './screens.component';
+import { db } from './emulator-db';
+import { Screens } from './screens.container';
 
-const DEFAULT_SNAP_POINTS = ({ footerHeight, maxHeight }: SnapPointProps) => [
-  footerHeight + 24,
-  maxHeight * 0.6,
-  maxHeight * 0.9,
-];
-
-const DEFAULT_SNAP = ({ snapPoints }: defaultSnapProps) => snapPoints[1];
+const allPlayersLoaded$ =
+  new Observable<TriviaJamSharedAllPlayersLoadedEvent>();
+const hostPressContinue$ =
+  new Observable<TriviaJamSharedHostPressContinueEvent>();
+const showQuestionPromptComplete$ =
+  new Observable<TriviaJamSharedShowQuestionPromptCompleteEvent>();
+const responseComplete$ =
+  new Observable<TriviaJamSharedResponseCompleteEvent>();
 
 const triviaJamSharedMachine = createTriviaJamSharedMachine({
   services: {
-    onHostPressStart: async () => {
-      await sleep(1000);
-    },
-    onAllPlayersLoaded: async () => {
-      await sleep(1000);
-    },
-  },
-});
-
-const sharedCollectionMachine = createSharedCollectionMachine({
-  services: {},
-  machines: {
-    [ActorType.TRIVIA_JAM_PLAYER_ACTOR]: createTriviaJamPlayerMachine(),
-    [ActorType.TRIVIA_JAM_SHARED_ACTOR]: triviaJamSharedMachine,
+    onAllPlayersLoaded: () => allPlayersLoaded$,
+    onHostPressContinue: () => hostPressContinue$,
+    onShowQuestionPromptComplete: () => showQuestionPromptComplete$,
+    onResponseComplete: () => responseComplete$,
   },
 });
 
 const meta = {
-  component: ScreensComponent,
+  component: Screens,
   decorators: [
-    (Story: Story) => {
-      const triviaJamSharedActor = useInterpret(triviaJamSharedMachine);
-      const sharedCollectionActor = useInterpret(sharedCollectionMachine);
+    (Story: Story, { parameters }) => {
+      const sharedCollectionActor = parameters[
+        'sharedCollectionActor'
+      ] as SharedCollectionActor;
 
       return (
-        <GameContext.Provider
-          value={{
-            triviaJamSharedActor,
-            sharedCollectionActor,
-          }}
-        >
-          <BottomSheet
-            open={true}
-            blocking={false}
-            defaultSnap={DEFAULT_SNAP}
-            snapPoints={DEFAULT_SNAP_POINTS}
-            expandOnContentDrag={true}
-          >
-            <Story />
-          </BottomSheet>
+        <GameContext.Provider value={{ sharedCollectionActor }}>
+          <Story />
         </GameContext.Provider>
       );
     },
   ],
-};
+} as Meta;
 
-type ScreenStory = Story<{
-  context: TriviaJamSharedContext;
-  services: Partial<TriviaJamSharedServices>;
-}>;
-const Template: ScreenStory = (args) => {
-  const actor = useInterpret(machine.withContext(args.context));
-
-  return <ScreensComponent actor={actor} />;
-};
-
-export const AsPlayer = Template.bind({});
-
-AsPlayer.args = {
-  context: {
-    playerUserIds: ['foo', 'buz', 'bar'],
-    hostUserIds: ['bar'],
-    scores: {
-      buz: 4,
-      bar: 2,
-    },
+const sharedCollectionMachine = createSharedCollectionMachine({
+  machines: {
+    [ActorType.TRIVIA_JAM_PLAYER_ACTOR]: createTriviaJamPlayerMachine(),
+    [ActorType.TRIVIA_JAM_SHARED_ACTOR]: triviaJamSharedMachine,
   },
+}).withContext({
+  actorRefs: {},
+  rootPath: 'trivia_jam/foobar',
+  myActorId: getActorId(ActorType.TRIVIA_JAM_PLAYER_ACTOR, 'buzbar'),
+  db,
+});
+
+const Template: Story = () => {
+  return <Screens />;
+};
+
+export const PlayerRunThrough = Template.bind({});
+
+PlayerRunThrough.parameters = {
+  sharedCollectionActor: interpret(sharedCollectionMachine).start(),
+};
+
+// const getSharedStateJSON = (context: TriviaJamSharedContext) => {
+//   const actor = interpret(triviaJamSharedMachine.withContext(context));
+//   return JSON.stringify(actor.getSnapshot());
+// };
+
+// PlayerRunThrough.args = {
+//   fetchActorsData: {
+//     [getActorId(ActorType.TRIVIA_JAM_SHARED_ACTOR, 'foobar')]:
+//       getSharedStateJSON({
+//         playerUserIds: ['p1', 'p2', 'p3'],
+//         hostUserIds: ['h1', 'h2'],
+//         scores: {},
+//       }),
+//   },
+//   sharedCollectionContext: {
+//     actorRefs: {},
+//     rootPath: 'trivia_jam/foobar',
+//     myActorId: getActorId(ActorType.TRIVIA_JAM_SHARED_ACTOR, 'foobar'),
+//   },
+// };
+
+PlayerRunThrough.play = (context) => {
+  const sharedCollectionActor = context.parameters['sharedCollectionActor'];
 };
 
 export default meta;

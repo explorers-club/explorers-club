@@ -24,5 +24,8 @@ export const selectIsStaging = (state: TriviaJamSharedState) =>
 export const selectIsAwaitingQuestion = (state: TriviaJamSharedState) =>
   state.matches('Playing.AwaitingQuestion');
 
-export const selectIsShowingQuestion = (state: TriviaJamSharedState) =>
-  state.matches('Playing.Question');
+export const selectIsOnQuestion = (state: TriviaJamSharedState) =>
+  state.matches('Playing.OnQuestion');
+
+export const selectIsGameOver = (state: TriviaJamSharedState) =>
+  state.matches('GameOver');

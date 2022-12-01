@@ -1,26 +1,69 @@
+import { Observable } from 'rxjs';
 import { ActorRefFrom, ContextFrom, createMachine, StateFrom } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 
-const triviaJamSharedModel = createModel({
-  playerUserIds: [] as string[],
-  hostUserIds: [] as string[],
-  scores: {} as Record<string, number>,
-});
+const triviaJamSharedModel = createModel(
+  {
+    playerUserIds: [] as string[],
+    hostUserIds: [] as string[],
+    scores: {} as Record<string, number>,
+  },
+  {
+    events: {
+      ALL_PLAYERS_LOADED: () => ({}),
+      HOST_PRESS_CONTINUE: () => ({}),
+      SHOW_QUESTION_PROMPT_COMPLETE: () => ({}),
+      RESPONSE_COMPLETE: () => ({}),
+    },
+  }
+);
 
 export type TriviaJamSharedContext = ContextFrom<typeof triviaJamSharedModel>;
 export const TriviaJamSharedEvents = triviaJamSharedModel.events;
 
+export type TriviaJamSharedAllPlayersLoadedEvent = ReturnType<
+  typeof TriviaJamSharedEvents.ALL_PLAYERS_LOADED
+>;
+export type TriviaJamSharedHostPressContinueEvent = ReturnType<
+  typeof TriviaJamSharedEvents.HOST_PRESS_CONTINUE
+>;
+export type TriviaJamSharedShowQuestionPromptCompleteEvent = ReturnType<
+  typeof TriviaJamSharedEvents.SHOW_QUESTION_PROMPT_COMPLETE
+>;
+export type TriviaJamSharedResponseCompleteEvent = ReturnType<
+  typeof TriviaJamSharedEvents.RESPONSE_COMPLETE
+>;
+
 export type TriviaJamSharedServices = {
-  onAllPlayersLoaded: () => Promise<void>;
-  onHostPressStart: () => Promise<void>;
-  onHostPressContinue: () => Promise<void>;
-  onShowQuestionPromptComplete: () => Promise<void>;
-  onResponseComplete: () => Promise<void>;
+  onAllPlayersLoaded: (
+    context: TriviaJamSharedContext
+  ) => Observable<TriviaJamSharedAllPlayersLoadedEvent>;
+
+  onHostPressContinue: (
+    context: TriviaJamSharedContext
+  ) => Observable<TriviaJamSharedHostPressContinueEvent>;
+
+  onShowQuestionPromptComplete: (
+    context: TriviaJamSharedContext
+  ) => Observable<TriviaJamSharedShowQuestionPromptCompleteEvent>;
+
+  onResponseComplete: (
+    context: TriviaJamSharedContext
+  ) => Observable<TriviaJamSharedResponseCompleteEvent>;
 };
 
-export const createTriviaJamSharedMachine = (props: {
-  services: Partial<TriviaJamSharedServices>;
-}) =>
+interface CreateProps {
+  services: TriviaJamSharedServices;
+}
+
+export const createTriviaJamSharedMachine = ({
+  services: {
+    onAllPlayersLoaded,
+    onHostPressContinue,
+    onShowQuestionPromptComplete,
+    onResponseComplete,
+  },
+}: CreateProps) =>
   createMachine(
     {
       id: 'TriviaJamShared',
@@ -35,14 +78,14 @@ export const createTriviaJamSharedMachine = (props: {
             Loading: {
               invoke: {
                 id: 'onAllPlayersLoaded',
-                src: 'onAllPlayersLoaded',
+                src: onAllPlayersLoaded,
                 onDone: 'AllLoaded',
               },
             },
             AllLoaded: {
               invoke: {
-                id: 'onHostPressStart',
-                src: 'onHostPressStart',
+                id: 'onHostPressContinue',
+                src: onHostPressContinue,
               },
               type: 'final' as const,
             },
@@ -55,11 +98,11 @@ export const createTriviaJamSharedMachine = (props: {
             AwaitingQuestion: {
               invoke: {
                 id: 'onHostPressContinue',
-                src: 'onHostPressContinue',
-                onDone: 'Question',
+                src: onHostPressContinue,
+                onDone: 'OnQuestion',
               },
             },
-            Question: {
+            OnQuestion: {
               initial: 'Presenting',
               onDone: [
                 {
@@ -74,21 +117,21 @@ export const createTriviaJamSharedMachine = (props: {
                 Presenting: {
                   invoke: {
                     id: 'onShowQuestionPromptComplete',
-                    src: 'onShowQuestionPromptComplete',
+                    src: onShowQuestionPromptComplete,
                     onDone: 'Responding',
                   },
                 },
                 Responding: {
                   invoke: {
                     id: 'onResponseComplete',
-                    src: 'onResponseComplete',
+                    src: onResponseComplete,
                     onDone: 'Reviewing',
                   },
                 },
                 Reviewing: {
                   invoke: {
                     id: 'onHostPressContinue',
-                    src: 'onHostPressContinue',
+                    src: onHostPressContinue,
                     onDone: 'Complete',
                   },
                 },
@@ -116,7 +159,6 @@ export const createTriviaJamSharedMachine = (props: {
           return true;
         },
       },
-      services: props.services,
     }
   );
 

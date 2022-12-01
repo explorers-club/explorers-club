@@ -1,28 +1,29 @@
 import { SharedCollectionActor } from '@explorers-club/actor';
 import { useSelector } from '@xstate/react';
 import { FC } from 'react';
-import { selectIsAwaitingQuestion, TriviaJamSharedActor } from '../state';
-import { selectIsShowingQuestion } from '../state/trivia-jam-shared.selectors';
+import { selectIsAwaitingQuestion, selectIsGameOver } from '../state';
+import { useTriviaJamSharedActor } from '../state/game.hooks';
+import {
+  selectIsOnQuestion,
+  selectIsStaging,
+} from '../state/trivia-jam-shared.selectors';
+import { GameEndScreen } from './game-end/game-end-screen.container';
 import { IntroductionScreen } from './introduction/introduction-screen.container';
 import { QuestionScreen } from './question/question-screen.container';
 import { ScoreboardScreen } from './scoreboard/scoreboard-screen.container';
 
 interface Props {
-  actor: TriviaJamSharedActor;
+  sharedCollectionActor: SharedCollectionActor;
 }
 
-export const ScreensComponent: FC<Props> = ({ actor }) => {
-  console.log({ actor });
-  const isStaging = useSelector(actor, (state) => state.matches('Staging'));
-  const isAwaitingQuestion = useSelector(actor, (state) =>
-    state.matches('Playing.AwaitingQuestion')
-  );
-  const isPlayingQuestion = useSelector(actor, (state) =>
-    state.matches('Playing.Question')
-  );
-  const isGameOver = useSelector(actor, (state) => state.matches('GameOver'));
-  // const isAwaitingQuestion = useSelector(actor, selectIsAwaitingQuestion);
-  // const isShowingQuestion = useSelector(actor, selectIsShowingQuestion);
+export const ScreensComponent: FC<Props> = ({ sharedCollectionActor }) => {
+  const actor = useTriviaJamSharedActor();
+
+  console.log({ actor, sharedCollectionActor });
+  const isStaging = useSelector(actor, selectIsStaging);
+  const isAwaitingQuestion = useSelector(actor, selectIsAwaitingQuestion);
+  const isOnQuestion = useSelector(actor, selectIsOnQuestion);
+  const isGameOver = useSelector(actor, selectIsGameOver);
 
   switch (true) {
     case isStaging: {
@@ -31,12 +32,11 @@ export const ScreensComponent: FC<Props> = ({ actor }) => {
     case isAwaitingQuestion: {
       return <ScoreboardScreen />;
     }
-    case isPlayingQuestion: {
+    case isOnQuestion: {
       return <QuestionScreen />;
     }
     case isGameOver: {
-      // TODO game over screen
-      return null;
+      return <GameEndScreen />;
     }
     default: {
       return null;

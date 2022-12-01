@@ -35,16 +35,16 @@ const sharedCollectionModel = createModel(
   },
   {
     events: {
-      HYDRATE: (actorId: ActorID, stateJSON: string) => ({
+      ACTOR_ADDED: (actorId: ActorID, stateJSON: string) => ({
         actorId,
         stateJSON,
-      }),
-      SPAWN: (actorId: ActorID) => ({
-        actorId,
       }),
       NEW_EVENT: (actorId: ActorID, event: AnyEventObject) => ({
         actorId,
         event,
+      }),
+      SPAWN: (actorId: ActorID) => ({
+        actorId,
       }),
     },
   }
@@ -55,27 +55,31 @@ export type SharedCollectionContext = ModelContextFrom<
 >;
 
 export const SharedCollectionEvents = sharedCollectionModel.events;
-type NewEventEvent = ReturnType<typeof SharedCollectionEvents.NEW_EVENT>;
-type HydrateEvent = ReturnType<typeof SharedCollectionEvents.HYDRATE>;
+export type SharedCollectionNewEventEvent = ReturnType<
+  typeof SharedCollectionEvents.NEW_EVENT
+>;
+export type SharedCollectionActorAddedEvent = ReturnType<
+  typeof SharedCollectionEvents.ACTOR_ADDED
+>;
 
-interface SharedCollectionServices {
+export interface SharedCollectionServices {
   /**
    * Returns an observable that emits each time any actor in the collection
    * logs an event in the database so that the actor running locally can update itself.
    */
-  onNewEvent: (
+  newEvent$: (
     context: SharedCollectionContext,
     event: SharedCollectionEvent
-  ) => Observable<NewEventEvent>;
+  ) => Observable<SharedCollectionNewEventEvent>;
 
   /**
    * Returns an observable that emits each time a new actor comes to exist
    * in the shared collection containing that actors current state
    */
-  onHydrateActor: (
+  actorAdded$: (
     context: SharedCollectionContext,
     event: SharedCollectionEvent
-  ) => Observable<HydrateEvent>;
+  ) => Observable<SharedCollectionActorAddedEvent>;
 
   /**
    * Returns a promise that returns a map of all actors to their current JSON state
@@ -87,9 +91,12 @@ interface SharedCollectionServices {
 }
 
 // todo: typescript magic to infer this better automatically
-type FetchActorsDoneEvent = {
+export type FetchActorsDoneData = Awaited<
+  ReturnType<SharedCollectionServices['fetchActors']>
+>;
+export type FetchActorsDoneEvent = {
   type: 'done.invoke.fetchActors';
-  data: Awaited<ReturnType<SharedCollectionServices['fetchActors']>>;
+  data: FetchActorsDoneData;
 };
 
 // Union model events with the done invoke events
@@ -100,14 +107,10 @@ export type SharedCollectionEvent =
 type MachineMap = Partial<Record<ActorType, AnyStateMachine>>;
 
 interface CreateProps {
-  services: Partial<SharedCollectionServices>;
   machines: MachineMap;
 }
 
-export const createSharedCollectionMachine = ({
-  services,
-  machines,
-}: CreateProps) => {
+export const createSharedCollectionMachine = ({ machines }: CreateProps) => {
   return createMachine(
     {
       id: 'SharedCollectionMachine',
@@ -122,8 +125,8 @@ export const createSharedCollectionMachine = ({
           states: {
             Listening: {
               invoke: {
-                id: 'onNewEvent',
-                src: 'onNewEvent',
+                id: 'newEvent$',
+                src: sharedCollectionServices.newEvent$,
               },
             },
           },
@@ -139,7 +142,7 @@ export const createSharedCollectionMachine = ({
             Loading: {
               invoke: {
                 id: 'fetchActors',
-                src: 'fetchActors',
+                src: sharedCollectionServices.fetchActors,
                 onDone: {
                   target: 'Initialized',
                   actions: 'initializeActorRefs',
@@ -149,11 +152,11 @@ export const createSharedCollectionMachine = ({
             Initialized: {
               entry: 'initializeActorBroadcast',
               invoke: {
-                id: 'onHydrateActor',
-                src: 'onHydrateActor',
+                id: 'hydrateEvent$',
+                src: sharedCollectionServices.fetchActors,
               },
               on: {
-                HYDRATE: {
+                ACTOR_ADDED: {
                   actions: 'hydrateActor',
                 },
                 SPAWN: {
@@ -167,13 +170,12 @@ export const createSharedCollectionMachine = ({
       predictableActionArguments: true,
     },
     {
-      services,
       actions: {
         initializeActorRefs: assign<
           SharedCollectionContext,
           SharedCollectionEvent
         >({
-          actorRefs: (_, event) => {
+          actorRefs: ({ myActorId }, event) => {
             assertEventType(event, 'done.invoke.fetchActors');
             const actorState = event.data as Partial<Record<ActorID, string>>;
 
@@ -189,7 +191,10 @@ export const createSharedCollectionMachine = ({
                 throw new Error('couldnt find machine for ' + actorType);
               }
 
-              const actor = interpret(machine).start(previousState);
+              const execute = actorId === myActorId; // only run actions/services on our own actor
+              const actor = interpret(machine, { execute }).start(
+                previousState
+              );
               actorRefs[actorId] = actor;
             });
 
@@ -245,7 +250,7 @@ export const createSharedCollectionMachine = ({
         }),
         hydrateActor: assign({
           actorRefs: ({ actorRefs, myActorId }, event) => {
-            assertEventType(event, 'HYDRATE');
+            assertEventType(event, 'ACTOR_ADDED');
             const { actorId, stateJSON } = event;
 
             // do nothing if already exists/hydrated
@@ -292,18 +297,18 @@ export const createSharedCollectionMachine = ({
 };
 
 export const sharedCollectionServices: SharedCollectionServices = {
-  onNewEvent({ db, rootPath }) {
+  newEvent$({ db, rootPath }) {
     const eventsRef = ref(db, `${rootPath}/actor_events`);
     return fromRef(eventsRef, ListenEvent.changed).pipe(
       map((changes) => {
         const actorId = changes.snapshot.key;
         const event = changes.snapshot.val() as AnyEventObject;
-        return { type: 'NEW_EVENT', actorId, event };
+        return SharedCollectionEvents.NEW_EVENT(actorId, event);
       })
     );
   },
 
-  onHydrateActor({ db, rootPath }) {
+  actorAdded$({ db, rootPath }) {
     const stateRef = ref(db, `${rootPath}/actor_state`);
     return fromRef(stateRef, ListenEvent.added).pipe(
       map((changes) => {
@@ -313,7 +318,7 @@ export const sharedCollectionServices: SharedCollectionServices = {
         // TODO there's probably a bug here where we are triggering events
         // on rejoin where we shouldnt be
 
-        return { type: 'HYDRATE', actorId, stateJSON };
+        return SharedCollectionEvents.ACTOR_ADDED(actorId, stateJSON);
       })
     );
   },

@@ -1,6 +1,5 @@
 import { ActorType, getActorId, selectActorRefs } from '@explorers-club/actor';
 import { useSelector } from '@xstate/react';
-import { useMemo } from 'react';
 import {
   useSharedCollectionActor,
   useTriviaJamSharedActor,
