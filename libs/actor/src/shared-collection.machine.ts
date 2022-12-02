@@ -25,6 +25,7 @@ import { createModel } from 'xstate/lib/model';
 import { ModelContextFrom, ModelEventsFrom } from 'xstate/lib/model.types';
 import { assertEventType, getActorType } from './helpers';
 import { ActorID, ActorType } from './types';
+import { saveActorEvent, saveActorState } from './db';
 
 const sharedCollectionModel = createModel(
   {
@@ -43,9 +44,9 @@ const sharedCollectionModel = createModel(
         actorId,
         event,
       }),
-      SPAWN: (actorId: ActorID) => ({
-        actorId,
-      }),
+      SPAWN<TContext>(actorId: ActorID, initialContext?: TContext) {
+        return { actorId, initialContext };
+      },
     },
   }
 );
@@ -223,24 +224,22 @@ export const createSharedCollectionMachine = ({ machines }: CreateProps) => {
         spawnActor: assign({
           actorRefs: ({ actorRefs, rootPath, db }, event) => {
             assertEventType(event, 'SPAWN');
-            const { actorId } = event;
+            const { actorId, initialContext } = event;
 
             const actorType = getActorType(actorId);
-            const machine = machines[actorType] as AnyStateMachine;
+            let machine = machines[actorType] as AnyStateMachine;
             if (!machine) {
               throw new Error('couldnt find machine for ' + actorType);
             }
+
+            if (initialContext) {
+              machine = machine.withContext(initialContext);
+            }
+
             const actor = spawn(machine, actorId);
 
-            const myStateRef = ref(db, `${rootPath}/actor_state/${actorId}`);
-            const myEventRef = ref(db, `${rootPath}/actor_events/${actorId}`);
-
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const state = actor.getSnapshot()!;
-            const stateJSON = JSON.stringify(state);
-
-            set(myStateRef, stateJSON).then(noop); // todo handle error
-            set(myEventRef, state.event).then(noop);
+            saveActorState(db, rootPath, actorId, actor).then(noop);
+            saveActorEvent(db, rootPath, actorId, actor).then(noop);
 
             return {
               ...actorRefs,

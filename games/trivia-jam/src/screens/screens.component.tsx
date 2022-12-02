@@ -19,7 +19,6 @@ interface Props {
 export const ScreensComponent: FC<Props> = ({ sharedCollectionActor }) => {
   const actor = useTriviaJamSharedActor();
 
-  console.log({ actor, sharedCollectionActor });
   const isStaging = useSelector(actor, selectIsStaging);
   const isAwaitingQuestion = useSelector(actor, selectIsAwaitingQuestion);
   const isOnQuestion = useSelector(actor, selectIsOnQuestion);

@@ -162,6 +162,22 @@ export const createTriviaJamSharedMachine = ({
     }
   );
 
+const allPlayersLoaded$ =
+  new Observable<TriviaJamSharedAllPlayersLoadedEvent>();
+const hostPressContinue$ =
+  new Observable<TriviaJamSharedHostPressContinueEvent>();
+const showQuestionPromptComplete$ =
+  new Observable<TriviaJamSharedShowQuestionPromptCompleteEvent>();
+const responseComplete$ =
+  new Observable<TriviaJamSharedResponseCompleteEvent>();
+
+export const triviaJamSharedServices: TriviaJamSharedServices = {
+  onAllPlayersLoaded: () => allPlayersLoaded$,
+  onHostPressContinue: () => hostPressContinue$,
+  onShowQuestionPromptComplete: () => showQuestionPromptComplete$,
+  onResponseComplete: () => responseComplete$,
+};
+
 export type TriviaJamSharedMachine = ReturnType<
   typeof createTriviaJamSharedMachine
 >;
