@@ -19,7 +19,7 @@ jobs:
       - name: Build Storybook
         run: npx nx run trivia-jam:build-storybook
       - name: Deploy Storybook
-        run: npx chromatic --project-token=${{ secrets.$CHROMATIC_PROJECT_TOKEN_TRIVIA_JAM }} -d dist/storybook/trivia-jam --auto-accept-changes --ci
+        run: npx chromatic --project-token=${{ secrets.CHROMATIC_PROJECT_TOKEN_TRIVIA_JAM }} -d dist/storybook/trivia-jam --auto-accept-changes --ci
 
   deploy-storybook-components:
     # Operating System
