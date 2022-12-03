@@ -6,8 +6,6 @@ name: 'Chromatic'
 # Event for the workflow
 on: push
 
-env:
-
 # List of jobs
 jobs:
   deploy-storybook-trivia-jam:
