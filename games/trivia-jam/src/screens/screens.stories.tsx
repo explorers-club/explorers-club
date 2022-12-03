@@ -115,9 +115,7 @@ const Template: Story = () => {
 export const PlayerRunThrough = Template.bind({});
 
 PlayerRunThrough.play = async ({ args }) => {
-  // This is how we'll have to to set up the shared services
-  // on the server when we set it up to give the shared
-  // services access to the shared actor collection
+  // Mock the services and data we would normally fetch and inject on the server
   const services: TriviaJamSharedServices = {
     onAllPlayersLoaded: ({ playerUserIds }) =>
       onAllPlayersLoaded(sharedCollectionActor, playerUserIds),
@@ -149,13 +147,11 @@ PlayerRunThrough.play = async ({ args }) => {
     db,
   };
 
+  // Spawn the shared collection and wait until it exists
   const sharedCollectionActor = interpret(
     sharedCollectionMachine.withContext(initialCollectionContext)
   ).start();
-
-  // Spawn the shared actor once the colleciton is initialized (and can spawn)
   await waitFor(sharedCollectionActor, selectActorsInitialized);
-
   const initialSharedContext = {
     playerUserIds,
     hostUserIds,
@@ -165,17 +161,14 @@ PlayerRunThrough.play = async ({ args }) => {
       buzz: 0,
     },
   };
-
   sharedCollectionActor.send(
     SharedCollectionEvents.SPAWN(sharedActorId, initialSharedContext)
   );
-
   const selectSharedActor = createActorByIdSelector(sharedActorId);
   const selectSharedActorExists = createSelector(
     selectSharedActor,
     (actor) => !!actor
   );
-
   await waitFor(sharedCollectionActor, selectSharedActorExists);
 
   // Spawn Fake Players
@@ -220,7 +213,7 @@ PlayerRunThrough.play = async ({ args }) => {
   // Mark all player actors as ready except our own actor
   const otherPlayerActors = await spawnFakePlayerActors();
   otherPlayerActors.forEach((actor) => {
-    actor?.send(TriviaJamPlayerEvents.CONTINUE());
+    actor?.send(TriviaJamPlayerEvents.CONTINUE()); // todo fix type on spawn fake player actors
   });
 };
 
