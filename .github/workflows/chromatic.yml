@@ -6,6 +6,8 @@ name: 'Chromatic'
 # Event for the workflow
 on: push
 
+env:
+
 # List of jobs
 jobs:
   deploy-storybook-trivia-jam:
@@ -19,7 +21,7 @@ jobs:
       - name: Build Storybook
         run: npx nx run trivia-jam:build-storybook
       - name: Deploy Storybook
-        run: npx nx run trivia-jam:deploy-storybook
+        run: npx chromatic --project-token={{ secrets.$CHROMATIC_PROJECT_TOKEN_TRIVIA_JAM }} -d dist/storybook/components --auto-accept-changes --ci
 
   deploy-storybook-components:
     # Operating System
@@ -32,4 +34,4 @@ jobs:
       - name: Build Storybook
         run: npx nx run components:build-storybook
       - name: Deploy Storybook
-        run: npx nx run components:deploy-storybook
+        run: npx chromatic --project-token=${{ secrets.CHROMATIC_PROJECT_TOKEN_COMPONENTS }} -d dist/storybook/components --auto-accept-changes --ci
