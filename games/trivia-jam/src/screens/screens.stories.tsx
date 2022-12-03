@@ -5,24 +5,36 @@ import {
   getActorId,
   selectActorRefs,
   selectActorsInitialized,
+  selectMyActor,
   SharedCollectionEvents,
 } from '@explorers-club/actor';
 import { noop } from '@explorers-club/utils';
 import { Meta, Story } from '@storybook/react';
-import { useInterpret } from '@xstate/react';
+import { useInterpret, useSelector } from '@xstate/react';
 import { ref, set } from 'firebase/database';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { createSelector } from 'reselect';
+import { filter, firstValueFrom, merge, Observable } from 'rxjs';
 import { interpret } from 'xstate';
 import { waitFor } from 'xstate/lib/waitFor';
 import {
   createTriviaJamPlayerMachine,
-  createTriviaJamSharedMachine,
-  triviaJamSharedServices,
+  TriviaJamPlayerActor,
+  TriviaJamPlayerEvents,
+  TriviaJamSharedHostPressContinueEvent,
+  triviaJamSharedMachine,
+  TriviaJamSharedResponseCompleteEvent,
+  TriviaJamSharedServices,
+  TriviaJamSharedShowQuestionPromptCompleteEvent,
 } from '../state';
 import { GameContext } from '../state/game.context';
-import { db } from './emulator-db';
+import { selectPlayerIsReady } from '../state/trivia-jam-player.selectors';
+import {
+  onAllPlayersLoaded,
+  onHostPressContinue,
+} from '../state/trivia-jam-shared.services';
 import { Screens } from './screens.container';
+import { db } from './__test/emulator';
 
 const meta = {
   component: Screens,
@@ -31,32 +43,11 @@ const meta = {
 const myUserId = 'buzz';
 const myActorId = getActorId(ActorType.TRIVIA_JAM_PLAYER_ACTOR, myUserId);
 
-const playerUserIds = ['foo', 'bar', 'buzz', 'buzbar'];
+const playerUserIds = ['foo', 'bar', 'buzbar', myUserId];
 const playerActorIds = playerUserIds.map((userId) =>
   getActorId(ActorType.TRIVIA_JAM_PLAYER_ACTOR, userId)
 );
 const hostUserIds = ['buzbar'];
-
-const triviaJamSharedMachine = createTriviaJamSharedMachine({
-  services: triviaJamSharedServices,
-}).withContext({
-  playerUserIds,
-  hostUserIds,
-  scores: {
-    foo: 0,
-    bar: 0,
-    buzz: 0,
-  },
-});
-
-const triviaJamPlayerMachine = createTriviaJamPlayerMachine();
-
-const sharedCollectionMachine = createSharedCollectionMachine({
-  machines: {
-    [ActorType.TRIVIA_JAM_PLAYER_ACTOR]: triviaJamPlayerMachine,
-    [ActorType.TRIVIA_JAM_SHARED_ACTOR]: triviaJamSharedMachine,
-  },
-});
 
 const profileName = 'foobar1';
 const rootPath = `trivia_jam/${profileName}`;
@@ -66,6 +57,14 @@ const sharedActorId = getActorId(
 );
 
 const Template: Story = () => {
+  const triviaJamPlayerMachine = createTriviaJamPlayerMachine();
+  const sharedCollectionMachine = createSharedCollectionMachine({
+    machines: {
+      [ActorType.TRIVIA_JAM_PLAYER_ACTOR]: triviaJamPlayerMachine,
+      [ActorType.TRIVIA_JAM_SHARED_ACTOR]: triviaJamSharedMachine,
+    },
+  });
+
   const machine = useMemo(() => {
     // Hack way of resetting the db each iterations...
     set(ref(db), null).then(noop);
@@ -73,15 +72,41 @@ const Template: Story = () => {
     return sharedCollectionMachine.withContext({
       actorRefs: {},
       rootPath,
-      myActorId: getActorId(ActorType.TRIVIA_JAM_PLAYER_ACTOR, 'buzbar'),
+      myActorId,
       db,
     });
   }, []);
 
   const sharedCollectionActor = useInterpret(machine);
 
+  const myActor = useSelector(
+    sharedCollectionActor,
+    selectMyActor<TriviaJamPlayerActor>
+  );
+
+  useEffect(() => {
+    waitFor(sharedCollectionActor, selectActorsInitialized).then(() => {
+      sharedCollectionActor.send(
+        SharedCollectionEvents.SPAWN(myActorId, {
+          playerName: 'BuzzLightyear',
+        })
+      );
+    });
+  }, [sharedCollectionActor]);
+
+  // console.log('lo');
+  // useEffect(() => {
+  //   console.log('spawning buzz');
+  //   sharedCollectionActor.send(
+  //     SharedCollectionEvents.SPAWN(myActorId, {
+  //       playerName: 'BuzzLightyear',
+  //       isHost: false,
+  //     })
+  //   );
+  // }, []);
+
   return (
-    <GameContext.Provider value={{ sharedCollectionActor }}>
+    <GameContext.Provider value={{ sharedCollectionActor, myActor }}>
       <Screens />
     </GameContext.Provider>
   );
@@ -90,18 +115,60 @@ const Template: Story = () => {
 export const PlayerRunThrough = Template.bind({});
 
 PlayerRunThrough.play = async ({ args }) => {
+  // This is how we'll have to to set up the shared services
+  // on the server when we set it up to give the shared
+  // services access to the shared actor collection
+  const services: TriviaJamSharedServices = {
+    onAllPlayersLoaded: ({ playerUserIds }) =>
+      onAllPlayersLoaded(sharedCollectionActor, playerUserIds),
+
+    showQuestionPromptComplete$: () =>
+      new Observable<TriviaJamSharedShowQuestionPromptCompleteEvent>(),
+
+    onHostPressContinue: ({ hostUserIds }) =>
+      onHostPressContinue(sharedCollectionActor, hostUserIds),
+
+    responseComplete$: (context) =>
+      new Observable<TriviaJamSharedResponseCompleteEvent>(),
+  };
+
+  const triviaJamPlayerMachine = createTriviaJamPlayerMachine();
+  const sharedCollectionMachine = createSharedCollectionMachine({
+    machines: {
+      [ActorType.TRIVIA_JAM_PLAYER_ACTOR]: triviaJamPlayerMachine,
+      [ActorType.TRIVIA_JAM_SHARED_ACTOR]: triviaJamSharedMachine.withConfig({
+        services,
+      }),
+    },
+  });
+
+  const initialCollectionContext = {
+    actorRefs: {},
+    rootPath,
+    myActorId: sharedActorId,
+    db,
+  };
+
   const sharedCollectionActor = interpret(
-    sharedCollectionMachine.withContext({
-      actorRefs: {},
-      rootPath,
-      myActorId: sharedActorId,
-      db,
-    })
+    sharedCollectionMachine.withContext(initialCollectionContext)
   ).start();
 
   // Spawn the shared actor once the colleciton is initialized (and can spawn)
   await waitFor(sharedCollectionActor, selectActorsInitialized);
-  sharedCollectionActor.send(SharedCollectionEvents.SPAWN(sharedActorId));
+
+  const initialSharedContext = {
+    playerUserIds,
+    hostUserIds,
+    scores: {
+      foo: 0,
+      bar: 0,
+      buzz: 0,
+    },
+  };
+
+  sharedCollectionActor.send(
+    SharedCollectionEvents.SPAWN(sharedActorId, initialSharedContext)
+  );
 
   const selectSharedActor = createActorByIdSelector(sharedActorId);
   const selectSharedActorExists = createSelector(
@@ -110,69 +177,51 @@ PlayerRunThrough.play = async ({ args }) => {
   );
 
   await waitFor(sharedCollectionActor, selectSharedActorExists);
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  // const sharedActor = selectSharedActor(sharedCollectionActor.getSnapshot()!)!;
-
-  // const selectSharedActor(sharedCollectionActor.getSnapshot()!)
-
-  // await waitFor(sharedCollectionActor, );
 
   // Spawn Fake Players
-  playerUserIds.forEach((userId) => {
-    const actorId = getActorId(ActorType.TRIVIA_JAM_PLAYER_ACTOR, userId);
-    const context = {
-      userId,
-      isHost: false,
-      playerName: userId,
+  const spawnFakePlayerActors = async () => {
+    const spawnFakePlayerActor = async (userId: string) => {
+      const actorId = getActorId(ActorType.TRIVIA_JAM_PLAYER_ACTOR, userId);
+      if (actorId === myActorId) {
+        return;
+      }
+
+      const context = {
+        playerName: userId,
+      };
+
+      // Create a unique "throwaway" shaerd collection actor for each player
+      // to simulate spawning from their own clients
+      const playerSharedCollectionActor = interpret(
+        sharedCollectionMachine.withContext({
+          ...initialCollectionContext,
+          myActorId: actorId,
+        })
+      );
+      playerSharedCollectionActor.start();
+
+      await waitFor(playerSharedCollectionActor, selectActorsInitialized);
+      playerSharedCollectionActor.send(
+        SharedCollectionEvents.SPAWN(actorId, context)
+      );
+
+      return selectMyActor<TriviaJamPlayerActor>(
+        playerSharedCollectionActor.getSnapshot()
+      ) as TriviaJamPlayerActor;
     };
 
-    sharedCollectionActor.send(SharedCollectionEvents.SPAWN(actorId, context));
+    return await Promise.all(
+      playerUserIds
+        .filter((userId) => userId !== myUserId)
+        .map(spawnFakePlayerActor)
+    );
+  };
+
+  // Mark all player actors as ready except our own actor
+  const otherPlayerActors = await spawnFakePlayerActors();
+  otherPlayerActors.forEach((actor) => {
+    actor?.send(TriviaJamPlayerEvents.CONTINUE());
   });
-
-  hostUserIds.forEach((userId) => {
-    const actorId = getActorId(ActorType.TRIVIA_JAM_PLAYER_ACTOR, userId);
-    const context = {
-      userId,
-      isHost: true,
-      playerName: userId,
-    };
-
-    sharedCollectionActor.send(SharedCollectionEvents.SPAWN(actorId, context));
-  });
-
-  // actorIds.forEach((actorId) => {
-  //   sharedCollectionActor.send(SharedCollectionEvents.SPAWN(actorId, {
-
-  //   }));
-  // });
-
-  const selectAllActorsLoaded = createSelector(selectActorRefs, (actorRefs) => {
-    const missingCount = playerActorIds.filter(
-      (actorId) => !actorRefs[actorId]
-    ).length;
-    return missingCount === 0;
-  });
-  await waitFor(sharedCollectionActor, selectAllActorsLoaded);
-
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const actorRefs = selectActorRefs(sharedCollectionActor.getSnapshot()!)!;
-  console.log(actorRefs);
-
-  // sharedCollectionActor.send(SharedCollectionEvents.SPAWN(otherActorIdA));
-  // sharedCollectionActor.send(SharedCollectionEvents.SPAWN(otherActorIdB));
-
-  // const selectActorA = createSelector(
-  //   selectActorRefs,
-  //   (actorRefs) => actorRefs[otherActorIdA]
-  // );
-  // const selectActorAExists = createSelector(selectActorA, (actor) => !!actor);
-  // await waitFor(sharedCollectionActor, selectActorAExists);
-
-  // sharedCollectionActor.send(SharedCollectionEvents.SPAWN(otherPlayerA));
-  // sharedCollectionActor.send(SharedCollectionEvents.SPAWN(otherPlayerB));
-
-  // Seed trivia jam shared with the playe rids and hosts
-  // How should those actors spawn?
 };
 
 export default meta;

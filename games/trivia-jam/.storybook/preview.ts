@@ -16,6 +16,7 @@ const fetchQuestion = createMockFetchMachine<QuestionData>({
 });
 
 export const parameters = {
+  actions: { argTypesRegex: '^on.*' }, // all mark all props that start with `on` as actions, might not be working?
   mockServices: {
     fetchProfile,
     fetchQuestion,

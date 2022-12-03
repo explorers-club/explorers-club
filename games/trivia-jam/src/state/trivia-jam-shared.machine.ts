@@ -34,152 +34,122 @@ export type TriviaJamSharedResponseCompleteEvent = ReturnType<
   typeof TriviaJamSharedEvents.RESPONSE_COMPLETE
 >;
 
+/**
+ * This is the interface the server must implement for
+ * operating the services that the shared actor requires
+ */
 export type TriviaJamSharedServices = {
   onAllPlayersLoaded: (
     context: TriviaJamSharedContext
-  ) => Observable<TriviaJamSharedAllPlayersLoadedEvent>;
+  ) => Promise<TriviaJamSharedAllPlayersLoadedEvent>;
 
   onHostPressContinue: (
     context: TriviaJamSharedContext
-  ) => Observable<TriviaJamSharedHostPressContinueEvent>;
+  ) => Promise<TriviaJamSharedHostPressContinueEvent>;
 
-  onShowQuestionPromptComplete: (
+  showQuestionPromptComplete$: (
     context: TriviaJamSharedContext
   ) => Observable<TriviaJamSharedShowQuestionPromptCompleteEvent>;
 
-  onResponseComplete: (
+  responseComplete$: (
     context: TriviaJamSharedContext
   ) => Observable<TriviaJamSharedResponseCompleteEvent>;
 };
 
-interface CreateProps {
-  services: TriviaJamSharedServices;
-}
-
-export const createTriviaJamSharedMachine = ({
-  services: {
-    onAllPlayersLoaded,
-    onHostPressContinue,
-    onShowQuestionPromptComplete,
-    onResponseComplete,
-  },
-}: CreateProps) =>
-  createMachine(
-    {
-      id: 'TriviaJamShared',
-      initial: 'Staging',
-      schema: {
-        context: {} as TriviaJamSharedContext,
-      },
-      states: {
-        Staging: {
-          initial: 'Loading',
-          states: {
-            Loading: {
-              invoke: {
-                id: 'onAllPlayersLoaded',
-                src: onAllPlayersLoaded,
-                onDone: 'AllLoaded',
-              },
-            },
-            AllLoaded: {
-              invoke: {
-                id: 'onHostPressContinue',
-                src: onHostPressContinue,
-              },
-              type: 'final' as const,
-            },
-          },
-          onDone: 'Playing',
-        },
-        Playing: {
-          initial: 'AwaitingQuestion',
-          states: {
-            AwaitingQuestion: {
-              invoke: {
-                id: 'onHostPressContinue',
-                src: onHostPressContinue,
-                onDone: 'OnQuestion',
-              },
-            },
-            OnQuestion: {
-              initial: 'Presenting',
-              onDone: [
-                {
-                  target: 'AwaitingQuestion',
-                  cond: 'hasMoreQuestions',
-                },
-                {
-                  target: 'Complete',
-                },
-              ],
-              states: {
-                Presenting: {
-                  invoke: {
-                    id: 'onShowQuestionPromptComplete',
-                    src: onShowQuestionPromptComplete,
-                    onDone: 'Responding',
-                  },
-                },
-                Responding: {
-                  invoke: {
-                    id: 'onResponseComplete',
-                    src: onResponseComplete,
-                    onDone: 'Reviewing',
-                  },
-                },
-                Reviewing: {
-                  invoke: {
-                    id: 'onHostPressContinue',
-                    src: onHostPressContinue,
-                    onDone: 'Complete',
-                  },
-                },
-                Complete: {
-                  type: 'final' as const,
-                },
-              },
-            },
-            Complete: {
-              type: 'final' as const,
-            },
-          },
-          onDone: 'GameOver',
-        },
-        GameOver: {
-          type: 'final' as const,
-        },
-      },
-      predictableActionArguments: true,
+export const triviaJamSharedMachine = createMachine(
+  {
+    id: 'TriviaJamShared',
+    initial: 'Staging',
+    schema: {
+      context: {} as TriviaJamSharedContext,
     },
-    {
-      guards: {
-        hasMoreQuestions: () => {
-          // todo logic based off question set
-          return true;
+    states: {
+      Staging: {
+        initial: 'Loading',
+        states: {
+          Loading: {
+            invoke: {
+              id: 'onAllPlayersLoaded',
+              src: 'onAllPlayersLoaded',
+              onDone: 'AllLoaded',
+            },
+          },
+          AllLoaded: {
+            type: 'final' as const,
+          },
         },
+        onDone: 'Playing',
       },
-    }
-  );
+      Playing: {
+        initial: 'AwaitingQuestion',
+        states: {
+          AwaitingQuestion: {
+            invoke: {
+              id: 'onHostPressContinue',
+              src: 'onHostPressContinue',
+              onDone: 'OnQuestion',
+            },
+          },
+          OnQuestion: {
+            initial: 'Presenting',
+            onDone: [
+              {
+                target: 'AwaitingQuestion',
+                cond: 'hasMoreQuestions',
+              },
+              {
+                target: 'Complete',
+              },
+            ],
+            states: {
+              Presenting: {
+                invoke: {
+                  id: 'showQuestionPromptComplete$',
+                  src: 'showQuestionPromptComplete$',
+                  onDone: 'Responding',
+                },
+              },
+              Responding: {
+                invoke: {
+                  id: 'responseComplete$',
+                  src: 'responseComplete$',
+                  onDone: 'Reviewing',
+                },
+              },
+              Reviewing: {
+                invoke: {
+                  id: 'onHostPressContinue',
+                  src: 'onHostPressContinue',
+                  onDone: 'Complete',
+                },
+              },
+              Complete: {
+                type: 'final' as const,
+              },
+            },
+          },
+          Complete: {
+            type: 'final' as const,
+          },
+        },
+        onDone: 'GameOver',
+      },
+      GameOver: {
+        type: 'final' as const,
+      },
+    },
+    predictableActionArguments: true,
+  },
+  {
+    guards: {
+      hasMoreQuestions: () => {
+        // todo logic based off question set
+        return true;
+      },
+    },
+  }
+);
 
-const allPlayersLoaded$ =
-  new Observable<TriviaJamSharedAllPlayersLoadedEvent>();
-const hostPressContinue$ =
-  new Observable<TriviaJamSharedHostPressContinueEvent>();
-const showQuestionPromptComplete$ =
-  new Observable<TriviaJamSharedShowQuestionPromptCompleteEvent>();
-const responseComplete$ =
-  new Observable<TriviaJamSharedResponseCompleteEvent>();
-
-export const triviaJamSharedServices: TriviaJamSharedServices = {
-  onAllPlayersLoaded: () => allPlayersLoaded$,
-  onHostPressContinue: () => hostPressContinue$,
-  onShowQuestionPromptComplete: () => showQuestionPromptComplete$,
-  onResponseComplete: () => responseComplete$,
-};
-
-export type TriviaJamSharedMachine = ReturnType<
-  typeof createTriviaJamSharedMachine
->;
+export type TriviaJamSharedMachine = typeof triviaJamSharedMachine;
 export type TriviaJamSharedActor = ActorRefFrom<TriviaJamSharedMachine>;
 export type TriviaJamSharedState = StateFrom<TriviaJamSharedMachine>;

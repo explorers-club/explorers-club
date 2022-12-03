@@ -7,11 +7,11 @@ import { BottomSheet } from 'react-spring-bottom-sheet';
 import 'react-spring-bottom-sheet/dist/style.css';
 import {
   defaultSnapProps,
-  SnapPointProps
+  SnapPointProps,
 } from 'react-spring-bottom-sheet/dist/types';
 import {
   TriviaJamServiceContext,
-  TriviaJamServices
+  TriviaJamServices,
 } from '../../state/services.context';
 import { QuestionScreenComponent } from './question-screen.component';
 import { createQuestionScreenMachine } from './question-screen.machine';

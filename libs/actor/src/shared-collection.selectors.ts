@@ -15,7 +15,14 @@ export const selectActorRefs = createSelector(
 export const selectActorsInitialized = (state: SharedCollectionState) =>
   state.matches('Actors.Initialized');
 
-export function createActorByTypeSelector<TActor extends AnyActorRef>(actorType: ActorType) {
+export function selectMyActor<T>(state: SharedCollectionState) {
+  const { myActorId, actorRefs } = state.context;
+  return actorRefs[myActorId] as T | undefined;
+}
+
+export function createActorByTypeSelector<TActor extends AnyActorRef>(
+  actorType: ActorType
+) {
   return createSelector(
     selectActorRefs,
     (actors) =>

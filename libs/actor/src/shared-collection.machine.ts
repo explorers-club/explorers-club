@@ -153,8 +153,8 @@ export const createSharedCollectionMachine = ({ machines }: CreateProps) => {
             Initialized: {
               entry: 'initializeActorBroadcast',
               invoke: {
-                id: 'hydrateEvent$',
-                src: sharedCollectionServices.fetchActors,
+                id: 'actorAdded$',
+                src: sharedCollectionServices.actorAdded$,
               },
               on: {
                 ACTOR_ADDED: {

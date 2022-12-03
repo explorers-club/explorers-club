@@ -4,6 +4,10 @@ import {
 } from '../state/game.hooks';
 import { ScreensComponent } from './screens.component';
 
+/**
+ * This component ensures we have a shared collection, with the trivia jam shared
+ * actor and the actor for the local player.
+ */
 export const Screens = () => {
   const actor = useSharedCollectionActor();
   const triviaJamSharedActor = useTriviaJamSharedActor();

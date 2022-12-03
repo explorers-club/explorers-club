@@ -1,4 +1,6 @@
 import { initializeApp } from '@firebase/app';
+
+import { getAuth, connectAuthEmulator } from 'firebase/auth';
 import { connectDatabaseEmulator, getDatabase } from 'firebase/database';
 
 // TODO make this configurable in storybook ui
@@ -14,6 +16,11 @@ const firebaseConfig = {
 };
 
 initializeApp(firebaseConfig);
-export const db = getDatabase();
-// Point to the RTDB emulator running on localhost.
+
+const db = getDatabase();
+const auth = getAuth();
+
 connectDatabaseEmulator(db, 'localhost', 9000);
+// connectAuthEmulator(auth, 'http://localhost:9099');
+
+export { db, auth };

@@ -1,10 +1,26 @@
-import { createMachine } from 'xstate';
+import {
+  ActorRefFrom,
+  ContextFrom,
+  createMachine,
+  EventFrom,
+  StateFrom,
+} from 'xstate';
+import { createModel } from 'xstate/lib/model';
 
-export interface TriviaJamPlayerContext {
-  playerName: string;
-}
+const triviaJamPlayerModel = createModel(
+  {
+    playerName: '' as string,
+  },
+  {
+    events: {
+      CONTINUE: () => ({}),
+    },
+  }
+);
 
-export type TriviaJamPlayerEvent = { type: 'JOIN' };
+export const TriviaJamPlayerEvents = triviaJamPlayerModel.events;
+export type TriviaJamPlayerContext = ContextFrom<typeof triviaJamPlayerModel>;
+export type TriviaJamPlayerEvent = EventFrom<typeof triviaJamPlayerModel>;
 
 export const createTriviaJamPlayerMachine = () =>
   createMachine(
@@ -14,10 +30,25 @@ export const createTriviaJamPlayerMachine = () =>
         context: {} as TriviaJamPlayerContext,
         events: {} as TriviaJamPlayerEvent,
       },
-      initial: 'Playing',
+      type: 'parallel',
       states: {
-        Playing: {
-          // future handle disocnnect / reconnect logic here
+        Ready: {
+          initial: 'No',
+          states: {
+            No: {
+              on: {
+                CONTINUE: 'Yes',
+              },
+            },
+            Yes: {},
+          },
+        },
+        Connected: {
+          initial: 'Yes',
+          states: {
+            Yes: {},
+            No: {},
+          },
         },
       },
       predictableActionArguments: true,
@@ -28,3 +59,6 @@ export const createTriviaJamPlayerMachine = () =>
 export type TriviaJamPlayerMachine = ReturnType<
   typeof createTriviaJamPlayerMachine
 >;
+
+export type TriviaJamPlayerActor = ActorRefFrom<TriviaJamPlayerMachine>;
+export type TriviaJamPlayerState = StateFrom<TriviaJamPlayerMachine>;

@@ -18,6 +18,10 @@ const DEFAULT_SNAP = ({ snapPoints }: defaultSnapProps) => snapPoints[1];
 
 const meta = {
   component: IntroductionScreenComponent,
+  argTypes: {
+    onIntroComplete: { action: 'intro complete' },
+    onPressCta: { action: 'press cta' },
+  },
   decorators: [
     (Story, props) => {
       return (
@@ -35,10 +39,15 @@ const meta = {
   ],
 } as ComponentMeta<typeof IntroductionScreenComponent>;
 
-export const Default: ComponentStory<typeof IntroductionScreenComponent> = (
-  args
-) => {
-  return <IntroductionScreenComponent />;
+const Template: ComponentStory<typeof IntroductionScreenComponent> = (args) => {
+  return <IntroductionScreenComponent {...args} />;
+};
+
+export const WithButton = Template.bind({});
+
+WithButton.args = {
+  playerName: 'InspectorT',
+  ctaLabel: 'Continue',
 };
 
 export default meta;

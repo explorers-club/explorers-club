@@ -16,6 +16,11 @@ const useGameContext = () => {
   return useContext(GameContext);
 };
 
+export const useMyActor = () => {
+  const { myActor } = useGameContext();
+  return myActor;
+};
+
 export const useTriviaJamSharedActor = () => {
   const { sharedCollectionActor } = useGameContext();
   return useSelector(sharedCollectionActor, selectTriviaJamSharedActor);

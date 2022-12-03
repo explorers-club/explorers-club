@@ -1,4 +1,4 @@
-import { SharedCollectionActor } from '@explorers-club/actor';
+import { SharedCollectionActor, useActorLogger } from '@explorers-club/actor';
 import { useSelector } from '@xstate/react';
 import { FC } from 'react';
 import { selectIsAwaitingQuestion, selectIsGameOver } from '../state';
@@ -18,6 +18,7 @@ interface Props {
 
 export const ScreensComponent: FC<Props> = ({ sharedCollectionActor }) => {
   const actor = useTriviaJamSharedActor();
+  useActorLogger(actor);
 
   const isStaging = useSelector(actor, selectIsStaging);
   const isAwaitingQuestion = useSelector(actor, selectIsAwaitingQuestion);
@@ -28,15 +29,15 @@ export const ScreensComponent: FC<Props> = ({ sharedCollectionActor }) => {
     case isStaging: {
       return <IntroductionScreen />;
     }
-    case isAwaitingQuestion: {
-      return <ScoreboardScreen />;
-    }
-    case isOnQuestion: {
-      return <QuestionScreen />;
-    }
-    case isGameOver: {
-      return <GameEndScreen />;
-    }
+    // case isAwaitingQuestion: {
+    //   return <ScoreboardScreen />;
+    // }
+    // case isOnQuestion: {
+    //   return <QuestionScreen />;
+    // }
+    // case isGameOver: {
+    //   return <GameEndScreen />;
+    // }
     default: {
       return null;
     }
