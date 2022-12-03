@@ -158,6 +158,7 @@ PlayerRunThrough.play = async ({ args }) => {
     scores: {
       foo: 0,
       bar: 0,
+      buzbar: 0,
       buzz: 0,
     },
   };

@@ -29,9 +29,9 @@ export const ScreensComponent: FC<Props> = ({ sharedCollectionActor }) => {
     case isStaging: {
       return <IntroductionScreen />;
     }
-    // case isAwaitingQuestion: {
-    //   return <ScoreboardScreen />;
-    // }
+    case isAwaitingQuestion: {
+      return <ScoreboardScreen />;
+    }
     // case isOnQuestion: {
     //   return <QuestionScreen />;
     // }
