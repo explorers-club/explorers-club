@@ -2,7 +2,7 @@
 
 Welcome to your next adventure!
 
-![Logo](https://raw.githubusercontent.com/explorers-club/explorers-club/main/apps/web/src/assets/logo.png)
+![Tree House](https://user-images.githubusercontent.com/718391/205458818-e113e74c-0016-47be-bb34-2d4e05eb8d60.jpg)
 
 ## What is Explorers Club?
 
@@ -53,11 +53,18 @@ We believe that this doesn't have to be the case. We believe that many of the ga
 - [xstate](https://xstate.js.org/) for state management + [actor pattern](https://www.youtube.com/watch?v=NTfPtYJORck) for sharing distributed real-time state
 - static site hosting on netlify
 - game server hosting on fly.io
-- supabase / postgres for primary database
 - firebase for real-time data
 - [nx](https://nx.dev/) for managing the monorepo
 - github actions for CI
 - [Honeycomb](https://github.com/flauwekeul/honeycomb) for Hex grids
 - Sound effects and sounds from [Zapsplat](https://www.zapsplat.com/)
+
+## Art
+
+![coconut crew](https://user-images.githubusercontent.com/718391/205458625-a724d301-bc95-4540-9aa5-ad84a4f24390.jpeg)
+
+![image](https://user-images.githubusercontent.com/718391/205458684-b77968e2-4d58-4b3a-9f45-a1ca9f3a2b50.png)
+
+![Logo](https://raw.githubusercontent.com/explorers-club/explorers-club/main/apps/web/src/assets/logo.png)
 
 ![image](https://user-images.githubusercontent.com/718391/199243971-7e9556d6-f473-4a86-bc19-d121bdf16592.png)
