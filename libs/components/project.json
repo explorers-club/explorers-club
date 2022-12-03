@@ -47,7 +47,8 @@
       "options": {
         "commands": [
           "chromatic --project-token=$CHROMATIC_PROJECT_TOKEN_COMPONENTS -d dist/storybook/components --auto-accept-changes --ci"
-        ]
+        ],
+        "parallel": false
       }
     }
   }
