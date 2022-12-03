@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
+  "scripts": {
+    "": ""
+  },
   "dependencies": {
     "@nestjs/common": "^9.0.0",
     "@nestjs/core": "^9.0.0",
@@ -90,6 +93,7 @@
     "@xstate/react": "^3.0.1",
     "babel-jest": "27.5.1",
     "babel-loader": "8.1.0",
+    "chromatic": "^6.11.4",
     "contentful": "^9.2.13",
     "contentful-management": "^10.21.4",
     "contentful-typescript-codegen": "^3.3.0",
