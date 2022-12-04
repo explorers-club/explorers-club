@@ -94,8 +94,8 @@ export interface IQuestionSetFields {
   /** Name */
   name: string;
 
-  /** Question */
-  question: (
+  /** Questions */
+  questions: (
     | IMultipleAnswer
     | IMultipleChoice
     | INumberInput

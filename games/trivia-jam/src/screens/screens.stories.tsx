@@ -3,35 +3,33 @@ import {
   createActorByIdSelector,
   createSharedCollectionMachine,
   getActorId,
-  selectActorRefs,
   selectActorsInitialized,
   selectMyActor,
   SharedCollectionEvents,
 } from '@explorers-club/actor';
-import { noop } from '@explorers-club/utils';
+import { noop, sleep } from '@explorers-club/utils';
 import { Meta, Story } from '@storybook/react';
 import { useInterpret, useSelector } from '@xstate/react';
 import { ref, set } from 'firebase/database';
 import { useEffect, useMemo } from 'react';
 import { createSelector } from 'reselect';
-import { filter, firstValueFrom, merge, Observable } from 'rxjs';
 import { interpret } from 'xstate';
+import { getActionType } from 'xstate/lib/utils';
 import { waitFor } from 'xstate/lib/waitFor';
 import {
   createTriviaJamPlayerMachine,
+  QuestionData,
   TriviaJamPlayerActor,
   TriviaJamPlayerEvents,
-  TriviaJamSharedHostPressContinueEvent,
   triviaJamSharedMachine,
-  TriviaJamSharedResponseCompleteEvent,
   TriviaJamSharedServices,
-  TriviaJamSharedShowQuestionPromptCompleteEvent,
 } from '../state';
 import { GameContext } from '../state/game.context';
-import { selectPlayerIsReady } from '../state/trivia-jam-player.selectors';
 import {
   onAllPlayersLoaded,
   onHostPressContinue,
+  onResponseComplete,
+  onShowQuestionPromptComplete,
 } from '../state/trivia-jam-shared.services';
 import { Screens } from './screens.container';
 import { db } from './__test/emulator';
@@ -40,14 +38,18 @@ const meta = {
   component: Screens,
 } as Meta;
 
+const sampleQuestionSetEntryId = 'dSX6kC0PNliXTl7qHYJLH';
+
 const myUserId = 'buzz';
 const myActorId = getActorId(ActorType.TRIVIA_JAM_PLAYER_ACTOR, myUserId);
 
 const playerUserIds = ['foo', 'bar', 'buzbar', myUserId];
-const playerActorIds = playerUserIds.map((userId) =>
-  getActorId(ActorType.TRIVIA_JAM_PLAYER_ACTOR, userId)
-);
 const hostUserIds = ['buzbar'];
+const mainHostUserId = hostUserIds[0];
+const mainHostActorId = getActionType(
+  ActorType.TRIVIA_JAM_PLAYER_ACTOR,
+  mainHostUserId
+);
 
 const profileName = 'foobar1';
 const rootPath = `trivia_jam/${profileName}`;
@@ -56,15 +58,15 @@ const sharedActorId = getActorId(
   profileName
 );
 
-const Template: Story = () => {
-  const triviaJamPlayerMachine = createTriviaJamPlayerMachine();
-  const sharedCollectionMachine = createSharedCollectionMachine({
-    machines: {
-      [ActorType.TRIVIA_JAM_PLAYER_ACTOR]: triviaJamPlayerMachine,
-      [ActorType.TRIVIA_JAM_SHARED_ACTOR]: triviaJamSharedMachine,
-    },
-  });
+const triviaJamPlayerMachine = createTriviaJamPlayerMachine();
+const sharedCollectionMachine = createSharedCollectionMachine({
+  machines: {
+    [ActorType.TRIVIA_JAM_PLAYER_ACTOR]: triviaJamPlayerMachine,
+    [ActorType.TRIVIA_JAM_SHARED_ACTOR]: triviaJamSharedMachine,
+  },
+});
 
+const Template: Story = () => {
   const machine = useMemo(() => {
     // Hack way of resetting the db each iterations...
     set(ref(db), null).then(noop);
@@ -114,20 +116,33 @@ const Template: Story = () => {
 
 export const PlayerRunThrough = Template.bind({});
 
-PlayerRunThrough.play = async ({ args }) => {
+// PlayerRunThrough.loaders = [
+//   async () => ({
+//     questionSetEntry: await contentfulClient.getEntry<IQuestionSet>(
+//       sampleQuestionSetEntryId
+//     ),
+//   }),
+// ];
+
+PlayerRunThrough.play = async ({ loaded }) => {
+  // const questionSetEntry = loaded['questionSetEntry'] as IQuestionSet;
+  // const numQuestions = questionSetEntry.fields.questions.length;
+  // console.log(numQuestions);
+  // console.log({ questionSetEntry });
+
   // Mock the services and data we would normally fetch and inject on the server
   const services: TriviaJamSharedServices = {
+    fetchNextQuestion: () => Promise.resolve({} as QuestionData),
+
     onAllPlayersLoaded: ({ playerUserIds }) =>
       onAllPlayersLoaded(sharedCollectionActor, playerUserIds),
 
-    showQuestionPromptComplete$: () =>
-      new Observable<TriviaJamSharedShowQuestionPromptCompleteEvent>(),
+    onShowQuestionPromptComplete: () => onShowQuestionPromptComplete(),
 
     onHostPressContinue: ({ hostUserIds }) =>
       onHostPressContinue(sharedCollectionActor, hostUserIds),
 
-    responseComplete$: (context) =>
-      new Observable<TriviaJamSharedResponseCompleteEvent>(),
+    onResponseComplete: (context) => onResponseComplete(),
   };
 
   const triviaJamPlayerMachine = createTriviaJamPlayerMachine();
@@ -204,18 +219,31 @@ PlayerRunThrough.play = async ({ args }) => {
       ) as TriviaJamPlayerActor;
     };
 
-    return await Promise.all(
+    const actors = await Promise.all(
       playerUserIds
         .filter((userId) => userId !== myUserId)
         .map(spawnFakePlayerActor)
     );
+    const actorsByUserId: Record<string, TriviaJamPlayerActor> = {};
+    actors.forEach((actor, index) => {
+      const userId = playerUserIds[index];
+      actorsByUserId[userId] = actor!;
+    });
+    return actorsByUserId;
   };
 
   // Mark all player actors as ready except our own actor
-  const otherPlayerActors = await spawnFakePlayerActors();
-  otherPlayerActors.forEach((actor) => {
+  const otherPlayerActorsByUserId = await spawnFakePlayerActors();
+  Object.entries(otherPlayerActorsByUserId).forEach(([_, actor]) => {
     actor?.send(TriviaJamPlayerEvents.CONTINUE()); // todo fix type on spawn fake player actors
   });
+  const mainHostActor = otherPlayerActorsByUserId[mainHostUserId];
+
+  // Have the host press continue
+  await sleep(7000);
+  console.log('sending continue');
+  mainHostActor.send(TriviaJamPlayerEvents.CONTINUE());
+  console.log('sent');
 };
 
 export default meta;

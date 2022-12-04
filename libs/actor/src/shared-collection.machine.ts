@@ -6,7 +6,7 @@
  */
 import { noop } from '@explorers-club/utils';
 import { Database, get, onDisconnect, ref, set } from 'firebase/database';
-import { from, map, Observable, skip } from 'rxjs';
+import { filter, from, map, Observable, skip } from 'rxjs';
 import { fromRef, ListenEvent } from 'rxfire/database';
 import {
   ActorRefFrom,
@@ -26,6 +26,7 @@ import { ModelContextFrom, ModelEventsFrom } from 'xstate/lib/model.types';
 import { assertEventType, getActorType } from './helpers';
 import { ActorID, ActorType } from './types';
 import { saveActorEvent, saveActorState } from './db';
+import { selectMyActor } from './shared-collection.selectors';
 
 const sharedCollectionModel = createModel(
   {
@@ -151,17 +152,34 @@ export const createSharedCollectionMachine = ({ machines }: CreateProps) => {
               },
             },
             Initialized: {
-              entry: 'initializeActorBroadcast',
               invoke: {
                 id: 'actorAdded$',
                 src: sharedCollectionServices.actorAdded$,
               },
+              type: 'parallel',
+              states: {
+                Broadcast: {
+                  initial: 'Unitialized',
+                  states: {
+                    Unitialized: {
+                      always: {
+                        target: 'Running',
+                        cond: ({ actorRefs, myActorId }) =>
+                          !!actorRefs[myActorId],
+                      },
+                      on: {
+                        SPAWN: { target: 'Running', actions: 'spawnActor' },
+                      },
+                    },
+                    Running: {
+                      entry: 'initializeActorBroadcast',
+                    },
+                  },
+                },
+              },
               on: {
                 ACTOR_ADDED: {
                   actions: 'hydrateActor',
-                },
-                SPAWN: {
-                  actions: ['spawnActor', 'initializeActorBroadcast'],
                 },
               },
             },
@@ -238,8 +256,12 @@ export const createSharedCollectionMachine = ({ machines }: CreateProps) => {
 
             const actor = spawn(machine, actorId);
 
-            saveActorState(db, rootPath, actorId, actor).then(noop);
-            saveActorEvent(db, rootPath, actorId, actor).then(noop);
+            saveActorState(db, rootPath, actorId, actor)
+              .then(noop)
+              .catch(console.error);
+            saveActorEvent(db, rootPath, actorId, actor)
+              .then(noop)
+              .catch(console.error);
 
             return {
               ...actorRefs,
@@ -296,12 +318,18 @@ export const createSharedCollectionMachine = ({ machines }: CreateProps) => {
 };
 
 export const sharedCollectionServices: SharedCollectionServices = {
-  newEvent$({ db, rootPath }) {
+  newEvent$({ db, rootPath, myActorId }) {
     const eventsRef = ref(db, `${rootPath}/actor_events`);
     return fromRef(eventsRef, ListenEvent.changed).pipe(
+      filter((changes) => {
+        const actorId = changes.snapshot.key;
+        // Don't rebroadcast our own events
+        return actorId !== myActorId;
+      }),
       map((changes) => {
         const actorId = changes.snapshot.key;
         const event = changes.snapshot.val() as AnyEventObject;
+
         return SharedCollectionEvents.NEW_EVENT(actorId, event);
       })
     );

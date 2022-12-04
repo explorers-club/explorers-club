@@ -3,19 +3,36 @@ import {
   getActorId,
   SharedCollectionActor,
 } from '@explorers-club/actor';
-import merge from 'lodash.merge';
+import { sleep } from '@explorers-club/utils';
 import {
   combineLatest,
   filter,
   first,
   firstValueFrom,
   from,
+  fromEventPattern,
   map,
+  Observable,
+  Subscription,
   switchMap,
+  take,
+  tap,
 } from 'rxjs';
 import { TriviaJamPlayerActor } from './trivia-jam-player.machine';
 import { selectPlayerIsReady } from './trivia-jam-player.selectors';
-import { TriviaJamSharedEvents } from './trivia-jam-shared.machine';
+import {
+  TriviaJamSharedEvents,
+  TriviaJamSharedHostPressContinueEvent,
+} from './trivia-jam-shared.machine';
+
+export const onShowQuestionPromptComplete = async () => {
+  await sleep(5000);
+  return Promise.resolve(TriviaJamSharedEvents.SHOW_QUESTION_PROMPT_COMPLETE());
+};
+
+export const onResponseComplete = async () => {
+  return Promise.resolve(TriviaJamSharedEvents.RESPONSE_COMPLETE());
+};
 
 export const onAllPlayersLoaded = async (
   sharedCollectionActor: SharedCollectionActor,
@@ -39,10 +56,23 @@ export const onAllPlayersLoaded = async (
         playerUserIds.length
     ),
     map(() => TriviaJamSharedEvents.ALL_PLAYERS_LOADED()),
-    first()
+    take(1)
   );
   return await firstValueFrom(allPlayersLoaded$);
 };
+
+// TODO hack, make more generic
+export const fromEvent$ = (actor: TriviaJamPlayerActor, type: string) =>
+  fromEventPattern(
+    (handler) => {
+      return actor.subscribe(({ event }) => {
+        if (event.type === type) {
+          handler(event);
+        }
+      });
+    },
+    (_, sub: Subscription) => sub.unsubscribe()
+  );
 
 export const onHostPressContinue = async (
   sharedCollectionActor: SharedCollectionActor,
@@ -50,22 +80,25 @@ export const onHostPressContinue = async (
 ) => {
   const hostPressContinue$ = from(sharedCollectionActor).pipe(
     // Map and merge
-    map((state) => {
-      const hostActors = hostUserIds
+    switchMap(({ context }) => {
+      const hostEventObservables = hostUserIds
         .map((userId) => {
-          return state.context.actorRefs[userId] as TriviaJamPlayerActor;
+          const actorId = getActorId(ActorType.TRIVIA_JAM_PLAYER_ACTOR, userId);
+          return context.actorRefs[actorId] as TriviaJamPlayerActor;
         })
         .filter((actor) => !!actor)
-        .map((actor) => from(actor));
-
-      return merge(hostActors);
+        .map(
+          (actor) =>
+            fromEvent$(
+              actor,
+              'CONTINUE'
+            ) as Observable<TriviaJamSharedHostPressContinueEvent>
+        );
+      return combineLatest(hostEventObservables);
     }),
-    filter((state) => {
-      // todo filter by event type
-      return false;
-    }),
+    filter((hostEvents) => hostEvents.length >= 1),
     map(() => TriviaJamSharedEvents.HOST_PRESS_CONTINUE()),
-    first()
+    take(1)
   );
   return await firstValueFrom(hostPressContinue$);
 };

@@ -75,3 +75,19 @@ export function assertEventType<
     );
   }
 }
+
+// Diff way than asserting
+export const unwrapEvent = <
+  T extends { type: K | string },
+  K extends string = string
+>(
+  event: EventObject,
+  expectedType: K
+): T => {
+  if (event.type !== expectedType)
+    throw Error(
+      `State machine expected an event of type: ${expectedType}, instead got: ${event.type}`
+    );
+
+  return event as T;
+};
