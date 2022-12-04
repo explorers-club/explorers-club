@@ -7,7 +7,6 @@ import { sleep } from '@explorers-club/utils';
 import {
   combineLatest,
   filter,
-  first,
   firstValueFrom,
   from,
   fromEventPattern,
@@ -16,7 +15,6 @@ import {
   Subscription,
   switchMap,
   take,
-  tap,
 } from 'rxjs';
 import { TriviaJamPlayerActor } from './trivia-jam-player.machine';
 import { selectPlayerIsReady } from './trivia-jam-player.selectors';
@@ -62,10 +60,16 @@ export const onAllPlayersLoaded = async (
 };
 
 // TODO hack, make more generic
+// we cant use from() because for some reaseon the event gets stripped and we need it to check the type
 export const fromEvent$ = (actor: TriviaJamPlayerActor, type: string) =>
   fromEventPattern(
     (handler) => {
+      let skip = true; // hacky way to skip first, again cant use from()
       return actor.subscribe(({ event }) => {
+        if (skip) {
+          skip = false;
+          return;
+        }
         if (event.type === type) {
           handler(event);
         }
