@@ -7,6 +7,8 @@ import {
   selectMyActor,
   SharedCollectionEvents,
 } from '@explorers-club/actor';
+import { contentfulClient } from '@explorers-club/contentful';
+import { IQuestionSet } from '@explorers-club/contentful-types';
 import { noop, sleep } from '@explorers-club/utils';
 import { Meta, Story } from '@storybook/react';
 import { useInterpret, useSelector } from '@xstate/react';
@@ -14,7 +16,6 @@ import { ref, set } from 'firebase/database';
 import { useEffect, useMemo } from 'react';
 import { createSelector } from 'reselect';
 import { interpret } from 'xstate';
-import { getActionType } from 'xstate/lib/utils';
 import { waitFor } from 'xstate/lib/waitFor';
 import {
   createTriviaJamPlayerMachine,
@@ -38,7 +39,7 @@ const meta = {
   component: Screens,
 } as Meta;
 
-const sampleQuestionSetEntryId = 'dSX6kC0PNliXTl7qHYJLH';
+const sampleQuestionSetEntryId = '3Xd6DkL434TO1AFYI1TME2';
 
 const myUserId = 'buzz';
 const myActorId = getActorId(ActorType.TRIVIA_JAM_PLAYER_ACTOR, myUserId);
@@ -46,10 +47,6 @@ const myActorId = getActorId(ActorType.TRIVIA_JAM_PLAYER_ACTOR, myUserId);
 const playerUserIds = ['foo', 'bar', 'buzbar', myUserId];
 const hostUserIds = ['buzbar'];
 const mainHostUserId = hostUserIds[0];
-const mainHostActorId = getActionType(
-  ActorType.TRIVIA_JAM_PLAYER_ACTOR,
-  mainHostUserId
-);
 
 const profileName = 'foobar1';
 const rootPath = `trivia_jam/${profileName}`;
@@ -116,19 +113,19 @@ const Template: Story = () => {
 
 export const PlayerRunThrough = Template.bind({});
 
-// PlayerRunThrough.loaders = [
-//   async () => ({
-//     questionSetEntry: await contentfulClient.getEntry<IQuestionSet>(
-//       sampleQuestionSetEntryId
-//     ),
-//   }),
-// ];
+PlayerRunThrough.loaders = [
+  async () => ({
+    questionSetEntry: await contentfulClient.getEntry<IQuestionSet>(
+      sampleQuestionSetEntryId
+    ),
+  }),
+];
 
 PlayerRunThrough.play = async ({ loaded }) => {
-  // const questionSetEntry = loaded['questionSetEntry'] as IQuestionSet;
+  const questionSetEntry = loaded['questionSetEntry'] as IQuestionSet;
   // const numQuestions = questionSetEntry.fields.questions.length;
   // console.log(numQuestions);
-  // console.log({ questionSetEntry });
+  console.log({ questionSetEntry });
 
   // Mock the services and data we would normally fetch and inject on the server
   const services: TriviaJamSharedServices = {

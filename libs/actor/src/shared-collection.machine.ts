@@ -231,9 +231,10 @@ export const createSharedCollectionMachine = ({ machines }: CreateProps) => {
           const myEventRef = ref(db, `${rootPath}/actor_events/${myActorId}`);
           from(myActor)
             .pipe(skip(1))
-            .subscribe((state) => {
-              const event = JSON.parse(JSON.stringify(state.event));
-              set(myEventRef, event).then(noop);
+            .subscribe(() => {
+              saveActorEvent(db, rootPath, myActorId, myActor)
+                .then(noop)
+                .catch(console.error);
             });
 
           // Send disconnect event when we disconnect

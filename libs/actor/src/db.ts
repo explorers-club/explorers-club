@@ -1,6 +1,8 @@
 import { Database, ref, set } from 'firebase/database';
 import { AnyActorRef } from 'xstate';
 import { ActorID } from './types';
+import { serverTimestamp } from '@firebase/database';
+// SimpleDateFormat ISO_8601_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:sss'Z'");
 
 export const saveActorState = async (
   db: Database,
@@ -26,8 +28,12 @@ export const saveActorEvent = async (
   const myEventRef = ref(db, `${rootPath}/actor_events/${actorId}`);
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const state = actor.getSnapshot()!;
-  return set(myEventRef, state.event);
+  const state = JSON.parse(JSON.stringify(actor.getSnapshot()!));
+
+  // parsing gets rid of a `toString` function which causes firebase to error
+  const event = JSON.parse(JSON.stringify(state.event));
+  event.sentAt = serverTimestamp();
+  return set(myEventRef, event);
 };
 
 // export function setActorEvent(
