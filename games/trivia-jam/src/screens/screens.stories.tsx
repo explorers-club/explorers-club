@@ -19,7 +19,6 @@ import { interpret } from 'xstate';
 import { waitFor } from 'xstate/lib/waitFor';
 import {
   createTriviaJamPlayerMachine,
-  QuestionData,
   TriviaJamPlayerActor,
   TriviaJamPlayerEvents,
   triviaJamSharedMachine,
@@ -123,13 +122,13 @@ PlayerRunThrough.loaders = [
 
 PlayerRunThrough.play = async ({ loaded }) => {
   const questionSetEntry = loaded['questionSetEntry'] as IQuestionSet;
-  // const numQuestions = questionSetEntry.fields.questions.length;
-  // console.log(numQuestions);
-  console.log({ questionSetEntry });
 
   // Mock the services and data we would normally fetch and inject on the server
   const services: TriviaJamSharedServices = {
-    fetchNextQuestion: () => Promise.resolve({} as QuestionData),
+    loadNextQuestion: async ({ currentQuestionIndex }) => {
+      const questions = questionSetEntry.fields.questions;
+      return questions[currentQuestionIndex];
+    },
 
     onAllPlayersLoaded: ({ playerUserIds }) =>
       onAllPlayersLoaded(sharedCollectionActor, playerUserIds),

@@ -1,5 +1,10 @@
-import { assertEventType } from '@explorers-club/actor';
-import { Observable } from 'rxjs';
+import {
+  IMultipleAnswer,
+  IMultipleChoice,
+  INumberInput,
+  ITextInput,
+  ITrueOrFalse,
+} from '@explorers-club/contentful-types';
 import {
   ActorRefFrom,
   assign,
@@ -9,15 +14,21 @@ import {
 } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { ModelEventsFrom } from 'xstate/lib/model.types';
-import { QuestionData } from './types';
+
+export type IQuestion =
+  | IMultipleChoice
+  | IMultipleAnswer
+  | INumberInput
+  | ITextInput
+  | ITrueOrFalse;
 
 const triviaJamSharedModel = createModel(
   {
     playerUserIds: [] as string[],
     hostUserIds: [] as string[],
     scores: {} as Record<string, number>,
-    questions: [] as QuestionData[],
-    currentQuestion: 0 as number,
+    questions: [] as IQuestion[],
+    currentQuestionIndex: 0 as number,
   },
   {
     events: {
@@ -50,7 +61,7 @@ export type TriviaJamSharedResponseCompleteEvent = ReturnType<
  * operating the services that the shared actor requires
  */
 export type TriviaJamSharedServices = {
-  fetchNextQuestion: (context: TriviaJamSharedContext) => Promise<QuestionData>;
+  loadNextQuestion: (context: TriviaJamSharedContext) => Promise<IQuestion>;
 
   onAllPlayersLoaded: (
     context: TriviaJamSharedContext
@@ -69,129 +80,120 @@ export type TriviaJamSharedServices = {
   ) => Promise<TriviaJamSharedResponseCompleteEvent>;
 };
 
-export type FetchNextQuestionDoneData = Awaited<
-  ReturnType<TriviaJamSharedServices['fetchNextQuestion']>
+export type LoadNextQuestionDoneData = Awaited<
+  ReturnType<TriviaJamSharedServices['loadNextQuestion']>
 >;
-export type FetchNextQuestionDoneEvent = {
-  type: 'done.invoke.fetchNextQuestion';
-  data: FetchNextQuestionDoneData;
+export type LoadNextQuestionDoneEvent = {
+  type: 'done.invoke.loadNextQuestion';
+  data: LoadNextQuestionDoneData;
 };
 
 export type TriviaJamSharedEvent =
   | ModelEventsFrom<typeof triviaJamSharedModel>
-  | FetchNextQuestionDoneEvent;
+  | LoadNextQuestionDoneEvent;
 
-export const triviaJamSharedMachine = createMachine(
-  {
-    id: 'TriviaJamShared',
-    initial: 'Staging',
-    schema: {
-      context: {} as TriviaJamSharedContext,
-      events: {} as TriviaJamSharedEvent,
-    },
-    states: {
-      Staging: {
-        initial: 'Loading',
-        states: {
-          Loading: {
-            invoke: {
-              id: 'onAllPlayersLoaded',
-              src: 'onAllPlayersLoaded',
-              onDone: 'AllLoaded',
-            },
-          },
-          AllLoaded: {
-            type: 'final' as const,
+export const triviaJamSharedMachine = createMachine({
+  id: 'TriviaJamShared',
+  initial: 'Staging',
+  schema: {
+    context: {} as TriviaJamSharedContext,
+    events: {} as TriviaJamSharedEvent,
+  },
+  states: {
+    Staging: {
+      initial: 'Loading',
+      states: {
+        Loading: {
+          invoke: {
+            id: 'onAllPlayersLoaded',
+            src: 'onAllPlayersLoaded',
+            onDone: 'AllLoaded',
           },
         },
-        onDone: 'Playing',
+        AllLoaded: {
+          type: 'final' as const,
+        },
       },
-      Playing: {
-        initial: 'AwaitingQuestion',
-        states: {
-          AwaitingQuestion: {
-            invoke: {
-              id: 'onHostPressContinue',
-              src: 'onHostPressContinue',
-              onDone: 'OnQuestion',
+      onDone: 'Playing',
+    },
+    Playing: {
+      initial: 'AwaitingQuestion',
+      entry: assign({
+        questions: [],
+        currentQuestionIndex: -1,
+      }),
+      states: {
+        AwaitingQuestion: {
+          invoke: {
+            id: 'onHostPressContinue',
+            src: 'onHostPressContinue',
+            onDone: 'OnQuestion',
+          },
+        },
+        OnQuestion: {
+          initial: 'Loading',
+          entry: assign({
+            currentQuestionIndex: ({ currentQuestionIndex }) =>
+              currentQuestionIndex + 1,
+          }),
+          // onDone: [
+          //   {
+          //     target: 'AwaitingQuestion',
+          //     cond: 'hasMoreQuestions',
+          //   },
+          //   {
+          //     target: 'Complete',
+          //   },
+          // ],
+          states: {
+            Loading: {
+              invoke: {
+                id: 'loadNextQuestion',
+                src: 'loadNextQuestion',
+                onDone: {
+                  target: 'Presenting',
+                  actions: assign<
+                    TriviaJamSharedContext,
+                    LoadNextQuestionDoneEvent
+                  >({
+                    questions: ({ questions }, event) => [
+                      ...questions,
+                      event.data,
+                    ],
+                  }),
+                },
+              },
             },
-            // initial: 'NextQuestion',
-            // onDone: 'OnQuestion',
-            // states: {
-            //   NextQuestion: {
-            //     initial: 'Fetching',
-            //     states: {
-            //       Fetching: {
-            //         invoke: {
-            //           id: 'fetchNextQuestion',
-            //           src: 'fetchNextQuestion',
-            //           onDone: { actions: 'pushQuestion' },
-            //         },
-            //       },
-            //       Ready: {
-            //         invoke: {
-            //           id: 'onHostPressContinue',
-            //           src: 'onHostPressContinue',
-            //           onDone: 'GoingToNext',
-            //         },
-            //       },
-            //       GoingToNext: {
-            //         type: 'final' as const,
-            //       },
-            //     },
+            Presenting: {
+              // invoke: {
+              //   id: 'onShowQuestionPromptComplete',
+              //   src: 'onShowQuestionPromptComplete',
+              //   onDone: 'Responding',
+              // },
+            },
+            // Responding: {
+            //   invoke: {
+            //     id: 'onResponseComplete',
+            //     src: 'onResponseComplete',
+            //     onDone: 'Reviewing',
             //   },
             // },
-          },
-          OnQuestion: {
-            initial: 'Presenting',
-            // onDone: [
-            //   {
-            //     target: 'AwaitingQuestion',
-            //     cond: 'hasMoreQuestions',
+            // Reviewing: {
+            //   invoke: {
+            //     id: 'onHostPressContinue',
+            //     src: 'onHostPressContinue',
+            //     onDone: 'Complete',
             //   },
-            //   {
-            //     target: 'Complete',
-            //   },
-            // ],
-            states: {
-              Presenting: {
-                // invoke: {
-                //   id: 'onShowQuestionPromptComplete',
-                //   src: 'onShowQuestionPromptComplete',
-                //   onDone: 'Responding',
-                // },
-              },
-              // Responding: {
-              //   invoke: {
-              //     id: 'onResponseComplete',
-              //     src: 'onResponseComplete',
-              //     onDone: 'Reviewing',
-              //   },
-              // },
-              // Reviewing: {
-              //   invoke: {
-              //     id: 'onHostPressContinue',
-              //     src: 'onHostPressContinue',
-              //     onDone: 'Complete',
-              //   },
-              // },
-              // Complete: {
-              //   type: 'final' as const,
-              // },
-            },
+            // },
+            // Complete: {
+            //   type: 'final' as const,
+            // },
           },
         },
       },
     },
   },
-  {
-    actions: {
-      pushQuestion: assign<TriviaJamSharedContext, FetchNextQuestionDoneEvent>({
-        questions: ({ questions }, event) => [...questions, event.data],
-      }),
-    },
-  }
-);
+});
 // AwaitingQuestion: {
 //   type: 'parallel',
 //   states: {

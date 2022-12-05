@@ -255,6 +255,7 @@ export const createSharedCollectionMachine = ({ machines }: CreateProps) => {
               machine = machine.withContext(initialContext);
             }
 
+            // why is this spawn and hydrate uses interpret?
             const actor = spawn(machine, actorId);
 
             saveActorState(db, rootPath, actorId, actor)
@@ -284,12 +285,12 @@ export const createSharedCollectionMachine = ({ machines }: CreateProps) => {
             const state = JSON.parse(stateJSON) as AnyState;
             const previousState = State.create(state);
 
-            const execute = actorId === myActorId; // only run actions/services on our own actor
+            // const execute = actorId === myActorId; // only run actions/services on our own actor
             const machine = machines[actorType] as AnyStateMachine;
             if (!machine) {
               throw new Error('couldnt find machine for ' + actorType);
             }
-            const actor = interpret(machine, { execute }).start(previousState);
+            const actor = interpret(machine).start(previousState);
 
             return {
               ...actorRefs,

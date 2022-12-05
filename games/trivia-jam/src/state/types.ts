@@ -1,5 +1,4 @@
 import { ActorRefFrom, StateFrom } from 'xstate';
-import { createTriviaJamPlayerMachine } from './trivia-jam-player.machine';
 import { createTriviaJamMachine } from './trivia-jam.machine';
 
 export type TriviaJamMachine = ReturnType<typeof createTriviaJamMachine>;
@@ -20,23 +19,6 @@ type CocoCouriersProps = {
 };
 
 export type GameProps = TriviaJamProps | CocoCouriersProps;
-
-interface ClosestValueQuestionData {
-  type: 'ClosestValue';
-  question: string;
-  answer: number;
-}
-
-interface FreeResponseQuestionData {
-  type: 'FreeResponse';
-  question: string;
-  answer: string;
-}
-
-export type QuestionData = { id: string } & (
-  | ClosestValueQuestionData
-  | FreeResponseQuestionData
-);
 
 export type ProfileData = {
   userId: string;
