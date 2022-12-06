@@ -1,18 +1,28 @@
 import { ComponentMeta, ComponentStory } from '@storybook/react';
-import { MultipleAnswerQuestion } from './multiple-answer-question.component';
+import { MultipleAnswerQuestionComponent } from './multiple-answer-question.component';
 
 const meta = {
-  component: MultipleAnswerQuestion,
-} as ComponentMeta<typeof MultipleAnswerQuestion>;
+  component: MultipleAnswerQuestionComponent,
+} as ComponentMeta<typeof MultipleAnswerQuestionComponent>;
 
-const Template: ComponentStory<typeof MultipleAnswerQuestion> = (args) => {
-  return <MultipleAnswerQuestion {...args} />;
+const Template: ComponentStory<typeof MultipleAnswerQuestionComponent> = (
+  args
+) => {
+  return <MultipleAnswerQuestionComponent {...args} />;
 };
 
 export const BasicExample = Template.bind({});
 
 BasicExample.args = {
-  question: 'Black bears are the best bears',
+  prompt: 'What are the best bears',
+  answers: [
+    'Black Bear',
+    'Teddy',
+    'Koala Bears',
+    'Gizzly Bears',
+    'Polar Bears',
+    'Panda Bears',
+  ],
 };
 
 export default meta;

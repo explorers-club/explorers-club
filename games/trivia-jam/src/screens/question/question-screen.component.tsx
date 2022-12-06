@@ -1,28 +1,25 @@
-import { Flex } from '@atoms/Flex';
-import { useSelector } from '@xstate/react';
 import { FC } from 'react';
-import { QuestionPrompt } from '../../components/question-prompt';
-import { QuestionScreenActor } from './question-screen.machine';
-import { useActorLogger } from "@explorers-club/actor";
+import { IQuestion } from '../../state/trivia-jam-shared.machine';
+import { MultipleAnswerQuestion } from './multiple-answer-question.container';
+import { MultipleChoiceQuestion } from './multiple-choice-question.container';
+import { TrueOrFalseQuestion } from './true-or-false-question.container';
+import { NumberInputQuestion } from './number-input-question.container';
+import { TextInputQuestion } from './text-input-question.container';
 
 interface Props {
-  actor: QuestionScreenActor;
+  question: IQuestion;
 }
 
-export const QuestionScreenComponent: FC<Props> = ({ actor }) => {
-  useActorLogger(actor);
-  const data = useSelector(actor, (state) => state.context.data);
-  if (!data) {
-    return <Flex>Loading</Flex>;
-  }
+const contentTypeIdToComponentMap = {
+  multipleChoice: MultipleChoiceQuestion,
+  multipleAnswer: MultipleAnswerQuestion,
+  trueOrFalse: TrueOrFalseQuestion,
+  numberInput: NumberInputQuestion,
+  textInput: TextInputQuestion,
+};
 
-  return (
-    <Flex>
-      <QuestionPrompt
-        eyebrow={'Round 1'}
-        question={data.question}
-        inputLabel={'Enter your guess'}
-      />
-    </Flex>
-  );
+export const QuestionScreenComponent: FC<Props> = ({ question }) => {
+  const contentTypeId = question.sys.contentType.sys.id;
+  const Component = contentTypeIdToComponentMap[contentTypeId];
+  return <Component />;
 };

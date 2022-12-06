@@ -1,21 +1,41 @@
 import { Flex } from '@atoms/Flex';
+import { Text } from '@atoms/Text';
 import { Heading } from '@atoms/Heading';
+import { RadioCardGroup, RadioCard } from '@molecules/RadioCard';
 import { FC } from 'react';
-import type { IMultipleChoiceFields } from '@explorers-club/contentful-types';
-import { Box } from '@atoms/Box';
 
-export const MultipleChoiceQuestion: FC<IMultipleChoiceFields> = ({
-  question,
-  correctAnswer,
-  incorrectAnswers,
+interface Props {
+  prompt: string;
+  answers: string[];
+}
+
+export const MultipleChoiceQuestionComponent: FC<Props> = ({
+  prompt,
+  answers,
 }) => {
-  const answers = [correctAnswer, ...incorrectAnswers];
   return (
     <Flex direction="column">
-      <Heading size="4">{question}</Heading>
-      <Flex direction="column">
-        {[answers.map((answer, index) => <Box key={index}>{answer}</Box>)]}
-      </Flex>
+      <Heading size="4">{prompt}</Heading>
+      <RadioCardGroup>
+        {[
+          answers.map((answer, index) => (
+            <RadioCard
+              key={index}
+              value={answer}
+              css={{ mb: '$2', width: '100%' }}
+            >
+              <Flex css={{ alignItems: 'center' }}>
+                <Text
+                  size="5"
+                  css={{ fontWeight: '500', lineHeight: '25px', mr: '$6' }}
+                >
+                  {answer}
+                </Text>
+              </Flex>
+            </RadioCard>
+          )),
+        ]}
+      </RadioCardGroup>
     </Flex>
   );
 };

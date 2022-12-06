@@ -1,15 +1,25 @@
 import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
-import { FC } from 'react';
-import type { IMultipleAnswerQuestionFields } from '@explorers-club/contentful-types';
+import { FC, useMemo } from 'react';
+import { CheckboxCard } from '@molecules/CheckboxCard';
 
-export const MultipleAnswerQuestion: FC<IMultipleAnswerQuestionFields> = ({
-  question,
+interface Props {
+  prompt: string;
+  answers: string[];
+}
+
+export const MultipleAnswerQuestionComponent: FC<Props> = ({
+  prompt,
+  answers,
 }) => {
-
   return (
-    <Flex>
-      <Heading size="4">{question}</Heading>
+    <Flex direction="column">
+      <Heading size="4">{prompt}</Heading>
+      <Flex direction="column">
+        {answers.map((answer) => {
+          return <CheckboxCard key={answer}>{answer}</CheckboxCard>;
+        })}
+      </Flex>
     </Flex>
   );
 };

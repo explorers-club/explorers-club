@@ -1,18 +1,20 @@
 import { ComponentMeta, ComponentStory } from '@storybook/react';
-import { NumberInputQuestion } from './number-input-question.component';
+import { NumberInputQuestionComponent } from './number-input-question.component';
 
 const meta = {
-  component: NumberInputQuestion,
-} as ComponentMeta<typeof NumberInputQuestion>;
+  component: NumberInputQuestionComponent,
+} as ComponentMeta<typeof NumberInputQuestionComponent>;
 
-const Template: ComponentStory<typeof NumberInputQuestion> = (args) => {
-  return <NumberInputQuestion {...args} />;
+const Template: ComponentStory<typeof NumberInputQuestionComponent> = (
+  args
+) => {
+  return <NumberInputQuestionComponent {...args} />;
 };
 
 export const BasicExample = Template.bind({});
 
 BasicExample.args = {
-  question: 'Black bears are the best bears',
+  prompt: 'Black bears are the best bears',
 };
 
 export default meta;

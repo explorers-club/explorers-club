@@ -1,9 +1,14 @@
 import {
   IMultipleAnswer,
   IMultipleChoice,
+  IMultipleChoiceFields,
+  IMultipleAnswerFields,
   INumberInput,
+  INumberInputFields,
   ITextInput,
+  ITextInputFields,
   ITrueOrFalse,
+  ITrueOrFalseFields,
 } from '@explorers-club/contentful-types';
 import {
   ActorRefFrom,
@@ -21,6 +26,13 @@ export type IQuestion =
   | INumberInput
   | ITextInput
   | ITrueOrFalse;
+
+export type IQuestionFields =
+  | IMultipleChoiceFields
+  | IMultipleAnswerFields
+  | INumberInputFields
+  | ITextInputFields
+  | ITrueOrFalseFields;
 
 const triviaJamSharedModel = createModel(
   {

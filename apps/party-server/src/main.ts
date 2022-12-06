@@ -395,7 +395,7 @@ const getCreateMachine: (actorType: ActorType) => CreateMachineFunction = (
       return createPartyMachine;
     case ActorType.PARTY_PLAYER_ACTOR:
       return createPartyPlayerMachine;
-    case ActorType.TRIVIA_JAM_ACTOR:
+    case ActorType.TRIVIA_JAM_SHARED_ACTOR:
       return createTriviaJamMachine;
     case ActorType.TRIVIA_JAM_PLAYER_ACTOR:
       return createTriviaJamPlayerMachine;
