@@ -6,6 +6,7 @@ import {
   StateFrom,
 } from 'xstate';
 import { createModel } from 'xstate/lib/model';
+import { IAnswer } from './types';
 
 const triviaJamPlayerModel = createModel(
   {
@@ -14,6 +15,9 @@ const triviaJamPlayerModel = createModel(
   {
     events: {
       CONTINUE: () => ({}),
+      SUBMIT_RESPONSE: (answer: IAnswer) => ({
+        answer,
+      }),
     },
   }
 );

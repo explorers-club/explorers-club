@@ -1,7 +1,7 @@
-import React from 'react';
 import * as Checkbox from '@radix-ui/react-checkbox';
-import { styled, CSS } from '../../stitches.config';
 import { CheckIcon } from '@radix-ui/react-icons';
+import React from 'react';
+import { CSS, styled } from '../../stitches.config';
 
 // export const ToggleCardGroup = styled(ToggleGroupPrimitive.Root, {
 //   display: 'block',

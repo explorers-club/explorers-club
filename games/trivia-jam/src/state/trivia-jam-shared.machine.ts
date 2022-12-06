@@ -1,16 +1,4 @@
 import {
-  IMultipleAnswer,
-  IMultipleChoice,
-  IMultipleChoiceFields,
-  IMultipleAnswerFields,
-  INumberInput,
-  INumberInputFields,
-  ITextInput,
-  ITextInputFields,
-  ITrueOrFalse,
-  ITrueOrFalseFields,
-} from '@explorers-club/contentful-types';
-import {
   ActorRefFrom,
   assign,
   ContextFrom,
@@ -19,20 +7,7 @@ import {
 } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { ModelEventsFrom } from 'xstate/lib/model.types';
-
-export type IQuestion =
-  | IMultipleChoice
-  | IMultipleAnswer
-  | INumberInput
-  | ITextInput
-  | ITrueOrFalse;
-
-export type IQuestionFields =
-  | IMultipleChoiceFields
-  | IMultipleAnswerFields
-  | INumberInputFields
-  | ITextInputFields
-  | ITrueOrFalseFields;
+import { IQuestion } from './types';
 
 const triviaJamSharedModel = createModel(
   {

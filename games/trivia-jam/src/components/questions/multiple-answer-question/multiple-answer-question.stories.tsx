@@ -3,6 +3,7 @@ import { MultipleAnswerQuestionComponent } from './multiple-answer-question.comp
 
 const meta = {
   component: MultipleAnswerQuestionComponent,
+  argTypes: { onSubmitResponse: { action: 'submitted' } },
 } as ComponentMeta<typeof MultipleAnswerQuestionComponent>;
 
 const Template: ComponentStory<typeof MultipleAnswerQuestionComponent> = (
