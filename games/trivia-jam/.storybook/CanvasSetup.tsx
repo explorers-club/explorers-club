@@ -22,6 +22,7 @@ export const CanvasSetup = ({
   ...restProps
 }: Props) => (
   <Canvas
+    style={{ height: '100vh' }}
     shadows
     camera={{ position: cameraPosition, fov: cameraFov }}
     {...restProps}
