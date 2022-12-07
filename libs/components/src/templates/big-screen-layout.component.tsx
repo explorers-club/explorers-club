@@ -1,6 +1,9 @@
 import { FC } from 'react';
 import { Flex } from '../atoms/Flex';
 import { Sheet } from '../atoms/Sheet';
+import { Text } from '../atoms/Text';
+import { Heading } from '../atoms/Heading';
+import { Caption } from '../atoms/Caption';
 
 type SideSheetProps = {
   open: boolean;
@@ -17,12 +20,16 @@ export const BigScreenLayout: FC<Props> = ({ leftSheet, rightSheet }) => {
     <Flex css={{ background: '$primary3', height: '100vh' }}>
       {leftSheet.open && (
         <SheetContainer fullScreen={leftSheet.fullScreen}>
-          Left SHeet
+          <Heading>Left Sheet</Heading>
+          <Text>Left Sheet</Text>
+          <Caption>My Left Caption</Caption>
         </SheetContainer>
       )}
       {rightSheet.open && (
         <SheetContainer fullScreen={rightSheet.fullScreen}>
-          Right SHeet
+          <Heading>Header!</Heading>
+          <Text>Right SHeet</Text>
+          <Caption>My Caption</Caption>
         </SheetContainer>
       )}
     </Flex>
