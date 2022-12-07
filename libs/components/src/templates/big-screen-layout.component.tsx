@@ -1,9 +1,9 @@
 import { FC } from 'react';
-import { Flex } from '../atoms/Flex';
-import { Sheet } from '../atoms/Sheet';
-import { Text } from '../atoms/Text';
-import { Heading } from '../atoms/Heading';
 import { Caption } from '../atoms/Caption';
+import { Flex } from '../atoms/Flex';
+import { Heading } from '../atoms/Heading';
+import { Sheet, SheetContent } from '../atoms/Sheet';
+import { Text } from '../atoms/Text';
 
 type SideSheetProps = {
   open: boolean;
@@ -18,29 +18,20 @@ interface Props {
 export const BigScreenLayout: FC<Props> = ({ leftSheet, rightSheet }) => {
   return (
     <Flex css={{ background: '$primary3', height: '100vh' }}>
-      {leftSheet.open && (
-        <SheetContainer fullScreen={leftSheet.fullScreen}>
+      <Sheet open={leftSheet.open}>
+        <SheetContent side="left">
           <Heading>Left Sheet</Heading>
           <Text>Left Sheet</Text>
           <Caption>My Left Caption</Caption>
-        </SheetContainer>
-      )}
-      {rightSheet.open && (
-        <SheetContainer fullScreen={rightSheet.fullScreen}>
+        </SheetContent>
+      </Sheet>
+      <Sheet open={rightSheet.open}>
+        <SheetContent side="right">
           <Heading>Header!</Heading>
           <Text>Right SHeet</Text>
           <Caption>My Caption</Caption>
-        </SheetContainer>
-      )}
+        </SheetContent>
+      </Sheet>
     </Flex>
   );
 };
-
-interface SheetContainerProps {
-  fullScreen: boolean;
-  children?: React.ReactNode;
-}
-
-const SheetContainer: FC<SheetContainerProps> = ({ children, fullScreen }) => (
-  <Sheet>{children}</Sheet>
-);
