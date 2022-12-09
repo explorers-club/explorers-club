@@ -58,16 +58,6 @@ export default async function (
   options: SmartComponentGeneratorSchema
 ) {
   const normalizedOptions = normalizeOptions(tree, options);
-  addProjectConfiguration(tree, normalizedOptions.projectName, {
-    root: normalizedOptions.projectRoot,
-    projectType: 'application',
-    sourceRoot: normalizedOptions.projectRoot + '/src',
-    targets: {
-      build: {
-        executor: '@explorers-club/local-generator-plugin:build',
-      },
-    },
-  });
   addFiles(tree, normalizedOptions);
   await formatFiles(tree);
 }
