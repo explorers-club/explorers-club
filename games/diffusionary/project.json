@@ -46,7 +46,7 @@
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "chromatic --project-token=$CHROMATIC_PROJECT_TOKEN_DIFFUSIONARY -d dist/storybook/diffusionary --auto-accept-changes --ci"
+          "chromatic --project-token=$CHROMATIC_PROJECT_TOKEN_DIFFUSIONARY -d dist/storybook/diffusionary --exit-once-uploaded --auto-accept-changes --ci"
         ]
       }
     }
