@@ -1,6 +1,6 @@
 {
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "games/trivia-jam/src",
+  "sourceRoot": "games/diffusionary/src",
   "projectType": "library",
   "tags": [],
   "targets": {
@@ -8,15 +8,7 @@
       "executor": "@nrwl/linter:eslint",
       "outputs": ["{options.outputFile}"],
       "options": {
-        "lintFilePatterns": ["games/trivia-jam/**/*.{ts,tsx,js,jsx}"]
-      }
-    },
-    "test": {
-      "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/games/trivia-jam"],
-      "options": {
-        "jestConfig": "games/trivia-jam/jest.config.ts",
-        "passWithNoTests": true
+        "lintFilePatterns": ["games/diffusionary/**/*.{ts,tsx,js,jsx}"]
       }
     },
     "storybook": {
@@ -25,7 +17,7 @@
         "uiFramework": "@storybook/react",
         "port": 4400,
         "config": {
-          "configFolder": "games/trivia-jam/.storybook"
+          "configFolder": "games/diffusionary/.storybook"
         }
       },
       "configurations": {
@@ -39,9 +31,9 @@
       "outputs": ["{options.outputPath}"],
       "options": {
         "uiFramework": "@storybook/react",
-        "outputPath": "dist/storybook/trivia-jam",
+        "outputPath": "dist/storybook/diffusionary",
         "config": {
-          "configFolder": "games/trivia-jam/.storybook"
+          "configFolder": "games/diffusionary/.storybook"
         }
       },
       "configurations": {
@@ -54,7 +46,7 @@
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "chromatic --project-token=$CHROMATIC_PROJECT_TOKEN_TRIVIA_JAM -d dist/storybook/trivia-jam --auto-accept-changes --ci"
+          "chromatic --project-token=$CHROMATIC_PROJECT_TOKEN_DIFFUSIONARY -d dist/storybook/diffusionary --auto-accept-changes --ci"
         ]
       }
     }

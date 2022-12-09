@@ -6,6 +6,7 @@
     "components": "libs/components",
     "contentful": "libs/contentful",
     "database": "libs/database",
+    "diffusionary": "games/diffusionary",
     "lobby": "libs/lobby",
     "local-generator-plugin": "tools/local-generator-plugin",
     "party": "libs/party",

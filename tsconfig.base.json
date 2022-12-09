@@ -23,6 +23,13 @@
         "libs/contentful/@types/generated/contentful"
       ],
       "@explorers-club/database": ["libs/database/src/index.ts"],
+      "@explorers-club/diffusionary/scene": [
+        "games/diffusionary/src/scene/index.ts"
+      ],
+      "@explorers-club/diffusionary/state": [
+        "games/diffusionary/src/state/index.ts"
+      ],
+      "@explorers-club/diffusionary/ui": ["games/diffusionary/src/ui/index.ts"],
       "@explorers-club/lobby": ["libs/lobby/src/index.ts"],
       "@explorers-club/local-generator-plugin": [
         "tools/local-generator-plugin/src/index.ts"
