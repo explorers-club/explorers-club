@@ -7,6 +7,11 @@
       "factory": "./src/generators/smart-component/generator",
       "schema": "./src/generators/smart-component/schema.json",
       "description": "smart-component generator"
+    },
+    "machine": {
+      "factory": "./src/generators/machine/generator",
+      "schema": "./src/generators/machine/schema.json",
+      "description": "machine generator"
     }
   }
 }

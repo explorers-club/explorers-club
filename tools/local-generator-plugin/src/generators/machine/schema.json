@@ -1,13 +1,13 @@
 {
   "$schema": "http://json-schema.org/schema",
   "cli": "nx",
-  "$id": "SmartComponent",
+  "$id": "Machine",
   "title": "",
   "type": "object",
   "properties": {
     "name": {
       "type": "string",
-      "description": "The name of the component.",
+      "description": "The name of the machine.",
       "$default": {
         "$source": "argv",
         "index": 0
@@ -16,8 +16,8 @@
     },
     "directory": {
       "type": "string",
-      "description": "The directory within src the component will go in.",
-      "x-prompt": "What sub-directory should this componeng go in?"
+      "description": "The directory within src the machine will go in.",
+      "x-prompt": "What sub-directory should this machine go in?"
     },
     "project": {
       "type": "string",
