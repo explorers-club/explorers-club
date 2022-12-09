@@ -24,6 +24,9 @@
       ],
       "@explorers-club/database": ["libs/database/src/index.ts"],
       "@explorers-club/lobby": ["libs/lobby/src/index.ts"],
+      "@explorers-club/local-generator-plugin": [
+        "tools/local-generator-plugin/src/index.ts"
+      ],
       "@explorers-club/party": ["libs/party/src/index.ts"],
       "@explorers-club/trivia-jam/scene": [
         "games/trivia-jam/src/scene/index.ts"

@@ -7,6 +7,7 @@
     "contentful": "libs/contentful",
     "database": "libs/database",
     "lobby": "libs/lobby",
+    "local-generator-plugin": "tools/local-generator-plugin",
     "party": "libs/party",
     "party-server": "apps/party-server",
     "trivia-jam": "games/trivia-jam",

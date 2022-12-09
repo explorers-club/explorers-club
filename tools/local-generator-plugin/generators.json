@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "name": "local-generator-plugin",
+  "version": "0.0.1",
+  "generators": {
+    "smart-component": {
+      "factory": "./src/generators/smart-component/generator",
+      "schema": "./src/generators/smart-component/schema.json",
+      "description": "smart-component generator"
+    }
+  }
+}
