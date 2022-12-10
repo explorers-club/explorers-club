@@ -16,6 +16,10 @@ export type <%= name %>Event = EventFrom<typeof <%= propertyName %>Model>;
 export const <%= propertyName %>Machine = createMachine({
   id: '<%= name %>Machine',
   initial: 'Loading',
+  schema: {
+    context: {} as <%= name %>Context,
+    events: {} as <%= name %>Event,
+  },
   states: {
     Loading: {},
   },
