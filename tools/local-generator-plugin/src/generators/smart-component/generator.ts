@@ -1,8 +1,6 @@
 import {
-  addProjectConfiguration,
   formatFiles,
   generateFiles,
-  getWorkspaceLayout,
   names,
   offsetFromRoot,
   readProjectConfiguration,
@@ -48,7 +46,7 @@ function addFiles(tree: Tree, options: NormalizedSchema) {
   generateFiles(
     tree,
     path.join(__dirname, 'files'),
-    options.projectSourceRoot,
+    options.projectSourceRoot + '/' + options.directory,
     templateOptions
   );
 }
