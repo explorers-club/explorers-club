@@ -1,6 +1,6 @@
 // From https://github.com/radix-ui/design-system/blob/master/components/Select.tsx
 import React from 'react';
-import { styled, CSS } from '../../stitches.config';
+import { styled, CSS } from '../stitches.config';
 import { CaretSortIcon } from '@radix-ui/react-icons';
 
 const SelectWrapper = styled('div', {

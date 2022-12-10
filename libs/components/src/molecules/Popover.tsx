@@ -1,5 +1,5 @@
 import React from 'react';
-import { styled, CSS } from '../../stitches.config';
+import { styled, CSS } from '../stitches.config';
 import * as PopoverPrimitive from '@radix-ui/react-popover';
 import { Box } from '../atoms/Box';
 import { panelStyles } from '../atoms/Panel';

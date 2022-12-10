@@ -1,4 +1,4 @@
-import { styled } from '@stitches/react';
+import { styled } from '../stitches.config';
 import { violet } from '@radix-ui/colors';
 
 export const Label = styled('label', {

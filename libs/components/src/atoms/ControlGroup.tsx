@@ -1,5 +1,5 @@
 // From github.com/radix-ui/design-system/blob/master/components/ControlGroup.tsx
-import { styled } from '../../stitches.config';
+import { styled } from '../stitches.config';
 import { Button } from './Button';
 import { TextField } from './TextField';
 import { Select } from './Select';
