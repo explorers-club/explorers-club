@@ -38,6 +38,10 @@ export const getActorType = (actorId: ActorID) => {
       return ActorType.LOBBY_PLAYER_ACTOR;
     case !!actorId.match('LobbyShared-'):
       return ActorType.LOBBY_SHARED_ACTOR;
+    case !!actorId.match('DiffusionaryPlayer-'):
+      return ActorType.DIFFUSIONARY_PLAYER_ACTOR;
+    case !!actorId.match('DiffusionaryShared-'):
+      return ActorType.DIFFUSIONARY_SHARED_ACTOR;
     default:
       throw new Error("couldn't find actor type for " + actorId);
   }
@@ -60,6 +64,10 @@ export const getActorId: (actorType: ActorType, uniqueId: string) => ActorID = (
       return `LobbyPlayer-${uniqueId}`;
     case ActorType.LOBBY_SHARED_ACTOR:
       return `LobbyShared-${uniqueId}`;
+    case ActorType.DIFFUSIONARY_PLAYER_ACTOR:
+      return `DiffusionaryPlayer-${uniqueId}`;
+    case ActorType.DIFFUSIONARY_SHARED_ACTOR:
+      return `DiffusionaryShared-${uniqueId}`;
     default:
       throw new Error(`Non-existent actor type in switch: ${actorType}`);
   }
@@ -91,3 +99,9 @@ export const unwrapEvent = <
 
   return event as T;
 };
+
+// export type ServicesFrom<T> = ReturnType<T> extends R ? R 
+
+// export function createServices(services: unknown) {
+//   return services as T;
+// }

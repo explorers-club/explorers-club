@@ -1,5 +1,4 @@
 import { AnyEventObject, AnyState, AnyStateMachine } from 'xstate';
-import { SharedCollectionActor } from './shared-collection.machine';
 
 export type CreateMachineFunction = (
   props: SharedMachineProps
@@ -14,6 +13,8 @@ export enum ActorType {
   TRIVIA_JAM_PLAYER_ACTOR = 'TRIVIA_JAM_PLAYER_ACTOR',
   LOBBY_SHARED_ACTOR = 'LOBBY_SHARED_ACTOR',
   LOBBY_PLAYER_ACTOR = 'LOBBY_PLAYER_ACTOR',
+  DIFFUSIONARY_SHARED_ACTOR = 'DIFFUSIONARY_SHARED_ACTOR',
+  DIFFUSIONARY_PLAYER_ACTOR = 'DIFFUSIONARY_PLAYER_ACTOR',
 }
 
 export enum ActorEventType {
