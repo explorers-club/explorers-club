@@ -2,11 +2,16 @@ import {
   ActorType,
   createSharedCollectionMachine,
   getActorId,
+  SharedCollectionActor,
+  SharedCollectionEvents,
 } from '@explorers-club/actor';
 import { useInterpret, useSelector } from '@xstate/react';
-import { FC, useMemo } from 'react';
+import { FC, useEffect, useMemo } from 'react';
 import { MainComponent } from './main.component';
-import { diffusionaryPlayerMachine } from './state/diffusionary-player.machine';
+import {
+  DiffusionaryPlayerActor,
+  diffusionaryPlayerMachine,
+} from './state/diffusionary-player.machine';
 import {
   DiffusionarySharedActor,
   diffusionarySharedMachine,
@@ -53,14 +58,53 @@ export const Main: FC<Props> = ({ gameInstanceId, userId }) => {
         | undefined
   );
 
+  const myActor = useSelector(
+    sharedCollectionActor,
+    (state) =>
+      state.context.actorRefs[myActorId] as DiffusionaryPlayerActor | undefined
+  );
+
   if (!sharedActor) {
     return null;
   }
 
+  const SpawnMyActorComponent =
+    userId && !myActor ? (
+      <SpawnMyActor
+        sharedCollectionActor={sharedCollectionActor}
+        userId={userId}
+      />
+    ) : null;
+
   return (
-    <MainComponent
-      sharedCollectionActor={sharedCollectionActor}
-      sharedActor={sharedActor}
-    />
+    <>
+      <MainComponent
+        sharedCollectionActor={sharedCollectionActor}
+        sharedActor={sharedActor}
+      />
+      {SpawnMyActorComponent}
+    </>
   );
+};
+
+interface SpawnMyActorProps {
+  sharedCollectionActor: SharedCollectionActor;
+  userId?: string;
+}
+
+const SpawnMyActor: FC<SpawnMyActorProps> = ({
+  sharedCollectionActor,
+  userId,
+}) => {
+  useEffect(() => {
+    if (userId) {
+      sharedCollectionActor.send(
+        SharedCollectionEvents.SPAWN(
+          getActorId(ActorType.DIFFUSIONARY_PLAYER_ACTOR, userId)
+        )
+      );
+    }
+  }, [sharedCollectionActor, userId]);
+
+  return null;
 };
