@@ -9,7 +9,7 @@ export const TextField = styled('input', {
   margin: '0',
   outline: 'none',
   padding: '0',
-  WebkitTapHighlightColor: 'rgba(0,0,0,0)',
+  // WebkitTapHighlightColor: 'rgba(0,0,0,0)',
   '&::before': {
     boxSizing: 'border-box',
   },
@@ -19,22 +19,19 @@ export const TextField = styled('input', {
 
   // Custom
   backgroundColor: '$primary3',
+  border: '$primary6',
+  borderStyle: 'solid',
   // boxShadow: 'inset 0 0 0 1px $colors$slate7',
   color: '$neutral12',
   fontVariantNumeric: 'tabular-nums',
 
-  '&:-webkit-autofill': {
-    // boxShadow: 'inset 0 0 0 1px $colors$blue6, inset 0 0 0 100px $colors$blue3',
-  },
+  '&:-webkit-autofill': {},
 
-  '&:-webkit-autofill::first-line': {
-    // fontFamily: '$untitled',
-    // color: '$hiContrast',
-  },
+  '&:-webkit-autofill::first-line': {},
 
   '&:focus': {
-    backgroundColor: '$neutral5',
-    border: '2px solid $primary7',
+    backgroundColor: '$primary4',
+    borderColor: '$primary7',
     // boxShadow:
     //   'inset 0px 0px 0px 1px $colors$blue8, 0px 0px 0px 1px $colors$blue8',
     // '&:-webkit-autofill': {
@@ -43,23 +40,11 @@ export const TextField = styled('input', {
     // },
   },
   '&::placeholder': {
+    color: '$neutral11',
     // color: '$slate9',
   },
-  '&:disabled': {
-    // pointerEvents: 'none',
-    // backgroundColor: '$slate2',
-    // color: '$slate8',
-    // cursor: 'not-allowed',
-    // '&::placeholder': {
-    //   color: '$slate7',
-    // },
-  },
-  '&:read-only': {
-    // backgroundColor: '$slate2',
-    // '&:focus': {
-    //   boxShadow: 'inset 0px 0px 0px 1px $colors$slate7',
-    // },
-  },
+  '&:disabled': {},
+  '&:read-only': {},
 
   variants: {
     size: {
@@ -90,26 +75,26 @@ export const TextField = styled('input', {
       },
     },
     variant: {
-      ghost: {
-        boxShadow: 'none',
-        backgroundColor: 'transparent',
-        '@hover': {
-          '&:hover': {
-            boxShadow: 'inset 0 0 0 1px $colors$slateA7',
-          },
-        },
-        '&:focus': {
-          backgroundColor: '$loContrast',
-          boxShadow:
-            'inset 0px 0px 0px 1px $colors$blue8, 0px 0px 0px 1px $colors$blue8',
-        },
-        '&:disabled': {
-          backgroundColor: 'transparent',
-        },
-        '&:read-only': {
-          backgroundColor: 'transparent',
-        },
-      },
+      // ghost: {
+      //   boxShadow: 'none',
+      //   backgroundColor: 'transparent',
+      //   '@hover': {
+      //     '&:hover': {
+      //       boxShadow: 'inset 0 0 0 1px $colors$slateA7',
+      //     },
+      //   },
+      //   '&:focus': {
+      //     backgroundColor: '$loContrast',
+      //     boxShadow:
+      //       'inset 0px 0px 0px 1px $colors$blue8, 0px 0px 0px 1px $colors$blue8',
+      //   },
+      //   '&:disabled': {
+      //     backgroundColor: 'transparent',
+      //   },
+      //   '&:read-only': {
+      //     backgroundColor: 'transparent',
+      //   },
+      // },
     },
     state: {
       invalid: {
