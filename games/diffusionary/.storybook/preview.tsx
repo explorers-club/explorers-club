@@ -1,10 +1,13 @@
 // Theme setup from: https://storybook.js.org/blog/how-to-add-a-theme-switcher-to-storybook/
 import { DecoratorFn } from '@storybook/react';
 import React from 'react';
-import { Box } from '../src/atoms/Box';
+import { Box } from '../../../libs/components/src/atoms/Box';
 
 // import { GlobalStyle } from '../src/styles/GlobalStyle';
-import { theme as lightTheme, darkTheme } from '../src/stitches.config';
+import {
+  darkTheme,
+  theme as lightTheme,
+} from '../../../libs/components/src/stitches.config';
 
 const withTheme: DecoratorFn = (StoryFn, context) => {
   const theme = context.parameters.theme || context.globals.theme;

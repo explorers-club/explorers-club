@@ -31,11 +31,11 @@ export const EnterNameForm: FC<Props> = ({ formActor }) => {
   );
 
   return (
-    <Box css={{ p: '$3' }}>
+    <Box css={{ p: '$3', backgroundColor: '$primary1', height: '100vh' }}>
       <form onSubmit={handleSubmit}>
         <Flex css={{ fd: 'column', gap: '$2', alignItems: 'center' }}>
           <Heading size="2">Enter a name</Heading>
-          <Subheading size="2"></Subheading>
+          <Subheading size="2">Pick a good one</Subheading>
           <TextField
             ref={nameRef}
             type="text"
@@ -43,7 +43,7 @@ export const EnterNameForm: FC<Props> = ({ formActor }) => {
             placeholder="inspectorT"
             onChange={handleChangeName}
           />
-          <Button size="3" color="blue" fullWidth>
+          <Button size="3" fullWidth>
             Submit
           </Button>
         </Flex>

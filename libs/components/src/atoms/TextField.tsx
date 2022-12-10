@@ -18,45 +18,47 @@ export const TextField = styled('input', {
   },
 
   // Custom
-  backgroundColor: '$loContrast',
-  boxShadow: 'inset 0 0 0 1px $colors$slate7',
-  color: '$hiContrast',
+  backgroundColor: '$primary3',
+  // boxShadow: 'inset 0 0 0 1px $colors$slate7',
+  color: '$neutral12',
   fontVariantNumeric: 'tabular-nums',
 
   '&:-webkit-autofill': {
-    boxShadow: 'inset 0 0 0 1px $colors$blue6, inset 0 0 0 100px $colors$blue3',
+    // boxShadow: 'inset 0 0 0 1px $colors$blue6, inset 0 0 0 100px $colors$blue3',
   },
 
   '&:-webkit-autofill::first-line': {
-    fontFamily: '$untitled',
-    color: '$hiContrast',
+    // fontFamily: '$untitled',
+    // color: '$hiContrast',
   },
 
   '&:focus': {
-    boxShadow:
-      'inset 0px 0px 0px 1px $colors$blue8, 0px 0px 0px 1px $colors$blue8',
-    '&:-webkit-autofill': {
-      boxShadow:
-        'inset 0px 0px 0px 1px $colors$blue8, 0px 0px 0px 1px $colors$blue8, inset 0 0 0 100px $colors$blue3',
-    },
+    backgroundColor: '$neutral5',
+    border: '2px solid $primary7',
+    // boxShadow:
+    //   'inset 0px 0px 0px 1px $colors$blue8, 0px 0px 0px 1px $colors$blue8',
+    // '&:-webkit-autofill': {
+    //   boxShadow:
+    //     'inset 0px 0px 0px 1px $colors$blue8, 0px 0px 0px 1px $colors$blue8, inset 0 0 0 100px $colors$blue3',
+    // },
   },
   '&::placeholder': {
-    color: '$slate9',
+    // color: '$slate9',
   },
   '&:disabled': {
-    pointerEvents: 'none',
-    backgroundColor: '$slate2',
-    color: '$slate8',
-    cursor: 'not-allowed',
-    '&::placeholder': {
-      color: '$slate7',
-    },
+    // pointerEvents: 'none',
+    // backgroundColor: '$slate2',
+    // color: '$slate8',
+    // cursor: 'not-allowed',
+    // '&::placeholder': {
+    //   color: '$slate7',
+    // },
   },
   '&:read-only': {
-    backgroundColor: '$slate2',
-    '&:focus': {
-      boxShadow: 'inset 0px 0px 0px 1px $colors$slate7',
-    },
+    // backgroundColor: '$slate2',
+    // '&:focus': {
+    //   boxShadow: 'inset 0px 0px 0px 1px $colors$slate7',
+    // },
   },
 
   variants: {

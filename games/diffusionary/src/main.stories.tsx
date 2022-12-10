@@ -187,3 +187,7 @@ Primary.play = async (context) => {
   // mainHostActor.send(TriviaJamPlayerEvents.CONTINUE());
   // console.log('sent');
 };
+
+Primary.parameters = {
+  layout: 'fullscreen',
+};

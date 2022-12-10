@@ -4,7 +4,6 @@ export const rootMain: StorybookConfig = {
   stories: [],
   addons: [
     '@storybook/addon-essentials',
-    'storybook-xstate-addon/preset',
     '@storybook/addon-storysource',
     '@storybook/addon-interactions',
   ],
