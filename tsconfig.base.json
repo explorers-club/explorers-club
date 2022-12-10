@@ -17,7 +17,6 @@
     "baseUrl": ".",
     "paths": {
       "@atoms/*": ["libs/components/src/atoms/*"],
-      "@explorers-club/styles": ["libs/components/src/stitches.config.ts"],
       "@explorers-club/actor": ["libs/actor/src/index.ts"],
       "@explorers-club/contentful": ["libs/contentful/src/index.ts"],
       "@explorers-club/contentful-types": [
@@ -36,6 +35,7 @@
         "tools/local-generator-plugin/src/index.ts"
       ],
       "@explorers-club/party": ["libs/party/src/index.ts"],
+      "@explorers-club/styles": ["libs/components/src/stitches.config.ts"],
       "@explorers-club/trivia-jam/scene": [
         "games/trivia-jam/src/scene/index.ts"
       ],

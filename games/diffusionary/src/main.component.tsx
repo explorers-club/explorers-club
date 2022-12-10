@@ -1,20 +1,38 @@
-import { Flex } from '@atoms/Flex';
-import { selectMyActor, SharedCollectionActor } from '@explorers-club/actor';
-import { useSelector } from '@xstate/react';
-import { FC, useCallback } from 'react';
+import { useInterpret, useSelector } from '@xstate/react';
+import { useContext, useMemo } from 'react';
+import { MainContext } from './main.context';
+import { MainMachine, mainMachine } from './main.machine';
 import { EnterNameScreen } from './screens/enter-name-screen.container';
-import { DiffusionaryPlayerActor } from './state/diffusionary-player.machine';
-import { DiffusionarySharedActor } from './state/diffusionary-shared.machine';
 
-interface Props {
-  sharedCollectionActor: SharedCollectionActor;
-  sharedActor: DiffusionarySharedActor;
-}
+export const MainComponent = () => {
+  const { sharedCollectionActor, userId } = useContext(MainContext);
+  const machine = useMemo(() => {
+    return mainMachine.withContext({
+      sharedCollectionActor,
+      userId,
+    }) as MainMachine;
+  }, [sharedCollectionActor, userId]);
 
-export const MainComponent: FC<Props> = ({
-  sharedCollectionActor,
-  sharedActor,
-}) => {
+  const actor = useInterpret(machine);
+  const state = useSelector(actor, (state) => state);
+
+  switch (true) {
+    case state.matches('EnteringName'): {
+      return <EnterNameScreen />;
+    }
+    default: {
+      return null;
+    }
+  }
+
+  // const myActor = useSelector(
+  //   sharedCollectionActor,
+  //   selectMyActor<DiffusionaryPlayerActor>
+  // );
+
+  // console.log({ myActor });
+
+  // return <EnterNameScreen />;
   // What is it safe to assume here?
   // We can assume we have a shared collection actor,
   // we can assume we have a user id (if we're goign to have one)
@@ -27,7 +45,7 @@ export const MainComponent: FC<Props> = ({
   // );
 
   // const hasName = useSelector(myActor, (state) => state.context.playerName);
-  return <EnterNameScreen />;
+  // return <EnterNameScreen />;
 
   // switch (true) {
   //   case nameRequired: {

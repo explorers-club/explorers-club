@@ -7,13 +7,20 @@ import {
   selectMyActor,
   SharedCollectionEvents,
 } from '@explorers-club/actor';
+import { useEffect } from '@storybook/addons';
 import { Meta, Story } from '@storybook/react';
+import { useInterpret } from '@xstate/react';
+import { set, ref } from 'firebase/database';
+import { useMemo } from 'react';
 import { createSelector } from 'reselect';
+import { noop } from 'rxjs';
 import { interpret } from 'xstate';
 import { waitFor } from 'xstate/lib/waitFor';
 import { Main } from './main.container';
+import { MainContext } from './main.context';
 import {
   DiffusionaryPlayerActor,
+  DiffusionaryPlayerContext,
   diffusionaryPlayerMachine,
 } from './state/diffusionary-player.machine';
 import {
@@ -40,17 +47,35 @@ export default { component: Main } as Meta;
 type MainComponentStory = Story<{
   gameInstanceId: string;
   userId: string;
-  otherPlayerIds: string[];
+  players: Record<string, DiffusionaryPlayerContext>;
 }>;
 
-export const Primary: MainComponentStory = (args) => {
-  return <Main {...args} />;
+export const Primary: MainComponentStory = ({ userId, gameInstanceId }) => {
+  useMemo(() => {
+    // Hack way of resetting the db each iterations...
+    set(ref(db), null).then(noop);
+  }, []);
+
+  return <Main gameInstanceId={gameInstanceId} userId={userId} />;
 };
 
 Primary.args = {
   gameInstanceId: '12345-abcd',
-  userId: 'buzbar',
-  otherPlayerIds: ['foo', 'bar', 'buz'],
+  userId: 'buzzbar',
+  players: {
+    foo: {
+      playerName: 'Ms. Foo',
+    },
+    bar: {
+      playerName: 'Mr. Bar',
+    },
+    buzz: {
+      playerName: 'Mrs. Buzz',
+    },
+    buzzbar: {
+      playerName: undefined,
+    },
+  },
 };
 
 Primary.play = async (context) => {
@@ -96,22 +121,22 @@ Primary.play = async (context) => {
   };
 
   const myUserId = context.args.userId;
-  const playerUserIds = [...context.args.otherPlayerIds, myUserId];
+  const playerUserIds = Object.keys(context.args.players);
 
   // Spawn the shared collection and wait until it exists
   const sharedCollectionActor = interpret(
     sharedCollectionMachine.withContext(initialCollectionContext)
   ).start();
   await waitFor(sharedCollectionActor, selectActorsInitialized);
+
+  // Initialize shared actor, normally this would be done by the lobby actor when a game is started
+  const scoresByUserId: Record<string, number> = {};
+  playerUserIds.forEach((userId) => (scoresByUserId[userId] = 0));
+
   const initialSharedContext: DiffusionarySharedContext = {
     playerUserIds,
-    scoresByUserId: {
-      foo: 0,
-      bar: 0,
-      buzbar: 0,
-      buzz: 0,
-    },
-    currentPlayer: 'foo',
+    currentPlayer: playerUserIds[0],
+    scoresByUserId,
     currentRound: 1,
   };
   sharedCollectionActor.send(
@@ -134,9 +159,7 @@ Primary.play = async (context) => {
         return;
       }
 
-      const context = {
-        playerName: userId,
-      };
+      const initialPlayerContext = context.args.players[userId];
 
       // Create a unique shared collection actor for each player
       // to simulate spawning from their own clients
@@ -149,8 +172,9 @@ Primary.play = async (context) => {
       playerSharedCollectionActor.start();
 
       await waitFor(playerSharedCollectionActor, selectActorsInitialized);
+      // console.log('SPAWNING!', actorId, initialPlayerContext);
       playerSharedCollectionActor.send(
-        SharedCollectionEvents.SPAWN(actorId, context)
+        SharedCollectionEvents.SPAWN(actorId, initialPlayerContext)
       );
 
       return selectMyActor<DiffusionaryPlayerActor>(
@@ -173,8 +197,6 @@ Primary.play = async (context) => {
 
   // Mark all player actors as ready except our own actor
   const otherPlayerActorsByUserId = await spawnFakePlayerActors();
-
-  console.log(otherPlayerActorsByUserId);
 
   // Object.entries(otherPlayerActorsByUserId).forEach(([_, actor]) => {
   //   actor?.send(TriviaJamPlayerEvents.CONTINUE()); // todo fix type on spawn fake player actors

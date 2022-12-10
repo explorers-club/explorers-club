@@ -18,7 +18,7 @@ export function createFormModel<T>(defaultValues: T) {
 }
 
 interface FormServices<TValues> {
-  handleSubmit: (values: TValues) => Promise<boolean>;
+  handleSubmit: (values: TValues) => Promise<TValues>;
 }
 
 export function createFormModelAndMachine<T>(

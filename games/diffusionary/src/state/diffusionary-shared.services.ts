@@ -1,11 +1,54 @@
-import { SharedCollectionActor } from '@explorers-club/actor';
+import {
+  ActorType,
+  getActorId,
+  SharedCollectionActor,
+} from '@explorers-club/actor';
+import { selectPlayerIsReady } from '../state/diffusionary-player.selectors';
 import { sleep } from '@explorers-club/utils';
+import {
+  combineLatest,
+  filter,
+  firstValueFrom,
+  from,
+  map,
+  switchMap,
+  take,
+} from 'rxjs';
+import { DiffusionaryPlayerActor } from './diffusionary-player.machine';
 
+// TODO could DRY up with trivia jam
+// just need to pull out the isReady selector
 export const onAllPlayersReady = async (
   sharedCollectionActor: SharedCollectionActor,
   playerUserIds: string[]
 ) => {
-  await sleep(3000);
+  const sharedCollectionState$ = from(sharedCollectionActor);
+  const allPlayersReady$ = sharedCollectionState$.pipe(
+    switchMap(({ context }) => {
+      const playerObservables = playerUserIds
+        .map((userId) => {
+          const actorId = getActorId(
+            ActorType.DIFFUSIONARY_PLAYER_ACTOR,
+            userId
+          );
+          return context.actorRefs[actorId] as DiffusionaryPlayerActor;
+        })
+        .filter((actor) => !!actor)
+        .map((actor) => from(actor));
+      return combineLatest(playerObservables);
+    }),
+    filter(
+      (playerStates) =>
+        playerStates.filter((state) => {
+          return selectPlayerIsReady(state);
+        }).length === playerUserIds.length
+    ),
+    map(() => ({
+      type: 'ALL_PLAYERS_READY' as const,
+    })),
+    take(1)
+  );
+  return await firstValueFrom(allPlayersReady$);
 };
 
 export const onPlayerEnterPrompt = async () => {

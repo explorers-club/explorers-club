@@ -1,3 +1,4 @@
+import { unwrapEvent } from '@explorers-club/actor';
 import {
   ActorRefFrom,
   ContextFrom,
@@ -5,6 +6,7 @@ import {
   EventFrom,
   StateFrom,
 } from 'xstate';
+import { assign } from 'xstate/lib/actions';
 import { createModel } from 'xstate/lib/model';
 
 const diffusionaryPlayerModel = createModel(
@@ -29,6 +31,19 @@ export const diffusionaryPlayerMachine = createMachine({
   initial: 'Loading',
   schema: {
     context: {} as DiffusionaryPlayerContext,
+  },
+  on: {
+    SET_PLAYER_NAME: {
+      actions: assign({
+        playerName: (_, event) => {
+          const { name } = unwrapEvent<DiffusionaryPlayerEvent>(
+            event,
+            'SET_PLAYER_NAME'
+          );
+          return name;
+        },
+      }),
+    },
   },
   states: {
     Loading: {

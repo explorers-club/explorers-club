@@ -1,4 +1,3 @@
-import { createServices } from '@explorers-club/actor';
 import {
   ActorRefFrom,
   ContextFrom,
@@ -8,15 +7,12 @@ import {
 } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 
-const diffusionarySharedModel = createModel(
-  {
-    playerUserIds: [] as string[],
-    scoresByUserId: {} as Record<string, number>,
-    currentPlayer: undefined as string | undefined,
-    currentRound: 1 as number,
-  },
-  {}
-);
+const diffusionarySharedModel = createModel({
+  playerUserIds: [] as string[],
+  scoresByUserId: {} as Record<string, number>,
+  currentPlayer: undefined as string | undefined,
+  currentRound: 1 as number,
+});
 
 export const DiffusionarySharedEvents = diffusionarySharedModel.events;
 export type DiffusionarySharedContext = ContextFrom<
@@ -29,7 +25,7 @@ export type DiffusionarySharedEvent = EventFrom<typeof diffusionarySharedModel>;
 // })
 
 export type DiffusionarySharedServices = {
-  onAllPlayersReady: () => Promise<void>;
+  onAllPlayersReady: () => Promise<{ type: 'ALL_PLAYERS_READY' }>;
   onPlayerEnterPrompt: () => Promise<void>;
 };
 

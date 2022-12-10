@@ -6,8 +6,9 @@ import {
   SharedCollectionEvents,
 } from '@explorers-club/actor';
 import { useInterpret, useSelector } from '@xstate/react';
-import { FC, useEffect, useMemo } from 'react';
+import { FC, useContext, useEffect, useMemo } from 'react';
 import { MainComponent } from './main.component';
+import { MainContext } from './main.context';
 import {
   DiffusionaryPlayerActor,
   diffusionaryPlayerMachine,
@@ -58,53 +59,47 @@ export const Main: FC<Props> = ({ gameInstanceId, userId }) => {
         | undefined
   );
 
-  const myActor = useSelector(
-    sharedCollectionActor,
-    (state) =>
-      state.context.actorRefs[myActorId] as DiffusionaryPlayerActor | undefined
-  );
-
   if (!sharedActor) {
     return null;
   }
 
-  const SpawnMyActorComponent =
-    userId && !myActor ? (
-      <SpawnMyActor
-        sharedCollectionActor={sharedCollectionActor}
-        userId={userId}
-      />
-    ) : null;
-
   return (
-    <>
-      <MainComponent
-        sharedCollectionActor={sharedCollectionActor}
-        sharedActor={sharedActor}
-      />
-      {SpawnMyActorComponent}
-    </>
+    <MainContext.Provider
+      value={{
+        sharedCollectionActor,
+        userId,
+      }}
+    >
+      <MainComponent />
+    </MainContext.Provider>
   );
 };
 
-interface SpawnMyActorProps {
-  sharedCollectionActor: SharedCollectionActor;
-  userId?: string;
-}
+// const playerInitialContext = {
+//   playerName: undefined,
+// };
 
-const SpawnMyActor: FC<SpawnMyActorProps> = ({
-  sharedCollectionActor,
-  userId,
-}) => {
-  useEffect(() => {
-    if (userId) {
-      sharedCollectionActor.send(
-        SharedCollectionEvents.SPAWN(
-          getActorId(ActorType.DIFFUSIONARY_PLAYER_ACTOR, userId)
-        )
-      );
-    }
-  }, [sharedCollectionActor, userId]);
+// const SpawnMyActor = () => {
+//   const { userId, sharedCollectionActor } = useContext(MainContext);
+//   const myActor = useSelector(
+//     sharedCollectionActor,
+//     (state) =>
+//       userId &&
+//       (state.context.actorRefs[
+//         getActorId(ActorType.DIFFUSIONARY_PLAYER_ACTOR, userId)
+//       ] as DiffusionaryPlayerActor | undefined)
+//   );
 
-  return null;
-};
+//   useEffect(() => {
+//     if (userId && !myActor) {
+//       sharedCollectionActor.send(
+//         SharedCollectionEvents.SPAWN(
+//           getActorId(ActorType.DIFFUSIONARY_PLAYER_ACTOR, userId),
+//           playerInitialContext
+//         )
+//       );
+//     }
+//   }, [sharedCollectionActor, userId, myActor]);
+
+//   return null;
+// };

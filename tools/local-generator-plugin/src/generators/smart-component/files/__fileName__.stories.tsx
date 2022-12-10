@@ -1,6 +1,6 @@
 import { ComponentStory, Meta } from '@storybook/react';
 import React from 'react';
-import { <%= name %>Component } from './<%= propertyName %>.component';
+import { <%= name %>Component } from './<%= fileName %>.component';
 
 export default { component: <%= name %> } as Meta;
 
