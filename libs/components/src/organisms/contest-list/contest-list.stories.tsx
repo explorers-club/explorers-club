@@ -4,7 +4,6 @@ import { ContestList } from './contest-list.component';
 
 export default {
   component: ContestList,
-  title: 'Organisms/Contest List',
   // argTypes: {
   //   as: {
   //     control: {
