@@ -1,6 +1,5 @@
 import { useMemo } from '@storybook/addons';
 import { Meta, Story } from '@storybook/react';
-import React from 'react';
 import { RenderMachine } from 'storybook-xstate-addon/RenderMachine';
 import {
   DiffusionaryPlayerContext,
@@ -21,5 +20,7 @@ const Template: Story<{ context: DiffusionaryPlayerContext }> = (args) => {
 export const Default = Template.bind({});
 
 Default.args = {
-  context: {},
+  context: {
+    playerName: undefined,
+  },
 };

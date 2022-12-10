@@ -1,3 +1,4 @@
+import { createServices } from '@explorers-club/actor';
 import {
   ActorRefFrom,
   ContextFrom,
@@ -9,8 +10,10 @@ import { createModel } from 'xstate/lib/model';
 
 const diffusionarySharedModel = createModel(
   {
-    currentTurnUserId: undefined as string | undefined,
-    scoresByUserId: {} as Record<number, string>,
+    playerUserIds: [] as string[],
+    scoresByUserId: {} as Record<string, number>,
+    currentPlayer: undefined as string | undefined,
+    currentRound: 1 as number,
   },
   {}
 );
@@ -21,53 +24,71 @@ export type DiffusionarySharedContext = ContextFrom<
 >;
 export type DiffusionarySharedEvent = EventFrom<typeof diffusionarySharedModel>;
 
-export const diffusionarySharedMachine = createMachine({
-  id: 'DiffusionarySharedMachine',
-  initial: 'Loading',
-  states: {
-    Loading: {
-      invoke: {
-        id: 'onAllPlayersLoaded',
-        src: 'onAllPlayersLoaded',
-        onDone: 'Playing',
-      },
-    },
-    Playing: {
-      initial: 'EnteringPrompt',
-      states: {
-        EnteringPrompt: {
-          invoke: {
-            id: 'onPlayerEnterPrompt',
-            src: 'onPlayerEnterPrompt',
-            onDone: 'Guessing',
-          },
-        },
-        Guessing: {
-          invoke: {
-            id: 'onCompleteRound',
-            src: 'onCompelteRound',
-            onDone: [
-              {
-                cond: 'isGameOver',
-                target: 'GameOver',
-              },
-              {
-                target: 'EnteringPrompt',
-              },
-            ],
-          },
-        },
-        GameOver: {
-          type: 'final' as const,
+// createServiceModel({
+//   onAllPlayersLoaded
+// })
+
+export type DiffusionarySharedServices = {
+  onAllPlayersReady: () => Promise<void>;
+  onPlayerEnterPrompt: () => Promise<void>;
+};
+
+export const diffusionarySharedMachine = createMachine(
+  {
+    id: 'DiffusionarySharedMachine',
+    initial: 'Loading',
+    states: {
+      Loading: {
+        invoke: {
+          id: 'onAllPlayersReady',
+          src: 'onAllPlayersReady',
+          onDone: 'Playing',
         },
       },
-      onDone: 'Summary',
-    },
-    Summary: {
-      type: 'final' as const,
+      Playing: {
+        initial: 'EnteringPrompt',
+        states: {
+          EnteringPrompt: {
+            invoke: {
+              id: 'onPlayerEnterPrompt',
+              src: 'onPlayerEnterPrompt',
+              onDone: 'Guessing',
+            },
+          },
+          Guessing: {
+            invoke: {
+              id: 'onPlayerSubmitResponse',
+              src: 'onPlayerSubmitResponse',
+              onDone: [
+                {
+                  cond: 'isGameOver',
+                  target: 'GameOver',
+                },
+                {
+                  target: 'EnteringPrompt',
+                },
+              ],
+            },
+          },
+          GameOver: {
+            type: 'final' as const,
+          },
+        },
+        onDone: 'Summary',
+      },
+      Summary: {
+        type: 'final' as const,
+      },
     },
   },
-});
+  {
+    guards: {
+      isGameOver: () => {
+        return false;
+      },
+    },
+  }
+);
 
 export type DiffusionarySharedMachine = typeof diffusionarySharedMachine;
 export type DiffusionarySharedActor = ActorRefFrom<DiffusionarySharedMachine>;
