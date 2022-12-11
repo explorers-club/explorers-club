@@ -37,7 +37,22 @@ Visit [explorers.club](https://explorers.club) to see the latest code running on
 
 ## Development
 
-Run the web app with `nx run web:serve`.
+Most of the code and website doesn't work yet. Most development currently is happening in storybooks.
+
+After you clone and install, you can run the storybooks with the following:
+
+#### Component Library Storybook
+`npx nx run components:storybook`
+
+#### Trivia Jam Game Storybook
+`npx nx run diffusionary:storybook`
+
+#### Diffusionary Game Storybook
+`npx nx run diffusionary:storybook`
+
+### Firebase Emulator
+
+To have the games working end to end, you may need to get access to firebase and run the firebase emulator localy with `firebase emulators:start`.
 
 ## Philosophy
 
