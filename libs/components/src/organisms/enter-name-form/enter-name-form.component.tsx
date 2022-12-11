@@ -31,7 +31,7 @@ export const EnterNameForm: FC<Props> = ({ formActor }) => {
   );
 
   return (
-    <Box css={{ p: '$3', backgroundColor: '$primary1', height: '100vh' }}>
+    <Box css={{ p: '$3', backgroundColor: '$primary1' }}>
       <form onSubmit={handleSubmit}>
         <Flex css={{ fd: 'column', gap: '$2', alignItems: 'center' }}>
           <Heading size="2">Enter a name</Heading>

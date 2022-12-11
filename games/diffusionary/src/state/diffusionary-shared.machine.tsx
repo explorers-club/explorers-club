@@ -33,6 +33,9 @@ export const diffusionarySharedMachine = createMachine(
   {
     id: 'DiffusionarySharedMachine',
     initial: 'Loading',
+    schema: {
+      context: {} as DiffusionarySharedContext,
+    },
     states: {
       Loading: {
         invoke: {

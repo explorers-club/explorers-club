@@ -1,3 +1,4 @@
+import { BottomSheet } from 'react-spring-bottom-sheet';
 import {
   ActorType,
   createActorByIdSelector,
@@ -34,8 +35,29 @@ import {
   onPlayerEnterPrompt,
 } from './state/diffusionary-shared.services';
 import { db } from './__test/emulator';
+import { defaultSnapProps } from 'react-spring-bottom-sheet/dist/types';
 
-export default { component: Main } as Meta;
+export default {
+  component: Main,
+  decorators: [
+    (Story: Story) => {
+      return (
+        <BottomSheet
+          open={true}
+          blocking={false}
+          defaultSnap={({ snapPoints }: defaultSnapProps) => snapPoints[0]}
+
+          snapPoints={({ minHeight }) => [minHeight]}
+          // expandOnContentDrag={true}
+          // footer={Footer && <Footer />}
+          // header={header}
+        >
+          <Story />
+        </BottomSheet>
+      );
+    },
+  ],
+} as Meta;
 
 // const sharedCollectionMachine = createSharedCollectionMachine({
 //   machines: {
