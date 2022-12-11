@@ -1,14 +1,13 @@
 import { selectSharedActor } from '@explorers-club/actor';
 import { useSelector } from '@xstate/react';
-import React, { useContext } from 'react';
+import { useContext } from 'react';
 import { MainContext } from '../main.context';
 import { DiffusionarySharedActor } from '../state/diffusionary-shared.machine';
-import { GameScreenComponent } from './game-screen.component';
 import { EnteringPromptScreen } from './entering-prompt-screen.container';
 import { GuessingScreen } from './guessing-screen.container';
 
 export const GameScreen = () => {
-  const { sharedCollectionActor, userId } = useContext(MainContext);
+  const { sharedCollectionActor } = useContext(MainContext);
 
   const sharedActor = useSelector(
     sharedCollectionActor,
@@ -28,8 +27,4 @@ export const GameScreen = () => {
       return null;
     }
   }
-
-  console.log({ userId, sharedActor });
-
-  return <GameScreenComponent />;
 };
