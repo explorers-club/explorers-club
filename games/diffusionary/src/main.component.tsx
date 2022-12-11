@@ -3,6 +3,7 @@ import { useContext, useMemo } from 'react';
 import { MainContext } from './main.context';
 import { MainMachine, mainMachine } from './main.machine';
 import { EnterNameScreen } from './screens/enter-name-screen.container';
+import { GameScreen } from './screens/game-screen.container';
 
 export const MainComponent = () => {
   const { sharedCollectionActor, userId } = useContext(MainContext);
@@ -19,6 +20,9 @@ export const MainComponent = () => {
   switch (true) {
     case state.matches('EnteringName'): {
       return <EnterNameScreen />;
+    }
+    case state.matches('Playing'): {
+      return <GameScreen />;
     }
     default: {
       return null;

@@ -4,21 +4,20 @@ import {
   selectActorsInitialized,
   selectMyActor,
   SharedCollectionActor,
-  SharedCollectionEvents,
+  SharedCollectionEvents
 } from '@explorers-club/actor';
-import { waitFor } from 'xstate/lib/waitFor';
+import { createSelector } from 'reselect';
+import { filter, firstValueFrom, from, take } from 'rxjs';
 import {
   ActorRefFrom,
   ContextFrom,
   createMachine,
   EventFrom,
-  StateFrom,
+  StateFrom
 } from 'xstate';
 import { createModel } from 'xstate/lib/model';
+import { waitFor } from 'xstate/lib/waitFor';
 import { DiffusionaryPlayerActor } from './state/diffusionary-player.machine';
-import { done } from 'xstate/lib/actions';
-import { filter, firstValueFrom, from, take, tap } from 'rxjs';
-import { createSelector } from 'reselect';
 
 const mainModel = createModel(
   {
@@ -61,7 +60,7 @@ export const mainMachine = createMachine(
             cond: 'hasNoName',
           },
           {
-            target: 'Idle',
+            target: 'Playing',
           },
         ],
       },
@@ -88,7 +87,7 @@ export const mainMachine = createMachine(
             await waitFor(sharedCollectionActor, selectActorIsInitialized);
             console.log('SPAWNED!');
           },
-          onDone: 'EnteringName',
+          onDone: 'Playing',
         },
       },
       EnteringName: {
@@ -107,10 +106,10 @@ export const mainMachine = createMachine(
             );
             return await firstValueFrom(onSetPlayerName$);
           },
-          onDone: 'Idle',
+          onDone: 'Playing',
         },
       },
-      Idle: {},
+      Playing: {},
     },
   },
   {
