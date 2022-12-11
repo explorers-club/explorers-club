@@ -1,7 +1,5 @@
-import { BottomSheet } from 'react-spring-bottom-sheet';
 import {
   ActorType,
-  createActorByIdSelector,
   createSharedCollectionMachine,
   getActorId,
   selectActorsInitialized,
@@ -9,17 +7,15 @@ import {
   selectSharedActor,
   SharedCollectionEvents,
 } from '@explorers-club/actor';
-import { useEffect } from '@storybook/addons';
 import { Meta, Story } from '@storybook/react';
-import { useInterpret } from '@xstate/react';
-import { set, ref } from 'firebase/database';
+import { ref, set } from 'firebase/database';
 import { useMemo } from 'react';
+import { BottomSheet } from 'react-spring-bottom-sheet';
 import { createSelector } from 'reselect';
 import { noop } from 'rxjs';
 import { interpret } from 'xstate';
 import { waitFor } from 'xstate/lib/waitFor';
 import { Main } from './main.container';
-import { MainContext } from './main.context';
 import {
   DiffusionaryPlayerActor,
   DiffusionaryPlayerContext,
@@ -35,28 +31,9 @@ import {
   onPlayerEnterPrompt,
 } from './state/diffusionary-shared.services';
 import { db } from './__test/emulator';
-import { defaultSnapProps } from 'react-spring-bottom-sheet/dist/types';
 
 export default {
   component: Main,
-  decorators: [
-    (Story: Story) => {
-      return (
-        <BottomSheet
-          open={true}
-          blocking={false}
-          defaultSnap={({ snapPoints }: defaultSnapProps) => snapPoints[0]}
-
-          snapPoints={({ minHeight }) => [minHeight]}
-          // expandOnContentDrag={true}
-          // footer={Footer && <Footer />}
-          // header={header}
-        >
-          <Story />
-        </BottomSheet>
-      );
-    },
-  ],
 } as Meta;
 
 // const sharedCollectionMachine = createSharedCollectionMachine({

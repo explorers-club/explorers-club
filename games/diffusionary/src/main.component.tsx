@@ -1,5 +1,7 @@
 import { useInterpret, useSelector } from '@xstate/react';
 import { FC, useContext, useMemo } from 'react';
+import { BottomSheet } from 'react-spring-bottom-sheet';
+import { defaultSnapProps } from 'react-spring-bottom-sheet/dist/types';
 import { MainContext } from './main.context';
 import { MainActor, MainMachine, mainMachine } from './main.machine';
 import { EnterNameScreen } from './screens/enter-name-screen.container';
@@ -18,7 +20,17 @@ export const MainComponent = () => {
 
   return (
     <>
-      <MainUIComponent actor={actor} />
+      <BottomSheet
+        open={true}
+        blocking={false}
+        defaultSnap={({ snapPoints }: defaultSnapProps) => snapPoints[0]}
+        snapPoints={({ minHeight }) => [minHeight]}
+        // expandOnContentDrag={true}
+        // footer={Footer && <Footer />}
+        // header={header}
+      >
+        <MainUIComponent actor={actor} />
+      </BottomSheet>
       <MainUIScene actor={actor} />
     </>
   );
