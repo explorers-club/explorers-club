@@ -15,7 +15,7 @@ export const Default = {
   render: () => (
     <Card css={{ p: '$3' }}>
       <Heading css={{ mb: '$2' }}>Explorers Club is a Play Company</Heading>
-      <Text size="3" css={{ color: '$slate11', lineHeight: '23px' }}>
+      <Text size="3" css={{ lineHeight: '23px' }}>
         This is a card. Use it anywhere you can use where typically would want a
         div/view but want some simple styling that fits with the theme. Cards
         are interactive and have hover / press visualizations.
@@ -28,7 +28,7 @@ export const Interactive = {
   render: () => (
     <Card as="a" href="#" css={{ p: '$3' }} variant="interactive">
       <Heading css={{ mb: '$2' }}>Explorers Club is a Play Company</Heading>
-      <Text size="3" css={{ color: '$slate11', lineHeight: '23px' }}>
+      <Text size="3" css={{ lineHeight: '23px' }}>
         This is a card. Use it anywhere you can use where typically would want a
         div/view but want some simple styling that fits with the theme. Cards
         are interactive and have hover / press visualizations.
@@ -44,12 +44,12 @@ export const Interactive = {
               mr: '$1',
             }}
           />
-          <Text size="2" css={{ color: '$slate11' }}>
+          <Text size="2">
             Inspector T
           </Text>
         </Flex>
         <Box>
-          <Text size="2" css={{ color: '$slate11' }}>
+          <Text size="2">
             May 2020
           </Text>
         </Box>
@@ -67,7 +67,7 @@ export const GhostInteractive = {
           css={{ br: '$1', mb: '$3' }}
         />
         <Heading css={{ mb: '$2' }}>Explorers Club is a Play Company</Heading>
-        <Text size="3" css={{ color: '$slate11', lineHeight: '23px' }}>
+        <Text size="3" css={{ lineHeight: '23px' }}>
           This is a card. Use it anywhere you can use where typically would want
           a div/view but want some simple styling that fits with the theme.
           Cards are interactive and have hover / press visualizations.
@@ -83,12 +83,12 @@ export const GhostInteractive = {
                 mr: '$1',
               }}
             />
-            <Text size="2" css={{ color: '$slate11' }}>
+            <Text size="2">
               Inspector T
             </Text>
           </Flex>
           <Box>
-            <Text size="2" css={{ color: '$slate11' }}>
+            <Text size="2">
               May 2020
             </Text>
           </Box>
@@ -107,7 +107,7 @@ export const GraphicHeader = {
           css={{ btlr: '$3', btrr: '$3' }}
         />
         <Box css={{ p: '$3' }}>
-          <Text size="3" css={{ color: '$slate11', lineHeight: '23px' }}>
+          <Text size="3" css={{ lineHeight: '23px' }}>
             This is a card. Use it anywhere you can use where typically would
             want a div/view but want some simple styling that fits with the
             theme. Cards are interactive and have hover / press visualizations.
@@ -123,12 +123,12 @@ export const GraphicHeader = {
                   mr: '$1',
                 }}
               />
-              <Text size="2" css={{ color: '$slate11' }}>
+              <Text size="2">
                 Inspector T
               </Text>
             </Flex>
             <Box>
-              <Text size="2" css={{ color: '$slate11' }}>
+              <Text size="2">
                 May 2020
               </Text>
             </Box>
@@ -145,7 +145,7 @@ export const Active = {
       <Text size="3" css={{ lineHeight: '23px', fontWeight: 500 }}>
         Default Variants
       </Text>
-      <Text size="3" css={{ color: '$slate11', lineHeight: '23px' }}>
+      <Text size="3" css={{ lineHeight: '23px' }}>
         Explorers Club, Limited.
       </Text>
     </Card>
