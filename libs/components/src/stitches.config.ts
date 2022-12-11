@@ -139,6 +139,14 @@ export const {
       info10: blue.blue10,
       info11: blue.blue11,
       info12: blue.blue12,
+
+      // Semantic colors, pulled from primary
+      background: '$primary1',
+      panel1: '$primary2',
+      panel2: '$primary3',
+      border1: '$primary6',
+      border2: '$primary7',
+      border3: '$primary8',
     },
     fonts: {
       sans: 'Inter, -apple-system, system-ui, sans-serif',
@@ -429,5 +437,13 @@ export const darkTheme = createTheme('dark-theme', {
     info10: blueDark.blue10,
     info11: blueDark.blue11,
     info12: blueDark.blue12,
+
+    // Semantic colors, pulled from primary
+    background: '$primary1',
+    panel1: '$primary2',
+    panel2: '$primary3',
+    border1: '$primary6',
+    border2: '$primary7',
+    border3: '$primary8',
   },
 });
