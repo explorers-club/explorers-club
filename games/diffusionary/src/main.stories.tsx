@@ -76,7 +76,8 @@ Primary.play = async (context) => {
     onAllPlayersReady: () =>
       onAllPlayersReady(sharedCollectionActor, playerUserIds),
 
-    onPlayerEnterPrompt: () => onPlayerEnterPrompt(),
+    onPlayerEnterPrompt: () => onPlayerEnterPrompt(sharedCollectionActor),
+
     // onAllPlayersLoaded: async () => {
     //   console.log('loaded');
     // },
@@ -128,7 +129,7 @@ Primary.play = async (context) => {
 
   const initialSharedContext: DiffusionarySharedContext = {
     playerUserIds,
-    currentPlayer: playerUserIds[0],
+    currentPlayer: myUserId,
     scoresByUserId,
     currentRound: 1,
   };

@@ -1,6 +1,8 @@
 import {
   ActorType,
   getActorId,
+  selectActorRefs,
+  selectSharedActor,
   SharedCollectionActor,
 } from '@explorers-club/actor';
 import { selectPlayerIsReady } from '../state/diffusionary-player.selectors';
@@ -15,6 +17,8 @@ import {
   take,
 } from 'rxjs';
 import { DiffusionaryPlayerActor } from './diffusionary-player.machine';
+import { DiffusionarySharedActor } from './diffusionary-shared.machine';
+import { selectCurrentPlayer } from './diffusionary-shared.selectors';
 
 // TODO could DRY up with trivia jam
 // just need to pull out the isReady selector
@@ -50,8 +54,38 @@ export const onAllPlayersReady = async (
   return await firstValueFrom(allPlayersReady$);
 };
 
-export const onPlayerEnterPrompt = async () => {
-  await sleep(3000);
+export const onPlayerEnterPrompt = async (
+  sharedCollectionActor: SharedCollectionActor
+) => {
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const sharedActor = selectSharedActor<DiffusionarySharedActor>(
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    sharedCollectionActor.getSnapshot()!
+  )!;
+
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const currentPlayer = selectCurrentPlayer(sharedActor.getSnapshot()!);
+  if (!currentPlayer) {
+    throw new Error(
+      'tried to set up enter prompt listener without current player set'
+    );
+  }
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const actorRefs = selectActorRefs(sharedCollectionActor.getSnapshot()!);
+  const actor = actorRefs[
+    getActorId(ActorType.DIFFUSIONARY_PLAYER_ACTOR, currentPlayer)
+  ] as DiffusionaryPlayerActor;
+
+  if (!actor) {
+    throw new Error('couldnt find actor ref when setting up prompt listener');
+  }
+
+  const enterPrompt$ = from(actor).pipe(
+    map((state) => state.event),
+    filter((event) => event.type === 'ENTER_PROMPT'),
+    take(1)
+  );
+  return await firstValueFrom(enterPrompt$);
 };
 
 // import {

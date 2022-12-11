@@ -19,6 +19,10 @@ import { createModel } from 'xstate/lib/model';
 import { waitFor } from 'xstate/lib/waitFor';
 import { DiffusionaryPlayerActor } from './state/diffusionary-player.machine';
 
+// To use this story
+// 1. Set NX_REPLICATE_API_TOKEN in .env.local at root
+// 2. Run `firebase emulators:start`
+
 const mainModel = createModel(
   {
     sharedCollectionActor: {} as SharedCollectionActor,

@@ -1,4 +1,4 @@
-import { unwrapEvent } from '@explorers-club/actor';
+import { assertEventType, unwrapEvent } from '@explorers-club/actor';
 import {
   ActorRefFrom,
   ContextFrom,
@@ -16,6 +16,7 @@ const diffusionaryPlayerModel = createModel(
   {
     events: {
       SET_PLAYER_NAME: (name: string) => ({ name }),
+      ENTER_PROMPT: (prompt: string) => ({ prompt }),
     },
   }
 );
@@ -24,6 +25,9 @@ export const DiffusionaryPlayerEvents = diffusionaryPlayerModel.events;
 export type DiffusionaryPlayerContext = ContextFrom<
   typeof diffusionaryPlayerModel
 >;
+export type DiffusionaryPlayerEnterPromptEvent = ReturnType<
+  typeof diffusionaryPlayerModel.events.ENTER_PROMPT
+>;
 export type DiffusionaryPlayerEvent = EventFrom<typeof diffusionaryPlayerModel>;
 
 export const diffusionaryPlayerMachine = createMachine({
@@ -31,16 +35,14 @@ export const diffusionaryPlayerMachine = createMachine({
   initial: 'Loading',
   schema: {
     context: {} as DiffusionaryPlayerContext,
+    events: {} as DiffusionaryPlayerEvent,
   },
   on: {
     SET_PLAYER_NAME: {
-      actions: assign({
+      actions: assign<DiffusionaryPlayerContext, DiffusionaryPlayerEvent>({
         playerName: (_, event) => {
-          const { name } = unwrapEvent<DiffusionaryPlayerEvent>(
-            event,
-            'SET_PLAYER_NAME'
-          );
-          return name;
+          assertEventType(event, 'SET_PLAYER_NAME');
+          return event.name;
         },
       }),
     },

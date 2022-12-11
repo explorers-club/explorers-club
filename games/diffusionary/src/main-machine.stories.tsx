@@ -17,6 +17,4 @@ const Template: Story<{ context: MainContext }> = (args) => {
 
 export const Default = Template.bind({});
 
-Default.args = {
-  context: {},
-};
+Default.args = {};

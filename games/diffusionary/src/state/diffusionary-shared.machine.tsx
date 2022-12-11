@@ -1,17 +1,23 @@
+import { assertEventType, unwrapEvent } from '@explorers-club/actor';
 import {
+  actions,
   ActorRefFrom,
   ContextFrom,
   createMachine,
+  DoneInvokeEvent,
   EventFrom,
   StateFrom,
 } from 'xstate';
+import { assign } from 'xstate/lib/actions';
 import { createModel } from 'xstate/lib/model';
+import { DiffusionaryPlayerEnterPromptEvent } from './diffusionary-player.machine';
 
 const diffusionarySharedModel = createModel({
   playerUserIds: [] as string[],
   scoresByUserId: {} as Record<string, number>,
   currentPlayer: undefined as string | undefined,
   currentRound: 1 as number,
+  currentPrompt: undefined as string | undefined,
 });
 
 export const DiffusionarySharedEvents = diffusionarySharedModel.events;
@@ -26,7 +32,7 @@ export type DiffusionarySharedEvent = EventFrom<typeof diffusionarySharedModel>;
 
 export type DiffusionarySharedServices = {
   onAllPlayersReady: () => Promise<{ type: 'ALL_PLAYERS_READY' }>;
-  onPlayerEnterPrompt: () => Promise<void>;
+  onPlayerEnterPrompt: () => Promise<DiffusionaryPlayerEnterPromptEvent>;
 };
 
 export const diffusionarySharedMachine = createMachine(
@@ -51,18 +57,26 @@ export const diffusionarySharedMachine = createMachine(
             invoke: {
               id: 'onPlayerEnterPrompt',
               src: 'onPlayerEnterPrompt',
-              onDone: 'Guessing',
+              onDone: {
+                target: 'Guessing',
+                actions: assign<
+                  DiffusionarySharedContext,
+                  DoneInvokeEvent<DiffusionaryPlayerEnterPromptEvent>
+                >({
+                  currentPrompt: (_, event) => event.data.prompt,
+                }),
+              },
             },
           },
           Guessing: {
+            entry: (context, event) => {
+              console.log({ context, event });
+            },
             invoke: {
               id: 'onPlayerSubmitResponse',
               src: 'onPlayerSubmitResponse',
               onDone: [
-                {
-                  cond: 'isGameOver',
-                  target: 'GameOver',
-                },
+                { cond: 'isGameOver', target: 'GameOver' },
                 {
                   target: 'EnteringPrompt',
                 },
