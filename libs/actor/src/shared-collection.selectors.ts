@@ -20,6 +20,11 @@ export function selectMyActor<T>(state: SharedCollectionState) {
   return actorRefs[myActorId] as T | undefined;
 }
 
+export function selectSharedActor<T>(state: SharedCollectionState) {
+  const { sharedActorId, actorRefs } = state.context;
+  return actorRefs[sharedActorId] as T | undefined;
+}
+
 export function createActorByTypeSelector<TActor extends AnyActorRef>(
   actorType: ActorType
 ) {

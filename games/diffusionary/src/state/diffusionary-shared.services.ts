@@ -39,9 +39,8 @@ export const onAllPlayersReady = async (
     }),
     filter(
       (playerStates) =>
-        playerStates.filter((state) => {
-          return selectPlayerIsReady(state);
-        }).length === playerUserIds.length
+        playerStates.filter((state) => selectPlayerIsReady(state)).length ===
+        playerUserIds.length
     ),
     map(() => ({
       type: 'ALL_PLAYERS_READY' as const,

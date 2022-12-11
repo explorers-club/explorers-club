@@ -5,6 +5,7 @@ import {
   getActorId,
   selectActorsInitialized,
   selectMyActor,
+  selectSharedActor,
   SharedCollectionEvents,
 } from '@explorers-club/actor';
 import { useEffect } from '@storybook/addons';
@@ -117,6 +118,7 @@ Primary.play = async (context) => {
     actorRefs: {},
     rootPath: `diffusionary/${context.args.gameInstanceId}`,
     myActorId: sharedActorId,
+    sharedActorId,
     db,
   };
 
@@ -142,7 +144,6 @@ Primary.play = async (context) => {
   sharedCollectionActor.send(
     SharedCollectionEvents.SPAWN(sharedActorId, initialSharedContext)
   );
-  const selectSharedActor = createActorByIdSelector(sharedActorId);
   const selectSharedActorExists = createSelector(
     selectSharedActor,
     (actor) => !!actor
@@ -172,7 +173,6 @@ Primary.play = async (context) => {
       playerSharedCollectionActor.start();
 
       await waitFor(playerSharedCollectionActor, selectActorsInitialized);
-      // console.log('SPAWNING!', actorId, initialPlayerContext);
       playerSharedCollectionActor.send(
         SharedCollectionEvents.SPAWN(actorId, initialPlayerContext)
       );

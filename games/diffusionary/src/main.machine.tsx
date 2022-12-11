@@ -4,7 +4,7 @@ import {
   selectActorsInitialized,
   selectMyActor,
   SharedCollectionActor,
-  SharedCollectionEvents
+  SharedCollectionEvents,
 } from '@explorers-club/actor';
 import { createSelector } from 'reselect';
 import { filter, firstValueFrom, from, take } from 'rxjs';
@@ -13,7 +13,7 @@ import {
   ContextFrom,
   createMachine,
   EventFrom,
-  StateFrom
+  StateFrom,
 } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { waitFor } from 'xstate/lib/waitFor';
@@ -87,7 +87,7 @@ export const mainMachine = createMachine(
             await waitFor(sharedCollectionActor, selectActorIsInitialized);
             console.log('SPAWNED!');
           },
-          onDone: 'Playing',
+          onDone: 'EnteringName',
         },
       },
       EnteringName: {
@@ -98,7 +98,6 @@ export const mainMachine = createMachine(
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               sharedCollectionActor.getSnapshot()!
             )!;
-            console.log(actor);
 
             const onSetPlayerName$ = from(actor).pipe(
               filter((state) => !!state.context.playerName),
@@ -111,6 +110,7 @@ export const mainMachine = createMachine(
       },
       Playing: {},
     },
+    predictableActionArguments: true,
   },
   {
     guards: {

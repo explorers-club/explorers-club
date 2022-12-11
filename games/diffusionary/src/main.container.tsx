@@ -2,23 +2,18 @@ import {
   ActorType,
   createSharedCollectionMachine,
   getActorId,
-  SharedCollectionActor,
-  SharedCollectionEvents,
 } from '@explorers-club/actor';
 import { useInterpret, useSelector } from '@xstate/react';
-import { FC, useContext, useEffect, useMemo } from 'react';
+import { FC, useMemo } from 'react';
 import { MainComponent } from './main.component';
 import { MainContext } from './main.context';
-import {
-  DiffusionaryPlayerActor,
-  diffusionaryPlayerMachine,
-} from './state/diffusionary-player.machine';
+import { diffusionaryPlayerMachine } from './state/diffusionary-player.machine';
 import {
   DiffusionarySharedActor,
   diffusionarySharedMachine,
 } from './state/diffusionary-shared.machine';
 import { db } from './__test/emulator';
-
+0
 const sharedCollectionMachine = createSharedCollectionMachine({
   machines: {
     [ActorType.DIFFUSIONARY_PLAYER_ACTOR]: diffusionaryPlayerMachine,
@@ -43,6 +38,7 @@ export const Main: FC<Props> = ({ gameInstanceId, userId }) => {
     actorRefs: {},
     rootPath,
     myActorId,
+    sharedActorId,
     db,
   };
   const machine = useMemo(

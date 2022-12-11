@@ -5,9 +5,9 @@
  * It aims to remain generic and re-usable across different use cases.
  */
 import { noop } from '@explorers-club/utils';
-import { Database, get, onDisconnect, ref, set } from 'firebase/database';
-import { filter, from, map, Observable, skip } from 'rxjs';
+import { Database, get, onDisconnect, ref } from 'firebase/database';
 import { fromRef, ListenEvent } from 'rxfire/database';
+import { filter, from, map, Observable, skip } from 'rxjs';
 import {
   ActorRefFrom,
   AnyActorRef,
@@ -19,20 +19,20 @@ import {
   interpret,
   spawn,
   State,
-  StateFrom,
+  StateFrom
 } from 'xstate';
 import { createModel } from 'xstate/lib/model';
 import { ModelContextFrom, ModelEventsFrom } from 'xstate/lib/model.types';
+import { saveActorEvent, saveActorState } from './db';
 import { assertEventType, getActorType } from './helpers';
 import { ActorID, ActorType } from './types';
-import { saveActorEvent, saveActorState } from './db';
-import { selectMyActor } from './shared-collection.selectors';
 
 const sharedCollectionModel = createModel(
   {
     actorRefs: {} as Partial<Record<ActorID, AnyActorRef>>,
     rootPath: '' as string,
     myActorId: undefined as ActorID | undefined,
+    sharedActorId: '' as ActorID,
     db: {} as Database,
   },
   {

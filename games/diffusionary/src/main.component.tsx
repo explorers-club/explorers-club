@@ -16,6 +16,7 @@ export const MainComponent = () => {
 
   const actor = useInterpret(machine);
   const state = useSelector(actor, (state) => state);
+  console.log("main state", state)
 
   switch (true) {
     case state.matches('EnteringName'): {
