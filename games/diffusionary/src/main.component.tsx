@@ -1,7 +1,7 @@
 import { useInterpret, useSelector } from '@xstate/react';
-import { useContext, useMemo } from 'react';
+import { FC, useContext, useMemo } from 'react';
 import { MainContext } from './main.context';
-import { MainMachine, mainMachine } from './main.machine';
+import { MainActor, MainMachine, mainMachine } from './main.machine';
 import { EnterNameScreen } from './screens/enter-name-screen.container';
 import { GameScreen } from './screens/game-screen.container';
 
@@ -15,8 +15,22 @@ export const MainComponent = () => {
   }, [sharedCollectionActor, userId]);
 
   const actor = useInterpret(machine);
+
+  return (
+    <>
+      <MainUIComponent actor={actor} />
+      <MainUIScene actor={actor} />
+    </>
+  );
+};
+
+interface MainUIProps {
+  actor: MainActor;
+}
+
+const MainUIComponent: FC<MainUIProps> = ({ actor }) => {
   const state = useSelector(actor, (state) => state);
-  console.log("main state", state)
+  console.log('main state', state);
 
   switch (true) {
     case state.matches('EnteringName'): {
@@ -29,57 +43,14 @@ export const MainComponent = () => {
       return null;
     }
   }
+};
 
-  // const myActor = useSelector(
-  //   sharedCollectionActor,
-  //   selectMyActor<DiffusionaryPlayerActor>
-  // );
+interface MainSceneProps {
+  actor: MainActor;
+}
 
-  // console.log({ myActor });
-
-  // return <EnterNameScreen />;
-  // What is it safe to assume here?
-  // We can assume we have a shared collection actor,
-  // we can assume we have a user id (if we're goign to have one)
-
-  // So I think here we just need to render everything and call something out
-
-  // const myActor = useSelector(
-  //   sharedCollectionActor,
-  //   selectMyActor<DiffusionaryPlayerActor>
-  // );
-
-  // const hasName = useSelector(myActor, (state) => state.context.playerName);
-  // return <EnterNameScreen />;
-
-  // switch (true) {
-  //   case nameRequired: {
-  //     return <EnterNameScreen />;
-  //   }
-  //   default: {
-  //     return null;
-  //   }
-  // }
-  // const isStaging = useSelector(actor, selectIsStaging);
-  // const isAwaitingQuestion = useSelector(actor, selectIsAwaitingQuestion);
-  // const isOnQuestion = useSelector(actor, selectIsOnQuestion);
-  // const isGameOver = useSelector(actor, selectIsGameOver);
-
-  // switch (true) {
-  //   case isStaging: {
-  //     return <IntroductionScreen />;
-  //   }
-  //   case isAwaitingQuestion: {
-  //     return <ScoreboardScreen />;
-  //   }
-  //   case isOnQuestion: {
-  //     return <QuestionScreen />;
-  //   }
-  //   // case isGameOver: {
-  //   //   return <GameEndScreen />;
-  //   // }
-  //   default: {
-  //     return null;
-  //   }
-  // };
+const MainUIScene: FC<MainSceneProps> = ({ actor }) => {
+  const state = useSelector(actor, (state) => state);
+  // TODO 3D scene goes here..
+  return null;
 };
