@@ -10,7 +10,6 @@ import {
 import { Meta, Story } from '@storybook/react';
 import { ref, set } from 'firebase/database';
 import { useMemo } from 'react';
-import { BottomSheet } from 'react-spring-bottom-sheet';
 import { createSelector } from 'reselect';
 import { noop } from 'rxjs';
 import { interpret } from 'xstate';
@@ -35,13 +34,6 @@ import { db } from './__test/emulator';
 export default {
   component: Main,
 } as Meta;
-
-// const sharedCollectionMachine = createSharedCollectionMachine({
-//   machines: {
-//     [ActorType.DIFFUSIONARY_PLAYER_ACTOR]: diffusionaryPlayerMachine,
-//     [ActorType.DIFFUSIONARY_SHARED_ACTOR]: diffusionarySharedMachine,
-//   },
-// });
 
 // type MainStory = ComponentStory<typeof Main> & {otherPlayerIds: string[] };
 type MainComponentStory = Story<{

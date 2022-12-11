@@ -1,7 +1,9 @@
+import { Sheet, SheetContent } from '@atoms/Sheet';
 import { useInterpret, useSelector } from '@xstate/react';
-import { FC, useContext, useMemo } from 'react';
-import { BottomSheet } from 'react-spring-bottom-sheet';
-import { defaultSnapProps } from 'react-spring-bottom-sheet/dist/types';
+import { FC, ReactElement, useContext, useMemo } from 'react';
+import { Leaderboard } from './components/leaderboard.container';
+import { Menu } from './components/menu.container';
+import { Notifications } from './components/notifications.container';
 import { MainContext } from './main.context';
 import { MainActor, MainMachine, mainMachine } from './main.machine';
 import { EnterNameScreen } from './screens/enter-name-screen.container';
@@ -20,18 +22,19 @@ export const MainComponent = () => {
 
   return (
     <>
-      <BottomSheet
-        open={true}
-        blocking={false}
-        defaultSnap={({ snapPoints }: defaultSnapProps) => snapPoints[0]}
-        snapPoints={({ minHeight }) => [minHeight]}
-        // expandOnContentDrag={true}
-        // footer={Footer && <Footer />}
-        // header={header}
-      >
+      <BottomSheet>
         <MainUIComponent actor={actor} />
       </BottomSheet>
-      <MainUIScene actor={actor} />
+      <LeftSheet>
+        <Menu />
+      </LeftSheet>
+      <RightSheet>
+        <Leaderboard />
+      </RightSheet>
+      <TopSheet>
+        <Notifications />
+      </TopSheet>
+      <MainScene actor={actor} />
     </>
   );
 };
@@ -42,7 +45,6 @@ interface MainUIProps {
 
 const MainUIComponent: FC<MainUIProps> = ({ actor }) => {
   const state = useSelector(actor, (state) => state);
-  console.log('main state', state);
 
   switch (true) {
     case state.matches('EnteringName'): {
@@ -56,13 +58,68 @@ const MainUIComponent: FC<MainUIProps> = ({ actor }) => {
     }
   }
 };
-
 interface MainSceneProps {
   actor: MainActor;
 }
 
-const MainUIScene: FC<MainSceneProps> = ({ actor }) => {
+const MainScene: FC<MainSceneProps> = ({ actor }) => {
   const state = useSelector(actor, (state) => state);
   // TODO 3D scene goes here..
   return null;
+};
+
+interface BottomSheetProps {
+  children: ReactElement;
+}
+
+const BottomSheet: FC<BottomSheetProps> = ({ children }) => {
+  return (
+    <Sheet open={true}>
+      <SheetContent css={{ background: '$panel1' }} side="bottom">
+        {children}
+      </SheetContent>
+    </Sheet>
+  );
+};
+
+interface LeftSheetProps {
+  children: ReactElement;
+}
+
+const LeftSheet: FC<LeftSheetProps> = ({ children }) => {
+  return (
+    <Sheet open={false}>
+      <SheetContent css={{ background: '$panel1' }} side="left">
+        {children}
+      </SheetContent>
+    </Sheet>
+  );
+};
+
+interface RightSheetProps {
+  children: ReactElement;
+}
+
+const RightSheet: FC<RightSheetProps> = ({ children }) => {
+  return (
+    <Sheet open={false}>
+      <SheetContent css={{ background: '$panel1' }} side="right">
+        {children}
+      </SheetContent>
+    </Sheet>
+  );
+};
+
+interface TopSheetProps {
+  children: ReactElement;
+}
+
+const TopSheet: FC<TopSheetProps> = ({ children }) => {
+  return (
+    <Sheet open={false}>
+      <SheetContent css={{ background: '$panel1' }} side="top">
+        {children}
+      </SheetContent>
+    </Sheet>
+  );
 };

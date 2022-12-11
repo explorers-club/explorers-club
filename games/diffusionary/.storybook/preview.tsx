@@ -1,5 +1,4 @@
 // Theme setup from: https://storybook.js.org/blog/how-to-add-a-theme-switcher-to-storybook/
-import 'react-spring-bottom-sheet/dist/style.css';
 import { DecoratorFn } from '@storybook/react';
 import React from 'react';
 import { Box } from '../../../libs/components/src/atoms/Box';
