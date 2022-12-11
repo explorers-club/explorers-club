@@ -2,7 +2,7 @@ import { styled } from '../stitches.config';
 
 export const Card = styled('div', {
   appearance: 'none',
-  border: 'none',
+  // border: 'none',
   boxSizing: 'border-box',
   font: 'inherit',
   lineHeight: '1',
@@ -13,36 +13,19 @@ export const Card = styled('div', {
   verticalAlign: 'middle',
   WebkitTapHighlightColor: 'rgba(0, 0, 0, 0)',
 
-  backgroundColor: '$panel',
+  backgroundColor: '$panel1',
+  border: 'none',
   display: 'block',
   textDecoration: 'none',
   color: 'inherit',
   flexShrink: 0,
-  borderRadius: '$4',
   position: 'relative',
-  // boxShadow: '$shadow4',
-
-  '&::before': {
-    boxSizing: 'border-box',
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.1)',
-    borderRadius: '$3',
-    pointerEvents: 'none',
-  },
+  borderRadius: '$3',
 
   variants: {
-    color: {
-      teal: {
-        backgroundColor: '$teal9',
-      },
-    },
     variant: {
       interactive: {
+        border: '1px solid $border1',
         cursor: 'pointer',
         // boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.2)',
         '@hover': {
