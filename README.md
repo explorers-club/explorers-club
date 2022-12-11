@@ -45,7 +45,7 @@ After you clone and install, you can run the storybooks with the following:
 `npx nx run components:storybook`
 
 #### Trivia Jam Game Storybook
-`npx nx run diffusionary:storybook`
+`npx nx run trivia-jam:storybook`
 
 #### Diffusionary Game Storybook
 `npx nx run diffusionary:storybook`
