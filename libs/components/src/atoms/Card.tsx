@@ -20,7 +20,7 @@ export const Card = styled('div', {
   flexShrink: 0,
   borderRadius: '$4',
   position: 'relative',
-  boxShadow: '$shadow4',
+  // boxShadow: '$shadow4',
 
   '&::before': {
     boxSizing: 'border-box',
@@ -43,6 +43,7 @@ export const Card = styled('div', {
     },
     variant: {
       interactive: {
+        cursor: 'pointer',
         // boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.2)',
         '@hover': {
           '&:hover': {
