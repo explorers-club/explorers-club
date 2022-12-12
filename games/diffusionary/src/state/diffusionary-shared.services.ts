@@ -94,6 +94,5 @@ export const onPlayerEnterPrompt = async (
 export const startDiffusion = async (prompt: string) => {
   const response = await createPrediction(prompt);
   const json = await response.json();
-  console.log(json);
   return json.id;
 };

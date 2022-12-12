@@ -33,9 +33,7 @@ export const EnteringPromptScreen = () => {
     [myActor]
   );
 
-  return (
-    isMyTurn && (
-      <EnteringPromptScreenComponent onSubmitPrompt={handleSubmitPrompt} />
-    )
-  );
+  return isMyTurn ? (
+    <EnteringPromptScreenComponent onSubmitPrompt={handleSubmitPrompt} />
+  ) : null;
 };

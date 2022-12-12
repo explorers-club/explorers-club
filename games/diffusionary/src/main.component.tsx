@@ -1,8 +1,14 @@
 import { SunsetSky } from '@3d/sky';
-import { useContextBridge } from '@react-three/drei';
 import { Box } from '@atoms/Box';
+import {
+  FirstPersonControls,
+  Image,
+  MapControls,
+  OrbitControls,
+  useContextBridge,
+} from '@react-three/drei';
 import { Sheet, SheetContent } from '@atoms/Sheet';
-import { OrbitControls } from '@react-three/drei';
+import { selectSharedActor } from '@explorers-club/actor';
 import { Canvas } from '@react-three/fiber';
 import { useInterpret, useSelector } from '@xstate/react';
 import { FC, ReactElement, Suspense, useContext, useMemo } from 'react';
@@ -13,7 +19,8 @@ import { MainContext } from './main.context';
 import { MainActor, MainMachine, mainMachine } from './main.machine';
 import { EnterNameScreen } from './screens/enter-name-screen.container';
 import { GameScreen } from './screens/game-screen.container';
-import { Floor } from '@3d/floor';
+import { DiffusionarySharedActor } from './state/diffusionary-shared.machine';
+import { selectCurrentImageUrl } from './state/diffusionary-shared.selectors';
 
 export const MainComponent = () => {
   const { sharedCollectionActor, userId } = useContext(MainContext);
@@ -77,14 +84,13 @@ const MainScene: FC<MainSceneProps> = ({ actor }) => {
     <Box css={{ background: '$primary1', height: '100vh' }}>
       <Canvas
         gl={{ physicallyCorrectLights: true }}
-        camera={{ position: [20, 10, 20] }}
+        camera={{ position: [0, 0, 1] }}
       >
         <color attach="background" args={['#000']} />
         <MainContextBridge>
           <Suspense fallback={null}>
-            <OrbitControls autoRotate autoRotateSpeed={0.6} enablePan={false} />
             <SunsetSky />
-            <Floor />
+            <GeneratedImage />
             {/* <Treehouse /> */}
           </Suspense>
         </MainContextBridge>
@@ -96,6 +102,21 @@ const MainScene: FC<MainSceneProps> = ({ actor }) => {
 interface BottomSheetProps {
   children: ReactElement;
 }
+
+const GeneratedImage = () => {
+  const { sharedCollectionActor } = useContext(MainContext);
+  const sharedActor = useSelector(
+    sharedCollectionActor,
+    selectSharedActor<DiffusionarySharedActor>
+  );
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const currentImageUrl = useSelector(sharedActor!, selectCurrentImageUrl);
+
+  // return <Image url="https://source.unsplash.com/random?r=1" />; for testing
+  return currentImageUrl ? (
+    <Image url={currentImageUrl} position={[0, 0, 0]} />
+  ) : null;
+};
 
 const BottomSheet: FC<BottomSheetProps> = ({ children }) => {
   return (

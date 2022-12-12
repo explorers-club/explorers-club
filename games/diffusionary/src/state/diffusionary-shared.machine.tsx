@@ -21,7 +21,7 @@ const diffusionarySharedModel = createModel({
   currentRound: 1 as number,
   currentPrompt: undefined as string | undefined,
   currentPredictionId: undefined as string | undefined,
-  currentImage: undefined as string | undefined,
+  currentImageUrl: undefined as string | undefined,
 });
 
 export const DiffusionarySharedEvents = diffusionarySharedModel.events;

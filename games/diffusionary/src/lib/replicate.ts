@@ -10,7 +10,7 @@ const STABLE_DIFFUSION_VERSION_ID =
   '6359a0cab3ca6e4d3320c33d79096161208e9024d174b2311e5a21b6c7e1131c';
 
 // const REPLICATE_BASE_URL = 'https://api.replicate.com';      // for real use
-const REPLICATE_BASE_URL = 'http://localhost:4400'; // for storybook
+const REPLICATE_BASE_URL = 'http://localhost:4402'; // for storybook
 
 const REPLICATE_API_TOKEN = process.env['NX_REPLICATE_API_TOKEN'];
 
