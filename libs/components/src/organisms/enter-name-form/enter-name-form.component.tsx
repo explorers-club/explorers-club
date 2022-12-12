@@ -43,7 +43,7 @@ export const EnterNameForm: FC<Props> = ({ formActor }) => {
             placeholder="inspectorT"
             onChange={handleChangeName}
           />
-          <Button size="3" fullWidth>
+          <Button size="3" fullWidth color="primary">
             Submit
           </Button>
         </Flex>

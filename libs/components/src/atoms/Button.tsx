@@ -25,13 +25,13 @@ export const Button = styled('button', {
   px: '$2',
   fontFamily: '$untitled',
   fontSize: '$2',
-  fontWeight: 500,
+  fontWeight: 'bold',
   fontVariantNumeric: 'tabular-nums',
 
   '&:disabled': {
-    backgroundColor: '$slate2',
-    boxShadow: 'inset 0 0 0 1px $colors$slate7',
-    color: '$slate8',
+    backgroundColor: '$neutral2',
+    boxShadow: 'inset 0 0 0 1px $colors$neutral7',
+    color: '$neutral8',
     pointerEvents: 'none',
   },
 
@@ -65,32 +65,33 @@ export const Button = styled('button', {
       },
     },
     color: {
-      gray: {
-        backgroundColor: '$loContrast',
-        boxShadow: 'inset 0 0 0 1px $colors$slate7',
+      neutral: {
+        backgroundColor: '$neutral2',
+        boxShadow: 'inset 0 0 0 1px $colors$neutral7',
         color: '$hiContrast',
         '@hover': {
           '&:hover': {
-            boxShadow: 'inset 0 0 0 1px $colors$slate8',
+            boxShadow: 'inset 0 0 0 1px $colors$neutral8',
           },
         },
         '&:active': {
-          backgroundColor: '$slate2',
-          boxShadow: 'inset 0 0 0 1px $colors$slate8',
+          backgroundColor: '$neutral2',
+          boxShadow: 'inset 0 0 0 1px $colors$neutral8',
         },
         '&:focus': {
-          boxShadow: 'inset 0 0 0 1px $colors$slate8, 0 0 0 1px $colors$slate8',
+          boxShadow:
+            'inset 0 0 0 1px $colors$neutral8, 0 0 0 1px $colors$neutral8',
         },
         '&[data-radix-popover-trigger][data-state="open"], &[data-radix-dropdown-menu-trigger][data-state="open"]':
           {
-            backgroundColor: '$slate4',
-            boxShadow: 'inset 0 0 0 1px $colors$slate8',
+            backgroundColor: '$neutral4',
+            boxShadow: 'inset 0 0 0 1px $colors$neutral8',
           },
       },
-      blue: {
-        backgroundColor: '$blue2',
-        boxShadow: 'inset 0 0 0 1px $colors$blue7',
-        color: '$blue11',
+      primary: {
+        backgroundColor: '$primary3',
+        border: '2px solid $border1',
+        color: '$primary9',
         '@hover': {
           '&:hover': {
             boxShadow: 'inset 0 0 0 1px $colors$blue8',
@@ -133,24 +134,24 @@ export const Button = styled('button', {
       },
       red: {
         backgroundColor: '$loContrast',
-        boxShadow: 'inset 0 0 0 1px $colors$slate7',
-        color: '$red11',
+        boxShadow: 'inset 0 0 0 1px $colors$neutral7',
+        color: '$error11',
         '@hover': {
           '&:hover': {
-            boxShadow: 'inset 0 0 0 1px $colors$slate8',
+            boxShadow: 'inset 0 0 0 1px $colors$neutral8',
           },
         },
         '&:active': {
-          backgroundColor: '$red3',
-          boxShadow: 'inset 0 0 0 1px $colors$red8',
+          backgroundColor: '$error3',
+          boxShadow: 'inset 0 0 0 1px $colors$error8',
         },
         '&:focus': {
-          boxShadow: 'inset 0 0 0 1px $colors$red8, 0 0 0 1px $colors$red8',
+          boxShadow: 'inset 0 0 0 1px $colors$error8, 0 0 0 1px $colors$error8',
         },
         '&[data-radix-popover-trigger][data-state="open"], &[data-radix-dropdown-menu-trigger][data-state="open"]':
           {
-            backgroundColor: '$red4',
-            boxShadow: 'inset 0 0 0 1px $colors$red8',
+            backgroundColor: '$error4',
+            boxShadow: 'inset 0 0 0 1px $colors$error8',
           },
       },
       transparentWhite: {
@@ -188,38 +189,39 @@ export const Button = styled('button', {
     },
     state: {
       active: {
-        backgroundColor: '$slate4',
-        boxShadow: 'inset 0 0 0 1px $colors$slate8',
-        color: '$slate11',
+        backgroundColor: '$neutral4',
+        boxShadow: 'inset 0 0 0 1px $colors$neutral8',
+        color: '$neutral11',
         '@hover': {
           '&:hover': {
-            backgroundColor: '$slate5',
-            boxShadow: 'inset 0 0 0 1px $colors$slate8',
+            backgroundColor: '$neutral5',
+            boxShadow: 'inset 0 0 0 1px $colors$neutral8',
           },
         },
         '&:active': {
-          backgroundColor: '$slate5',
+          backgroundColor: '$neutral5',
         },
         '&:focus': {
-          boxShadow: 'inset 0 0 0 1px $colors$slate8, 0 0 0 1px $colors$slate8',
+          boxShadow:
+            'inset 0 0 0 1px $colors$neutral8, 0 0 0 1px $colors$neutral8',
         },
       },
       waiting: {
-        backgroundColor: '$slate4',
-        boxShadow: 'inset 0 0 0 1px $colors$slate8',
+        backgroundColor: '$neutral4',
+        boxShadow: 'inset 0 0 0 1px $colors$neutral8',
         color: 'transparent',
         pointerEvents: 'none',
         '@hover': {
           '&:hover': {
-            backgroundColor: '$slate5',
-            boxShadow: 'inset 0 0 0 1px $colors$slate8',
+            backgroundColor: '$neutral5',
+            boxShadow: 'inset 0 0 0 1px $colors$neutral8',
           },
         },
         '&:active': {
-          backgroundColor: '$slate5',
+          backgroundColor: '$neutral5',
         },
         '&:focus': {
-          boxShadow: 'inset 0 0 0 1px $colors$slate8',
+          boxShadow: 'inset 0 0 0 1px $colors$neutral8',
         },
       },
     },
@@ -239,20 +241,20 @@ export const Button = styled('button', {
         color: '$hiContrast',
         '@hover': {
           '&:hover': {
-            backgroundColor: '$slateA3',
+            backgroundColor: '$neutralA3',
             boxShadow: 'none',
           },
         },
         '&:active': {
-          backgroundColor: '$slateA4',
+          backgroundColor: '$neutralA4',
         },
         '&:focus': {
           boxShadow:
-            'inset 0 0 0 1px $colors$slateA8, 0 0 0 1px $colors$slateA8',
+            'inset 0 0 0 1px $colors$neutralA8, 0 0 0 1px $colors$neutralA8',
         },
         '&[data-radix-popover-trigger][data-state="open"], &[data-radix-dropdown-menu-trigger][data-state="open"]':
           {
-            backgroundColor: '$slateA4',
+            backgroundColor: '$neutralA4',
             boxShadow: 'none',
           },
       },
@@ -313,19 +315,20 @@ export const Button = styled('button', {
         backgroundColor: 'transparent',
         '@hover': {
           '&:hover': {
-            backgroundColor: '$redA3',
+            backgroundColor: '$errorA3',
             boxShadow: 'none',
           },
         },
         '&:active': {
-          backgroundColor: '$redA4',
+          backgroundColor: '$errorA4',
         },
         '&:focus': {
-          boxShadow: 'inset 0 0 0 1px $colors$redA8, 0 0 0 1px $colors$redA8',
+          boxShadow:
+            'inset 0 0 0 1px $colors$errorA8, 0 0 0 1px $colors$errorA8',
         },
         '&[data-radix-popover-trigger][data-state="open"], &[data-radix-dropdown-menu-trigger][data-state="open"]':
           {
-            backgroundColor: '$redA4',
+            backgroundColor: '$errorA4',
             boxShadow: 'none',
           },
       },
@@ -333,6 +336,6 @@ export const Button = styled('button', {
   ],
   defaultVariants: {
     size: '1',
-    color: 'gray',
+    color: 'neutral',
   },
 });

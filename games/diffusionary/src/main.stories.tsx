@@ -28,6 +28,7 @@ import {
 import {
   onAllPlayersReady,
   onPlayerEnterPrompt,
+  startDiffusion,
 } from './state/diffusionary-shared.services';
 import { db } from './__test/emulator';
 
@@ -77,6 +78,10 @@ Primary.play = async (context) => {
       onAllPlayersReady(sharedCollectionActor, playerUserIds),
 
     onPlayerEnterPrompt: () => onPlayerEnterPrompt(sharedCollectionActor),
+
+    startDiffusion: ({ currentPrompt }: DiffusionarySharedContext) =>
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      startDiffusion(currentPrompt!),
 
     // onAllPlayersLoaded: async () => {
     //   console.log('loaded');
@@ -132,6 +137,9 @@ Primary.play = async (context) => {
     currentPlayer: myUserId,
     scoresByUserId,
     currentRound: 1,
+    currentPrompt: undefined,
+    currentImage: undefined,
+    currentPredictionId: undefined,
   };
   sharedCollectionActor.send(
     SharedCollectionEvents.SPAWN(sharedActorId, initialSharedContext)

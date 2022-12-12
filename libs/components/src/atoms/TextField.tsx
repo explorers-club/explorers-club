@@ -18,7 +18,7 @@ export const TextField = styled('input', {
   },
 
   // Custom
-  backgroundColor: '$primary3',
+  backgroundColor: '$neutral1',
   border: '$primary6',
   borderStyle: 'solid',
   // boxShadow: 'inset 0 0 0 1px $colors$slate7',
@@ -30,7 +30,7 @@ export const TextField = styled('input', {
   '&:-webkit-autofill::first-line': {},
 
   '&:focus': {
-    backgroundColor: '$primary4',
+    backgroundColor: '$neutral2',
     borderColor: '$primary7',
     // boxShadow:
     //   'inset 0px 0px 0px 1px $colors$blue8, 0px 0px 0px 1px $colors$blue8',

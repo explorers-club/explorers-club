@@ -22,6 +22,7 @@ export const MainComponent = () => {
 
   return (
     <>
+      {/* TODO move these sheets in to a layout in components/layout */}
       <BottomSheet>
         <MainUIComponent actor={actor} />
       </BottomSheet>
