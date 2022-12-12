@@ -1,4 +1,5 @@
 import { SunsetSky } from '@3d/sky';
+import { useContextBridge } from '@react-three/drei';
 import { Box } from '@atoms/Box';
 import { Sheet, SheetContent } from '@atoms/Sheet';
 import { OrbitControls } from '@react-three/drei';
@@ -12,6 +13,7 @@ import { MainContext } from './main.context';
 import { MainActor, MainMachine, mainMachine } from './main.machine';
 import { EnterNameScreen } from './screens/enter-name-screen.container';
 import { GameScreen } from './screens/game-screen.container';
+import { Floor } from '@3d/floor';
 
 export const MainComponent = () => {
   const { sharedCollectionActor, userId } = useContext(MainContext);
@@ -69,7 +71,7 @@ interface MainSceneProps {
 
 const MainScene: FC<MainSceneProps> = ({ actor }) => {
   // const state = useSelector(actor, (state) => state);
-  // const ContextBridge = useContextBridge(MainContext);
+  const MainContextBridge = useContextBridge(MainContext);
   // TODO 3D scene goes here..
   return (
     <Box css={{ background: '$primary1', height: '100vh' }}>
@@ -78,11 +80,14 @@ const MainScene: FC<MainSceneProps> = ({ actor }) => {
         camera={{ position: [20, 10, 20] }}
       >
         <color attach="background" args={['#000']} />
-        <Suspense fallback={null}>
-          <OrbitControls autoRotate autoRotateSpeed={0.6} enablePan={false} />
-          <SunsetSky />
-          {/* <Treehouse /> */}
-        </Suspense>
+        <MainContextBridge>
+          <Suspense fallback={null}>
+            <OrbitControls autoRotate autoRotateSpeed={0.6} enablePan={false} />
+            <SunsetSky />
+            <Floor />
+            {/* <Treehouse /> */}
+          </Suspense>
+        </MainContextBridge>
       </Canvas>
     </Box>
   );
