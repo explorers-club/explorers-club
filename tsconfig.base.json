@@ -46,7 +46,8 @@
       "@explorers-club/utils": ["libs/utils/src/index.ts"],
       "@molecules/*": ["libs/components/src/molecules/*"],
       "@organisms/*": ["libs/components/src/organisms/*"],
-      "@templates/*": ["libs/components/src/templates/*"]
+      "@templates/*": ["libs/components/src/templates/*"],
+      "@3d/*": ["libs/components/src/3d/*"]
     }
   },
   "exclude": ["node_modules", "tmp"]

@@ -1,6 +1,10 @@
+import { SunsetSky } from '@3d/sky';
+import { Box } from '@atoms/Box';
 import { Sheet, SheetContent } from '@atoms/Sheet';
+import { OrbitControls } from '@react-three/drei';
+import { Canvas } from '@react-three/fiber';
 import { useInterpret, useSelector } from '@xstate/react';
-import { FC, ReactElement, useContext, useMemo } from 'react';
+import { FC, ReactElement, Suspense, useContext, useMemo } from 'react';
 import { Leaderboard } from './components/leaderboard.container';
 import { Menu } from './components/menu.container';
 import { Notifications } from './components/notifications.container';
@@ -64,9 +68,24 @@ interface MainSceneProps {
 }
 
 const MainScene: FC<MainSceneProps> = ({ actor }) => {
-  const state = useSelector(actor, (state) => state);
+  // const state = useSelector(actor, (state) => state);
+  // const ContextBridge = useContextBridge(MainContext);
   // TODO 3D scene goes here..
-  return null;
+  return (
+    <Box css={{ background: '$primary1', height: '100vh' }}>
+      <Canvas
+        gl={{ physicallyCorrectLights: true }}
+        camera={{ position: [20, 10, 20] }}
+      >
+        <color attach="background" args={['#000']} />
+        <Suspense fallback={null}>
+          <OrbitControls autoRotate autoRotateSpeed={0.6} enablePan={false} />
+          <SunsetSky />
+          {/* <Treehouse /> */}
+        </Suspense>
+      </Canvas>
+    </Box>
+  );
 };
 
 interface BottomSheetProps {
