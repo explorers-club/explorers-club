@@ -3,9 +3,10 @@ import { Flex } from '@atoms/Flex';
 import { Room } from 'colyseus.js';
 import { Heading } from '@atoms/Heading';
 import { Skeleton } from '@atoms/Skeleton';
+import { HangoutState } from '@explorers-club/schema';
 
 interface Props {
-  room?: Room<unknown>;
+  room?: Room<HangoutState>;
 }
 
 export const RoomComponent: FC<Props> = ({ room }) => {

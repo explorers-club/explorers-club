@@ -23,6 +23,7 @@
       "@explorers-club/contentful-types": [
         "libs/contentful/@types/generated/contentful"
       ],
+      "@explorers-club/schema-types/*": ["libs/schema/@types/generated/*"],
       "@explorers-club/database": ["libs/database/src/index.ts"],
       "@explorers-club/diffusionary/scene": [
         "games/diffusionary/src/scene/index.ts"

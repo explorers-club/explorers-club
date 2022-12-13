@@ -1,3 +1,4 @@
+import { HangoutState } from '@explorers-club/schema';
 import { useContext } from 'react';
 import { useQuery } from 'react-query';
 import { useParams } from 'react-router-dom';
@@ -11,9 +12,9 @@ export const Room = () => {
   const query = useQuery('room', async () => {
     try {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      return await colyseusClient.joinById(roomId!);
+      return await colyseusClient.joinById<HangoutState>(roomId!);
     } catch (ex) {
-      return await colyseusClient.create('hangout', { roomId });
+      return await colyseusClient.create<HangoutState>('hangout', { roomId });
     }
   });
 
