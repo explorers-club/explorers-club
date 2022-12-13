@@ -1,28 +1,21 @@
-import React, { useContext, useEffect, useMemo } from 'react';
-import { useQuery, useQueryClient } from 'react-query';
+import { useContext } from 'react';
+import { useQuery } from 'react-query';
 import { useParams } from 'react-router-dom';
 import { ColyseusContext } from '../state/colyseus.context';
 import { RoomComponent } from './room.component';
-import { Client } from 'colyseus.js';
 
 export const Room = () => {
   const { roomId } = useParams();
   const colyseusClient = useContext(ColyseusContext);
 
-  useEffect(() => {
-    (async () => {
-      console.log('joining', roomId);
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        await colyseusClient.joinById(roomId!);
-      } catch (ex) {
-        // likely room not found, make it
-        await colyseusClient.create('trivia_jam', { roomId });
-        // todo handle other errors
-      }
-      console.log('joined');
-    })();
-  }, [colyseusClient, roomId]);
+  const query = useQuery('room', async () => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return await colyseusClient.joinById(roomId!);
+    } catch (ex) {
+      return await colyseusClient.create('trivia_jam', { roomId });
+    }
+  });
 
-  return <RoomComponent />;
+  return <RoomComponent room={query.data} />;
 };
