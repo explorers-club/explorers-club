@@ -1,4 +1,4 @@
-app = "room-server-production"
+app = "explorers-club-room-server-production"
 kill_signal = "SIGINT"
 kill_timeout = 5
 processes = []
