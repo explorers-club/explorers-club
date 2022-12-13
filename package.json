@@ -81,6 +81,7 @@
     "@nrwl/storybook": "14.5.8",
     "@nrwl/web": "14.5.8",
     "@nrwl/workspace": "14.5.8",
+    "@nx-tools/nx-container": "^4.0.2",
     "@storybook/addon-essentials": "~6.5.9",
     "@storybook/addon-interactions": "^6.5.13",
     "@storybook/addon-storysource": "^6.5.13",
