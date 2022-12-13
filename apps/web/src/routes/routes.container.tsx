@@ -6,6 +6,7 @@ import { ColyseusContext } from '../state/colyseus.context';
 
 import { Index } from './index.container';
 import { Room } from './room.container';
+import { environment } from '../environments/environment';
 
 const router = createBrowserRouter([
   {
@@ -18,11 +19,9 @@ const router = createBrowserRouter([
   },
 ]);
 
-const COLYSEUS_HOST_URL = 'ws://localhost:2567';
-
 export const Routes = () => {
   const queryClient = useMemo(() => new QueryClient(), []);
-  const colyseusClient = useMemo(() => new Colyseus.Client(COLYSEUS_HOST_URL), []);
+  const colyseusClient = useMemo(() => new Colyseus.Client(environment.colyseusHost), []);
 
   return (
     <QueryClientProvider client={queryClient}>
