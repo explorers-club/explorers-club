@@ -1,26 +1,28 @@
 import { Room, Client } from 'colyseus';
-import { TriviaJamRoomState } from './schema/TriviaJamRoomState';
+import { TriviaJamState } from './schema/TriviaJamState';
 
-export class TriviaJamRoom extends Room<TriviaJamRoomState> {
-  onCreate(options: any) {
-    this.setState(new TriviaJamRoomState());
+export class TriviaJamRoom extends Room<TriviaJamState> {
+  TRIVIA_JAM_CHANNEL = '#trivia_jam';
 
-    this.onMessage('type', (client, message) => {
-      //
-      // handle "type" message
-      //
-    });
+  async onCreate(options) {
+    // initialize empty room state
+    this.setState(new TriviaJamState());
+
+    console.log('on create', options);
+    const roomId = options.roomId as string;
+    await this.presence.sadd(this.TRIVIA_JAM_CHANNEL, roomId);
+    this.roomId = options.roomId;
   }
 
   onJoin(client: Client) {
-    console.log(client.sessionId, 'joined!');
+    console.log(client.sessionId, 'joined!', this.roomId, this.roomName);
   }
 
   onLeave(client: Client) {
-    console.log(client.sessionId, 'left!');
+    console.log(client.sessionId, 'left!', this.roomId, this.roomName);
   }
 
-  onDispose() {
-    console.log('room', this.roomId, 'disposing...');
+  async onDispose() {
+    this.presence.srem(this.TRIVIA_JAM_CHANNEL, this.roomId);
   }
 }
