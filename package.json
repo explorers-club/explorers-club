@@ -7,6 +7,8 @@
     "": ""
   },
   "dependencies": {
+    "@colyseus/arena": "^0.14.24",
+    "@colyseus/monitor": "^0.14.22",
     "@nestjs/common": "^9.0.0",
     "@nestjs/core": "^9.0.0",
     "@nestjs/platform-express": "^9.0.0",
@@ -29,6 +31,8 @@
     "@tanstack/react-query-devtools": "^4.14.5",
     "@xstate/immer": "^0.3.1",
     "camelcase-keys": "^8.0.1",
+    "colyseus": "^0.14.24",
+    "colyseus.js": "^0.14.13",
     "core-js": "^3.6.5",
     "events": "^3.3.0",
     "firebase": "^9.10.0",

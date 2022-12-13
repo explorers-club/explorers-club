@@ -11,6 +11,7 @@
     "local-generator-plugin": "tools/local-generator-plugin",
     "party": "libs/party",
     "party-server": "apps/party-server",
+    "server": "apps/server",
     "trivia-jam": "games/trivia-jam",
     "utils": "libs/utils",
     "web": "apps/web"
