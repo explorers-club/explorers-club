@@ -7,15 +7,15 @@ on:
   workflow_dispatch:
 
 jobs:
-  # deploy-party-server:
-  #   runs-on: ubuntu-22.04
-  #   env:
-  #     FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: superfly/flyctl-actions/setup-flyctl@master
-  #     - run: npm ci
-  #     - run: npx nx run party-server:deploy-production
+  deploy-party-server:
+    runs-on: ubuntu-22.04
+    env:
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: npm ci
+      - run: npx nx run room-server:deploy-production
 
   # push-database:
   #   runs-on: ubuntu-22.04
