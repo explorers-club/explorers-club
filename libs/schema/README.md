@@ -1,7 +1,3 @@
 # schema
 
-This library was generated with [Nx](https://nx.dev).
-
-## Running lint
-
-Run `nx lint schema` to execute the lint via [ESLint](https://eslint.org/).
+Holds the Colyseus schema's for the different types of rooms / games.

@@ -9,6 +9,13 @@
       "options": {
         "lintFilePatterns": ["libs/schema/**/*.ts"]
       }
+    },
+    "codegen": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["schema-codegen src/* --ts --output @types/generated/"],
+        "cwd": "libs/schema"
+      }
     }
   },
   "tags": []
