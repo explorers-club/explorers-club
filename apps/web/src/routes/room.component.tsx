@@ -1,9 +1,10 @@
-import { FC, useEffect } from 'react';
+import { FC } from 'react';
 import { Flex } from '@atoms/Flex';
 import { Room } from 'colyseus.js';
 import { Heading } from '@atoms/Heading';
 import { Skeleton } from '@atoms/Skeleton';
 import { HangoutState } from '@explorers-club/schema';
+import { Button } from '@atoms/Button';
 
 interface Props {
   room?: Room<HangoutState>;
@@ -21,17 +22,19 @@ export const RoomComponent: FC<Props> = ({ room }) => {
   //     room && room.removeAllListeners();
   //   };
   // }, [room]);
+
   return (
-    <Flex>
-      <Heading>
-        {room ? (
-          <>
+    <Flex direction="column">
+      {room ? (
+        <>
+          <Heading>
             {room.name} - {room.id}
-          </>
-        ) : (
-          <Skeleton />
-        )}
-      </Heading>
+          </Heading>
+          <Button>Join</Button>
+        </>
+      ) : (
+        <Skeleton />
+      )}
     </Flex>
   );
 };

@@ -1,14 +1,8 @@
 import { SunsetSky } from '@3d/sky';
 import { Box } from '@atoms/Box';
-import {
-  FirstPersonControls,
-  Image,
-  MapControls,
-  OrbitControls,
-  useContextBridge,
-} from '@react-three/drei';
 import { Sheet, SheetContent } from '@atoms/Sheet';
 import { selectSharedActor } from '@explorers-club/actor';
+import { Image, useContextBridge } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { useInterpret, useSelector } from '@xstate/react';
 import { FC, ReactElement, Suspense, useContext, useMemo } from 'react';

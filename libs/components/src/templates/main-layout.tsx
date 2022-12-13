@@ -1,47 +1,20 @@
-import { Routes } from '../routes/routes.container';
+import { useContextBridge } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { FC, ReactElement, Suspense } from 'react';
-import { Box } from '@atoms/Box';
-import { Sheet, SheetContent } from '@atoms/Sheet';
-import { BottomSheet } from 'react-spring-bottom-sheet';
-import {
-  SnapPointProps,
-  defaultSnapProps,
-} from 'react-spring-bottom-sheet/dist/types';
-import 'react-spring-bottom-sheet/dist/style.css';
-import { ColyseusContext } from '../state/colyseus.context';
-import { useContextBridge } from '@react-three/drei';
-
-const DEFAULT_SNAP_POINTS = ({ minHeight }: SnapPointProps) => [minHeight];
-
-const DEFAULT_SNAP = ({ snapPoints }: defaultSnapProps) => snapPoints[0];
-
-export const AppComponent = () => {
-  return (
-    <>
-      <BottomSheet
-        open={true}
-        blocking={false}
-        defaultSnap={DEFAULT_SNAP}
-        snapPoints={DEFAULT_SNAP_POINTS}
-        expandOnContentDrag={true}
-      >
-        <Routes />
-      </BottomSheet>
-      <SceneContainer>
-        <></>
-      </SceneContainer>
-    </>
-  );
-};
+import { Box } from '../atoms/Box';
+import { Sheet, SheetContent } from '../atoms/Sheet';
 
 interface SceneContainerProps {
   children: ReactElement;
+  contexts: React.Context<unknown>[];
 }
 
-const SceneContainer: FC<SceneContainerProps> = ({ children }) => {
+export const SceneContainer: FC<SceneContainerProps> = ({
+  children,
+  contexts,
+}) => {
   // const state = useSelector(actor, (state) => state);
-  const ContextBridge = useContextBridge(ColyseusContext);
+  const MainContextBridge = useContextBridge(...contexts);
 
   return (
     <Box css={{ background: '$primary1', height: '100vh' }}>
@@ -50,11 +23,25 @@ const SceneContainer: FC<SceneContainerProps> = ({ children }) => {
         camera={{ position: [0, 0, 1] }}
       >
         <color attach="background" args={['#000']} />
-        <ContextBridge>
+        <MainContextBridge>
           <Suspense fallback={null}>{children}</Suspense>
-        </ContextBridge>
+        </MainContextBridge>
       </Canvas>
     </Box>
+  );
+};
+
+interface BottomSheetProps {
+  children: ReactElement;
+}
+
+export const BottomSheet: FC<BottomSheetProps> = ({ children }) => {
+  return (
+    <Sheet open={true}>
+      <SheetContent css={{ background: '$panel1' }} side="bottom">
+        {children}
+      </SheetContent>
+    </Sheet>
   );
 };
 
