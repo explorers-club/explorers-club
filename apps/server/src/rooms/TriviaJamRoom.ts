@@ -4,14 +4,23 @@ import { TriviaJamState } from './schema/TriviaJamState';
 export class TriviaJamRoom extends Room<TriviaJamState> {
   TRIVIA_JAM_CHANNEL = '#trivia_jam';
 
+  async assertRoomDoesntExist(roomId: string): Promise<string> {
+    const currentRooms = await this.presence.smembers(this.TRIVIA_JAM_CHANNEL);
+    if (currentRooms.includes(roomId)) {
+      // Should only happen if clients race to create same channel
+      throw new Error(`tried to create ${roomId} but it already exists`);
+    }
+
+    // Lock ourselves to hosting it
+    await this.presence.sadd(this.TRIVIA_JAM_CHANNEL, roomId);
+    return roomId;
+  }
+
   async onCreate(options) {
+    this.roomId = await this.assertRoomDoesntExist(options.roomId);
+
     // initialize empty room state
     this.setState(new TriviaJamState());
-
-    console.log('on create', options);
-    const roomId = options.roomId as string;
-    await this.presence.sadd(this.TRIVIA_JAM_CHANNEL, roomId);
-    this.roomId = options.roomId;
   }
 
   onJoin(client: Client) {
