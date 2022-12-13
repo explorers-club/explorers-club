@@ -24,8 +24,9 @@ export class HangoutRoom extends Room<HangoutState> {
     const state = new HangoutState();
     this.setState(state);
 
-    this.onMessage('SET_NAME', (_, name) => {
-      console.log('SET_NAME', { name });
+    this.onMessage('SET_NAME', (client, name) => {
+      state.playerNames[client.id] = name;
+      // this.setState(state);
     });
     this.onMessage('SET_GAME', (_, game) => {
       this.setState(
