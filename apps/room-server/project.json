@@ -1,0 +1,73 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/room-server/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "@nrwl/node:webpack",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/room-server",
+        "main": "apps/room-server/src/main.ts",
+        "tsConfig": "apps/room-server/tsconfig.app.json",
+        "assets": ["apps/room-server/src/assets"]
+      },
+      "configurations": {
+        "production": {
+          "optimization": true,
+          "extractLicenses": true,
+          "inspect": false,
+          "fileReplacements": [
+            {
+              "replace": "apps/room-server/src/environments/environment.ts",
+              "with": "apps/room-server/src/environments/environment.prod.ts"
+            }
+          ]
+        }
+      }
+    },
+    "serve": {
+      "executor": "@nrwl/node:node",
+      "options": {
+        "buildTarget": "room-server:build"
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "room-server:build:production"
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/room-server/**/*.ts"]
+      }
+    },
+    "deploy-staging": {
+      "executor": "nx:run-commands",
+      "dependsOn": [{ "projects": "self", "target": "build" }],
+      "options": {
+        "parallel": false,
+        "commands": [
+          "cp apps/room-server/Procfile ./dist/apps/room-server/Procfile",
+          "cp apps/room-server/fly.staging.toml ./dist/apps/room-server/fly.toml",
+          "flyctl deploy ./dist/apps/room-server --remote-only"
+        ]
+      }
+    },
+    "deploy-production": {
+      "executor": "nx:run-commands",
+      "dependsOn": [{ "projects": "self", "target": "build" }],
+      "options": {
+        "parallel": false,
+        "commands": [
+          "cp apps/room-server/Procfile ./dist/apps/room-server/Procfile",
+          "cp apps/room-server/fly.production.toml ./dist/apps/room-server/fly.toml",
+          "flyctl deploy ./dist/apps/room-server --remote-only"
+        ]
+      }
+    }
+  },
+  "tags": []
+}

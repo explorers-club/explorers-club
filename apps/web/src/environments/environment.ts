@@ -3,4 +3,5 @@
 
 export const environment = {
   production: false,
+  colyseusHost: 'ws://localhost:2567',
 };
