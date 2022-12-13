@@ -15,11 +15,7 @@
         "main": "apps/web/src/main.tsx",
         "polyfills": "apps/web/src/polyfills.ts",
         "tsConfig": "apps/web/tsconfig.app.json",
-        "assets": [
-          "apps/web/src/favicon.ico",
-          "apps/web/src/assets",
-          "apps/web/src/_redirects"
-        ],
+        "assets": ["apps/web/src/favicon.ico", "apps/web/src/assets"],
         "styles": [],
         "scripts": [],
         "webpackConfig": "@nrwl/react/plugins/webpack"
@@ -52,8 +48,7 @@
       "defaultConfiguration": "development",
       "options": {
         "buildTarget": "web:build",
-        "hmr": true,
-        "host": "explorers-club.local"
+        "hmr": true
       },
       "configurations": {
         "development": {
@@ -70,24 +65,6 @@
       "outputs": ["{options.outputFile}"],
       "options": {
         "lintFilePatterns": ["apps/web/**/*.{ts,tsx,js,jsx}"]
-      }
-    },
-    "test": {
-      "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/apps/web"],
-      "options": {
-        "jestConfig": "apps/web/jest.config.ts",
-        "passWithNoTests": true
-      }
-    },
-    "generate-db-types": {
-      "executor": "nx:run-commands",
-      "options": {
-        "commands": [
-          {
-            "command": "openapi-typescript https://azvuadhnieulelinfveb.supabase.co/rest/v1/?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6dnVhZGhuaWV1bGVsaW5mdmViIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NjEwNTI3NjEsImV4cCI6MTk3NjYyODc2MX0.Dmt6k6ZvWZP9jgbk5Dt2Q4U-ekrq-gNQPwqaYdX-8fQ --output apps/web/src/types/supabase.ts --version=2"
-          }
-        ]
       }
     }
   },
