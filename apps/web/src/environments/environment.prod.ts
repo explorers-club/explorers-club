@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  colyseusHost: 'ws://api.explorers.club',
+  colyseusHost: 'ws://explorers-club-room-server-production.fly.dev',
 };
