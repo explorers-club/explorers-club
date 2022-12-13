@@ -10,4 +10,5 @@ import { Schema, type, ArraySchema, MapSchema, SetSchema, DataChange } from '@co
 
 export class HangoutState extends Schema {
     @type("string") public currentSongURL!: string;
+    @type("string") public selectedGame!: string;
 }

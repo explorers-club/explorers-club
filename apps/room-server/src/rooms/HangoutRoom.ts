@@ -13,6 +13,7 @@ export class HangoutRoom extends Room<HangoutState> {
 
     // Lock ourselves to hosting it
     await this.presence.sadd(this.ROOMS_CHANNEL, roomId);
+
     return roomId;
   }
 
@@ -20,7 +21,19 @@ export class HangoutRoom extends Room<HangoutState> {
     this.roomId = await this.assertRoomDoesntExist(options.roomId);
 
     // initialize empty room state
-    this.setState(new HangoutState());
+    const state = new HangoutState();
+    this.setState(state);
+
+    this.onMessage('SET_NAME', (_, name) => {
+      console.log('SET_NAME', { name });
+    });
+    this.onMessage('SET_GAME', (_, game) => {
+      this.setState(
+        state.assign({
+          selectedGame: game,
+        })
+      );
+    });
   }
 
   onJoin(client: Client) {
