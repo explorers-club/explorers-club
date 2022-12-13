@@ -11,7 +11,10 @@
         "outputPath": "dist/apps/room-server",
         "main": "apps/room-server/src/main.ts",
         "tsConfig": "apps/room-server/tsconfig.app.json",
-        "assets": ["apps/room-server/src/assets"]
+        "assets": [
+          "apps/room-server/src/assets",
+          "apps/room-server/src/arena.gitsync.json"
+        ]
       },
       "configurations": {
         "production": {

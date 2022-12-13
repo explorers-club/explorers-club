@@ -4,7 +4,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "": ""
+    "build": "nx run room-server:build:production"
   },
   "dependencies": {
     "@colyseus/arena": "^0.14.24",
