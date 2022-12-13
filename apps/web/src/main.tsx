@@ -1,24 +1,11 @@
-// import { StrictMode } from 'react';
-import MainCanvas from './main-canvas';
-import MainUI from './main-ui';
-import { GlobalStateProvider } from './state/global.provider';
-import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import * as ReactDOM from 'react-dom/client';
+import { App } from './app/app.container';
 
-const Root = () => (
-  // Strict mode was causing xstate to double initialize machines
-  // Disabled for now
+const root = ReactDOM.createRoot(
+  document.getElementById('root') as HTMLElement
+);
+root.render(
   // <StrictMode>
-  <BrowserRouter>
-    <GlobalStateProvider>
-      <MainCanvas />
-      <MainUI />
-    </GlobalStateProvider>
-  </BrowserRouter>
+  <App />
   // </StrictMode>
 );
-
-const container = document.getElementById('root');
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-const root = createRoot(container!);
-root.render(<Root />);

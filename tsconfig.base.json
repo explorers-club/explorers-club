@@ -23,6 +23,7 @@
       "@explorers-club/contentful-types": [
         "libs/contentful/@types/generated/contentful"
       ],
+      "@explorers-club/schema-types/*": ["libs/schema/@types/generated/*"],
       "@explorers-club/database": ["libs/database/src/index.ts"],
       "@explorers-club/diffusionary/scene": [
         "games/diffusionary/src/scene/index.ts"
@@ -36,6 +37,7 @@
         "tools/local-generator-plugin/src/index.ts"
       ],
       "@explorers-club/party": ["libs/party/src/index.ts"],
+      "@explorers-club/schema": ["libs/schema/src/index.ts"],
       "@explorers-club/styles": ["libs/components/src/stitches.config.ts"],
       "@explorers-club/trivia-jam/scene": [
         "games/trivia-jam/src/scene/index.ts"

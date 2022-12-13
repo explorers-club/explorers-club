@@ -1,13 +1,33 @@
-// Routing setup inspired by https://blog.logrocket.com/complete-guide-authentication-with-react-router-v6/
-import { Route, Routes } from 'react-router-dom';
-import { routes } from './routes.constants';
+import { useMemo } from 'react';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import * as Colyseus from 'colyseus.js';
+import { ColyseusContext } from '../state/colyseus.context';
 
-export const RoutesContainer = () => {
+import { Index } from './index.container';
+import { Room } from './room.container';
+import { environment } from '../environments/environment';
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Index />,
+  },
+  {
+    path: '/:roomId',
+    element: <Room />,
+  },
+]);
+
+export const Routes = () => {
+  const queryClient = useMemo(() => new QueryClient(), []);
+  const colyseusClient = useMemo(() => new Colyseus.Client(environment.colyseusHost), []);
+
   return (
-    <Routes>
-      {routes.map(({ path, Component }) => (
-        <Route key={path} path={path} element={<Component />} />
-      ))}
-    </Routes>
+    <QueryClientProvider client={queryClient}>
+      <ColyseusContext.Provider value={colyseusClient}>
+        <RouterProvider router={router} />
+      </ColyseusContext.Provider>
+    </QueryClientProvider>
   );
 };

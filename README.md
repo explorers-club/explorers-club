@@ -14,7 +14,7 @@ Other inspiration we are drawing from: [Rocket Crab](https://github.com/tannerkr
 
 ### 1. 💬 Join the [Discord](https://discord.gg/PUHsGxqBKt)
 
-### 2. 🛒 Buy something from our [merch page](https://merch.explorers.club/) 
+### 2. 🛒 Buy something from our [merch page](https://merch.explorers.club/)
 
 ### 3. 🛠👷‍♀️👷‍♂️ Contribute directly
 
@@ -33,46 +33,45 @@ Reach out in the [#contribute](https://discord.com/channels/995376198379122708/1
 
 ### 4. 🤗🤔 Playing and Giving Feedback!
 
-Visit [explorers.club](https://explorers.club) to see the latest code running on the `main` branch. Bring any ideas to the [#feedback](https://discord.com/channels/995376198379122708/1036995388441374720) channel on [Discord](https://discord.gg/PUHsGxqBKt).
+No games are production ready yet, but star the repo to get updates for when things become playable.
 
 ## Development
 
-Most of the code and website doesn't work yet. Most development currently is happening in storybooks.
+After cloning and running `npm install`, use these commands to get the code running.
 
-After you clone and install, you can run the storybooks with the following:
+### Website
+
+`npx nx run web:serve`
+
+### Server
+
+`npx nx run web:serve`
+
+### Storybooks
 
 #### Component Library Storybook
+
 `npx nx run components:storybook`
 
 #### Trivia Jam Game Storybook
+
 `npx nx run trivia-jam:storybook`
 
 #### Diffusionary Game Storybook
+
 `npx nx run diffusionary:storybook`
-
-### Firebase Emulator
-
-To have the games working end to end, you may need to get access to firebase and run the firebase emulator localy with `firebase emulators:start`.
-
-## Philosophy
-
-We are wondering—why aren't there more good open-source games? Why is the code for most of the games we play locked and hidden within private repositories that nobody can see and improve?
-
-We believe that this doesn't have to be the case. We believe that many of the games we play in the future will be created by emergent and excited open-source communities—like the one we aim to create around Explorers Club.
 
 ## Stack, Patterns, Attribution
 
 - [react-three-fiber](https://github.com/pmndrs/react-three-fiber) for 3D graphics
+- [colyseus](https://www.colyseus.io/) for multiplayer networking
 - [stitches](https://stitches.dev/) for CSS-in-JS
 - [radix-ui](https://www.radix-ui.com/) for building design system
-- [xstate](https://xstate.js.org/) for state management + [actor pattern](https://www.youtube.com/watch?v=NTfPtYJORck) for sharing distributed real-time state
+- [xstate](https://xstate.js.org/) for state + logic
 - static site hosting on netlify
 - game server hosting on fly.io
-- firebase for real-time data
 - [nx](https://nx.dev/) for managing the monorepo
 - github actions for CI
-- [Honeycomb](https://github.com/flauwekeul/honeycomb) for Hex grids
-- Sound effects and sounds from [Zapsplat](https://www.zapsplat.com/)
 
 ## Art
 
