@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import { FC, useEffect } from 'react';
 import { Flex } from '@atoms/Flex';
 import { Room } from 'colyseus.js';
 import { Heading } from '@atoms/Heading';
@@ -9,6 +9,17 @@ interface Props {
 }
 
 export const RoomComponent: FC<Props> = ({ room }) => {
+  console.log(room?.state);
+  // useEffect(() => {
+  //   room &&
+  //     room.onStateChange((state) => {
+  //       console.log(state);
+  //     });
+
+  //   return () => {
+  //     room && room.removeAllListeners();
+  //   };
+  // }, [room]);
   return (
     <Flex>
       <Heading>

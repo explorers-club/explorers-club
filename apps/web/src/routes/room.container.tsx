@@ -13,7 +13,7 @@ export const Room = () => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       return await colyseusClient.joinById(roomId!);
     } catch (ex) {
-      return await colyseusClient.create('trivia_jam', { roomId });
+      return await colyseusClient.create('hangout', { roomId });
     }
   });
 

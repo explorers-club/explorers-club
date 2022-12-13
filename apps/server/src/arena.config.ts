@@ -1,10 +1,8 @@
 import Arena from '@colyseus/arena';
 import { monitor } from '@colyseus/monitor';
 import { LobbyRoom } from 'colyseus';
-
-/**
- * Import your Room files
- */
+import { DiffusionaryRoom } from './rooms/DiffusionaryRoom';
+import { HangoutRoom } from './rooms/HangoutRoom';
 import { TriviaJamRoom } from './rooms/TriviaJamRoom';
 
 export default Arena({
@@ -15,7 +13,9 @@ export default Arena({
      * Define your room handlers:
      */
     gameServer.define('lobby', LobbyRoom);
+    gameServer.define('hangout', HangoutRoom).enableRealtimeListing();
     gameServer.define('trivia_jam', TriviaJamRoom).enableRealtimeListing();
+    gameServer.define('diffusionary', DiffusionaryRoom).enableRealtimeListing();
   },
 
   initializeExpress: (app) => {

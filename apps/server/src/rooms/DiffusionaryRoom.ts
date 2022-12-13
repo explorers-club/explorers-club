@@ -1,7 +1,7 @@
 import { Room, Client } from 'colyseus';
-import { TriviaJamState } from '@explorers-club/schema';
+import { DiffusionaryState } from '@explorers-club/schema';
 
-export class TriviaJamRoom extends Room<TriviaJamState> {
+export class DiffusionaryRoom extends Room<DiffusionaryState> {
   ROOMS_CHANNEL = '#rooms';
 
   async assertRoomDoesntExist(roomId: string): Promise<string> {
@@ -20,7 +20,7 @@ export class TriviaJamRoom extends Room<TriviaJamState> {
     this.roomId = await this.assertRoomDoesntExist(options.roomId);
 
     // initialize empty room state
-    this.setState(new TriviaJamState());
+    this.setState(new DiffusionaryState());
   }
 
   onJoin(client: Client) {
