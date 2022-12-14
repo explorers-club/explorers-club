@@ -1,5 +1,13 @@
 import { Room, Client } from 'colyseus';
 import { HangoutState } from '@explorers-club/schema';
+import {
+  HangoutRoomEnterNameCommand,
+  HangoutRoomSelectGameCommand,
+  HangoutRoomStartGameCommand,
+  HANGOUT_ROOM_ENTER_NAME,
+  HANGOUT_ROOM_SELECT_GAME,
+  HANGOUT_ROOM_START_GAME,
+} from '@explorers-club/commands';
 
 export class HangoutRoom extends Room<HangoutState> {
   ROOMS_CHANNEL = '#rooms';
@@ -24,23 +32,26 @@ export class HangoutRoom extends Room<HangoutState> {
     const state = new HangoutState();
     this.setState(state);
 
-    // this.onMessage('SET_NAME', (client, name) => {
-    //   state.playerNames[client.id] = name;
-    // });
-    // this.onMessage('SET_GAME', (client, game) => {
-    //   this.setState(
-    //     state.assign({
-    //       selectedGame: game,
-    //     })
-    //   );
-    // });
-    // this.onMessage('START_GAME', (client, game) => {
-    //   this.setState(
-    //     state.assign({
-    //       selectedGame: game,
-    //     })
-    //   );
-    // });
+    this.onMessage(
+      HANGOUT_ROOM_ENTER_NAME,
+      (client, command: HangoutRoomEnterNameCommand) => {
+        state.playerNames[client.id] = command.playerName;
+      }
+    );
+
+    this.onMessage(
+      HANGOUT_ROOM_SELECT_GAME,
+      (client, command: HangoutRoomSelectGameCommand) => {
+        console.log(client, command);
+      }
+    );
+
+    this.onMessage(
+      HANGOUT_ROOM_START_GAME,
+      (client, command: HangoutRoomStartGameCommand) => {
+        console.log(client, command);
+      }
+    );
   }
 
   onJoin(client: Client) {

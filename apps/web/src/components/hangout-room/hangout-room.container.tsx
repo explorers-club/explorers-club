@@ -15,7 +15,7 @@ export const HangoutRoom: FC<Props> = ({ room }) => {
 
   return (
     <HangoutRoomContext.Provider value={service}>
-      <HangoutRoomComponent />;
+      <HangoutRoomComponent />
     </HangoutRoomContext.Provider>
   );
 };
