@@ -24,17 +24,23 @@ export class HangoutRoom extends Room<HangoutState> {
     const state = new HangoutState();
     this.setState(state);
 
-    this.onMessage('SET_NAME', (client, name) => {
-      state.playerNames[client.id] = name;
-      // this.setState(state);
-    });
-    this.onMessage('SET_GAME', (_, game) => {
-      this.setState(
-        state.assign({
-          selectedGame: game,
-        })
-      );
-    });
+    // this.onMessage('SET_NAME', (client, name) => {
+    //   state.playerNames[client.id] = name;
+    // });
+    // this.onMessage('SET_GAME', (client, game) => {
+    //   this.setState(
+    //     state.assign({
+    //       selectedGame: game,
+    //     })
+    //   );
+    // });
+    // this.onMessage('START_GAME', (client, game) => {
+    //   this.setState(
+    //     state.assign({
+    //       selectedGame: game,
+    //     })
+    //   );
+    // });
   }
 
   onJoin(client: Client) {

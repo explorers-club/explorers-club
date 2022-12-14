@@ -1,13 +1,11 @@
+import { HangoutRoomCommand } from '@explorers-club/commands';
 import { HangoutState } from '@explorers-club/schema';
 import { Room } from 'colyseus.js';
 import { ActorRefFrom, createMachine, StateFrom } from 'xstate';
-import { assign } from 'xstate/lib/actions';
 
 interface HangoutRoomContext {
   room: Room<HangoutState>;
 }
-
-type HangoutRoomEvent = { type: 'ENTER_NAME'; playerName: string };
 
 export const hangoutRoomMachine = createMachine(
   {
@@ -15,7 +13,7 @@ export const hangoutRoomMachine = createMachine(
     initial: 'Initializing',
     schema: {
       context: {} as HangoutRoomContext,
-      events: {} as HangoutRoomEvent,
+      events: {} as HangoutRoomCommand,
     },
     states: {
       Initializing: {
@@ -32,12 +30,25 @@ export const hangoutRoomMachine = createMachine(
             target: 'Idle',
             cond: 'isNameValid',
             actions: ({ room }, event) => {
-              room.send('SET_NAME', event.playerName);
+              room.send(event.type, event);
             },
           },
         },
       },
-      Idle: {},
+      Idle: {
+        on: {
+          SELECT_GAME: {
+            actions: ({ room }, event) => {
+              room.send(event.type, event);
+            },
+          },
+          START_GAME: {
+            actions: ({ room }, event) => {
+              room.send(event.type, event);
+            },
+          },
+        },
+      },
     },
   },
   {
