@@ -35,7 +35,13 @@ export class HangoutRoom extends Room<HangoutState> {
     this.onMessage(
       HANGOUT_ROOM_ENTER_NAME,
       (client, command: HangoutRoomEnterNameCommand) => {
-        state.playerNames[client.id] = command.playerName;
+        const { playerName } = command;
+        const existingNames = Array.from(state.playerNames.entries()).map(
+          ([_, name]) => name
+        );
+        if (!existingNames.includes(playerName)) {
+          state.playerNames[client.sessionId] = playerName;
+        }
       }
     );
 
