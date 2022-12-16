@@ -112,7 +112,7 @@ export const Button = styled('button', {
       },
       green: {
         backgroundColor: '$green2',
-        boxShadow: 'inset 0 0 0 1px $colors$green',
+        boxShadow: 'inset 0 0 0 1px $colors$green7',
         color: '$green11',
         '@hover': {
           '&:hover': {
