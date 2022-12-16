@@ -1,64 +1,76 @@
 import { Card } from '@atoms/Card';
 import { Caption } from '@atoms/Caption';
+import { Text } from '@atoms/Text';
 import { Flex } from '@atoms/Flex';
 import { Avatar } from '@atoms/Avatar';
 import { Heading } from '@atoms/Heading';
 import { useHangoutRoom } from './hangout-room.hooks';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import { RadioCard, RadioCardGroup } from '@molecules/RadioCard';
+import { HANGOUT_ROOM_SELECT_GAME } from '@explorers-club/commands';
 
 export const MainScreenComponent = () => {
   const room = useHangoutRoom();
-  console.log('hi player names', Array.from(room.state.playerNames.values()));
 
   // TODO pull this in to a re-usable hook
-  const [playerNames, setPlayerNames] = useState(
-    Array.from(room.state.playerNames.values())
+  const [players, setPlayers] = useState(
+    Array.from(room.state.players.values())
   );
 
   useEffect(() => {
-    room.state.playerNames.onAdd = (value, key) => {
-      setPlayerNames(Array.from(room.state.playerNames.values()));
+    room.state.players.onAdd = (value, key) => {
+      setPlayers(Array.from(room.state.players.values()));
     };
-    room.state.playerNames.onChange = (value, key) => {
-      setPlayerNames(Array.from(room.state.playerNames.values()));
+    room.state.players.onChange = (value, key) => {
+      setPlayers(Array.from(room.state.players.values()));
     };
-    room.state.playerNames.onRemove = (value, key) => {
-      setPlayerNames(Array.from(room.state.playerNames.values()));
+    room.state.players.onRemove = (value, key) => {
+      setPlayers(Array.from(room.state.players.values()));
     };
-  }, [room.state, setPlayerNames]);
+  }, [room.state, setPlayers]);
 
-  // const playerNames = Array.from(room.state.playerNames.entries());
-  // const [playerNames, setPlayerNames] = useState(room.state.playerNames.values)
-  // const playerNames = useMemu(() => {
-  //   room.state.listen("playerNames")
-
-  // }, [])
-
-  // Convert to array so we can map
-  // const players = useMemo(() => {
-  //   const playerNames: string[] = [];
-  //   room.state.playerNames.forEach((name) => playerNames.push(name));
-  //   console.log(...room.state.playerNames);
-  //   return playerNames;
-  // }, [room.state.playerNames]);
+  const handleChangeGame = useCallback(
+    (gameId: string) => {
+      room.send(HANGOUT_ROOM_SELECT_GAME, { gameId });
+    },
+    [room]
+  );
 
   return (
     <Flex direction="column" css={{ p: '$3' }}>
       <Heading>
         {room.name} - {room.id}
       </Heading>
-      <Flex direction="column" gap="3">
-        {playerNames.map((name) => {
-          return (
-            <Card css={{ p: '$3' }} key={name}>
-              <Flex>
-                <Avatar size="4" fallback={name[0]} />
-                <Caption>{name}</Caption>
-              </Flex>
-            </Card>
-          );
-        })}
-      </Flex>
+      <Card css={{ p: '$3' }}>
+        <Caption>Game</Caption>
+        <RadioCardGroup onValueChange={handleChangeGame}>
+          <RadioCard value={'trivia_jam'} css={{ mb: '$2', width: '100%' }}>
+            <Flex css={{ alignItems: 'center' }}>
+              <Avatar shape="square" fallback="TJ" size="6" />
+              <Text size="5" css={{ fontWeight: '500', lineHeight: '25px' }}>
+                Trivia Jam
+              </Text>
+            </Flex>
+          </RadioCard>
+          <RadioCard value={'diffusionary'} css={{ mb: '$2', width: '100%' }}>
+            <Flex css={{ alignItems: 'center' }}>
+              <Avatar shape="square" fallback="D" size="6" />
+              <Text size="5" css={{ fontWeight: '500', lineHeight: '25px' }}>
+                Diffusionary
+              </Text>
+            </Flex>
+          </RadioCard>
+        </RadioCardGroup>
+      </Card>
+      <Card css={{ p: '$3' }}>
+        <Caption>Players</Caption>
+        {players.map(({ name }) => (
+          <Flex key={name}>
+            <Avatar size="4" fallback={name[0]} />
+            <Caption>{name}</Caption>
+          </Flex>
+        ))}
+      </Card>
     </Flex>
   );
 };

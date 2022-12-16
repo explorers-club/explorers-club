@@ -10,18 +10,26 @@ interface HangoutRoomContext {
 export const hangoutRoomMachine = createMachine(
   {
     id: 'HangoutRoomMachine',
-    initial: 'Initializing',
+    initial: 'Loading',
     schema: {
       context: {} as HangoutRoomContext,
       events: {} as HangoutRoomCommand,
     },
     states: {
+      Loading: {
+        invoke: {
+          src: ({ room }) =>
+            new Promise((resolve) => room.onStateChange.once(resolve)),
+          onDone: 'Initializing',
+        },
+      },
       Initializing: {
         always: [
           {
             target: 'EnteringName',
             cond: 'needsNameInput',
           },
+          { target: 'Idle' },
         ],
       },
       EnteringName: {
@@ -50,11 +58,14 @@ export const hangoutRoomMachine = createMachine(
         },
       },
     },
+    predictableActionArguments: true,
   },
   {
     guards: {
-      needsNameInput: () => {
-        return true;
+      needsNameInput: ({ room }) => {
+        const player = room.state.players.get(room.sessionId);
+        console.log(player, room.state.players.values());
+        return !player?.name;
       },
       isNameValid: () => {
         return true;

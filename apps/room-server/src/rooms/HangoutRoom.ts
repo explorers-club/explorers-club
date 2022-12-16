@@ -1,5 +1,5 @@
 import { Room, Client } from 'colyseus';
-import { HangoutState } from '@explorers-club/schema';
+import { HangoutState, Player } from '@explorers-club/schema';
 import {
   HangoutRoomEnterNameCommand,
   HangoutRoomSelectGameCommand,
@@ -12,35 +12,28 @@ import {
 export class HangoutRoom extends Room<HangoutState> {
   ROOMS_CHANNEL = '#rooms';
 
-  async assertRoomDoesntExist(roomId: string): Promise<string> {
-    const currentRooms = await this.presence.smembers(this.ROOMS_CHANNEL);
-    if (currentRooms.includes(roomId)) {
-      // Should only happen if clients race to create same channel
-      throw new Error(`tried to create ${roomId} but it already exists`);
-    }
-
-    // Lock ourselves to hosting it
-    await this.presence.sadd(this.ROOMS_CHANNEL, roomId);
-
-    return roomId;
-  }
-
   async onCreate(options) {
-    this.roomId = await this.assertRoomDoesntExist(options.roomId);
+    const { roomId } = options;
+    // Lock ourselves to hosting it
+    // await this.presence.sadd(this.ROOMS_CHANNEL, roomId);
 
-    // initialize empty room state
     const state = new HangoutState();
     this.setState(state);
+    this.roomId = roomId;
+    this.state.selectedGame = 'trivia_jam';
 
     this.onMessage(
       HANGOUT_ROOM_ENTER_NAME,
       (client, command: HangoutRoomEnterNameCommand) => {
         const { playerName } = command;
-        const existingNames = Array.from(state.playerNames.entries()).map(
-          ([_, name]) => name
+        const existingNames = Array.from(state.players.entries()).map(
+          ([_, player]) => player.name
         );
         if (!existingNames.includes(playerName)) {
-          state.playerNames[client.sessionId] = playerName;
+          const player = new Player({
+            name: playerName,
+          });
+          state.players[client.sessionId] = player;
         }
       }
     );
@@ -48,14 +41,14 @@ export class HangoutRoom extends Room<HangoutState> {
     this.onMessage(
       HANGOUT_ROOM_SELECT_GAME,
       (client, command: HangoutRoomSelectGameCommand) => {
-        console.log(client, command);
+        console.log(client.sessionId, command);
       }
     );
 
     this.onMessage(
       HANGOUT_ROOM_START_GAME,
       (client, command: HangoutRoomStartGameCommand) => {
-        console.log(client, command);
+        console.log(client.sessionId, command);
       }
     );
   }
@@ -64,11 +57,25 @@ export class HangoutRoom extends Room<HangoutState> {
     console.log(client.sessionId, 'joined!', this.roomId, this.roomName);
   }
 
-  onLeave(client: Client) {
-    console.log(client.sessionId, 'left!', this.roomId, this.roomName);
+  async onLeave(client: Client) {
+    const player = this.state.players.get(client.sessionId);
+    // Anyone player, hold them for 30 seconds before they disconnect
+    if (!player) {
+      return;
+    }
+
+    this.state.players.get(client.sessionId).connected = false;
+    try {
+      await this.allowReconnection(client, 30);
+      this.state.players.get(client.sessionId).connected = true;
+      console.log('reconnected', this.state.players.values());
+    } catch (ex) {
+      console.log('removing player');
+      this.state.players.delete(client.sessionId);
+    }
   }
 
-  async onDispose() {
-    this.presence.srem(this.ROOMS_CHANNEL, this.roomId);
+  onDispose() {
+    console.log('disposing', this.roomId);
   }
 }
