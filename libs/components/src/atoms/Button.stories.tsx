@@ -38,7 +38,19 @@ export default {
       },
     },
     color: {
-      options: ['gray', 'green', 'blue'],
+      defaultValue: '',
+      control: {
+        type: 'select',
+        options: [
+          'primary',
+          'secondary',
+          'neutral',
+          'error',
+          'success',
+          'warning',
+          'info',
+        ],
+      },
     },
   },
 } as ComponentMeta<typeof Button>;
@@ -51,39 +63,54 @@ export const Size: ComponentStory<typeof Button> = (props) => (
   <Box>
     <Heading css={{ mb: '$6' }}>Different Sizes</Heading>
     <Flex css={{ gap: '$5', fw: 'wrap', mt: '$6' }}>
-      <Button size="1" {...props}>
+      <Button {...props} size="1">
         Size 1
       </Button>
-      <Button size="2" {...props}>
+      <Button {...props} size="2">
         Size 2
       </Button>
-      <Button size="3" {...props}>
+      <Button {...props} size="3">
         Size 3
       </Button>
     </Flex>
   </Box>
 );
-export const Colors: ComponentStory<typeof Button> = (props) => (
+export const FullWidth: ComponentStory<typeof Button> = (props) => (
+  <Box>
+    <Heading css={{ mb: '$6' }}>Different Sizes</Heading>
+
+    <Button {...props} size="2" css={{ mb: '$4' }}>
+      Normal
+    </Button>
+    <Button {...props} size="2" fullWidth>
+      Full Width
+    </Button>
+  </Box>
+);
+export const Variants: ComponentStory<typeof Button> = (props) => (
   <Box>
     <Heading css={{ mb: '$6' }}>Different Colors</Heading>
     <Flex css={{ gap: '$5', fw: 'wrap', mt: '$6' }}>
-      <Button color="neutral" {...props}>
-        Neutral
-      </Button>
-      <Button color="primary" {...props}>
+      <Button {...props} color="primary">
         Primary
       </Button>
-      <Button color="red" {...props}>
-        Red
+      <Button {...props} color="secondary">
+        Secondary
       </Button>
-      <Button color="green" {...props}>
-        Green
+      <Button {...props} color="neutral">
+        Neutral
       </Button>
-      <Button color="transparentBlack" {...props}>
-        Transparent Black
+      <Button {...props} color="error">
+        Error
       </Button>
-      <Button color="transparentWhite" {...props}>
-        Transparent White
+      <Button {...props} color="info">
+        Info
+      </Button>
+      <Button {...props} color="warning">
+        Warning
+      </Button>
+      <Button {...props} color="success">
+        Success
       </Button>
     </Flex>
   </Box>
@@ -93,10 +120,10 @@ export const States: ComponentStory<typeof Button> = (props) => (
   <Box>
     <Heading css={{ mb: '$6' }}>Different Colors</Heading>
     <Flex css={{ gap: '$5', fw: 'wrap', mt: '$6' }}>
-      <Button state="active" {...props}>
+      <Button {...props} state="active">
         Active
       </Button>
-      <Button state="waiting" {...props}>
+      <Button {...props} state="waiting">
         Waiting
       </Button>
     </Flex>
@@ -107,21 +134,27 @@ export const Ghost: ComponentStory<typeof Button> = (props) => (
   <Box>
     <Heading css={{ mb: '$6' }}>Ghost Buttons</Heading>
     <Flex css={{ gap: '$5', fw: 'wrap', mt: '$6' }}>
-      <Button ghost {...props}>
-        Active
+      <Button {...props} ghost color="primary">
+        Primary
       </Button>
-      <Button ghost color="red" {...props}>
-        Active
+      <Button {...props} ghost color="secondary">
+        Secondary
       </Button>
-      <Button ghost color="green" {...props}>
-        Active
+      <Button {...props} ghost color="neutral">
+        Neutral
       </Button>
-      {/* <Button ghost color="gray" {...props}>
-        Active
+      <Button {...props} ghost color="error">
+        Error
       </Button>
-      <Button ghost color="blue" {...props}>
-        Active
-      </Button> */}
+      <Button {...props} ghost color="info">
+        Info
+      </Button>
+      <Button {...props} ghost color="warning">
+        Warning
+      </Button>
+      <Button {...props} color="success" ghost>
+        Success
+      </Button>
     </Flex>
   </Box>
 );

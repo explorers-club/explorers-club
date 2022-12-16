@@ -180,6 +180,24 @@ export const Badge = styled('span', {
   compoundVariants: [
     {
       interactive: true,
+      variant: 'gray',
+      css: {
+        '@hover': {
+          '&:hover': {
+            backgroundColor: '$gray4',
+          },
+        },
+        '&:active': {
+          backgroundColor: '$gray5',
+        },
+        '&[data-radix-popover-trigger][data-state="open"], &[data-radix-dropdown-menu-trigger][data-state="open"]':
+          {
+            backgroundColor: '$gray5',
+          },
+      },
+    },
+    {
+      interactive: true,
       variant: 'red',
       css: {
         '@hover': {

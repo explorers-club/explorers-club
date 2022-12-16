@@ -65,17 +65,67 @@ export const Button = styled('button', {
       },
     },
     color: {
+      primary: {
+        backgroundColor: '$primary3',
+        boxShadow: 'inset 0 0 0 1px $colors$primary7',
+        color: '$hiContrast',
+        '@hover': {
+          '&:hover': {
+            backgroundColor: '$primary4',
+            boxShadow: 'inset 0 0 0 1px $colors$primary8',
+          },
+        },
+        '&:active': {
+          backgroundColor: '$primary5',
+          boxShadow: 'inset 0 0 0 1px $colors$primary8',
+        },
+        '&:focus': {
+          boxShadow:
+            'inset 0 0 0 1px $colors$primary7, 0 0 0 1px $colors$primary7',
+        },
+        '&[data-radix-popover-trigger][data-state="open"], &[data-radix-dropdown-menu-trigger][data-state="open"]':
+          {
+            backgroundColor: '$primary4',
+            boxShadow: 'inset 0 0 0 1px $colors$primary7',
+          },
+      },
+      secondary: {
+        backgroundColor: '$secondary3',
+        boxShadow: 'inset 0 0 0 1px $colors$secondary7',
+        color: '$hiContrast',
+        '@hover': {
+          '&:hover': {
+            backgroundColor: '$secondary4',
+            boxShadow: 'inset 0 0 0 1px $colors$secondary8',
+          },
+        },
+        '&:active': {
+          backgroundColor: '$secondary5',
+          boxShadow: 'inset 0 0 0 1px $colors$secondary8',
+        },
+        '&:focus': {
+          boxShadow:
+            'inset 0 0 0 1px $colors$secondary8, 0 0 0 1px $colors$secondary8',
+        },
+        '&[data-radix-popover-trigger][data-state="open"], &[data-radix-dropdown-menu-trigger][data-state="open"]':
+          {
+            backgroundColor: '$secondary4',
+            boxShadow: 'inset 0 0 0 1px $colors$secondary8',
+          },
+      },
+
       neutral: {
-        backgroundColor: '$neutral2',
+        backgroundColor: '$neutral3',
         boxShadow: 'inset 0 0 0 1px $colors$neutral7',
         color: '$hiContrast',
         '@hover': {
           '&:hover': {
+            backgroundColor: '$neutral4',
             boxShadow: 'inset 0 0 0 1px $colors$neutral8',
           },
         },
         '&:active': {
-          backgroundColor: '$neutral2',
+          backgroundColor: '$neutral5',
           boxShadow: 'inset 0 0 0 1px $colors$neutral8',
         },
         '&:focus': {
@@ -88,61 +138,19 @@ export const Button = styled('button', {
             boxShadow: 'inset 0 0 0 1px $colors$neutral8',
           },
       },
-      primary: {
-        backgroundColor: '$primary3',
-        border: '2px solid $border1',
-        color: '$primary9',
+
+      error: {
+        backgroundColor: '$error3',
+        boxShadow: 'inset 0 0 0 1px $colors$error7',
+        color: '$hiContrast',
         '@hover': {
           '&:hover': {
-            boxShadow: 'inset 0 0 0 1px $colors$blue8',
+            backgroundColor: '$error4',
+            boxShadow: 'inset 0 0 0 1px $colors$error8',
           },
         },
         '&:active': {
-          backgroundColor: '$blue3',
-          boxShadow: 'inset 0 0 0 1px $colors$blue8',
-        },
-        '&:focus': {
-          boxShadow: 'inset 0 0 0 1px $colors$blue8, 0 0 0 1px $colors$blue8',
-        },
-        '&[data-radix-popover-trigger][data-state="open"], &[data-radix-dropdown-menu-trigger][data-state="open"]':
-          {
-            backgroundColor: '$blue4',
-            boxShadow: 'inset 0 0 0 1px $colors$blue8',
-          },
-      },
-      green: {
-        backgroundColor: '$green2',
-        boxShadow: 'inset 0 0 0 1px $colors$green7',
-        color: '$green11',
-        '@hover': {
-          '&:hover': {
-            boxShadow: 'inset 0 0 0 1px $colors$green8',
-          },
-        },
-        '&:active': {
-          backgroundColor: '$green3',
-          boxShadow: 'inset 0 0 0 1px $colors$green8',
-        },
-        '&:focus': {
-          boxShadow: 'inset 0 0 0 1px $colors$green8, 0 0 0 1px $colors$green8',
-        },
-        '&[data-radix-popover-trigger][data-state="open"], &[data-radix-dropdown-menu-trigger][data-state="open"]':
-          {
-            backgroundColor: '$green4',
-            boxShadow: 'inset 0 0 0 1px $colors$green8',
-          },
-      },
-      red: {
-        backgroundColor: '$loContrast',
-        boxShadow: 'inset 0 0 0 1px $colors$neutral7',
-        color: '$error11',
-        '@hover': {
-          '&:hover': {
-            boxShadow: 'inset 0 0 0 1px $colors$neutral8',
-          },
-        },
-        '&:active': {
-          backgroundColor: '$error3',
+          backgroundColor: '$error5',
           boxShadow: 'inset 0 0 0 1px $colors$error8',
         },
         '&:focus': {
@@ -154,45 +162,86 @@ export const Button = styled('button', {
             boxShadow: 'inset 0 0 0 1px $colors$error8',
           },
       },
-      transparentWhite: {
-        backgroundColor: 'hsla(0,100%,100%,.2)',
-        boxShadow: 'inset 0 0 0 1px $colors$neutral8',
-        color: 'white',
+
+      success: {
+        backgroundColor: '$success3',
+        boxShadow: 'inset 0 0 0 1px $colors$success7',
+        color: '$hiContrast',
         '@hover': {
           '&:hover': {
-            backgroundColor: 'hsla(0,100%,100%,.25)',
+            backgroundColor: '$success4',
+            boxShadow: 'inset 0 0 0 1px $colors$success8',
           },
         },
         '&:active': {
-          backgroundColor: 'hsla(0,100%,100%,.3)',
+          backgroundColor: '$success5',
+          boxShadow: 'inset 0 0 0 1px $colors$success8',
         },
         '&:focus': {
           boxShadow:
-            'inset 0 0 0 1px hsla(0,100%,100%,.35), 0 0 0 1px hsla(0,100%,100%,.35)',
+            'inset 0 0 0 1px $colors$success8, 0 0 0 1px $colors$success8',
         },
+        '&[data-radix-popover-trigger][data-state="open"], &[data-radix-dropdown-menu-trigger][data-state="open"]':
+          {
+            backgroundColor: '$success4',
+            boxShadow: 'inset 0 0 0 1px $colors$success8',
+          },
       },
-      transparentBlack: {
-        backgroundColor: 'hsla(0,0%,0%,.2)',
-        color: 'black',
+
+      warning: {
+        backgroundColor: '$warning3',
+        boxShadow: 'inset 0 0 0 1px $colors$warning7',
+        color: '$hiContrast',
         '@hover': {
           '&:hover': {
-            backgroundColor: 'hsla(0,0%,0%,.25)',
+            backgroundColor: '$warning4',
+            boxShadow: 'inset 0 0 0 1px $colors$warning8',
           },
         },
         '&:active': {
-          backgroundColor: 'hsla(0,0%,0%,.3)',
+          backgroundColor: '$warning5',
+          boxShadow: 'inset 0 0 0 1px $colors$warning8',
         },
         '&:focus': {
           boxShadow:
-            'inset 0 0 0 1px hsla(0,0%,0%,.35), 0 0 0 1px hsla(0,0%,0%,.35)',
+            'inset 0 0 0 1px $colors$warning8, 0 0 0 1px $colors$warning8',
         },
+        '&[data-radix-popover-trigger][data-state="open"], &[data-radix-dropdown-menu-trigger][data-state="open"]':
+          {
+            backgroundColor: '$warning4',
+            boxShadow: 'inset 0 0 0 1px $colors$warning8',
+          },
+      },
+
+      info: {
+        backgroundColor: '$info3',
+        boxShadow: 'inset 0 0 0 1px $colors$info7',
+        color: '$hiContrast',
+        '@hover': {
+          '&:hover': {
+            backgroundColor: '$info5',
+            boxShadow: 'inset 0 0 0 1px $colors$info8',
+          },
+        },
+        '&:active': {
+          backgroundColor: '$info5',
+          boxShadow: 'inset 0 0 0 1px $colors$info8',
+        },
+        '&:focus': {
+          boxShadow: 'inset 0 0 0 1px $colors$info8, 0 0 0 1px $colors$info8',
+        },
+        '&[data-radix-popover-trigger][data-state="open"], &[data-radix-dropdown-menu-trigger][data-state="open"]':
+          {
+            backgroundColor: '$info4',
+            boxShadow: 'inset 0 0 0 1px $colors$info8',
+          },
       },
     },
     state: {
       active: {
         backgroundColor: '$neutral4',
         boxShadow: 'inset 0 0 0 1px $colors$neutral8',
-        color: '$neutral11',
+        color: '$loContrast',
         '@hover': {
           '&:hover': {
             backgroundColor: '$neutral5',
@@ -208,18 +257,18 @@ export const Button = styled('button', {
         },
       },
       waiting: {
-        backgroundColor: '$neutral4',
+        backgroundColor: '$neutral3',
         boxShadow: 'inset 0 0 0 1px $colors$neutral8',
-        color: 'transparent',
+        color: '$loContrast',
         pointerEvents: 'none',
         '@hover': {
           '&:hover': {
-            backgroundColor: '$neutral5',
+            backgroundColor: '$neutral3',
             boxShadow: 'inset 0 0 0 1px $colors$neutral8',
           },
         },
         '&:active': {
-          backgroundColor: '$neutral5',
+          backgroundColor: '$neutral3',
         },
         '&:focus': {
           boxShadow: 'inset 0 0 0 1px $colors$neutral8',
@@ -233,103 +282,185 @@ export const Button = styled('button', {
       },
     },
   },
+
   compoundVariants: [
     {
-      color: 'gray',
-      ghost: 'true',
+      color: 'neutral',
+      ghost: true,
       css: {
         backgroundColor: 'transparent',
         color: '$hiContrast',
+        boxShadow: 'none',
         '@hover': {
           '&:hover': {
-            backgroundColor: '$neutralA3',
+            backgroundColor: '$neutral3',
             boxShadow: 'none',
           },
         },
         '&:active': {
-          backgroundColor: '$neutralA4',
+          backgroundColor: '$neutral4',
         },
         '&:focus': {
           boxShadow:
-            'inset 0 0 0 1px $colors$neutralA8, 0 0 0 1px $colors$neutralA8',
+            'inset 0 0 0 1px $colors$neutral8, 0 0 0 1px $colors$neutral5',
         },
         '&[data-radix-popover-trigger][data-state="open"], &[data-radix-dropdown-menu-trigger][data-state="open"]':
           {
-            backgroundColor: '$neutralA4',
+            backgroundColor: '$neutral4',
             boxShadow: 'none',
           },
       },
     },
     {
-      color: 'blue',
-      ghost: 'true',
+      color: 'primary',
+      ghost: true,
       css: {
         backgroundColor: 'transparent',
+        boxShadow: 'none',
         '@hover': {
           '&:hover': {
-            backgroundColor: '$blueA3',
+            backgroundColor: '$primary3',
             boxShadow: 'none',
           },
         },
         '&:active': {
-          backgroundColor: '$blueA4',
+          backgroundColor: '$primary4',
         },
         '&:focus': {
-          boxShadow: 'inset 0 0 0 1px $colors$blueA8, 0 0 0 1px $colors$blueA8',
+          boxShadow:
+            'inset 0 0 0 1px $colors$primary8, 0 0 0 1px $colors$primary5',
         },
         '&[data-radix-popover-trigger][data-state="open"], &[data-radix-dropdown-menu-trigger][data-state="open"]':
           {
-            backgroundColor: '$blueA4',
+            backgroundColor: '$primary4',
             boxShadow: 'none',
           },
       },
     },
     {
-      color: 'green',
-      ghost: 'true',
+      ghost: true,
+      color: 'secondary',
       css: {
         backgroundColor: 'transparent',
+        boxShadow: 'none',
         '@hover': {
           '&:hover': {
-            backgroundColor: '$greenA3',
+            backgroundColor: '$secondary3',
             boxShadow: 'none',
           },
         },
         '&:active': {
-          backgroundColor: '$greenA4',
+          backgroundColor: '$secondary4',
         },
         '&:focus': {
           boxShadow:
-            'inset 0 0 0 1px $colors$greenA8, 0 0 0 1px $colors$greenA8',
+            'inset 0 0 0 1px $colors$secondary8, 0 0 0 1px $colors$secondary5',
         },
         '&[data-radix-popover-trigger][data-state="open"], &[data-radix-dropdown-menu-trigger][data-state="open"]':
           {
-            backgroundColor: '$greenA4',
+            backgroundColor: '$secondary4',
             boxShadow: 'none',
           },
       },
     },
     {
-      color: 'red',
-      ghost: 'true',
+      color: 'error',
+      ghost: true,
       css: {
         backgroundColor: 'transparent',
+        boxShadow: 'none',
         '@hover': {
           '&:hover': {
-            backgroundColor: '$errorA3',
+            backgroundColor: '$error3',
             boxShadow: 'none',
           },
         },
         '&:active': {
-          backgroundColor: '$errorA4',
+          backgroundColor: '$error4',
         },
         '&:focus': {
-          boxShadow:
-            'inset 0 0 0 1px $colors$errorA8, 0 0 0 1px $colors$errorA8',
+          boxShadow: 'inset 0 0 0 1px $colors$error8, 0 0 0 1px $colors$error5',
         },
         '&[data-radix-popover-trigger][data-state="open"], &[data-radix-dropdown-menu-trigger][data-state="open"]':
           {
-            backgroundColor: '$errorA4',
+            backgroundColor: '$error4',
+            boxShadow: 'none',
+          },
+      },
+    },
+    {
+      color: 'warning',
+      ghost: true,
+      css: {
+        backgroundColor: 'transparent',
+        boxShadow: 'none',
+        '@hover': {
+          '&:hover': {
+            backgroundColor: '$warning3',
+            boxShadow: 'none',
+          },
+        },
+        '&:active': {
+          backgroundColor: '$warningerror4',
+        },
+        '&:focus': {
+          boxShadow:
+            'inset 0 0 0 1px $colors$warning8, 0 0 0 1px $colors$warning5',
+        },
+        '&[data-radix-popover-trigger][data-state="open"], &[data-radix-dropdown-menu-trigger][data-state="open"]':
+          {
+            backgroundColor: '$warning4',
+            boxShadow: 'none',
+          },
+      },
+    },
+    {
+      color: 'info',
+      ghost: true,
+      css: {
+        backgroundColor: 'transparent',
+        boxShadow: 'none',
+        '@hover': {
+          '&:hover': {
+            backgroundColor: '$info3',
+            boxShadow: 'none',
+          },
+        },
+        '&:active': {
+          backgroundColor: '$info4',
+        },
+        '&:focus': {
+          boxShadow: 'inset 0 0 0 1px $colors$info8, 0 0 0 1px $colors$info5',
+        },
+        '&[data-radix-popover-trigger][data-state="open"], &[data-radix-dropdown-menu-trigger][data-state="open"]':
+          {
+            backgroundColor: '$info4',
+            boxShadow: 'none',
+          },
+      },
+    },
+    {
+      color: 'success',
+      ghost: true,
+      css: {
+        backgroundColor: 'transparent',
+        boxShadow: 'none',
+        '@hover': {
+          '&:hover': {
+            backgroundColor: '$success3',
+            boxShadow: 'none',
+          },
+        },
+        '&:active': {
+          backgroundColor: '$success4',
+        },
+        '&:focus': {
+          boxShadow:
+            'inset 0 0 0 1px $colors$success8, 0 0 0 1px $colors$success5',
+        },
+        '&[data-radix-popover-trigger][data-state="open"], &[data-radix-dropdown-menu-trigger][data-state="open"]':
+          {
+            backgroundColor: '$success4',
             boxShadow: 'none',
           },
       },
@@ -340,3 +471,14 @@ export const Button = styled('button', {
     color: 'neutral',
   },
 });
+
+/**
+ * 
+primary
+secondary
+neutral
+error
+info
+warning
+success
+ */
