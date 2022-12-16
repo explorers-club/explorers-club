@@ -1,4 +1,3 @@
-// Discussion on storybook reuse https://github.com/storybookjs/storybook/issues/15954
 import { Flex } from './Flex';
 import { Box } from './Box';
 import { Text } from './Text';

@@ -112,7 +112,7 @@ export const Button = styled('button', {
       },
       green: {
         backgroundColor: '$green2',
-        boxShadow: 'inset 0 0 0 1px $colors$green7',
+        boxShadow: 'inset 0 0 0 1px $colors$green',
         color: '$green11',
         '@hover': {
           '&:hover': {
@@ -156,6 +156,7 @@ export const Button = styled('button', {
       },
       transparentWhite: {
         backgroundColor: 'hsla(0,100%,100%,.2)',
+        boxShadow: 'inset 0 0 0 1px $colors$neutral8',
         color: 'white',
         '@hover': {
           '&:hover': {
