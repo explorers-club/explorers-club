@@ -10,7 +10,9 @@ import {
 } from 'react-spring-bottom-sheet/dist/types';
 import 'react-spring-bottom-sheet/dist/style.css';
 import { ColyseusContext } from '../state/colyseus.context';
-import { useContextBridge } from '@react-three/drei';
+import { OrbitControls, useContextBridge } from '@react-three/drei';
+import { Floor } from '@3d/floor';
+import { SunsetSky } from '@3d/sky';
 
 const DEFAULT_SNAP_POINTS = ({ minHeight }: SnapPointProps) => [minHeight];
 
@@ -29,7 +31,11 @@ export const AppComponent = () => {
         <Routes />
       </BottomSheet>
       <SceneContainer>
-        <></>
+        <>
+          <OrbitControls maxDistance={80} />
+          <SunsetSky />
+          <Floor />
+        </>
       </SceneContainer>
     </>
   );
@@ -47,7 +53,7 @@ const SceneContainer: FC<SceneContainerProps> = ({ children }) => {
     <Box css={{ background: '$primary1', height: '100vh' }}>
       <Canvas
         gl={{ physicallyCorrectLights: true }}
-        camera={{ position: [0, 0, 1] }}
+        camera={{ position: [-5, 5, 5] }}
       >
         <color attach="background" args={['#000']} />
         <ContextBridge>

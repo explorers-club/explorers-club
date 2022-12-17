@@ -11,6 +11,7 @@ const config: StorybookConfig = {
     '../src/**/*.stories.mdx',
     '../src/**/*.stories.@(js|jsx|ts|tsx)',
   ],
+  staticDirs: [{ from: '../src/assets', to: '/assets' }],
   addons: [...(rootMain.addons || []), '@nrwl/react/plugins/storybook'],
   typescript: { reactDocgen: false },
   webpackFinal: async (config, { configType }: Options) => {
