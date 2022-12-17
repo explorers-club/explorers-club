@@ -25,3 +25,9 @@ processes = []
   [[services.ports]]
     handlers = ["tls", "http"]
     port = "443"
+
+  [[services.tcp_checks]]
+    grace_period = "15s"
+    interval = 10000
+    restart_limit = 2
+    timeout = 2000
