@@ -10,9 +10,14 @@ import {
 } from 'react-spring-bottom-sheet/dist/types';
 import 'react-spring-bottom-sheet/dist/style.css';
 import { ColyseusContext } from '../state/colyseus.context';
-import { OrbitControls, useContextBridge } from '@react-three/drei';
+import {
+  Environment,
+  OrbitControls,
+  useContextBridge,
+} from '@react-three/drei';
 import { Floor } from '@3d/floor';
 import { SunsetSky } from '@3d/sky';
+import { Treehouse } from '@3d/treehouse';
 
 const DEFAULT_SNAP_POINTS = ({ minHeight }: SnapPointProps) => [minHeight];
 
@@ -33,7 +38,9 @@ export const AppComponent = () => {
       <SceneContainer>
         <>
           <OrbitControls maxDistance={80} />
+          <Environment preset="sunset" />
           <SunsetSky />
+          <Treehouse rotation={[0, -Math.PI / 4, 0]} />
           <Floor />
         </>
       </SceneContainer>
@@ -53,7 +60,7 @@ const SceneContainer: FC<SceneContainerProps> = ({ children }) => {
     <Box css={{ background: '$primary1', height: '100vh' }}>
       <Canvas
         gl={{ physicallyCorrectLights: true }}
-        camera={{ position: [-5, 5, 5] }}
+        camera={{ position: [-9, 5, 24] }}
       >
         <color attach="background" args={['#000']} />
         <ContextBridge>
