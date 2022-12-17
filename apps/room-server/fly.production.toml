@@ -1,7 +1,9 @@
 app = "explorers-club-room-server-production"
 kill_signal = "SIGINT"
 kill_timeout = 60
-processes = []
+
+[processes]
+web = "node main.js"
 
 [env]
   PORT = 8080
@@ -10,6 +12,7 @@ processes = []
   builder = "heroku/buildpacks:20"
 
 [[services]]
+  processes = ["web"]
   internal_port = 8080
   protocol = "tcp"
 
