@@ -2,7 +2,7 @@ import Arena from '@colyseus/arena';
 import { monitor } from '@colyseus/monitor';
 import { LobbyRoom } from 'colyseus';
 import { DiffusionaryRoom } from './rooms/DiffusionaryRoom';
-import { HangoutRoom } from './rooms/HangoutRoom';
+import { ClubRoom } from './rooms/ClubRoom';
 import { TriviaJamRoom } from './rooms/TriviaJamRoom';
 
 export default Arena({
@@ -13,7 +13,7 @@ export default Arena({
      * Define your room handlers:
      */
     gameServer.define('lobby', LobbyRoom);
-    gameServer.define('hangout', HangoutRoom).enableRealtimeListing();
+    gameServer.define('club', ClubRoom).enableRealtimeListing();
     gameServer.define('trivia_jam', TriviaJamRoom).enableRealtimeListing();
     gameServer.define('diffusionary', DiffusionaryRoom).enableRealtimeListing();
   },

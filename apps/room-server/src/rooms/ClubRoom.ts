@@ -1,28 +1,28 @@
 import { Room, Client } from 'colyseus';
-import { HangoutState, Player } from '@explorers-club/schema';
+import { ClubState, Player } from '@explorers-club/schema';
 import {
-  HangoutRoomEnterNameCommand,
-  HangoutRoomSelectGameCommand,
-  HangoutRoomStartGameCommand,
-  HANGOUT_ROOM_ENTER_NAME,
-  HANGOUT_ROOM_SELECT_GAME,
-  HANGOUT_ROOM_START_GAME,
+  ClubRoomEnterNameCommand,
+  ClubRoomSelectGameCommand,
+  ClubRoomStartGameCommand,
+  CLUB_ROOM_ENTER_NAME,
+  CLUB_ROOM_SELECT_GAME,
+  CLUB_ROOM_START_GAME,
 } from '@explorers-club/commands';
 
-export class HangoutRoom extends Room<HangoutState> {
+export class ClubRoom extends Room<ClubState> {
   ROOMS_CHANNEL = '#rooms';
 
   async onCreate(options) {
     const { roomId } = options;
 
-    const state = new HangoutState();
+    const state = new ClubState();
     this.setState(state);
     this.roomId = roomId;
     this.state.selectedGame = 'trivia_jam';
 
     this.onMessage(
-      HANGOUT_ROOM_ENTER_NAME,
-      (client, command: HangoutRoomEnterNameCommand) => {
+      CLUB_ROOM_ENTER_NAME,
+      (client, command: ClubRoomEnterNameCommand) => {
         const { playerName } = command;
         const existingNames = Array.from(state.players.entries()).map(
           ([_, player]) => player.name
@@ -37,13 +37,13 @@ export class HangoutRoom extends Room<HangoutState> {
     );
 
     this.onMessage(
-      HANGOUT_ROOM_SELECT_GAME,
-      (client, command: HangoutRoomSelectGameCommand) => {
+      CLUB_ROOM_SELECT_GAME,
+      (client, command: ClubRoomSelectGameCommand) => {
         console.log(client.sessionId, command);
       }
     );
 
-    this.onMessage(HANGOUT_ROOM_START_GAME, (client) => {
+    this.onMessage(CLUB_ROOM_START_GAME, (client) => {
       console.log('start');
     });
   }

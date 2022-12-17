@@ -1,3 +1,3 @@
 export * from './DiffusionaryState';
-export * from './HangoutState';
+export * from './ClubState';
 export * from './TriviaJamState';

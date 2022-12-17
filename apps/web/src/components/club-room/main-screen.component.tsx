@@ -4,12 +4,12 @@ import { Caption } from '@atoms/Caption';
 import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
-import { HANGOUT_ROOM_START_GAME } from '@explorers-club/commands';
+import { CLUB_ROOM_START_GAME } from '@explorers-club/commands';
 import { useCallback, useEffect, useState } from 'react';
-import { useHangoutRoom } from './hangout-room.hooks';
+import { useClubRoom } from './club-room.hooks';
 
 export const MainScreenComponent = () => {
-  const room = useHangoutRoom();
+  const room = useClubRoom();
 
   // TODO pull this in to a re-usable hook
   const [players, setPlayers] = useState(
@@ -29,12 +29,12 @@ export const MainScreenComponent = () => {
   }, [room.state, setPlayers]);
 
   const handlePressStart = useCallback(() => {
-    room.send(HANGOUT_ROOM_START_GAME);
+    room.send(CLUB_ROOM_START_GAME);
   }, [room]);
 
   // const handleChangeGame = useCallback(
   //   (gameId: string) => {
-  //     room.send(HANGOUT_ROOM_SELECT_GAME, { gameId });
+  //     room.send(CLUB_ROOM_SELECT_GAME, { gameId });
   //   },
   //   [room]
   // );

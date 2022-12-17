@@ -5,10 +5,10 @@ import { Heading } from '@atoms/Heading';
 import { TextField } from '@atoms/TextField';
 import { useSelector } from '@xstate/react';
 import { useCallback, useContext, useRef } from 'react';
-import { HangoutRoomContext } from './hangout-room.context';
+import { ClubRoomContext } from './club-room.context';
 
 export const EnterNameScreen = () => {
-  const service = useContext(HangoutRoomContext);
+  const service = useContext(ClubRoomContext);
   const nameRef = useRef<HTMLInputElement>(null);
 
   const room = useSelector(service, (state) => state.context.room);

@@ -1,6 +1,6 @@
 import {
   DiffusionaryState,
-  HangoutState,
+  ClubState,
   TriviaJamState,
 } from '@explorers-club/schema';
 // import { matchMaker } from 'colyseus';
@@ -9,10 +9,10 @@ import { useContext } from 'react';
 import { useQuery } from 'react-query';
 import { useParams } from 'react-router-dom';
 import { useLocalStorage } from 'usehooks-ts';
-import { HangoutRoom } from '../components/hangout-room';
+import { ClubRoom } from '../components/club-room';
 import { ColyseusContext } from '../state/colyseus.context';
 
-type RoomState = HangoutState | DiffusionaryState | TriviaJamState;
+type RoomState = ClubState | DiffusionaryState | TriviaJamState;
 
 export const Room = () => {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -27,7 +27,7 @@ export const Room = () => {
 
   const query = useQuery('room', async () => {
     let room: TRoom<RoomState>;
-    const rooms = await colyseusClient.getAvailableRooms('hangout');
+    const rooms = await colyseusClient.getAvailableRooms('club');
     const existingRoomIds = rooms.map((room) => room.roomId);
 
     if (existingRoomIds.includes(roomId)) {
@@ -37,7 +37,7 @@ export const Room = () => {
         room = await colyseusClient.joinById(roomId);
       }
     } else {
-      room = await colyseusClient.create('hangout', {
+      room = await colyseusClient.create('club', {
         roomId,
       });
     }
@@ -53,8 +53,8 @@ export const Room = () => {
   }
 
   switch (room.name) {
-    case 'hangout':
-      return <HangoutRoom room={room as TRoom<HangoutState>} />;
+    case 'club':
+      return <ClubRoom room={room as TRoom<ClubState>} />;
     default:
       return null;
   }

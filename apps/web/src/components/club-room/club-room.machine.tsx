@@ -1,19 +1,19 @@
-import { HangoutRoomCommand } from '@explorers-club/commands';
-import { HangoutState } from '@explorers-club/schema';
+import { ClubRoomCommand } from '@explorers-club/commands';
+import { ClubState } from '@explorers-club/schema';
 import { Room } from 'colyseus.js';
 import { ActorRefFrom, createMachine, StateFrom } from 'xstate';
 
-interface HangoutRoomContext {
-  room: Room<HangoutState>;
+interface ClubRoomContext {
+  room: Room<ClubState>;
 }
 
-export const hangoutRoomMachine = createMachine(
+export const clubRoomMachine = createMachine(
   {
-    id: 'HangoutRoomMachine',
+    id: 'ClubRoomMachine',
     initial: 'Loading',
     schema: {
-      context: {} as HangoutRoomContext,
-      events: {} as HangoutRoomCommand,
+      context: {} as ClubRoomContext,
+      events: {} as ClubRoomCommand,
     },
     states: {
       Loading: {
@@ -74,6 +74,6 @@ export const hangoutRoomMachine = createMachine(
   }
 );
 
-export type HangoutRoomMachine = typeof hangoutRoomMachine;
-export type HangoutRoomService = ActorRefFrom<HangoutRoomMachine>;
-export type HangoutRoomState = StateFrom<HangoutRoomMachine>;
+export type ClubRoomMachine = typeof clubRoomMachine;
+export type ClubRoomService = ActorRefFrom<ClubRoomMachine>;
+export type ClubRoomState = StateFrom<ClubRoomMachine>;

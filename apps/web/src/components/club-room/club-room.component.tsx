@@ -1,11 +1,11 @@
 import { useSelector } from '@xstate/react';
 import { useContext } from 'react';
 import { EnterNameScreen } from './enter-name-screen.component';
-import { HangoutRoomContext } from './hangout-room.context';
+import { ClubRoomContext } from './club-room.context';
 import { MainScreen } from './main-screen.container';
 
-export const HangoutRoomComponent = () => {
-  const service = useContext(HangoutRoomContext);
+export const ClubRoomComponent = () => {
+  const service = useContext(ClubRoomContext);
 
   const state = useSelector(service, (state) => state);
 
