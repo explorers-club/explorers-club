@@ -1,4 +1,4 @@
-import { ClubState } from '@explorers-club/schema';
+import { ClubState } from '@explorers-club/schema-types/ClubState';
 import { useInterpret } from '@xstate/react';
 import { Room } from 'colyseus.js';
 import { FC } from 'react';

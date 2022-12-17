@@ -13,7 +13,9 @@
     "codegen": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": ["schema-codegen src/* --ts --output @types/generated/"],
+        "commands": [
+          "schema-codegen src/schemas/* --ts --output @types/generated/"
+        ],
         "cwd": "libs/schema"
       }
     }

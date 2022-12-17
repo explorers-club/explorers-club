@@ -1,5 +1,5 @@
 import { Room, Client } from 'colyseus';
-import { TriviaJamState } from '@explorers-club/schema';
+import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
 
 export class TriviaJamRoom extends Room<TriviaJamState> {
   ROOMS_CHANNEL = '#rooms';

@@ -1,9 +1,9 @@
 import { Room, Client } from 'colyseus';
-import { ClubState, Player } from '@explorers-club/schema';
+import { ClubState } from '@explorers-club/schema-types/ClubState';
+import { Player } from '@explorers-club/schema-types/Player';
 import {
   ClubRoomEnterNameCommand,
   ClubRoomSelectGameCommand,
-  ClubRoomStartGameCommand,
   CLUB_ROOM_ENTER_NAME,
   CLUB_ROOM_SELECT_GAME,
   CLUB_ROOM_START_GAME,
@@ -44,6 +44,7 @@ export class ClubRoom extends Room<ClubState> {
     );
 
     this.onMessage(CLUB_ROOM_START_GAME, (client) => {
+      // We can probably all leave this room and join the game
       console.log('start');
     });
   }

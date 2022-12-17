@@ -1,5 +1,5 @@
 import { ClubRoomCommand } from '@explorers-club/commands';
-import { ClubState } from '@explorers-club/schema';
+import { ClubState } from '@explorers-club/schema-types/ClubState';
 import { Room } from 'colyseus.js';
 import { ActorRefFrom, createMachine, StateFrom } from 'xstate';
 

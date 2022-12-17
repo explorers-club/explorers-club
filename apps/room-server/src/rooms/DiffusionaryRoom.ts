@@ -1,5 +1,5 @@
 import { Room, Client } from 'colyseus';
-import { DiffusionaryState } from '@explorers-club/schema';
+import { DiffusionaryState } from '@explorers-club/schema-types/DiffusionaryState';
 
 export class DiffusionaryRoom extends Room<DiffusionaryState> {
   ROOMS_CHANNEL = '#rooms';
