@@ -2,9 +2,6 @@ app = "explorers-club-room-server-production"
 kill_signal = "SIGINT"
 kill_timeout = 60
 
-[processes]
-web = "node main.js"
-
 [env]
   PORT = 8080
 
@@ -12,7 +9,6 @@ web = "node main.js"
   builder = "heroku/buildpacks:20"
 
 [[services]]
-  processes = ["web"]
   internal_port = 8080
   protocol = "tcp"
 
@@ -33,11 +29,3 @@ web = "node main.js"
     grace_period = "15s"
     interval = 10000
     timeout = 2000
-
-  [[services.http_checks]]
-    interval = 10000
-    grace_period = "5s"
-    timeout = 2000
-    method = "get"
-    path = "/colyseus"
-    protocol = "https"
