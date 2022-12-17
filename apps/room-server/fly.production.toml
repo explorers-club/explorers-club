@@ -29,5 +29,12 @@ processes = []
   [[services.tcp_checks]]
     grace_period = "15s"
     interval = 10000
-    restart_limit = 2
     timeout = 2000
+
+  [[services.http_checks]]
+    interval = 10000
+    grace_period = "5s"
+    timeout = 2000
+    method = "get"
+    path = "/colyseus"
+    protocol = "https"
