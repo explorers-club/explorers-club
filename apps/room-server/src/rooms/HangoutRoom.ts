@@ -14,8 +14,6 @@ export class HangoutRoom extends Room<HangoutState> {
 
   async onCreate(options) {
     const { roomId } = options;
-    // Lock ourselves to hosting it
-    // await this.presence.sadd(this.ROOMS_CHANNEL, roomId);
 
     const state = new HangoutState();
     this.setState(state);
@@ -45,12 +43,9 @@ export class HangoutRoom extends Room<HangoutState> {
       }
     );
 
-    this.onMessage(
-      HANGOUT_ROOM_START_GAME,
-      (client, command: HangoutRoomStartGameCommand) => {
-        console.log(client.sessionId, command);
-      }
-    );
+    this.onMessage(HANGOUT_ROOM_START_GAME, (client) => {
+      console.log('start');
+    });
   }
 
   onJoin(client: Client) {
@@ -58,8 +53,8 @@ export class HangoutRoom extends Room<HangoutState> {
   }
 
   async onLeave(client: Client) {
+    // When player leaves, hold for 30 seconds before they disconnect
     const player = this.state.players.get(client.sessionId);
-    // Anyone player, hold them for 30 seconds before they disconnect
     if (!player) {
       return;
     }
@@ -68,9 +63,7 @@ export class HangoutRoom extends Room<HangoutState> {
     try {
       await this.allowReconnection(client, 30);
       this.state.players.get(client.sessionId).connected = true;
-      console.log('reconnected', this.state.players.values());
     } catch (ex) {
-      console.log('removing player');
       this.state.players.delete(client.sessionId);
     }
   }

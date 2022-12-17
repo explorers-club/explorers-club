@@ -1,13 +1,12 @@
-import { Card } from '@atoms/Card';
-import { Caption } from '@atoms/Caption';
-import { Text } from '@atoms/Text';
-import { Flex } from '@atoms/Flex';
 import { Avatar } from '@atoms/Avatar';
+import { Button } from '@atoms/Button';
+import { Caption } from '@atoms/Caption';
+import { Card } from '@atoms/Card';
+import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
+import { HANGOUT_ROOM_START_GAME } from '@explorers-club/commands';
+import { useCallback, useEffect, useState } from 'react';
 import { useHangoutRoom } from './hangout-room.hooks';
-import { useEffect, useState, useCallback } from 'react';
-import { RadioCard, RadioCardGroup } from '@molecules/RadioCard';
-import { HANGOUT_ROOM_SELECT_GAME } from '@explorers-club/commands';
 
 export const MainScreenComponent = () => {
   const room = useHangoutRoom();
@@ -29,12 +28,16 @@ export const MainScreenComponent = () => {
     };
   }, [room.state, setPlayers]);
 
-  const handleChangeGame = useCallback(
-    (gameId: string) => {
-      room.send(HANGOUT_ROOM_SELECT_GAME, { gameId });
-    },
-    [room]
-  );
+  const handlePressStart = useCallback(() => {
+    room.send(HANGOUT_ROOM_START_GAME);
+  }, [room]);
+
+  // const handleChangeGame = useCallback(
+  //   (gameId: string) => {
+  //     room.send(HANGOUT_ROOM_SELECT_GAME, { gameId });
+  //   },
+  //   [room]
+  // );
 
   return (
     <Flex direction="column" css={{ p: '$3' }}>
@@ -42,25 +45,11 @@ export const MainScreenComponent = () => {
         {room.name} - {room.id}
       </Heading>
       <Card css={{ p: '$3' }}>
-        <Caption>Game</Caption>
-        <RadioCardGroup onValueChange={handleChangeGame}>
-          <RadioCard value={'trivia_jam'} css={{ mb: '$2', width: '100%' }}>
-            <Flex css={{ alignItems: 'center' }}>
-              <Avatar shape="square" fallback="TJ" size="6" />
-              <Text size="5" css={{ fontWeight: '500', lineHeight: '25px' }}>
-                Trivia Jam
-              </Text>
-            </Flex>
-          </RadioCard>
-          <RadioCard value={'diffusionary'} css={{ mb: '$2', width: '100%' }}>
-            <Flex css={{ alignItems: 'center' }}>
-              <Avatar shape="square" fallback="D" size="6" />
-              <Text size="5" css={{ fontWeight: '500', lineHeight: '25px' }}>
-                Diffusionary
-              </Text>
-            </Flex>
-          </RadioCard>
-        </RadioCardGroup>
+        <Caption>Playing</Caption>
+        <Heading>Trivia Jam</Heading>
+        <Button size="3" fullWidth color="primary" onClick={handlePressStart}>
+          Start
+        </Button>
       </Card>
       <Card css={{ p: '$3' }}>
         <Caption>Players</Caption>
