@@ -114,10 +114,10 @@ export const triviaJamSharedMachine = createMachine({
           invoke: {
             id: 'onHostPressContinue',
             src: 'onHostPressContinue',
-            onDone: 'OnQuestion',
+            onDone: 'Question',
           },
         },
-        OnQuestion: {
+        Question: {
           initial: 'Loading',
           entry: assign({
             currentQuestionIndex: ({ currentQuestionIndex }) =>

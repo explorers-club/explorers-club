@@ -6,8 +6,7 @@ export class TriviaJamPlayer extends ClubPlayer {
 }
 
 export class TriviaJamState extends Schema {
-  @type('string')
-  hostUserId!: string;
+  @type('string') hostUserId!: string;
 
   @type({ map: TriviaJamPlayer }) public players: MapSchema<TriviaJamPlayer> =
     new MapSchema<TriviaJamPlayer>();

@@ -1,3 +1,9 @@
+import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
+import { Room } from 'colyseus.js';
+import { Observable } from 'rxjs';
+
+export * from './hooks';
+
 export const sleep = (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -50,5 +56,14 @@ export function generateUUID() {
       d2 = Math.floor(d2 / 16);
     }
     return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
+
+export function fromRoom<TState extends TriviaJamState>(
+  room: Room<TState>
+): Observable<TState> {
+  return new Observable((subscriber) => {
+    room.onStateChange.once(subscriber.next);
+    room.onStateChange(subscriber.next);
   });
 }

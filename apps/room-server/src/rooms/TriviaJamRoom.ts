@@ -49,6 +49,7 @@ export class TriviaJamRoom extends Room<TriviaJamState> {
       const player = new TriviaJamPlayer({
         name,
         connected: false,
+        score: 0,
         userId,
       });
       state.players.set(userId, player);

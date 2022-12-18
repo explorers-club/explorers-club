@@ -1,18 +1,20 @@
 import { TriviaJamRoomCommand } from '@explorers-club/commands';
 import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
+import { fromRoom } from '@explorers-club/utils';
 import { Room } from 'colyseus.js';
-import {
-  bindCallback,
-  filter,
-  first,
-  firstValueFrom,
-  ObjectUnsubscribedError,
-} from 'rxjs';
+import { filter, map } from 'rxjs';
 import { ActorRefFrom, createMachine, StateFrom } from 'xstate';
+import { selectAllPlayersConnected } from './trivia-jam-room.selectors';
 
 interface TriviaJamRoomContext {
   room: Room<TriviaJamState>;
 }
+
+const ALL_PLAYERS_CONNECTED = 'ALL_PLAYERS_CONNECTED';
+
+type TriviaJamRoomEvents =
+  | TriviaJamRoomCommand
+  | { type: typeof ALL_PLAYERS_CONNECTED };
 
 export const triviaJamRoomMachine = createMachine(
   {
@@ -20,7 +22,7 @@ export const triviaJamRoomMachine = createMachine(
     initial: 'Initializing',
     schema: {
       context: {} as TriviaJamRoomContext,
-      events: {} as TriviaJamRoomCommand,
+      events: {} as TriviaJamRoomEvents,
     },
     states: {
       Initializing: {
@@ -33,60 +35,85 @@ export const triviaJamRoomMachine = createMachine(
             target: 'Waiting',
           },
         ],
-        // invoke: {
-        //   src: ({ room }) =>
-        //     // Waits until all players in the room are connected
-        //     new Promise((resolve) => {
-        //       // const state = room.state;
-        //       room.state.players.onChange = (player, key) => {
-        //         const players = Array.from(room.state.players.values());
-        //         const allConnected =
-        //           players.filter((player) => !player.connected).length === 0;
-
-        //         if (!allConnected) {
-        //           return;
-        //         }
-
-        //         resolve(null);
-        //       };
-        //     }),
-        //   onDone: 'Playing',
-        // },
       },
       Waiting: {
         invoke: {
           src: ({ room }) =>
-            // Waits until all players in the room are connected
-            new Promise((resolve) => {
-              // const state = room.state;
-              room.state.players.onChange = (player, key) => {
-                const players = Array.from(room.state.players.values());
-                const allConnected =
-                  players.filter((player) => !player.connected).length === 0;
-
-                if (!allConnected) {
-                  return;
-                }
-
-                resolve(null);
-              };
-            }),
-          onDone: 'Playing',
+            fromRoom(room).pipe(
+              filter(selectAllPlayersConnected),
+              map(() => ({
+                type: ALL_PLAYERS_CONNECTED,
+              }))
+            ),
+        },
+        on: {
+          ALL_PLAYERS_CONNECTED: 'Playing',
         },
       },
-      Playing: {},
+      Playing: {
+        initial: 'AwaitingQuestion',
+        states: {
+          AwaitingQuestion: {
+            on: {
+              CONTINUE: 'Question',
+            },
+          },
+          Question: {
+            initial: 'Loading',
+            states: {
+              Loading: {
+                // invoke: {
+                //   id: 'loadNextQuestion',
+                //   src: 'loadNextQuestion',
+                //   onDone: {
+                //     target: 'Presenting',
+                //     // actions: assign<
+                //     //   TriviaJamSharedContext,
+                //     //   LoadNextQuestionDoneEvent
+                //     // >({
+                //     //   questions: ({ questions }, event) => [
+                //     //     ...questions,
+                //     //     event.data,
+                //     //   ],
+                //     // }),
+                //   },
+                // },
+              },
+              Presenting: {
+                // invoke: {
+                //   id: 'onShowQuestionPromptComplete',
+                //   src: 'onShowQuestionPromptComplete',
+                //   onDone: 'Responding',
+                // },
+              },
+              // Responding: {
+              //   invoke: {
+              //     id: 'onResponseComplete',
+              //     src: 'onResponseComplete',
+              //     onDone: 'Reviewing',
+              //   },
+              // },
+              // Reviewing: {
+              //   invoke: {
+              //     id: 'onHostPressContinue',
+              //     src: 'onHostPressContinue',
+              //     onDone: 'Complete',
+              //   },
+              // },
+              // Complete: {
+              //   type: 'final' as const,
+              // },
+            },
+          },
+        },
+      },
       GameOver: {},
     },
     predictableActionArguments: true,
   },
   {
     guards: {
-      allPlayersConnected: ({ room }) => {
-        const players = Array.from(room.state.players.values());
-        const allConnected =
-          players.filter((player) => !player.connected).length === 0;
-        return allConnected;
-      },
+      allPlayersConnected: ({ room }) => selectAllPlayersConnected(room.state),
     },
   }
 );
