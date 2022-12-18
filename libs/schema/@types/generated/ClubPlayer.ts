@@ -9,6 +9,7 @@ import { Schema, type, ArraySchema, MapSchema, SetSchema, DataChange } from '@co
 
 
 export class ClubPlayer extends Schema {
+    @type("string") public userId!: string;
     @type("string") public name!: string;
     @type("boolean") public connected!: boolean;
 }

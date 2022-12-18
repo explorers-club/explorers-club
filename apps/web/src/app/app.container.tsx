@@ -4,6 +4,7 @@ import { environment } from '../environments/environment';
 import { ColyseusContext } from '../state/colyseus.context';
 import { AppComponent } from './app.component';
 import * as Colyseus from 'colyseus.js';
+import { AuthContext } from '../state/auth.context';
 
 export const App = () => {
   const queryClient = useMemo(() => new QueryClient(), []);

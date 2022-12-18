@@ -7,12 +7,14 @@ import { useQuery } from 'react-query';
 import { useParams } from 'react-router-dom';
 import { ClubRoom } from '../components/club-room';
 import { GameRoom } from '../components/game-room';
+import { AuthContext } from '../state/auth.context';
 import { ColyseusContext } from '../state/colyseus.context';
 
 export const Room = () => {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const roomPath = useParams()['roomId']!;
   const colyseusClient = useContext(ColyseusContext);
+  const { userId } = useContext(AuthContext);
 
   const query = useQuery('club_room', async () => {
     let room: TRoom<ClubState>;
@@ -32,14 +34,16 @@ export const Room = () => {
           room = await colyseusClient.reconnect(clubRoomId, sessionId);
         } catch (ex) {
           console.warn('error when trying to reconnect, joining normally', ex);
-          room = await colyseusClient.joinById(clubRoomId);
+          // todo pass up auth tokens instead of user ids
+          room = await colyseusClient.joinById(clubRoomId, { userId });
         }
       } else {
-        room = await colyseusClient.joinById(clubRoomId);
+        room = await colyseusClient.joinById(clubRoomId, { userId });
       }
     } else {
       room = await colyseusClient.create('club', {
         roomId: clubRoomId,
+        userId,
       });
     }
 

@@ -1,8 +1,7 @@
 import { Schema, MapSchema, type } from '@colyseus/schema';
+import { ClubPlayer } from './ClubState';
 
-export class DiffusionaryPlayer extends Schema {
-  @type('string') name!: string;
-  @type('boolean') connected = true;
+export class DiffusionaryPlayer extends ClubPlayer {
   @type('number') score = 0;
 }
 

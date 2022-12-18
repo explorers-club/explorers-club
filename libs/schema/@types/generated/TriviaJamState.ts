@@ -9,6 +9,6 @@ import { Schema, type, ArraySchema, MapSchema, SetSchema, DataChange } from '@co
 import { TriviaJamPlayer } from './TriviaJamPlayer'
 
 export class TriviaJamState extends Schema {
-    @type("string") public hostSessionId!: string;
+    @type("string") public hostUserId!: string;
     @type({ map: TriviaJamPlayer }) public players: MapSchema<TriviaJamPlayer> = new MapSchema<TriviaJamPlayer>();
 }

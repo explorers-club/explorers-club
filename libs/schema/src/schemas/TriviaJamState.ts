@@ -1,14 +1,13 @@
 import { MapSchema, Schema, type } from '@colyseus/schema';
+import { ClubPlayer } from './ClubState';
 
-export class TriviaJamPlayer extends Schema {
-  @type('string') name!: string;
-  @type('boolean') connected = true;
+export class TriviaJamPlayer extends ClubPlayer {
   @type('number') score = 0;
 }
 
 export class TriviaJamState extends Schema {
   @type('string')
-  hostSessionId!: string;
+  hostUserId!: string;
 
   @type({ map: TriviaJamPlayer }) public players: MapSchema<TriviaJamPlayer> =
     new MapSchema<TriviaJamPlayer>();

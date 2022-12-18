@@ -14,18 +14,21 @@ export class ClubRoom extends Room<ClubState> {
   ROOMS_CHANNEL = '#rooms';
 
   async onCreate(options) {
-    const { roomId } = options;
+    const { roomId, userId } = options;
 
-    const state = new ClubState({});
-    this.setState(state);
     this.roomId = roomId;
     this.autoDispose = false;
-    this.state.selectedGame = 'trivia_jam';
+
+    const state = new ClubState();
+    state.hostUserId = userId;
+    state.selectedGame = 'trivia_jam';
+    this.setState(state);
 
     // TODO pull the message handlers in to server state machine
     this.onMessage(
       CLUB_ROOM_ENTER_NAME,
       (client, command: ClubRoomEnterNameCommand) => {
+        const { userId } = client.userData;
         const { playerName } = command;
         const existingNames = Array.from(state.players.entries()).map(
           ([_, player]) => player.name
@@ -34,15 +37,8 @@ export class ClubRoom extends Room<ClubState> {
           const player = new ClubPlayer({
             name: playerName,
           });
-          state.players[client.sessionId] = player;
+          state.players.set(userId, player);
         }
-      }
-    );
-
-    this.onMessage(
-      CLUB_ROOM_SELECT_GAME,
-      (client, command: ClubRoomSelectGameCommand) => {
-        console.log(client.sessionId, command);
       }
     );
 
@@ -78,16 +74,18 @@ export class ClubRoom extends Room<ClubState> {
     });
   }
 
-  onJoin(client: Client) {
+  onJoin(client: Client, options) {
+    const { userId } = options;
     // Set the hostSessionId to be the first person that connects
-    // const hostSessionId = this.state.hostSessionId.valueOf();
-    if (!this.state.hostSessionId) {
+    if (!this.state.hostUserId) {
       this.setState(
         this.state.assign({
-          hostSessionId: client.sessionId,
+          hostUserId: options.userId as string,
         })
       );
     }
+
+    client.userData = { userId };
   }
 
   async onLeave(client: Client) {

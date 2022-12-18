@@ -7,6 +7,7 @@ import { TriviaJamRoom } from '@explorers-club/trivia-jam/ui';
 import { DiffusionaryRoom } from '@explorers-club/diffusionary/ui';
 import { ColyseusContext } from '../../state/colyseus.context';
 import { ClubState } from '@explorers-club/schema-types/ClubState';
+import { AuthContext } from '../../state/auth.context';
 
 interface Props {
   roomId: string;
@@ -15,16 +16,11 @@ interface Props {
 
 export const GameRoom: FC<Props> = ({ roomId, clubRoom }) => {
   const colyseusClient = useContext(ColyseusContext);
+  const { userId } = useContext(AuthContext);
 
   const query = useQuery('game_room', async () => {
-    const { players } = clubRoom.state;
-    const myPlayer = players.get(clubRoom.sessionId);
-    if (!myPlayer) {
-      throw new Error(`tried to join ${roomId} but couldn't find player`);
-    }
-
     return await colyseusClient.joinById(roomId, {
-      name: myPlayer.name,
+      userId,
     });
   });
   const room = query.data;

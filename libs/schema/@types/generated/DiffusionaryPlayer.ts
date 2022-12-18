@@ -6,10 +6,8 @@
 // 
 
 import { Schema, type, ArraySchema, MapSchema, SetSchema, DataChange } from '@colyseus/schema';
+import { ClubPlayer } from './ClubPlayer'
 
-
-export class DiffusionaryPlayer extends Schema {
-    @type("string") public name!: string;
-    @type("boolean") public connected!: boolean;
+export class DiffusionaryPlayer extends ClubPlayer {
     @type("number") public score!: number;
 }
