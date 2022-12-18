@@ -11,7 +11,7 @@ interface Props {
 }
 
 export const ClubRoom: FC<Props> = ({ room }) => {
-  const machine = useMemo(() => clubRoomMachine.withContext({ room }), []);
+  const machine = useMemo(() => clubRoomMachine.withContext({ room }), [room]);
   const service = useInterpret(machine);
 
   return (

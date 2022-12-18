@@ -49,6 +49,7 @@ export class TriviaJamRoom extends Room<TriviaJamState> {
       const player = new TriviaJamPlayer({
         name,
         connected: false,
+        userId,
       });
       state.players.set(userId, player);
     });
@@ -57,13 +58,6 @@ export class TriviaJamRoom extends Room<TriviaJamState> {
 
   onJoin(client: Client, options) {
     const { userId } = options;
-    // console.log(
-    //   client.sessionId,
-    //   'joined!',
-    //   this.roomId,
-    //   this.roomName,
-    //   options
-    // );
     console.log(userId, 'setting connected true');
     const player = this.state.players.get(userId);
     if (player) {
@@ -73,7 +67,19 @@ export class TriviaJamRoom extends Room<TriviaJamState> {
     }
   }
 
-  onLeave(client: Client) {
-    console.log(client.sessionId, 'left!', this.roomId, this.roomName);
+  async onLeave(client: Client) {
+    // When player leaves, hold for 30 seconds before they disconnect
+    const player = this.state.players.get(client.sessionId);
+    if (!player) {
+      return;
+    }
+
+    this.state.players.get(client.sessionId).connected = false;
+    try {
+      await this.allowReconnection(client, 30);
+      this.state.players.get(client.sessionId).connected = true;
+    } catch (ex) {
+      this.state.players.delete(client.sessionId);
+    }
   }
 }
