@@ -6,10 +6,11 @@
 // 
 
 import { Schema, type, ArraySchema, MapSchema, SetSchema, DataChange } from '@colyseus/schema';
-import { Player } from './Player'
+import { ClubPlayer } from './ClubPlayer'
 
 export class ClubState extends Schema {
+    @type("string") public hostSessionId!: string;
     @type("string") public gameRoomId!: string;
     @type("string") public selectedGame!: string;
-    @type({ map: Player }) public players: MapSchema<Player> = new MapSchema<Player>();
+    @type({ map: ClubPlayer }) public players: MapSchema<ClubPlayer> = new MapSchema<ClubPlayer>();
 }

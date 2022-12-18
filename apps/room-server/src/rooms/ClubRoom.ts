@@ -1,6 +1,3 @@
-import { Room, Client, matchMaker } from 'colyseus';
-import { ClubState } from '@explorers-club/schema-types/ClubState';
-import { Player } from '@explorers-club/schema-types/Player';
 import {
   ClubRoomEnterNameCommand,
   ClubRoomSelectGameCommand,
@@ -8,6 +5,10 @@ import {
   CLUB_ROOM_SELECT_GAME,
   CLUB_ROOM_START_GAME,
 } from '@explorers-club/commands';
+import { ClubState } from '@explorers-club/schema-types/ClubState';
+import { ClubPlayer } from '@explorers-club/schema-types/ClubPlayer';
+import { Client, matchMaker, Room } from 'colyseus';
+import { TriviaJamRoom } from './TriviaJamRoom';
 
 export class ClubRoom extends Room<ClubState> {
   ROOMS_CHANNEL = '#rooms';
@@ -15,12 +16,13 @@ export class ClubRoom extends Room<ClubState> {
   async onCreate(options) {
     const { roomId } = options;
 
-    const state = new ClubState();
+    const state = new ClubState({});
     this.setState(state);
     this.roomId = roomId;
     this.autoDispose = false;
     this.state.selectedGame = 'trivia_jam';
 
+    // TODO pull the message handlers in to server state machine
     this.onMessage(
       CLUB_ROOM_ENTER_NAME,
       (client, command: ClubRoomEnterNameCommand) => {
@@ -29,7 +31,7 @@ export class ClubRoom extends Room<ClubState> {
           ([_, player]) => player.name
         );
         if (!existingNames.includes(playerName)) {
-          const player = new Player({
+          const player = new ClubPlayer({
             name: playerName,
           });
           state.players[client.sessionId] = player;
@@ -50,13 +52,26 @@ export class ClubRoom extends Room<ClubState> {
         return;
       }
 
-      const { selectedGame } = this.state;
       const roomPath = this.roomId.replace('club-', '');
-      const gameRoomId = `${selectedGame}-${roomPath}`;
+      const gameRoomId = `trivia_jam-${roomPath}` as const;
 
-      await matchMaker.createRoom(selectedGame, {
+      // todo add diffusionary
+      const gameRoom = await TriviaJamRoom.create({
         roomId: gameRoomId,
+        clubRoom: this,
       });
+
+      // Make a reservation for everybody currently connected
+      const reservations = await Promise.all(
+        this.clients.map(
+          async () => await matchMaker.reserveSeatFor(gameRoom, {})
+        )
+      );
+
+      this.clients.forEach((client, index) => {
+        client.send('RESERVED_GAME_SEAT', reservations[index]);
+      });
+
       this.state = this.state.assign({
         gameRoomId,
       });
@@ -64,7 +79,15 @@ export class ClubRoom extends Room<ClubState> {
   }
 
   onJoin(client: Client) {
-    console.log(client.sessionId, 'joined!', this.roomId, this.roomName);
+    // Set the hostSessionId to be the first person that connects
+    // const hostSessionId = this.state.hostSessionId.valueOf();
+    if (!this.state.hostSessionId) {
+      this.setState(
+        this.state.assign({
+          hostSessionId: client.sessionId,
+        })
+      );
+    }
   }
 
   async onLeave(client: Client) {

@@ -23,4 +23,7 @@ export type ClubRoomId = z.infer<typeof ClubRoomIdSchema>;
 export type TriviaJamRoomId = z.infer<typeof TriviaJamRoomIdSchema>;
 export type DiffusionaryRoomId = z.infer<typeof DiffusionaryRoomIdSchema>;
 
-export type RoomId = ClubRoomId | TriviaJamRoomId | DiffusionaryRoomId;
+export type GameRoomId = TriviaJamRoomId | DiffusionaryRoomId;
+
+export type RoomId = ClubRoomId | GameRoomId;
+

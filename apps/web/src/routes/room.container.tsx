@@ -18,10 +18,9 @@ export const Room = () => {
     let room: TRoom<ClubState>;
     const clubRooms = await colyseusClient.getAvailableRooms('club');
 
-    const clubRoomIds = clubRooms.map((room) => {
-      console.log(room.roomId);
-      return ClubRoomIdSchema.parse(room.roomId);
-    });
+    const clubRoomIds = clubRooms.map((room) =>
+      ClubRoomIdSchema.parse(room.roomId)
+    );
 
     const clubRoomId: ClubRoomId = `club-${roomPath}`;
 
@@ -44,6 +43,11 @@ export const Room = () => {
       });
     }
 
+    room.onMessage('RESERVED_GAME_SEAT', ({ room, sessionId }) => {
+      console.log('reserved', room.roomId);
+      localStorage.setItem(room.roomId, sessionId);
+    });
+
     localStorage.setItem(room.id, room.sessionId);
     return room;
   });
@@ -62,7 +66,7 @@ export const Room = () => {
   }
 
   if (gameRoomId) {
-    return <GameRoom roomId={gameRoomId} />;
+    return <GameRoom roomId={gameRoomId} clubRoom={room} />;
   } else {
     return <ClubRoom room={room} />;
   }

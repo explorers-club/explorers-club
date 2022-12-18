@@ -6,9 +6,9 @@
 // 
 
 import { Schema, type, ArraySchema, MapSchema, SetSchema, DataChange } from '@colyseus/schema';
-
+import { DiffusionaryPlayer } from './DiffusionaryPlayer'
 
 export class DiffusionaryState extends Schema {
-    @type([ "string" ]) public playerUserIds: ArraySchema<string> = new ArraySchema<string>();
     @type("number") public currentRound!: number;
+    @type({ map: DiffusionaryPlayer }) public players: MapSchema<DiffusionaryPlayer> = new MapSchema<DiffusionaryPlayer>();
 }
