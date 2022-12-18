@@ -64,7 +64,6 @@ export const clubRoomMachine = createMachine(
     guards: {
       needsNameInput: ({ room }) => {
         const player = room.state.players.get(room.sessionId);
-        console.log(player, room.state.players.values());
         return !player?.name;
       },
       isNameValid: () => {

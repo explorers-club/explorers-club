@@ -1,4 +1,4 @@
-import { Room, Client } from 'colyseus';
+import { Room, Client, matchMaker } from 'colyseus';
 import { ClubState } from '@explorers-club/schema-types/ClubState';
 import { Player } from '@explorers-club/schema-types/Player';
 import {
@@ -18,6 +18,7 @@ export class ClubRoom extends Room<ClubState> {
     const state = new ClubState();
     this.setState(state);
     this.roomId = roomId;
+    this.autoDispose = false;
     this.state.selectedGame = 'trivia_jam';
 
     this.onMessage(
@@ -43,9 +44,22 @@ export class ClubRoom extends Room<ClubState> {
       }
     );
 
-    this.onMessage(CLUB_ROOM_START_GAME, (client) => {
-      // We can probably all leave this room and join the game
-      console.log('start');
+    this.onMessage(CLUB_ROOM_START_GAME, async () => {
+      // Don't start a game if it's already started
+      if (this.state.gameRoomId) {
+        return;
+      }
+
+      const { selectedGame } = this.state;
+      const roomPath = this.roomId.replace('club-', '');
+      const gameRoomId = `${selectedGame}-${roomPath}`;
+      this.state = this.state.assign({
+        gameRoomId,
+      });
+
+      await matchMaker.createRoom(selectedGame, {
+        roomId: gameRoomId,
+      });
     });
   }
 
