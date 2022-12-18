@@ -53,12 +53,12 @@ export class ClubRoom extends Room<ClubState> {
       const { selectedGame } = this.state;
       const roomPath = this.roomId.replace('club-', '');
       const gameRoomId = `${selectedGame}-${roomPath}`;
-      this.state = this.state.assign({
-        gameRoomId,
-      });
 
       await matchMaker.createRoom(selectedGame, {
         roomId: gameRoomId,
+      });
+      this.state = this.state.assign({
+        gameRoomId,
       });
     });
   }
