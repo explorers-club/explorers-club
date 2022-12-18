@@ -1,24 +1,23 @@
-import { Room, Client } from 'colyseus';
-import { DiffusionaryState } from '@explorers-club/schema';
+import { Room, Client, matchMaker } from 'colyseus';
+import { DiffusionaryState } from '@explorers-club/schema-types/DiffusionaryState';
+import { ClubState } from '@explorers-club/schema-types/ClubState';
+import { DiffusionaryRoomId } from '@explorers-club/schema';
+
+interface CreateProps {
+  roomId: DiffusionaryRoomId;
+  clubRoom: Room<ClubState>;
+}
 
 export class DiffusionaryRoom extends Room<DiffusionaryState> {
-  ROOMS_CHANNEL = '#rooms';
-
-  async assertRoomDoesntExist(roomId: string): Promise<string> {
-    const currentRooms = await this.presence.smembers(this.ROOMS_CHANNEL);
-    if (currentRooms.includes(roomId)) {
-      // Should only happen if clients race to create same channel
-      throw new Error(`tried to create ${roomId} but it already exists`);
-    }
-
-    // Lock ourselves to hosting it
-    await this.presence.sadd(this.ROOMS_CHANNEL, roomId);
-    return roomId;
+  static async create({ roomId, clubRoom }: CreateProps) {
+    // todo
+    const room = await matchMaker.createRoom('diffusionary', {
+      roomId,
+    });
+    return room;
   }
 
   async onCreate(options) {
-    this.roomId = await this.assertRoomDoesntExist(options.roomId);
-
     // initialize empty room state
     this.setState(new DiffusionaryState());
   }
@@ -29,9 +28,5 @@ export class DiffusionaryRoom extends Room<DiffusionaryState> {
 
   onLeave(client: Client) {
     console.log(client.sessionId, 'left!', this.roomId, this.roomName);
-  }
-
-  async onDispose() {
-    this.presence.srem(this.ROOMS_CHANNEL, this.roomId);
   }
 }

@@ -11,8 +11,8 @@ interface Props {
 
 export const IndexComponent: FC<Props> = ({ rooms }) => {
   return (
-    <Flex direction="column" gap="4">
-      <Heading>Open Games</Heading>
+    <Flex direction="column" gap="4" css={{ p: '$3', mb: '$4' }}>
+      <Heading>Open Club Rooms</Heading>
       <Flex direction="column" gap="3">
         {rooms ? (
           rooms.map((room) => (

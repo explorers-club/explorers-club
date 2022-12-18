@@ -7,7 +7,7 @@ export const Index = () => {
   const colyseusClient = useContext(ColyseusContext);
 
   const query = useQuery('rooms', async () => {
-    return colyseusClient.getAvailableRooms('hangout');
+    return colyseusClient.getAvailableRooms('club');
   });
 
   return <IndexComponent rooms={query.data} />;

@@ -1,1 +1,1 @@
-export * from './main-ui';
+export * from './trivia-jam-room.container';

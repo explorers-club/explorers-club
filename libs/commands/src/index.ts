@@ -1,1 +1,1 @@
-export * from './hangout.commands';
+export * from './club.commands';
