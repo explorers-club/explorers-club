@@ -1,16 +1,24 @@
 import { TriviaJamCommand } from '@explorers-club/commands';
+import { IQuestionSetFields } from '@explorers-club/contentful-types';
 import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
 import { Room } from 'colyseus';
 import { Observable } from 'rxjs';
-import { ActorRefFrom, createMachine } from 'xstate';
+import { ActorRefFrom, assign, createMachine } from 'xstate';
 import { selectAllPlayersConnected } from './trivia-jam.selectors';
+
+type Questions = IQuestionSetFields['questions'];
 
 export interface TriviaJamContext {
   room: Room<TriviaJamState>;
+  questions: Questions;
+  currentQuestionIndex: number;
 }
 export type TriviaJamEvent = TriviaJamCommand;
 
-export const createTriviaJamMachine = (room: Room<TriviaJamState>) => {
+export const createTriviaJamMachine = (
+  room: Room<TriviaJamState>,
+  questions: Questions
+) => {
   // const state$ = fromRoom(room);
 
   const triviaJamMachine = createMachine(
@@ -19,6 +27,8 @@ export const createTriviaJamMachine = (room: Room<TriviaJamState>) => {
       initial: 'Initializing',
       context: {
         room,
+        questions,
+        currentQuestionIndex: -1,
       },
       schema: {
         context: {} as TriviaJamContext,
@@ -43,54 +53,29 @@ export const createTriviaJamMachine = (room: Room<TriviaJamState>) => {
               cond: 'allPlayersConnected',
             },
           },
-          // invoke: {
-          //   onDone: 'Playing',
-          //   src: ({ room }) =>
-          //     new Promise((resolve) => {
-          //       console.log('checking if all players connected');
-          //       if (selectAllPlayersConnected(room.state)) {
-          //         resolve(null);
-          //         return;
-          //       }
-
-          //       room.state.listen('players', (players) => {
-          //         console.log('PLAYERS!');
-          //         if (selectAllPlayersConnected(room.state)) {
-          //           resolve(null);
-          //         }
-          //       });
-          //     }),
-          // },
         },
         Playing: {
           initial: 'AwaitingQuestion',
           states: {
             AwaitingQuestion: {
               on: {
-                CONTINUE: 'Question',
+                CONTINUE: {
+                  target: 'Question',
+                  // TODO only do this if we have questions remaining
+                  actions: assign<TriviaJamContext>({
+                    currentQuestionIndex: ({ currentQuestionIndex }) =>
+                      currentQuestionIndex + 1,
+                  }),
+                },
               },
             },
             Question: {
-              initial: 'Loading',
+              initial: 'Presenting',
+              entry: ({ room, questions, currentQuestionIndex }) => {
+                room.state.currentQuestionEntryId =
+                  questions[currentQuestionIndex].sys.id;
+              },
               states: {
-                Loading: {
-                  // invoke: {
-                  //   id: 'loadNextQuestion',
-                  //   src: 'loadNextQuestion',
-                  //   onDone: {
-                  //     target: 'Presenting',
-                  //     // actions: assign<
-                  //     //   TriviaJamSharedContext,
-                  //     //   LoadNextQuestionDoneEvent
-                  //     // >({
-                  //     //   questions: ({ questions }, event) => [
-                  //     //     ...questions,
-                  //     //     event.data,
-                  //     //   ],
-                  //     // }),
-                  //   },
-                  // },
-                },
                 Presenting: {
                   // invoke: {
                   //   id: 'onShowQuestionPromptComplete',

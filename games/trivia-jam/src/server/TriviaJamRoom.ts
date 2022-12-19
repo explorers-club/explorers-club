@@ -1,4 +1,5 @@
 import { CONTINUE, JOIN, LEAVE } from '@explorers-club/commands';
+import { IQuestionSetFields } from '@explorers-club/contentful-types';
 import { TriviaJamRoomId } from '@explorers-club/schema';
 import { SetSchema } from '@colyseus/schema';
 import { ClubState } from '@explorers-club/schema-types/ClubState';
@@ -10,6 +11,7 @@ import {
   createTriviaJamMachine,
   TriviaJamService,
 } from '../state/trivia-jam.machine';
+import { contentfulClient } from '@explorers-club/contentful';
 
 const sampleQuestionSetEntryId = 'dSX6kC0PNliXTl7qHYJLH';
 
@@ -53,7 +55,12 @@ export class TriviaJamRoom extends Room<TriviaJamState> {
   }
 
   async onCreate(options: OnCreateOptions) {
-    const { roomId, userId, playerInfo } = options;
+    const { roomId, userId, playerInfo, questionSetEntryId } = options;
+
+    const questionSetEntry =
+      await contentfulClient.getEntry<IQuestionSetFields>(
+        sampleQuestionSetEntryId
+      );
 
     this.roomId = roomId;
     this.autoDispose = false;
@@ -74,7 +81,9 @@ export class TriviaJamRoom extends Room<TriviaJamState> {
     });
 
     const room = this as Room<TriviaJamState>;
-    this.service = interpret(createTriviaJamMachine(room)).start();
+    this.service = interpret(
+      createTriviaJamMachine(room, questionSetEntry.fields.questions)
+    ).start();
     this.service.subscribe((state) => {
       room.state.currentStates.clear();
       state.toStrings().forEach((state) => room.state.currentStates.add(state));
