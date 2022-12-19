@@ -50,8 +50,9 @@ export const useCurrentStates = () => {
   );
 
   useEffect(() => {
-    room.state.listen('currentStates', (currentStatesSet) => {
-      setStates(Array.from(currentStatesSet.values()));
+    // todo remove on unmount
+    room.onStateChange((state) => {
+      setStates(Array.from(state.currentStates.values()));
     });
   });
 

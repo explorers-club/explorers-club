@@ -125,20 +125,8 @@ export const createTriviaJamMachine = (room: Room<TriviaJamState>) => {
     },
     {
       guards: {
-        allPlayersConnected: ({ room }, event) => {
-          if ('userId' in event) {
-            const player = room.state.players.get(event.userId);
-            console.log(player);
-          }
-          const res = selectAllPlayersConnected(room.state);
-          // room.state.players.get(event.)
-          console.log(
-            'checking all players connected',
-            // room.state.players,
-            event
-          );
-          return res;
-        },
+        allPlayersConnected: ({ room }, event) =>
+          selectAllPlayersConnected(room.state),
       },
       actions: {},
     }

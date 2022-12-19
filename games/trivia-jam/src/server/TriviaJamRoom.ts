@@ -1,10 +1,6 @@
-import {
-  CONTINUE,
-  ContinueCommand,
-  JOIN,
-  LEAVE,
-} from '@explorers-club/commands';
+import { CONTINUE, JOIN, LEAVE } from '@explorers-club/commands';
 import { TriviaJamRoomId } from '@explorers-club/schema';
+import { SetSchema } from '@colyseus/schema';
 import { ClubState } from '@explorers-club/schema-types/ClubState';
 import { TriviaJamPlayer } from '@explorers-club/schema-types/TriviaJamPlayer';
 import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
@@ -64,6 +60,9 @@ export class TriviaJamRoom extends Room<TriviaJamState> {
 
     const state = new TriviaJamState();
     state.hostUserId = userId;
+    state.currentStates = new SetSchema<string>();
+    this.setState(state);
+
     playerInfo.forEach(({ userId, name }) => {
       const player = new TriviaJamPlayer({
         name,
@@ -73,7 +72,6 @@ export class TriviaJamRoom extends Room<TriviaJamState> {
       });
       state.players.set(userId, player);
     });
-    this.setState(state);
 
     const room = this as Room<TriviaJamState>;
     this.service = interpret(createTriviaJamMachine(room)).start();
@@ -82,15 +80,8 @@ export class TriviaJamRoom extends Room<TriviaJamState> {
       state.toStrings().forEach((state) => room.state.currentStates.add(state));
     });
 
-    // const questionSetEntry =
-    //   await contentfulClient.getEntry<IQuestionSetFields>(
-    //     sampleQuestionSetEntryId
-    //   );
-
-    // let currentIndex = -1;
-
-    this.onMessage(CONTINUE, (_, command: ContinueCommand) => {
-      this.service.send(command);
+    this.onMessage(CONTINUE, (_) => {
+      this.service.send({ type: CONTINUE });
     });
   }
 

@@ -4,7 +4,6 @@ import { useCurrentStates } from './trivia-jam-room.hooks';
 
 export const TriviaJamRoomComponent = () => {
   const states = useCurrentStates();
-  console.log(states);
 
   switch (true) {
     case states.includes('Playing'):
