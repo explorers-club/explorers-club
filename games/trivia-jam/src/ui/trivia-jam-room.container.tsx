@@ -1,10 +1,8 @@
-import { TriviaJamRoomComponent } from './trivia-jam-room.component';
-import { Room } from 'colyseus.js';
 import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
-import { FC, useMemo } from 'react';
+import { Room } from 'colyseus.js';
+import { FC } from 'react';
+import { TriviaJamRoomComponent } from './trivia-jam-room.component';
 import { TriviaJamRoomContext } from './trivia-jam-room.context';
-import { useInterpret } from '@xstate/react';
-import { triviaJamRoomMachine } from './trivia-jam-room.machine';
 
 interface Props {
   room: Room<TriviaJamState>;
@@ -12,14 +10,8 @@ interface Props {
 }
 
 export const TriviaJamRoom: FC<Props> = ({ room, myUserId }) => {
-  const machine = useMemo(
-    () => triviaJamRoomMachine.withContext({ room }),
-    [room]
-  );
-  const service = useInterpret(machine);
-
   return (
-    <TriviaJamRoomContext.Provider value={{ service, myUserId }}>
+    <TriviaJamRoomContext.Provider value={{ room, myUserId }}>
       <TriviaJamRoomComponent />
     </TriviaJamRoomContext.Provider>
   );

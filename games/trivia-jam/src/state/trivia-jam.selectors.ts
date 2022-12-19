@@ -1,34 +1,17 @@
-import { createSelector } from 'reselect';
-import { TriviaJamState } from './types';
+import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
 
-const selectTriviaJamState = (state: TriviaJamState) => state;
+export const selectAllPlayersConnected = (state: TriviaJamState) => {
+  const unconnectedPlayers = Array.from(state.players.values()).filter(
+    (player) => !player.connected
+  );
 
-const selectTriviaJamContext = (state: TriviaJamState) => state.context;
+  return unconnectedPlayers.length === 0;
+};
 
-export const selectConnectedPlayers = createSelector(
-  selectTriviaJamContext,
-  (context) => context.playerActorIds
-);
+export const selectHostUserId = (state: TriviaJamState) => {
+  return state.hostUserId;
+};
 
-export const selectIsLoading = createSelector(selectTriviaJamState, (state) =>
-  state.matches('Loading')
-);
-
-export const selectIsAwaitingQuestion = createSelector(
-  selectTriviaJamState,
-  (state) => state.matches('Playing.AwaitingQuestion')
-);
-
-export const selectIsAwaitingResponse = createSelector(
-  selectTriviaJamState,
-  (state) => state.matches('Playing.AwaitingResponse')
-);
-
-export const selectIsAwaitingJudgement = createSelector(
-  selectTriviaJamState,
-  (state) => state.matches('Playing.AwaitingJudgement')
-);
-
-export const selectIsGameOver = createSelector(selectTriviaJamState, (state) =>
-  state.matches('GameOver')
-);
+export const selectPlayers = (state: TriviaJamState) => {
+  return Array.from(state.players.values());
+};

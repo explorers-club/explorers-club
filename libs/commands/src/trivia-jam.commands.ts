@@ -1,7 +1,19 @@
-export const TRIVIA_JAM_ROOM_CONTINUE = 'CONTINUE';
+export const JOIN = 'JOIN';
+export const LEAVE = 'LEAVE';
+export const CONTINUE = 'CONTINUE';
 
-export type TriviaJamRoomContinueCommand = {
-  type: typeof TRIVIA_JAM_ROOM_CONTINUE;
+export type LeaveCommand = {
+  type: typeof LEAVE;
+  userId: string;
 };
 
-export type TriviaJamRoomCommand = TriviaJamRoomContinueCommand;
+export type JoinCommand = {
+  type: typeof JOIN;
+  userId: string;
+};
+
+export type ContinueCommand = {
+  type: typeof CONTINUE;
+};
+
+export type TriviaJamCommand = ContinueCommand | JoinCommand | LeaveCommand;

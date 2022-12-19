@@ -2,7 +2,7 @@ import { ScoreboardScreenComponent } from './scoreboard-screen.component';
 import { useMyUserId, useTriviaJamRoom } from './trivia-jam-room.hooks';
 import { useRoomStateSelector } from '@explorers-club/utils';
 import { selectPlayers, selectHostUserId } from './trivia-jam-room.selectors';
-import { TRIVIA_JAM_ROOM_CONTINUE } from '@explorers-club/commands';
+import { CONTINUE } from '@explorers-club/commands';
 
 export const ScoreboardScreen = () => {
   const triviaJamRoom = useTriviaJamRoom();
@@ -14,7 +14,7 @@ export const ScoreboardScreen = () => {
   const isHost = hostUserId === myUserId;
 
   const handlePressNext = () => {
-    triviaJamRoom.send(TRIVIA_JAM_ROOM_CONTINUE);
+    triviaJamRoom.send(CONTINUE);
   };
 
   return (

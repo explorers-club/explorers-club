@@ -1,17 +1,15 @@
-import { useSelector } from '@xstate/react';
-import { useContext } from 'react';
 import { PlayScreen } from './play-screen.container';
 import { SummaryScreen } from './summary-screen.container';
-import { TriviaJamRoomContext } from './trivia-jam-room.context';
+import { useCurrentStates } from './trivia-jam-room.hooks';
 
 export const TriviaJamRoomComponent = () => {
-  const { service } = useContext(TriviaJamRoomContext);
-  const state = useSelector(service, (state) => state);
+  const states = useCurrentStates();
+  console.log(states);
 
   switch (true) {
-    case state.matches('Playing'):
+    case states.includes('Playing'):
       return <PlayScreen />;
-    case state.matches('GameOver'):
+    case states.includes('GameOver'):
       return <SummaryScreen />;
     default:
       return null;

@@ -1,11 +1,19 @@
-import { Room, Client, matchMaker } from 'colyseus';
-import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
-import { ClubState } from '@explorers-club/schema-types/ClubState';
+import {
+  CONTINUE,
+  ContinueCommand,
+  JOIN,
+  LEAVE,
+} from '@explorers-club/commands';
 import { TriviaJamRoomId } from '@explorers-club/schema';
+import { ClubState } from '@explorers-club/schema-types/ClubState';
 import { TriviaJamPlayer } from '@explorers-club/schema-types/TriviaJamPlayer';
-import { TRIVIA_JAM_ROOM_CONTINUE } from '@explorers-club/commands';
-import { contentfulClient } from '@explorers-club/contentful';
-import { IQuestionSetFields } from '@explorers-club/contentful-types';
+import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
+import { Client, matchMaker, Room } from 'colyseus';
+import { interpret } from 'xstate';
+import {
+  createTriviaJamMachine,
+  TriviaJamService,
+} from '../state/trivia-jam.machine';
 
 const sampleQuestionSetEntryId = 'dSX6kC0PNliXTl7qHYJLH';
 
@@ -27,6 +35,8 @@ interface OnCreateOptions {
 }
 
 export class TriviaJamRoom extends Room<TriviaJamState> {
+  private service: TriviaJamService;
+
   static async create({ roomId, clubRoom }: CreateProps) {
     const hostUserId = clubRoom.state.hostUserId.valueOf();
 
@@ -47,7 +57,7 @@ export class TriviaJamRoom extends Room<TriviaJamState> {
   }
 
   async onCreate(options: OnCreateOptions) {
-    const { roomId, userId, playerInfo, questionSetEntryId } = options;
+    const { roomId, userId, playerInfo } = options;
 
     this.roomId = roomId;
     this.autoDispose = false;
@@ -65,51 +75,49 @@ export class TriviaJamRoom extends Room<TriviaJamState> {
     });
     this.setState(state);
 
-    const questionSetEntry =
-      await contentfulClient.getEntry<IQuestionSetFields>(
-        sampleQuestionSetEntryId
-      );
+    const room = this as Room<TriviaJamState>;
+    this.service = interpret(createTriviaJamMachine(room)).start();
+    this.service.subscribe((state) => {
+      room.state.currentStates.clear();
+      state.toStrings().forEach((state) => room.state.currentStates.add(state));
+    });
 
-    let currentIndex = -1;
+    // const questionSetEntry =
+    //   await contentfulClient.getEntry<IQuestionSetFields>(
+    //     sampleQuestionSetEntryId
+    //   );
 
-    this.onMessage(TRIVIA_JAM_ROOM_CONTINUE, async () => {
-      currentIndex = currentIndex + 1;
-      if (currentIndex >= questionSetEntry.fields.questions.length) {
-        // todo were done, do something
-        return;
-      }
+    // let currentIndex = -1;
 
-      this.state.assign({
-        currentQuestionEntryId:
-          questionSetEntry.fields.questions[currentIndex].sys.id,
-      });
+    this.onMessage(CONTINUE, (_, command: ContinueCommand) => {
+      this.service.send(command);
     });
   }
 
-  onJoin(_: Client, options) {
+  onJoin(client: Client, options) {
     const { userId } = options;
-
-    const player = this.state.players.get(userId);
-    if (player) {
-      this.state.players.get(userId).connected = true;
-    } else {
-      console.warn('unknown user connected', userId);
-    }
+    this.state.players.get(userId).connected = true;
+    this.service.send({ type: JOIN, userId });
+    client.userData = { userId };
   }
 
   async onLeave(client: Client) {
+    const { userId } = client.userData;
+    this.service.send({ type: LEAVE, userId });
+
     // When player leaves, hold for 30 seconds before they disconnect
-    const player = this.state.players.get(client.sessionId);
+    const player = this.state.players.get(client.userData.userId);
     if (!player) {
+      console.warn('error finding player in onLeave');
       return;
     }
+    player.connected = false;
 
-    this.state.players.get(client.sessionId).connected = false;
     try {
       await this.allowReconnection(client, 30);
-      this.state.players.get(client.sessionId).connected = true;
+      player.connected = true;
     } catch (ex) {
-      this.state.players.delete(client.sessionId);
+      this.state.players.delete(userId);
     }
   }
 }

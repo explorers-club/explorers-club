@@ -40,6 +40,9 @@
       "@explorers-club/schema": ["libs/schema/src/index.ts"],
       "@explorers-club/schema-types/*": ["libs/schema/@types/generated/*"],
       "@explorers-club/styles": ["libs/components/src/stitches.config.ts"],
+      "@explorers-club/trivia-jam/server": [
+        "games/trivia-jam/src/server/index.ts"
+      ],
       "@explorers-club/trivia-jam/scene": [
         "games/trivia-jam/src/scene/index.ts"
       ],

@@ -1,137 +1,174 @@
-import {
-  ActorID, SharedMachineProps
-} from '@explorers-club/actor';
-import { createModel } from 'xstate/lib/model';
+import { TriviaJamCommand } from '@explorers-club/commands';
+import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
+import { Room } from 'colyseus';
+import { Observable } from 'rxjs';
+import { ActorRefFrom, createMachine } from 'xstate';
+import { selectAllPlayersConnected } from './trivia-jam.selectors';
 
-interface IntializeProps {
-  hostId: string;
-  playerActorIds: ActorID[];
+export interface TriviaJamContext {
+  room: Room<TriviaJamState>;
 }
+export type TriviaJamEvent = TriviaJamCommand;
 
-const triviaJamModel = createModel(
-  {
-    playerActorIds: [] as ActorID[],
-    hostId: '' as string,
-    correctCounts: {} as Record<string, number>,
-    // actorManager: {} as ActorManager,
-  },
-  {
-    events: {
-      PLAYER_LOADED: () => ({}),
-      INITIALIZE: ({ playerActorIds, hostId }: IntializeProps) => ({
-        playerActorIds,
-        hostId,
-      }),
-    },
-  }
-);
+export const createTriviaJamMachine = (room: Room<TriviaJamState>) => {
+  // const state$ = fromRoom(room);
 
-export const TriviaJamEvents = triviaJamModel.events;
-
-export const createTriviaJamMachine = ({
-  actorId,
-  // actorManager,
-}: SharedMachineProps) => {
-  // Should the actor manager itself be a machine
-
-  // const playerActorIds = selectPlayerActors()
-
-  return triviaJamModel.createMachine(
+  const triviaJamMachine = createMachine(
     {
-      id: actorId,
-      initial: 'Loading',
+      id: 'TriviaJamMachine',
+      initial: 'Initializing',
       context: {
-        playerActorIds: [], // TODO maybe we don't need to do this initialize event
-        hostId: '',
-        correctCounts: {},
-        // actorManager,
+        room,
+      },
+      schema: {
+        context: {} as TriviaJamContext,
+        events: {} as TriviaJamEvent,
       },
       states: {
-        // Unitialized: {
-        //   on: {
-        //     INITIALIZE: {
-        //       actions: assign({
-        //         playerActorIds: (_, event) => event.playerActorIds,
-        //         hostId: (_, event) => event.hostId,
-        //         correctCounts: (_, event) =>
-        //           event.playerActorIds.reduce((result, cur) => {
-        //             return {
-        //               ...result,
-        //               [cur]: 0,
-        //             };
-        //           }, {}),
-        //       }),
-        //     },
-        //   },
-        // },
-        Loading: {
-          invoke: {
-            src: 'waitForAllPlayersLoaded',
+        Initializing: {
+          always: [
+            {
+              target: 'Playing',
+              cond: 'allPlayersConnected',
+            },
+            {
+              target: 'Waiting',
+            },
+          ],
+        },
+        Waiting: {
+          on: {
+            JOIN: {
+              target: 'Playing',
+              cond: 'allPlayersConnected',
+            },
           },
+          // invoke: {
+          //   onDone: 'Playing',
+          //   src: ({ room }) =>
+          //     new Promise((resolve) => {
+          //       console.log('checking if all players connected');
+          //       if (selectAllPlayersConnected(room.state)) {
+          //         resolve(null);
+          //         return;
+          //       }
+
+          //       room.state.listen('players', (players) => {
+          //         console.log('PLAYERS!');
+          //         if (selectAllPlayersConnected(room.state)) {
+          //           resolve(null);
+          //         }
+          //       });
+          //     }),
+          // },
         },
         Playing: {
+          initial: 'AwaitingQuestion',
           states: {
             AwaitingQuestion: {
-              // invoke: {
-              //   src: (context, event) =>
-              //     fromActorEvents(actorManager, [
-              //       'PLAYER_PRESS_NEXT_QUESTION',
-              //     ]).pipe(
-              //       // do this map because xstate expects observable to run an event with a type
-              //       map((data) => data.event),
-              //       first()
-              //     ),
-              //   onDone: 'AwaitingResponse',
-              // },
+              on: {
+                CONTINUE: 'Question',
+              },
             },
-            AwaitingResponse: {
-              // invoke: {
-              //   src: (context, event) =>
-              //     fromActorEvents(actorManager, ['PLAYER_PRESS_ANSWER']).pipe(
-              //       map((data) => data.event),
-              //       first()
-              //     ),
-              //   onDone: 'AwaitingJudgement',
-              // },
-            },
-            AwaitingJudgement: {
-              // invoke: {
-              //   src: (context, event) =>
-              //     fromActorEvents(actorManager, [
-              //       'PLAYER_PRESS_CORRECT',
-              //       'PLAYER_PRESS_INCORRECT',
-              //     ]).pipe(
-              //       map(({ event, actorId }) => ({
-              //         ...event,
-              //         actorId,
-              //       })),
-              //       first()
-              //     ),
-              //   onDone: [
-              //     {
-              //       target: 'AwaitingResponse',
-              //       cond: (cond, event) =>
-              //         event.type === 'PLAYER_PRESS_INCORRECT',
-              //     },
-              //     { target: 'AwaitingQuestion' },
-              //   ],
-              // },
+            Question: {
+              initial: 'Loading',
+              states: {
+                Loading: {
+                  // invoke: {
+                  //   id: 'loadNextQuestion',
+                  //   src: 'loadNextQuestion',
+                  //   onDone: {
+                  //     target: 'Presenting',
+                  //     // actions: assign<
+                  //     //   TriviaJamSharedContext,
+                  //     //   LoadNextQuestionDoneEvent
+                  //     // >({
+                  //     //   questions: ({ questions }, event) => [
+                  //     //     ...questions,
+                  //     //     event.data,
+                  //     //   ],
+                  //     // }),
+                  //   },
+                  // },
+                },
+                Presenting: {
+                  // invoke: {
+                  //   id: 'onShowQuestionPromptComplete',
+                  //   src: 'onShowQuestionPromptComplete',
+                  //   onDone: 'Responding',
+                  // },
+                },
+                // Responding: {
+                //   invoke: {
+                //     id: 'onResponseComplete',
+                //     src: 'onResponseComplete',
+                //     onDone: 'Reviewing',
+                //   },
+                // },
+                // Reviewing: {
+                //   invoke: {
+                //     id: 'onHostPressContinue',
+                //     src: 'onHostPressContinue',
+                //     onDone: 'Complete',
+                //   },
+                // },
+                // Complete: {
+                //   type: 'final' as const,
+                // },
+              },
             },
           },
         },
-        GameOver: {
-          type: 'final' as const,
-        },
+        GameOver: {},
       },
       predictableActionArguments: true,
     },
     {
-      services: {
-        waitForAllPlayersLoaded: (context) =>
-          new Promise((resolve) => {
-            setTimeout(resolve, 2500);
-          }),
+      guards: {
+        allPlayersConnected: ({ room }, event) => {
+          if ('userId' in event) {
+            const player = room.state.players.get(event.userId);
+            console.log(player);
+          }
+          const res = selectAllPlayersConnected(room.state);
+          // room.state.players.get(event.)
+          console.log(
+            'checking all players connected',
+            // room.state.players,
+            event
+          );
+          return res;
+        },
       },
+      actions: {},
     }
   );
+  return triviaJamMachine;
 };
+
+// export function fromSetSchema<K extends SetSchema<any>(
+//   schema: TriviaJamState
+// ): Observable<TriviaJamState> {
+//   return new Observable((subscriber) => {
+//     subscriber.next(room.state);
+//     room.state.onChange = (_) => {
+//       console.log('on change', room.state);
+//       subscriber.next(room.state);
+//     };
+//   });
+// }
+
+export function fromRoom<TState extends TriviaJamState>(
+  room: Room<TState, unknown>
+): Observable<TState> {
+  return new Observable((subscriber) => {
+    subscriber.next(room.state);
+    room.state.onChange = (_) => {
+      console.log('on change', room.state);
+      subscriber.next(room.state);
+    };
+  });
+}
+
+type TriviaJamMachine = ReturnType<typeof createTriviaJamMachine>;
+export type TriviaJamService = ActorRefFrom<TriviaJamMachine>;
