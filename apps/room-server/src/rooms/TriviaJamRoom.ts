@@ -3,6 +3,11 @@ import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
 import { ClubState } from '@explorers-club/schema-types/ClubState';
 import { TriviaJamRoomId } from '@explorers-club/schema';
 import { TriviaJamPlayer } from '@explorers-club/schema-types/TriviaJamPlayer';
+import { TRIVIA_JAM_ROOM_CONTINUE } from '@explorers-club/commands';
+import { contentfulClient } from '@explorers-club/contentful';
+import { IQuestionSetFields } from '@explorers-club/contentful-types';
+
+const sampleQuestionSetEntryId = 'dSX6kC0PNliXTl7qHYJLH';
 
 interface CreateProps {
   roomId: TriviaJamRoomId;
@@ -18,6 +23,7 @@ interface OnCreateOptions {
   roomId: string;
   userId: string;
   playerInfo: PlayerInfo[];
+  questionSetEntryId: string;
 }
 
 export class TriviaJamRoom extends Room<TriviaJamState> {
@@ -30,15 +36,18 @@ export class TriviaJamRoom extends Room<TriviaJamState> {
       return { userId, name: player.name.valueOf() };
     });
 
-    return await matchMaker.createRoom('trivia_jam', {
+    const options: OnCreateOptions = {
       roomId,
       userId: hostUserId,
+      questionSetEntryId: sampleQuestionSetEntryId,
       playerInfo,
-    });
+    };
+
+    return await matchMaker.createRoom('trivia_jam', options);
   }
 
-  onCreate(options: OnCreateOptions) {
-    const { roomId, userId, playerInfo } = options;
+  async onCreate(options: OnCreateOptions) {
+    const { roomId, userId, playerInfo, questionSetEntryId } = options;
 
     this.roomId = roomId;
     this.autoDispose = false;
@@ -55,11 +64,31 @@ export class TriviaJamRoom extends Room<TriviaJamState> {
       state.players.set(userId, player);
     });
     this.setState(state);
+
+    const questionSetEntry =
+      await contentfulClient.getEntry<IQuestionSetFields>(
+        sampleQuestionSetEntryId
+      );
+
+    let currentIndex = -1;
+
+    this.onMessage(TRIVIA_JAM_ROOM_CONTINUE, async () => {
+      currentIndex = currentIndex + 1;
+      if (currentIndex >= questionSetEntry.fields.questions.length) {
+        // todo were done, do something
+        return;
+      }
+
+      this.state.assign({
+        currentQuestionEntryId:
+          questionSetEntry.fields.questions[currentIndex].sys.id,
+      });
+    });
   }
 
-  onJoin(client: Client, options) {
+  onJoin(_: Client, options) {
     const { userId } = options;
-    console.log(userId, 'setting connected true');
+
     const player = this.state.players.get(userId);
     if (player) {
       this.state.players.get(userId).connected = true;

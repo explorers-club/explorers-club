@@ -7,3 +7,11 @@ export const selectAllPlayersConnected = (state: TriviaJamState) => {
 
   return unconnectedPlayers.length === 0;
 };
+
+export const selectHostUserId = (state: TriviaJamState) => {
+  return state.hostUserId;
+};
+
+export const selectPlayers = (state: TriviaJamState) => {
+  return Array.from(state.players.values());
+};

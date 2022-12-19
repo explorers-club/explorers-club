@@ -1,29 +1,27 @@
-import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
 import { ScoreboardScreenComponent } from './scoreboard-screen.component';
-import { useTriviaJamRoom } from './trivia-jam-room.hooks';
+import { useMyUserId, useTriviaJamRoom } from './trivia-jam-room.hooks';
 import { useRoomStateSelector } from '@explorers-club/utils';
-
-// function useStateSelector = (prop: string, selector: ((...args: any[]) => any))
+import { selectPlayers, selectHostUserId } from './trivia-jam-room.selectors';
+import { TRIVIA_JAM_ROOM_CONTINUE } from '@explorers-club/commands';
 
 export const ScoreboardScreen = () => {
   const triviaJamRoom = useTriviaJamRoom();
-
-  // useEffect(() => {
-  //   console.log(triviaJamRoom.state.players.values());
-  //   triviaJamRoom.state.listen('players', (value, previousValue) => {
-  //     console.log({ value, previousValue });
-  //   });
-  // }, []);
-
-  // triviaJamRoom.state.players
-  // const players = useMapValues(triviaJamRoom.state.players);
+  const myUserId = useMyUserId();
 
   const players = useRoomStateSelector(triviaJamRoom, selectPlayers);
-  console.log(players.length, triviaJamRoom.state.players.values());
+  const hostUserId = useRoomStateSelector(triviaJamRoom, selectHostUserId);
 
-  return <ScoreboardScreenComponent players={players} />;
-};
+  const isHost = hostUserId === myUserId;
 
-const selectPlayers = (state: TriviaJamState) => {
-  return Array.from(state.players.values());
+  const handlePressNext = () => {
+    triviaJamRoom.send(TRIVIA_JAM_ROOM_CONTINUE);
+  };
+
+  return (
+    <ScoreboardScreenComponent
+      players={players}
+      showNext={isHost}
+      onPressNext={handlePressNext}
+    />
+  );
 };

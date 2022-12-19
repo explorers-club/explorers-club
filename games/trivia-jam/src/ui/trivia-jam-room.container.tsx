@@ -8,9 +8,10 @@ import { triviaJamRoomMachine } from './trivia-jam-room.machine';
 
 interface Props {
   room: Room<TriviaJamState>;
+  myUserId: string;
 }
 
-export const TriviaJamRoom: FC<Props> = ({ room }) => {
+export const TriviaJamRoom: FC<Props> = ({ room, myUserId }) => {
   const machine = useMemo(
     () => triviaJamRoomMachine.withContext({ room }),
     [room]
@@ -18,7 +19,7 @@ export const TriviaJamRoom: FC<Props> = ({ room }) => {
   const service = useInterpret(machine);
 
   return (
-    <TriviaJamRoomContext.Provider value={service}>
+    <TriviaJamRoomContext.Provider value={{ service, myUserId }}>
       <TriviaJamRoomComponent />
     </TriviaJamRoomContext.Provider>
   );

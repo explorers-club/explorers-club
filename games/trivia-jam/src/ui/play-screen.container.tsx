@@ -5,7 +5,7 @@ import { ScoreboardScreen } from './scoreboard-screen.container';
 import { TriviaJamRoomContext } from './trivia-jam-room.context';
 
 export const PlayScreen = () => {
-  const service = useContext(TriviaJamRoomContext);
+  const { service } = useContext(TriviaJamRoomContext);
   const state = useSelector(service, (state) => state);
 
   switch (true) {

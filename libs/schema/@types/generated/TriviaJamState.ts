@@ -10,5 +10,6 @@ import { TriviaJamPlayer } from './TriviaJamPlayer'
 
 export class TriviaJamState extends Schema {
     @type("string") public hostUserId!: string;
+    @type("string") public currentQuestionEntryId!: string;
     @type({ map: TriviaJamPlayer }) public players: MapSchema<TriviaJamPlayer> = new MapSchema<TriviaJamPlayer>();
 }
