@@ -1,14 +1,12 @@
 import { Box } from '@atoms/Box';
-import { Button } from '@atoms/Button';
-import { Caption } from '@atoms/Caption';
-import { Flex } from '@atoms/Flex';
-import { Heading } from '@atoms/Heading';
-import { CONTINUE } from '@explorers-club/commands';
-import { useObservableState } from 'observable-hooks';
-import { FC, useCallback } from 'react';
-import { useIsHost, useTriviaJamRoom } from '../../state/trivia-jam.hooks';
+import { FC } from 'react';
+import { useIsHost } from '../../state/trivia-jam.hooks';
 import { IQuestion } from '../../types';
-import { createCountdown$ } from '../../utils';
+import { MultipleAnswerHostPreview } from '../components/host-previews/multiple-answer-host-preview.container';
+import { MultipleChoiceHostPreview } from '../components/host-previews/multiple-choice-host-preview.container';
+import { NumberInputHostPreview } from '../components/host-previews/number-input-host-preview.container';
+import { TextInputHostPreview } from '../components/host-previews/text-input-host-preview.container';
+import { TrueOrFalseHostPreview } from '../components/host-previews/true-or-false-host-preview.container';
 import { MultipleAnswerQuestion } from '../components/questions/multiple-answer-question/multiple-answer-question.container';
 import { MultipleChoiceQuestion } from '../components/questions/multiple-choice-question/multiple-choice-question.container';
 import { NumberInputQuestion } from '../components/questions/number-input-question/number-input-question.container';
@@ -19,7 +17,15 @@ interface Props {
   question: IQuestion;
 }
 
-const contentTypeIdToComponentMap = {
+const contentTypeToHostPreviewComponent = {
+  multipleAnswer: MultipleAnswerHostPreview,
+  multipleChoice: MultipleChoiceHostPreview,
+  numberInput: NumberInputHostPreview,
+  textInput: TextInputHostPreview,
+  trueOrFalse: TrueOrFalseHostPreview,
+};
+
+const contentTypeToQuestionComponent = {
   multipleAnswer: MultipleAnswerQuestion,
   multipleChoice: MultipleChoiceQuestion,
   numberInput: NumberInputQuestion,
@@ -31,48 +37,16 @@ export const QuestionScreenComponent: FC<Props> = ({ question }) => {
   const isHost = useIsHost();
 
   const contentTypeId = question.sys.contentType.sys.id;
-  const PlayerQuestionScreen = contentTypeIdToComponentMap[contentTypeId];
+  const QuestionScreen = contentTypeToQuestionComponent[contentTypeId];
+  const HostPreviewScreen = contentTypeToHostPreviewComponent[contentTypeId];
 
   return (
     <Box css={{ p: '$3' }}>
       {isHost ? (
-        <HostQuestionScreen question={question} />
+        <HostPreviewScreen question={question} />
       ) : (
-        <PlayerQuestionScreen question={question} />
+        <QuestionScreen question={question} />
       )}
     </Box>
-  );
-};
-
-interface HostScreenProps {
-  question: IQuestion;
-}
-
-const countdown$ = createCountdown$(5);
-
-const HostQuestionScreen: FC<HostScreenProps> = ({ question }) => {
-  const room = useTriviaJamRoom();
-  const secondsLeft = useObservableState(countdown$);
-
-  const handlePressContinue = useCallback(() => {
-    room.send(CONTINUE);
-  }, [room]);
-
-  return (
-    <Flex direction="column">
-      <Caption>Showing question</Caption>
-      <Heading>{question.fields.prompt}</Heading>
-
-      {secondsLeft !== undefined && (
-        <Button
-          size="3"
-          color="primary"
-          disabled={secondsLeft > 0}
-          onClick={handlePressContinue}
-        >
-          {secondsLeft > 0 ? <>Continue in ({secondsLeft})</> : <>Continue</>}
-        </Button>
-      )}
-    </Flex>
   );
 };

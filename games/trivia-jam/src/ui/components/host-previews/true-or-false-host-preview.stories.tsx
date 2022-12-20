@@ -1,11 +1,19 @@
 import { ComponentStory, Meta } from '@storybook/react';
-import React from 'react';
 import { TrueOrFalseHostPreviewComponent } from './true-or-false-host-preview.component';
 
-export default { component: TrueOrFalseHostPreviewComponent } as Meta;
+export default {
+  component: TrueOrFalseHostPreviewComponent,
+  argTypes: {
+    onContinue: { action: 'continue ' },
+  },
+} as Meta;
 
 export const Primary: ComponentStory<typeof TrueOrFalseHostPreviewComponent> = (
   args
 ) => {
-  return <TrueOrFalseHostPreviewComponent />;
+  return <TrueOrFalseHostPreviewComponent {...args} />;
+};
+
+Primary.args = {
+  prompt: 'What kind of bear is best?',
 };

@@ -1,8 +1,8 @@
 import { TRIVIA_JAM_SUBMIT_RESPONSE } from '@explorers-club/commands';
 import { IMultipleAnswerFields } from '@explorers-club/contentful-types';
-import { useTriviaJamRoom } from 'games/trivia-jam/src/state/trivia-jam.hooks';
-import { IQuestion } from 'games/trivia-jam/src/types';
-import { unwrapFields } from 'games/trivia-jam/src/utils';
+import { useTriviaJamRoom } from '../../../../state/trivia-jam.hooks';
+import { IQuestion } from '../../../../types';
+import { unwrapFields } from '../../../../utils';
 import { FC, useCallback, useMemo } from 'react';
 import { MultipleAnswerQuestionComponent } from './multiple-answer-question.component';
 
