@@ -3,6 +3,7 @@ import { TrueOrFalseQuestionComponent } from './true-or-false-question.component
 
 const meta = {
   component: TrueOrFalseQuestionComponent,
+  argTypes: { onSubmitResponse: { action: 'submitted ' } },
 } as ComponentMeta<typeof TrueOrFalseQuestionComponent>;
 
 const Template: ComponentStory<typeof TrueOrFalseQuestionComponent> = (

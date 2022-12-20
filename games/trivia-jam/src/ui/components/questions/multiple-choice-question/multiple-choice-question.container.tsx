@@ -1,10 +1,10 @@
 import { TRIVIA_JAM_SUBMIT_RESPONSE } from '@explorers-club/commands';
 import { IMultipleChoiceFields } from '@explorers-club/contentful-types';
 import { FC, useCallback, useMemo } from 'react';
-import { MultipleChoiceQuestionComponent } from '../components/questions/multiple-choice-question';
-import { useTriviaJamRoom } from '../state/trivia-jam.hooks';
-import { IQuestion } from '../types';
-import { unwrapFields } from '../utils';
+import { MultipleChoiceQuestionComponent } from '.';
+import { useTriviaJamRoom } from '../../../../state/trivia-jam.hooks';
+import { IQuestion } from '../../../../types';
+import { unwrapFields } from '../../../../utils';
 
 interface Props {
   question: IQuestion;

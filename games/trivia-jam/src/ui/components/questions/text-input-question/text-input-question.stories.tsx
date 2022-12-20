@@ -3,6 +3,7 @@ import { TextInputQuestionComponent } from './text-input-question.component';
 
 const meta = {
   component: TextInputQuestionComponent,
+  argTypes: { onSubmitResponse: { action: 'submitted ' } },
 } as ComponentMeta<typeof TextInputQuestionComponent>;
 
 const Template: ComponentStory<typeof TextInputQuestionComponent> = (args) => {

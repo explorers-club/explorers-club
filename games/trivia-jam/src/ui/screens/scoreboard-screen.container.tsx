@@ -1,7 +1,7 @@
 import { CONTINUE } from '@explorers-club/commands';
 import { useRoomStateSelector } from '@explorers-club/utils';
-import { useIsHost, useTriviaJamRoom } from '../state/trivia-jam.hooks';
-import { selectPlayers } from '../state/trivia-jam.selectors';
+import { useTriviaJamRoom, useIsHost } from '../../state/trivia-jam.hooks';
+import { selectPlayers } from '../../state/trivia-jam.selectors';
 import { ScoreboardScreenComponent } from './scoreboard-screen.component';
 
 export const ScoreboardScreen = () => {

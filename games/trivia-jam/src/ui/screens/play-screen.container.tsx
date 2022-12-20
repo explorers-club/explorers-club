@@ -1,4 +1,4 @@
-import { useCurrentStates } from '../state/trivia-jam.hooks';
+import { useCurrentStates } from '../../state/trivia-jam.hooks';
 import { QuestionScreen } from './question-screen.container';
 import { ReviewScreen } from './review-screen.container';
 import { ScoreboardScreen } from './scoreboard-screen.container';

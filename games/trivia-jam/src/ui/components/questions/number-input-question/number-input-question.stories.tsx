@@ -3,6 +3,7 @@ import { NumberInputQuestionComponent } from './number-input-question.component'
 
 const meta = {
   component: NumberInputQuestionComponent,
+  argTypes: { onSubmitResponse: { action: 'submitted' } },
 } as ComponentMeta<typeof NumberInputQuestionComponent>;
 
 const Template: ComponentStory<typeof NumberInputQuestionComponent> = (

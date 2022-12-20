@@ -1,10 +1,10 @@
 import { TRIVIA_JAM_SUBMIT_RESPONSE } from '@explorers-club/commands';
 import { INumberInputFields } from '@explorers-club/contentful-types';
 import { FC, useCallback } from 'react';
-import { NumberInputQuestionComponent } from '../components/questions/number-input-question';
-import { useTriviaJamRoom } from '../state/trivia-jam.hooks';
-import { IQuestion } from '../types';
-import { unwrapFields } from '../utils';
+import { NumberInputQuestionComponent } from '.';
+import { useTriviaJamRoom } from '../../../../state/trivia-jam.hooks';
+import { IQuestion } from '../../../../types';
+import { unwrapFields } from '../../../../utils';
 
 interface Props {
   question: IQuestion;

@@ -1,6 +1,6 @@
-import { PlayScreen } from './play-screen.container';
-import { SummaryScreen } from './summary-screen.container';
 import { useCurrentStates } from '../state/trivia-jam.hooks';
+import { PlayScreen } from './screens/play-screen.container';
+import { SummaryScreen } from './screens/summary-screen.container';
 
 export const TriviaJamRoomComponent = () => {
   const states = useCurrentStates();

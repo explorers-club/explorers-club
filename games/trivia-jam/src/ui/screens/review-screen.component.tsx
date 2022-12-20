@@ -14,15 +14,11 @@ import {
 } from '@explorers-club/contentful-types';
 import { useObservableState } from 'observable-hooks';
 import { FC, useCallback } from 'react';
-import {
-  useIsHost,
-  useTriviaJamRoom,
-  useCurrentQuestionPoints,
-} from '../state/trivia-jam.hooks';
-import { IQuestion } from '../types';
-import { createCountdown$, unwrapFields } from '../utils';
 import { useRoomStateSelector } from '@explorers-club/utils';
-import { selectPlayers } from '../state/trivia-jam.selectors';
+import { useIsHost, useTriviaJamRoom, useCurrentQuestionPoints } from '../../state/trivia-jam.hooks';
+import { selectPlayers } from '../../state/trivia-jam.selectors';
+import { IQuestion } from '../../types';
+import { createCountdown$, unwrapFields } from '../../utils';
 
 interface Props {
   question: IQuestion;
