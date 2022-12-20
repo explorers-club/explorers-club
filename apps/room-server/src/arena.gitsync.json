@@ -1,9 +1,0 @@
-{
-  "serverDir": "upload",
-  "buildType": "arena",
-  "gitServer": "github.com/explorers-club/explorers-club.git",
-  "branch": "main",
-  "redeployOnChange": true,
-  "overrideGitURL": "",
-  "repoReset": false
-}

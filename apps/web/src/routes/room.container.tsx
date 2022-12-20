@@ -1,41 +1,78 @@
-import {
-  DiffusionaryState,
-  HangoutState,
-  TriviaJamState,
-} from '@explorers-club/schema';
-import { useContext } from 'react';
-import { useQuery } from 'react-query';
+import { ClubRoomId, ClubRoomIdSchema } from '@explorers-club/schema';
+// import { matchMaker } from 'colyseus';
+import { ClubState } from '@explorers-club/schema-types/ClubState';
 import { Room as TRoom } from 'colyseus.js';
+import { useContext, useEffect, useState } from 'react';
+import { useQuery } from 'react-query';
 import { useParams } from 'react-router-dom';
-import { HangoutRoom } from '../components/hangout-room';
+import { ClubRoom } from '../components/club-room';
+import { GameRoom } from '../components/game-room';
+import { AuthContext } from '../state/auth.context';
 import { ColyseusContext } from '../state/colyseus.context';
 
-type RoomState = HangoutState | DiffusionaryState | TriviaJamState;
-
 export const Room = () => {
-  const { roomId } = useParams();
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const clubName = useParams()['clubName']!;
   const colyseusClient = useContext(ColyseusContext);
+  const { userId } = useContext(AuthContext);
 
-  const query = useQuery('room', async () => {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const room = await colyseusClient.joinById<RoomState>(roomId!);
-      return room;
-    } catch (ex) {
-      return await colyseusClient.create<RoomState>('hangout', { roomId });
+  // TODO prevent reconnects
+  const query = useQuery('club_room', async () => {
+    let room: TRoom<ClubState>;
+    const clubRooms = await colyseusClient.getAvailableRooms('club');
+
+    const clubRoomIds = clubRooms.map((room) =>
+      ClubRoomIdSchema.parse(room.roomId)
+    );
+
+    const clubRoomId: ClubRoomId = `club-${clubName}`;
+
+    if (clubRoomIds.includes(clubRoomId)) {
+      const sessionId = localStorage.getItem(clubRoomId);
+
+      if (sessionId) {
+        try {
+          room = await colyseusClient.reconnect(clubRoomId, sessionId);
+        } catch (ex) {
+          console.warn('error when trying to reconnect, joining normally', ex);
+          // todo pass up auth tokens instead of user ids
+          room = await colyseusClient.joinById(clubRoomId, { userId });
+        }
+      } else {
+        room = await colyseusClient.joinById(clubRoomId, { userId });
+      }
+    } else {
+      room = await colyseusClient.create('club', {
+        roomId: clubRoomId,
+        userId,
+      });
     }
+
+    room.onMessage('RESERVED_GAME_SEAT', ({ room, sessionId }) => {
+      console.log('reserved', room.roomId);
+      localStorage.setItem(room.roomId, sessionId);
+    });
+
+    localStorage.setItem(room.id, room.sessionId);
+    return room;
   });
   const room = query.data;
+  const [gameRoomId, setGameRoomId] = useState<string | undefined>(
+    room?.state.gameRoomId
+  );
+
+  useEffect(() => {
+    room?.state.listen('gameRoomId', setGameRoomId);
+  }, [room]);
 
   if (!room) {
     // todo placeholder
     return null;
   }
 
-  switch (room.name) {
-    case 'hangout':
-      return <HangoutRoom room={room as TRoom<HangoutState>} />;
-    default:
-      return null;
+  if (gameRoomId) {
+    return <GameRoom roomId={gameRoomId} clubRoom={room} />;
+  } else {
+    return <ClubRoom room={room} />;
   }
 };
