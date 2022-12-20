@@ -4,17 +4,18 @@ export const CLUB_ROOM_ENTER_NAME = 'ENTER_NAME';
 export const CLUB_ROOM_SELECT_GAME = 'SELECT_GAME';
 export const CLUB_ROOM_START_GAME = 'START_GAME';
 
-
 export type ClubRoomEnterNameCommand = {
-  type: 'ENTER_NAME';
+  type: typeof CLUB_ROOM_ENTER_NAME;
   playerName: string;
 };
+
 export type ClubRoomSelectGameCommand = {
-  type: 'SELECT_GAME';
+  type: typeof CLUB_ROOM_SELECT_GAME;
   gameId: 'diffusionary' | 'trivia_jam';
 };
+
 export type ClubRoomStartGameCommand = {
-  type: 'START_GAME';
+  type: typeof CLUB_ROOM_START_GAME;
 };
 
 export type ClubRoomCommand =

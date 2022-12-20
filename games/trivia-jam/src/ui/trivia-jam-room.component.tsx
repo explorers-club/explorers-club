@@ -1,6 +1,16 @@
-import React from 'react';
-import { Flex } from '@atoms/Flex';
+import { PlayScreen } from './play-screen.container';
+import { SummaryScreen } from './summary-screen.container';
+import { useCurrentStates } from '../state/trivia-jam.hooks';
 
 export const TriviaJamRoomComponent = () => {
-  return <Flex>Generated triviaJamRoom component</Flex>;
+  const states = useCurrentStates();
+
+  switch (true) {
+    case states.includes('Playing'):
+      return <PlayScreen />;
+    case states.includes('GameOver'):
+      return <SummaryScreen />;
+    default:
+      return null;
+  }
 };

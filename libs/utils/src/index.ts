@@ -1,3 +1,33 @@
+import { EventObject } from 'xstate';
+
+export * from './hooks';
+
+export function assertEventType<
+  TE extends EventObject,
+  TType extends TE['type']
+>(event: TE, eventType: TType): asserts event is TE & { type: TType } {
+  if (event.type !== eventType) {
+    throw new Error(
+      `Invalid event: expected "${eventType}", got "${event.type}"`
+    );
+  }
+}
+
+export const unwrapEvent = <
+  T extends { type: K | string },
+  K extends string = string
+>(
+  event: EventObject,
+  expectedType: K
+): T => {
+  if (event.type !== expectedType)
+    throw Error(
+      `State machine expected an event of type: ${expectedType}, instead got: ${event.type}`
+    );
+
+  return event as T;
+};
+
 export const sleep = (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -52,3 +82,12 @@ export function generateUUID() {
     return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
   });
 }
+
+// export function fromRoom<TState extends TriviaJamState>(
+//   room: Room<TState>
+// ): Observable<TState> {
+//   return new Observable((subscriber) => {
+//     room.onStateChange.once(subscriber.next);
+//     room.onStateChange(subscriber.next);
+//   });
+// }

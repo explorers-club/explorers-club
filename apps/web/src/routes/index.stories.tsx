@@ -4,6 +4,6 @@ import { IndexComponent } from './index.component';
 
 export default { component: IndexComponent } as Meta;
 
-export const Primary: ComponentStory<typeof IndexComponent> = (args) => {
-  return <IndexComponent />;
-};
+// export const Primary: ComponentStory<typeof IndexComponent> = (args) => {
+//   return <IndexComponent />;
+// };

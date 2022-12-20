@@ -3,15 +3,14 @@ import { Caption } from '@atoms/Caption';
 import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
 import { TextField } from '@atoms/TextField';
-import { useSelector } from '@xstate/react';
 import { useCallback, useContext, useRef } from 'react';
+import { useParams } from 'react-router-dom';
 import { ClubRoomContext } from './club-room.context';
 
 export const EnterNameScreen = () => {
+  const clubName = useParams()['clubName'];
   const service = useContext(ClubRoomContext);
   const nameRef = useRef<HTMLInputElement>(null);
-
-  const room = useSelector(service, (state) => state.context.room);
 
   const handleSubmitName = useCallback(() => {
     const playerName = nameRef.current?.value;
@@ -24,11 +23,11 @@ export const EnterNameScreen = () => {
   return (
     <Flex direction="column">
       <Flex direction="column" gap="3" css={{ p: '$3' }}>
-        <Heading size="3">{room.name}</Heading>
-        <Caption size="2">Enter your name</Caption>
-        <TextField ref={nameRef} placeholder="inspectorT" />
-        <Button size="3" onClick={handleSubmitName}>
-          Submit name
+        <Caption size="2">{clubName}'s Explorers Club</Caption>
+        <Heading>Choose a name</Heading>
+        <TextField ref={nameRef} placeholder="Name" />
+        <Button size="3" color="primary" onClick={handleSubmitName}>
+          Enter
         </Button>
       </Flex>
     </Flex>

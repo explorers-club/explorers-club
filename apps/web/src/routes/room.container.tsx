@@ -12,60 +12,50 @@ import { ColyseusContext } from '../state/colyseus.context';
 
 export const Room = () => {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const roomPath = useParams()['roomId']!;
+  const clubName = useParams()['clubName']!;
   const colyseusClient = useContext(ColyseusContext);
   const { userId } = useContext(AuthContext);
 
   // TODO prevent reconnects
-  const query = useQuery(
-    'club_room',
-    async () => {
-      console.log('running query again ');
-      let room: TRoom<ClubState>;
-      const clubRooms = await colyseusClient.getAvailableRooms('club');
+  const query = useQuery('club_room', async () => {
+    let room: TRoom<ClubState>;
+    const clubRooms = await colyseusClient.getAvailableRooms('club');
 
-      const clubRoomIds = clubRooms.map((room) =>
-        ClubRoomIdSchema.parse(room.roomId)
-      );
+    const clubRoomIds = clubRooms.map((room) =>
+      ClubRoomIdSchema.parse(room.roomId)
+    );
 
-      const clubRoomId: ClubRoomId = `club-${roomPath}`;
+    const clubRoomId: ClubRoomId = `club-${clubName}`;
 
-      if (clubRoomIds.includes(clubRoomId)) {
-        const sessionId = localStorage.getItem(clubRoomId);
+    if (clubRoomIds.includes(clubRoomId)) {
+      const sessionId = localStorage.getItem(clubRoomId);
 
-        if (sessionId) {
-          try {
-            room = await colyseusClient.reconnect(clubRoomId, sessionId);
-          } catch (ex) {
-            console.warn(
-              'error when trying to reconnect, joining normally',
-              ex
-            );
-            // todo pass up auth tokens instead of user ids
-            room = await colyseusClient.joinById(clubRoomId, { userId });
-          }
-        } else {
+      if (sessionId) {
+        try {
+          room = await colyseusClient.reconnect(clubRoomId, sessionId);
+        } catch (ex) {
+          console.warn('error when trying to reconnect, joining normally', ex);
+          // todo pass up auth tokens instead of user ids
           room = await colyseusClient.joinById(clubRoomId, { userId });
         }
       } else {
-        room = await colyseusClient.create('club', {
-          roomId: clubRoomId,
-          userId,
-        });
+        room = await colyseusClient.joinById(clubRoomId, { userId });
       }
-
-      room.onMessage('RESERVED_GAME_SEAT', ({ room, sessionId }) => {
-        console.log('reserved', room.roomId);
-        localStorage.setItem(room.roomId, sessionId);
+    } else {
+      room = await colyseusClient.create('club', {
+        roomId: clubRoomId,
+        userId,
       });
-
-      localStorage.setItem(room.id, room.sessionId);
-      return room;
-    },
-    {
-      refetchOnWindowFocus: false,
     }
-  );
+
+    room.onMessage('RESERVED_GAME_SEAT', ({ room, sessionId }) => {
+      console.log('reserved', room.roomId);
+      localStorage.setItem(room.roomId, sessionId);
+    });
+
+    localStorage.setItem(room.id, room.sessionId);
+    return room;
+  });
   const room = query.data;
   const [gameRoomId, setGameRoomId] = useState<string | undefined>(
     room?.state.gameRoomId

@@ -27,3 +27,6 @@ export type GameRoomId = TriviaJamRoomId | DiffusionaryRoomId;
 
 export type RoomId = ClubRoomId | GameRoomId;
 
+export type ClubMetadata = {
+  clubName: string;
+};

@@ -1,10 +1,14 @@
-import { ClubRoomCommand } from '@explorers-club/commands';
+import {
+  ClubRoomCommand,
+  CLUB_ROOM_ENTER_NAME,
+} from '@explorers-club/commands';
 import { ClubState } from '@explorers-club/schema-types/ClubState';
 import { Room } from 'colyseus.js';
 import { ActorRefFrom, createMachine, StateFrom } from 'xstate';
 
 interface ClubRoomContext {
   room: Room<ClubState>;
+  myUserId: string;
 }
 
 export const clubRoomMachine = createMachine(
@@ -25,6 +29,11 @@ export const clubRoomMachine = createMachine(
       },
       Initializing: {
         always: [
+          {
+            target: 'Idle',
+            actions: 'setHostPlayerName',
+            cond: 'isHost',
+          },
           {
             target: 'EnteringName',
             cond: 'needsNameInput',
@@ -61,7 +70,19 @@ export const clubRoomMachine = createMachine(
     predictableActionArguments: true,
   },
   {
+    actions: {
+      setHostPlayerName: ({ room, myUserId }) => {
+        const playerName = room.id.replace('club-', '');
+        room.send(CLUB_ROOM_ENTER_NAME, {
+          type: CLUB_ROOM_ENTER_NAME,
+          playerName,
+        });
+      },
+    },
     guards: {
+      isHost: ({ room, myUserId }) => {
+        return room.state.hostUserId === myUserId;
+      },
       needsNameInput: ({ room }) => {
         const player = room.state.players.get(room.sessionId);
         return !player?.name;

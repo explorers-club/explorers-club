@@ -1,4 +1,4 @@
-import { MapSchema, Schema, type } from '@colyseus/schema';
+import { MapSchema, SetSchema, Schema, type } from '@colyseus/schema';
 import { ClubPlayer } from './ClubState';
 
 export class TriviaJamPlayer extends ClubPlayer {
@@ -6,9 +6,13 @@ export class TriviaJamPlayer extends ClubPlayer {
 }
 
 export class TriviaJamState extends Schema {
-  @type('string')
-  hostUserId!: string;
-
-  @type({ map: TriviaJamPlayer }) public players: MapSchema<TriviaJamPlayer> =
-    new MapSchema<TriviaJamPlayer>();
+  @type('string') hostUserId!: string;
+  @type('string') currentQuestionEntryId: string | undefined;
+  @type({ set: 'string' }) currentStates: SetSchema<string> = new SetSchema();
+  @type({ map: 'string' }) currentResponsesSerialized: MapSchema<string> =
+    new MapSchema();
+  @type({ map: 'number' }) currentQuestionPoints: MapSchema<number> =
+    new MapSchema();
+  @type({ map: TriviaJamPlayer }) players: MapSchema<TriviaJamPlayer> =
+    new MapSchema();
 }

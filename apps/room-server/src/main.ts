@@ -6,7 +6,7 @@ import { WebSocketTransport } from '@colyseus/ws-transport';
 
 import { ClubRoom } from './rooms/ClubRoom';
 import { DiffusionaryRoom } from './rooms/DiffusionaryRoom';
-import { TriviaJamRoom } from './rooms/TriviaJamRoom';
+import { TriviaJamRoom } from '@explorers-club/trivia-jam/server';
 import { monitor } from '@colyseus/monitor';
 
 const app = express();

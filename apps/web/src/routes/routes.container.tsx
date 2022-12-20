@@ -2,6 +2,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 import { Index } from './index.container';
 import { Room } from './room.container';
+import { NewRoom } from './new-room.container';
 
 const router = createBrowserRouter([
   {
@@ -9,7 +10,11 @@ const router = createBrowserRouter([
     element: <Index />,
   },
   {
-    path: '/:roomId',
+    path: '/new',
+    element: <NewRoom />,
+  },
+  {
+    path: '/:clubName',
     element: <Room />,
   },
 ]);

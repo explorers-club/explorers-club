@@ -14,6 +14,6 @@ const getUserId = (() => {
 })();
 
 export const AuthContext = createContext({
-  userId: getUserId(),
+  userId: getUserId() as string,
   isAnon: true,
 });

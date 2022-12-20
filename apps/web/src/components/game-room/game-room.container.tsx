@@ -29,7 +29,9 @@ export const GameRoom: FC<Props> = ({ roomId, clubRoom }) => {
     case 'diffusionary':
       return <DiffusionaryRoom room={room as TRoom<DiffusionaryState>} />;
     case 'trivia_jam':
-      return <TriviaJamRoom room={room as TRoom<TriviaJamState>} />;
+      return (
+        <TriviaJamRoom room={room as TRoom<TriviaJamState>} myUserId={userId} />
+      );
     default:
       return null;
   }

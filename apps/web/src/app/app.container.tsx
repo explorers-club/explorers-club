@@ -4,10 +4,19 @@ import { environment } from '../environments/environment';
 import { ColyseusContext } from '../state/colyseus.context';
 import { AppComponent } from './app.component';
 import * as Colyseus from 'colyseus.js';
-import { AuthContext } from '../state/auth.context';
 
 export const App = () => {
-  const queryClient = useMemo(() => new QueryClient(), []);
+  const queryClient = useMemo(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            refetchOnWindowFocus: false,
+          },
+        },
+      }),
+    []
+  );
   const colyseusClient = useMemo(
     () => new Colyseus.Client(environment.colyseusHost),
     []
