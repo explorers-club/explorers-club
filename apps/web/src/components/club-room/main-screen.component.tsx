@@ -6,10 +6,13 @@ import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
 import { CLUB_ROOM_START_GAME } from '@explorers-club/commands';
 import { useCallback, useEffect, useState } from 'react';
-import { useClubRoom } from './club-room.hooks';
+import { useParams } from 'react-router-dom';
+import { useClubRoom, useIsHost } from './club-room.hooks';
 
 export const MainScreenComponent = () => {
+  const clubName = useParams()['clubName'];
   const room = useClubRoom();
+  const isHost = useIsHost();
 
   // TODO pull this in to a re-usable hook
   const [players, setPlayers] = useState(
@@ -40,25 +43,38 @@ export const MainScreenComponent = () => {
   // );
 
   return (
-    <Flex direction="column" css={{ p: '$3' }}>
-      <Heading>
-        {room.name} - {room.id}
-      </Heading>
+    <Flex direction="column" css={{ p: '$3' }} gap="3">
+      <Caption>{clubName}'s Explorers Club</Caption>
       <Card css={{ p: '$3' }}>
-        <Caption>Playing</Caption>
-        <Heading>Trivia Jam</Heading>
-        <Button size="3" fullWidth color="primary" onClick={handlePressStart}>
-          Start
-        </Button>
+        <Flex gap="3" direction="column">
+          <Caption>Playing</Caption>
+          <Heading>Trivia Jam</Heading>
+          {isHost && (
+            <Button
+              size="3"
+              fullWidth
+              color="primary"
+              onClick={handlePressStart}
+            >
+              Start
+            </Button>
+          )}
+        </Flex>
       </Card>
       <Card css={{ p: '$3' }}>
-        <Caption>Players</Caption>
-        {players.map(({ name }) => (
-          <Flex key={name}>
-            <Avatar size="4" fallback={name[0]} />
-            <Caption>{name}</Caption>
-          </Flex>
-        ))}
+        <Flex direction="column" gap="3">
+          {players.map(({ name }) => (
+            <Flex
+              key={name}
+              align="center"
+              gap="2"
+              css={{ backgroundColor: '$panel2', p: '$3' }}
+            >
+              <Avatar size="4" fallback={name[0]} />
+              <Heading>{name}</Heading>
+            </Flex>
+          ))}
+        </Flex>
       </Card>
     </Flex>
   );

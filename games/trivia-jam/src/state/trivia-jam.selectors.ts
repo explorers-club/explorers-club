@@ -13,5 +13,7 @@ export const selectHostUserId = (state: TriviaJamState) => {
 };
 
 export const selectPlayers = (state: TriviaJamState) => {
-  return Array.from(state.players.values());
+  return Array.from(state.players.values()).filter(
+    (player) => player.userId !== state.hostUserId
+  );
 };

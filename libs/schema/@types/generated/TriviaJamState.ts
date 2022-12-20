@@ -12,5 +12,7 @@ export class TriviaJamState extends Schema {
     @type("string") public hostUserId!: string;
     @type("string") public currentQuestionEntryId!: string;
     @type({ set: "string" }) public currentStates: SetSchema<string> = new SetSchema<string>();
+    @type({ map: "string" }) public currentResponsesSerialized: MapSchema<string> = new MapSchema<string>();
+    @type({ map: "number" }) public currentQuestionPoints: MapSchema<number> = new MapSchema<number>();
     @type({ map: TriviaJamPlayer }) public players: MapSchema<TriviaJamPlayer> = new MapSchema<TriviaJamPlayer>();
 }

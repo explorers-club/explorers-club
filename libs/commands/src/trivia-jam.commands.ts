@@ -1,19 +1,17 @@
-export const JOIN = 'JOIN';
-export const LEAVE = 'LEAVE';
-export const CONTINUE = 'CONTINUE';
+import { JoinCommand, ContinueCommand, LeaveCommand } from './common.commands';
 
-export type LeaveCommand = {
-  type: typeof LEAVE;
+export const TRIVIA_JAM_SUBMIT_RESPONSE = 'TRIVIA_JAM_SUBMIT_RESPONSE';
+
+export type QuestionResponse = string[] | string | number | boolean | undefined;
+
+export type TriviaJamSubmitResponseCommand = {
+  type: typeof TRIVIA_JAM_SUBMIT_RESPONSE;
   userId: string;
+  response: QuestionResponse;
 };
 
-export type JoinCommand = {
-  type: typeof JOIN;
-  userId: string;
-};
-
-export type ContinueCommand = {
-  type: typeof CONTINUE;
-};
-
-export type TriviaJamCommand = ContinueCommand | JoinCommand | LeaveCommand;
+export type TriviaJamCommand =
+  | ContinueCommand
+  | JoinCommand
+  | LeaveCommand
+  | TriviaJamSubmitResponseCommand;

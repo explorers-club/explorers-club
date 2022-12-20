@@ -28,8 +28,6 @@ export const EnterNameScreen = () => {
     selectMyActor<DiffusionaryPlayerActor>
   );
 
-  // console.log(actor$);
-
   useSubscription(onCompleteForm$, (event) => {
     const { name } = actor.getSnapshot().context.values;
     myActor?.send(DiffusionaryPlayerEvents.SET_PLAYER_NAME(name));

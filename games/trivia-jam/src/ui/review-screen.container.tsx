@@ -2,9 +2,9 @@ import { contentfulClient } from '@explorers-club/contentful';
 import { useQuery } from 'react-query';
 import { useCurrentQuestionEntryId } from '../state/trivia-jam.hooks';
 import { IQuestion, IQuestionFields } from '../types';
-import { QuestionScreenComponent } from './question-screen.component';
+import { ReviewScreenComponent } from './review-screen.component';
 
-export const QuestionScreen = () => {
+export const ReviewScreen = () => {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const entryId = useCurrentQuestionEntryId()!;
 
@@ -16,5 +16,5 @@ export const QuestionScreen = () => {
     return null;
   }
 
-  return <QuestionScreenComponent question={query.data as IQuestion} />;
+  return <ReviewScreenComponent question={query.data as IQuestion} />;
 };

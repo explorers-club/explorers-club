@@ -21,17 +21,15 @@ export const MultipleAnswerQuestionComponent: FC<Props> = ({
     (answer: string) => {
       return (value: boolean) => {
         selectedAnswersRef.current[answer] = value;
+
+        const selectedAnswers = Object.entries(selectedAnswersRef.current)
+          .filter(([_, value]) => value)
+          .map(([answer]) => answer);
+        onSubmitResponse(selectedAnswers);
       };
     },
-    [selectedAnswersRef]
+    [selectedAnswersRef, onSubmitResponse]
   );
-
-  const handleSubmit = useCallback(() => {
-    const selectedAnswers = Object.entries(selectedAnswersRef.current)
-      .filter(([_, value]) => value)
-      .map(([answer]) => answer);
-    onSubmitResponse(selectedAnswers);
-  }, [onSubmitResponse]);
 
   return (
     <Flex direction="column" gap="2">
@@ -48,9 +46,6 @@ export const MultipleAnswerQuestionComponent: FC<Props> = ({
           );
         })}
       </Flex>
-      <Button color="blue" fullWidth size="3" onClick={handleSubmit}>
-        Submit
-      </Button>
     </Flex>
   );
 };

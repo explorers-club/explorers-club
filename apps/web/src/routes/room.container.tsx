@@ -12,7 +12,7 @@ import { ColyseusContext } from '../state/colyseus.context';
 
 export const Room = () => {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const roomPath = useParams()['roomId']!;
+  const clubName = useParams()['clubName']!;
   const colyseusClient = useContext(ColyseusContext);
   const { userId } = useContext(AuthContext);
 
@@ -25,7 +25,7 @@ export const Room = () => {
       ClubRoomIdSchema.parse(room.roomId)
     );
 
-    const clubRoomId: ClubRoomId = `club-${roomPath}`;
+    const clubRoomId: ClubRoomId = `club-${clubName}`;
 
     if (clubRoomIds.includes(clubRoomId)) {
       const sessionId = localStorage.getItem(clubRoomId);

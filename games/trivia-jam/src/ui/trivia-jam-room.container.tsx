@@ -2,7 +2,7 @@ import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
 import { Room } from 'colyseus.js';
 import { FC } from 'react';
 import { TriviaJamRoomComponent } from './trivia-jam-room.component';
-import { TriviaJamRoomContext } from './trivia-jam-room.context';
+import { TriviaJamContext } from '../state/trivia-jam.context';
 
 interface Props {
   room: Room<TriviaJamState>;
@@ -11,8 +11,8 @@ interface Props {
 
 export const TriviaJamRoom: FC<Props> = ({ room, myUserId }) => {
   return (
-    <TriviaJamRoomContext.Provider value={{ room, myUserId }}>
+    <TriviaJamContext.Provider value={{ room, myUserId }}>
       <TriviaJamRoomComponent />
-    </TriviaJamRoomContext.Provider>
+    </TriviaJamContext.Provider>
   );
 };

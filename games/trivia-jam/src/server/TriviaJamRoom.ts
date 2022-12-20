@@ -1,17 +1,22 @@
-import { CONTINUE, JOIN, LEAVE } from '@explorers-club/commands';
+import {
+  CONTINUE,
+  JOIN,
+  LEAVE,
+  TriviaJamSubmitResponseCommand,
+  TRIVIA_JAM_SUBMIT_RESPONSE,
+} from '@explorers-club/commands';
+import { contentfulClient } from '@explorers-club/contentful';
 import { IQuestionSetFields } from '@explorers-club/contentful-types';
 import { TriviaJamRoomId } from '@explorers-club/schema';
-import { SetSchema } from '@colyseus/schema';
 import { ClubState } from '@explorers-club/schema-types/ClubState';
 import { TriviaJamPlayer } from '@explorers-club/schema-types/TriviaJamPlayer';
 import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
 import { Client, matchMaker, Room } from 'colyseus';
 import { interpret } from 'xstate';
 import {
-  createTriviaJamMachine,
-  TriviaJamService,
-} from '../state/trivia-jam.machine';
-import { contentfulClient } from '@explorers-club/contentful';
+  createTriviaJamServerMachine,
+  TriviaJamServerService,
+} from './trivia-jam-server.machine';
 
 const sampleQuestionSetEntryId = 'dSX6kC0PNliXTl7qHYJLH';
 
@@ -33,7 +38,7 @@ interface OnCreateOptions {
 }
 
 export class TriviaJamRoom extends Room<TriviaJamState> {
-  private service: TriviaJamService;
+  private service: TriviaJamServerService;
 
   static async create({ roomId, clubRoom }: CreateProps) {
     const hostUserId = clubRoom.state.hostUserId.valueOf();
@@ -58,16 +63,13 @@ export class TriviaJamRoom extends Room<TriviaJamState> {
     const { roomId, userId, playerInfo, questionSetEntryId } = options;
 
     const questionSetEntry =
-      await contentfulClient.getEntry<IQuestionSetFields>(
-        sampleQuestionSetEntryId
-      );
+      await contentfulClient.getEntry<IQuestionSetFields>(questionSetEntryId);
 
     this.roomId = roomId;
     this.autoDispose = false;
 
     const state = new TriviaJamState();
     state.hostUserId = userId;
-    state.currentStates = new SetSchema<string>();
     this.setState(state);
 
     playerInfo.forEach(({ userId, name }) => {
@@ -82,7 +84,7 @@ export class TriviaJamRoom extends Room<TriviaJamState> {
 
     const room = this as Room<TriviaJamState>;
     this.service = interpret(
-      createTriviaJamMachine(room, questionSetEntry.fields.questions)
+      createTriviaJamServerMachine(room, questionSetEntry.fields.questions)
     ).start();
     this.service.subscribe((state) => {
       room.state.currentStates.clear();
@@ -92,6 +94,17 @@ export class TriviaJamRoom extends Room<TriviaJamState> {
     this.onMessage(CONTINUE, (_) => {
       this.service.send({ type: CONTINUE });
     });
+
+    this.onMessage(
+      TRIVIA_JAM_SUBMIT_RESPONSE,
+      (client, event: Omit<TriviaJamSubmitResponseCommand, 'userId'>) => {
+        this.service.send({
+          type: TRIVIA_JAM_SUBMIT_RESPONSE,
+          userId: client.userData.userId as string,
+          response: event.response,
+        });
+      }
+    );
   }
 
   onJoin(client: Client, options) {

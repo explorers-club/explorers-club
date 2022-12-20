@@ -3,6 +3,7 @@ import {
   CLUB_ROOM_ENTER_NAME,
   CLUB_ROOM_START_GAME,
 } from '@explorers-club/commands';
+import { ClubMetadata } from '@explorers-club/schema';
 import { ClubPlayer } from '@explorers-club/schema-types/ClubPlayer';
 import { ClubState } from '@explorers-club/schema-types/ClubState';
 import { TriviaJamRoom } from '@explorers-club/trivia-jam/server';
@@ -16,6 +17,11 @@ export class ClubRoom extends Room<ClubState> {
 
     this.roomId = roomId;
     this.autoDispose = false;
+
+    const metadata: ClubMetadata = {
+      clubName: this.roomId.replace('club-', ''),
+    };
+    this.setMetadata(metadata);
 
     const state = new ClubState();
     state.hostUserId = userId;

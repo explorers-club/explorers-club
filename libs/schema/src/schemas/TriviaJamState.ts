@@ -8,8 +8,11 @@ export class TriviaJamPlayer extends ClubPlayer {
 export class TriviaJamState extends Schema {
   @type('string') hostUserId!: string;
   @type('string') currentQuestionEntryId: string | undefined;
-  @type({ set: 'string' }) currentStates!: SetSchema<string>;
-
-  @type({ map: TriviaJamPlayer }) public players: MapSchema<TriviaJamPlayer> =
-    new MapSchema<TriviaJamPlayer>();
+  @type({ set: 'string' }) currentStates: SetSchema<string> = new SetSchema();
+  @type({ map: 'string' }) currentResponsesSerialized: MapSchema<string> =
+    new MapSchema();
+  @type({ map: 'number' }) currentQuestionPoints: MapSchema<number> =
+    new MapSchema();
+  @type({ map: TriviaJamPlayer }) players: MapSchema<TriviaJamPlayer> =
+    new MapSchema();
 }

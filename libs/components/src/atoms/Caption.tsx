@@ -28,11 +28,13 @@ export const Caption = React.forwardRef<
       fontWeight: 'bold',
       fontSize: '10px',
       letterSpacing: '0.05em',
+      textTransform: 'uppercase',
     },
     2: {
       fontWeight: 'bold',
       fontSize: '12px',
       letterSpacing: '0.05em',
+      textTransform: 'uppercase',
     },
   };
 

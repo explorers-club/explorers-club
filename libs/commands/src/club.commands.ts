@@ -8,10 +8,12 @@ export type ClubRoomEnterNameCommand = {
   type: typeof CLUB_ROOM_ENTER_NAME;
   playerName: string;
 };
+
 export type ClubRoomSelectGameCommand = {
   type: typeof CLUB_ROOM_SELECT_GAME;
   gameId: 'diffusionary' | 'trivia_jam';
 };
+
 export type ClubRoomStartGameCommand = {
   type: typeof CLUB_ROOM_START_GAME;
 };

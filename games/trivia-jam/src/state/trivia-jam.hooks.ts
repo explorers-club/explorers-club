@@ -1,14 +1,35 @@
 import { useContext, useEffect, useState } from 'react';
-import { TriviaJamRoomContext } from './trivia-jam-room.context';
+import { TriviaJamContext } from './trivia-jam.context';
 
 export const useTriviaJamRoom = () => {
-  const { room } = useContext(TriviaJamRoomContext);
+  const { room } = useContext(TriviaJamContext);
   return room;
 };
 
 export const useMyUserId = () => {
-  const { myUserId } = useContext(TriviaJamRoomContext);
+  const { myUserId } = useContext(TriviaJamContext);
   return myUserId;
+};
+
+export const useIsHost = () => {
+  const myUserId = useMyUserId();
+  const room = useTriviaJamRoom();
+  return myUserId === room.state.hostUserId;
+};
+
+export const useCurrentQuestionPoints = () => {
+  const room = useTriviaJamRoom();
+
+  const [value, setValue] = useState(room.state.currentQuestionPoints);
+
+  useEffect(() => {
+    // todo remove on unmount
+    room.onStateChange((state) => {
+      setValue(state.currentQuestionPoints);
+    });
+  });
+
+  return value;
 };
 
 export const useCurrentStates = () => {
@@ -18,6 +39,7 @@ export const useCurrentStates = () => {
     Array.from(room.state.currentStates.values())
   );
 
+  // useLayoutEffect here instead?
   useEffect(() => {
     // todo remove on unmount
     room.onStateChange((state) => {
