@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy-party-server:
+  deploy-room-server:
     runs-on: ubuntu-22.04
     env:
       FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
