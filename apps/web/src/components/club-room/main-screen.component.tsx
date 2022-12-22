@@ -35,13 +35,6 @@ export const MainScreenComponent = () => {
     room.send(CLUB_ROOM_START_GAME);
   }, [room]);
 
-  // const handleChangeGame = useCallback(
-  //   (gameId: string) => {
-  //     room.send(CLUB_ROOM_SELECT_GAME, { gameId });
-  //   },
-  //   [room]
-  // );
-
   return (
     <Flex direction="column" css={{ p: '$3' }} gap="3">
       <Caption>{clubName}'s Explorers Club</Caption>

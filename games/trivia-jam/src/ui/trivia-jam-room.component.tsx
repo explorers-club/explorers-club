@@ -1,9 +1,9 @@
-import { useCurrentStates } from '../state/trivia-jam.hooks';
+import { useStoreSelector } from '../state/trivia-jam.hooks';
 import { PlayScreen } from './screens/play-screen.container';
 import { SummaryScreen } from './screens/summary-screen.container';
 
 export const TriviaJamRoomComponent = () => {
-  const states = useCurrentStates();
+  const states = useStoreSelector((state) => state.currentStates);
 
   switch (true) {
     case states.includes('Playing'):

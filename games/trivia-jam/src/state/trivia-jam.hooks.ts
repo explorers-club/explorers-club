@@ -1,10 +1,16 @@
-import { useContext, useEffect, useState } from 'react';
+import { contentfulClient } from '@explorers-club/contentful';
+import { useCallback, useContext, useRef } from 'react';
+import { useQuery } from 'react-query';
+import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
+import {
+  IQuestion,
+  IQuestionFields,
+  IQuestionType,
+  TriviaJamStateSerialized,
+} from '../types';
+import { unwrapFields } from '../utils';
 import { TriviaJamContext } from './trivia-jam.context';
-
-export const useTriviaJamRoom = () => {
-  const { room } = useContext(TriviaJamContext);
-  return room;
-};
+import { selectHostUserId } from './trivia-jam.selectors';
 
 export const useMyUserId = () => {
   const { myUserId } = useContext(TriviaJamContext);
@@ -13,56 +19,48 @@ export const useMyUserId = () => {
 
 export const useIsHost = () => {
   const myUserId = useMyUserId();
-  const room = useTriviaJamRoom();
-  return myUserId === room.state.hostUserId;
+  const hostUserId = useStoreSelector(selectHostUserId);
+  return myUserId === hostUserId;
 };
 
-export const useCurrentQuestionPoints = () => {
-  const room = useTriviaJamRoom();
-
-  const [value, setValue] = useState(room.state.currentQuestionPoints);
-
-  useEffect(() => {
-    // todo remove on unmount
-    room.onStateChange((state) => {
-      setValue(state.currentQuestionPoints);
-    });
-  });
-
-  return value;
+export const useSend = () => {
+  const { store } = useContext(TriviaJamContext);
+  return store.send;
 };
 
-export const useCurrentStates = () => {
-  const room = useTriviaJamRoom();
+export const useStoreSelector = <T>(
+  selector: (state: TriviaJamStateSerialized) => T
+) => {
+  const { store } = useContext(TriviaJamContext);
 
-  const [states, setStates] = useState(
-    Array.from(room.state.currentStates.values())
+  return useSyncExternalStoreWithSelector(
+    store.subscribe,
+    store.getSnapshot,
+    store.getSnapshot,
+    selector
   );
-
-  // useLayoutEffect here instead?
-  useEffect(() => {
-    // todo remove on unmount
-    room.onStateChange((state) => {
-      setStates(Array.from(state.currentStates.values()));
-    });
-  });
-
-  return states;
 };
 
-export const useCurrentQuestionEntryId = () => {
-  const room = useTriviaJamRoom();
-
-  const [value, setValue] = useState<string | undefined>(
-    room.state.currentQuestionEntryId
-  );
-
-  useEffect(() => {
-    // todo remove on unmount
-    room.onStateChange((state) => {
-      setValue(room.state.currentQuestionEntryId);
-    });
+export const useEntryQuery = <T>(entryId: string) => {
+  return useQuery(`entry-${entryId}`, async () => {
+    return await contentfulClient.getEntry<T>(entryId);
   });
+};
 
-  return value;
+export const useCurrentQuestionQuery = () => {
+  const entryId = useStoreSelector((state) => state.currentQuestionEntryId);
+  return useEntryQuery<IQuestionFields>(entryId);
+};
+
+export const useCurrentQuestionFields = <T extends IQuestionFields>(
+  expectedType: IQuestionType
+): T | null => {
+  const query = useCurrentQuestionQuery();
+
+  const question = query.data;
+  if (!question) {
+    return null;
+  }
+
+  return unwrapFields<T>(question as IQuestion, expectedType);
 };

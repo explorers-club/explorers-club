@@ -6,7 +6,7 @@ export class TriviaJamPlayer extends ClubPlayer {
 }
 
 export class TriviaJamState extends Schema {
-  @type('string') hostUserId!: string;
+  @type(ClubPlayer) hostPlayer!: ClubPlayer;
   @type('string') currentQuestionEntryId: string | undefined;
   @type({ set: 'string' }) currentStates: SetSchema<string> = new SetSchema();
   @type({ map: 'string' }) currentResponsesSerialized: MapSchema<string> =

@@ -1,6 +1,10 @@
-import React from 'react';
-import { Flex } from '@atoms/Flex';
+import { Heading } from '@atoms/Heading';
+import { INumberInputFields } from '@explorers-club/contentful-types';
 
-export const NumberInputReviewComponent = () => {
-  return <Flex>Generated numberInputReview component</Flex>;
+export const NumberInputReviewComponent = ({
+  fields,
+}: {
+  fields: INumberInputFields;
+}) => {
+  return <Heading size="3">{fields.correctValue}</Heading>;
 };

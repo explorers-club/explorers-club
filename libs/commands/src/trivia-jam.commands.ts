@@ -6,7 +6,6 @@ export type QuestionResponse = string[] | string | number | boolean | undefined;
 
 export type TriviaJamSubmitResponseCommand = {
   type: typeof TRIVIA_JAM_SUBMIT_RESPONSE;
-  userId: string;
   response: QuestionResponse;
 };
 

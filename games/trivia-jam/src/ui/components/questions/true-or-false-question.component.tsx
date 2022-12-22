@@ -3,16 +3,20 @@ import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
 import { RadioCardGroup, RadioCard } from '@molecules/RadioCard';
 import { FC, useCallback } from 'react';
+import { ITrueOrFalseFields } from '@explorers-club/contentful-types';
+import { Caption } from '@atoms/Caption';
 
 interface Props {
-  prompt: string;
+  fields: ITrueOrFalseFields;
   onSubmitResponse: (response: boolean) => void;
 }
 
 export const TrueOrFalseQuestionComponent: FC<Props> = ({
-  prompt,
+  fields,
   onSubmitResponse,
 }) => {
+  const { prompt } = fields;
+
   const handleChange = useCallback(
     (value: string) => {
       if (value === 'true') {
@@ -25,8 +29,9 @@ export const TrueOrFalseQuestionComponent: FC<Props> = ({
   );
 
   return (
-    <Flex direction="column" gap="3">
-      <Heading size="3">{prompt}</Heading>
+    <Flex direction="column" gap="2" css={{ p: '$3' }}>
+      <Caption>Fact.</Caption>
+      <Heading size="2">{prompt}</Heading>
       <RadioCardGroup onValueChange={handleChange}>
         <RadioCard value="true" css={{ mb: '$2', width: '100%' }}>
           <Text

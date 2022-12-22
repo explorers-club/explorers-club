@@ -2,11 +2,11 @@ import React, { FC } from 'react';
 import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
 import { Caption } from '@atoms/Caption';
-import { TriviaJamPlayer } from '@explorers-club/schema-types/TriviaJamPlayer';
 import { Button } from '@atoms/Button';
+import { TriviaJamPlayerSerialized } from '../../types';
 
 interface Props {
-  players: TriviaJamPlayer[];
+  players: TriviaJamPlayerSerialized[];
   showNext: boolean;
   onPressNext?: () => void;
 }

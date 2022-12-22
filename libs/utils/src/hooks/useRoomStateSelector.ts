@@ -1,19 +1,28 @@
 import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
-import { useEffect, useState } from 'react';
 import { Room } from 'colyseus.js';
+import { useCallback } from 'react';
+import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 
-export function useRoomStateSelector<TState extends TriviaJamState, T>(
-  room: Room<TState>,
-  selector: (state: TState) => T
-): T {
-  const [value, setValue] = useState<T>(selector(room.state));
-  useEffect(() => {
-    room.onStateChange.once((state) => {
-      setValue(selector(state));
-    });
-    room.onStateChange((state) => {
-      setValue(selector(state));
-    });
-  }, [room, setValue, selector]);
-  return value;
-}
+export const useRoomSelector = <T>(
+  room: Room<TriviaJamState>,
+  selector: (state: TriviaJamState) => T
+) => {
+  const subscribe = useCallback(
+    (callback: () => void) => {
+      const emitter = room.onStateChange(callback);
+      return () => emitter.remove(callback);
+    },
+    [room]
+  );
+
+  const getSnapshot = useCallback(() => {
+    return room.state;
+  }, [room]);
+
+  return useSyncExternalStoreWithSelector(
+    subscribe,
+    getSnapshot,
+    getSnapshot,
+    selector
+  );
+};

@@ -1,17 +1,21 @@
 import { CONTINUE } from '@explorers-club/commands';
-import { useRoomStateSelector } from '@explorers-club/utils';
-import { useTriviaJamRoom, useIsHost } from '../../state/trivia-jam.hooks';
+import { useCallback } from 'react';
+import {
+  useIsHost,
+  useSend,
+  useStoreSelector,
+} from '../../state/trivia-jam.hooks';
 import { selectPlayers } from '../../state/trivia-jam.selectors';
 import { ScoreboardScreenComponent } from './scoreboard-screen.component';
 
 export const ScoreboardScreen = () => {
-  const triviaJamRoom = useTriviaJamRoom();
-  const players = useRoomStateSelector(triviaJamRoom, selectPlayers);
+  const players = useStoreSelector(selectPlayers);
+  const send = useSend();
   const isHost = useIsHost();
 
-  const handlePressNext = () => {
-    triviaJamRoom.send(CONTINUE);
-  };
+  const handlePressNext = useCallback(() => {
+    send({ type: CONTINUE });
+  }, [send]);
 
   return (
     <ScoreboardScreenComponent

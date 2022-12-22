@@ -34,7 +34,10 @@ export const Room = () => {
         try {
           room = await colyseusClient.reconnect(clubRoomId, sessionId);
         } catch (ex) {
-          console.warn('error when trying to reconnect, joining normally', ex);
+          console.warn(
+            `error when trying to reconnect with ${sessionId} on ${clubRoomId}, joining normally`,
+            ex
+          );
           // todo pass up auth tokens instead of user ids
           room = await colyseusClient.joinById(clubRoomId, { userId });
         }
@@ -49,7 +52,6 @@ export const Room = () => {
     }
 
     room.onMessage('RESERVED_GAME_SEAT', ({ room, sessionId }) => {
-      console.log('reserved', room.roomId);
       localStorage.setItem(room.roomId, sessionId);
     });
 

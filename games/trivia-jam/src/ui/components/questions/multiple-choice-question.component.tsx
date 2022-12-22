@@ -2,19 +2,20 @@ import { Flex } from '@atoms/Flex';
 import { Text } from '@atoms/Text';
 import { Heading } from '@atoms/Heading';
 import { RadioCardGroup, RadioCard } from '@molecules/RadioCard';
-import { FC, useCallback } from 'react';
+import { FC, useCallback, useMemo } from 'react';
+import { IMultipleChoiceFields } from '@explorers-club/contentful-types';
+import { Caption } from '@atoms/Caption';
 
 interface Props {
-  prompt: string;
-  answers: string[];
+  fields: IMultipleChoiceFields;
   onSubmitResponse: (selectedAnswer: string) => void;
 }
 
 export const MultipleChoiceQuestionComponent: FC<Props> = ({
-  prompt,
-  answers,
+  fields,
   onSubmitResponse,
 }) => {
+  const { prompt, correctAnswer, incorrectAnswers } = fields;
   const handleChange = useCallback(
     (value: string) => {
       onSubmitResponse(value);
@@ -22,9 +23,15 @@ export const MultipleChoiceQuestionComponent: FC<Props> = ({
     [onSubmitResponse]
   );
 
+  const answers = useMemo(
+    () => [correctAnswer, ...(incorrectAnswers || [])],
+    [correctAnswer, incorrectAnswers]
+  );
+
   return (
-    <Flex direction="column">
-      <Heading size="4">{prompt}</Heading>
+    <Flex direction="column" gap="2" css={{ p: '$3' }}>
+      <Caption>Select one</Caption>
+      <Heading size="2">{prompt}</Heading>
       <RadioCardGroup onValueChange={handleChange}>
         {[
           answers.map((answer, index) => (

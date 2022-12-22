@@ -1,10 +1,10 @@
-import { useCurrentStates } from '../../state/trivia-jam.hooks';
+import { useStoreSelector } from '../../state/trivia-jam.hooks';
 import { QuestionScreen } from './question-screen.container';
 import { ReviewScreen } from './review-screen.container';
 import { ScoreboardScreen } from './scoreboard-screen.container';
 
 export const PlayScreen = () => {
-  const states = useCurrentStates();
+  const states = useStoreSelector((state) => state.currentStates);
 
   switch (true) {
     case states.includes('Playing.AwaitingQuestion'):

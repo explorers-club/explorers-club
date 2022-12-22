@@ -1,11 +1,11 @@
 import { Caption } from '@atoms/Caption';
 import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
-import { TriviaJamPlayer } from '@explorers-club/schema-types/TriviaJamPlayer';
 import { FC } from 'react';
+import { TriviaJamPlayerSerialized } from '../../types';
 
 interface Props {
-  players: TriviaJamPlayer[];
+  players: TriviaJamPlayerSerialized[];
 }
 
 export const SummaryScreenComponent: FC<Props> = ({ players }) => {
