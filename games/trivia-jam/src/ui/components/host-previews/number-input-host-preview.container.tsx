@@ -3,7 +3,7 @@ import { INumberInputFields } from '@explorers-club/contentful-types';
 import { useCallback } from 'react';
 import {
   useCurrentQuestionFields,
-  useStoreSelector,
+  useTriviaJamStoreSelector,
   useSend,
 } from '../../../state/trivia-jam.hooks';
 import { selectResponsesByPlayerName } from '../../../state/trivia-jam.selectors';
@@ -13,7 +13,7 @@ export const NumberInputHostPreview = () => {
   const fields = useCurrentQuestionFields<INumberInputFields>('numberInput');
 
   const send = useSend();
-  const responsesByPlayerName = useStoreSelector(
+  const responsesByPlayerName = useTriviaJamStoreSelector(
     selectResponsesByPlayerName<number>
   );
   const handleContinue = useCallback(() => {

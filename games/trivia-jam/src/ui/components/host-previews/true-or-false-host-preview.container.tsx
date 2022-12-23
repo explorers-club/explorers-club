@@ -4,7 +4,7 @@ import { useCallback } from 'react';
 import {
   useCurrentQuestionFields,
   useSend,
-  useStoreSelector,
+  useTriviaJamStoreSelector,
 } from '../../../state/trivia-jam.hooks';
 import { selectResponsesByPlayerName } from '../../../state/trivia-jam.selectors';
 import { TrueOrFalseHostPreviewComponent } from './true-or-false-host-preview.component';
@@ -16,7 +16,7 @@ export const TrueOrFalseHostPreview = () => {
   const handleContinue = useCallback(() => {
     send({ type: CONTINUE });
   }, [send]);
-  const responsesByPlayerName = useStoreSelector(
+  const responsesByPlayerName = useTriviaJamStoreSelector(
     selectResponsesByPlayerName<boolean>
   );
 

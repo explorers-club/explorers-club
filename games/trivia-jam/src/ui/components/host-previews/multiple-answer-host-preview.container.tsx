@@ -4,7 +4,7 @@ import { useCallback } from 'react';
 import {
   useCurrentQuestionFields,
   useSend,
-  useStoreSelector
+  useTriviaJamStoreSelector
 } from '../../../state/trivia-jam.hooks';
 import { selectResponsesByPlayerName } from '../../../state/trivia-jam.selectors';
 import { MultipleAnswerHostPreviewComponent } from './multiple-answer-host-preview.component';
@@ -14,7 +14,7 @@ export const MultipleAnswerHostPreview = () => {
     useCurrentQuestionFields<IMultipleAnswerFields>('multipleAnswer');
 
   const send = useSend();
-  const responsesByPlayerName = useStoreSelector(
+  const responsesByPlayerName = useTriviaJamStoreSelector(
     selectResponsesByPlayerName<string[]>
   );
 

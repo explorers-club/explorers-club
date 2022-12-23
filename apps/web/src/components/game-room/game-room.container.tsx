@@ -1,37 +1,41 @@
-import React, { FC, useContext } from 'react';
-import { Room, Room as TRoom } from 'colyseus.js';
-import { useQuery } from 'react-query';
+import { createRoomStore } from '@explorers-club/room';
 import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
-import { DiffusionaryState } from '@explorers-club/schema-types/DiffusionaryState';
 import { TriviaJamRoom } from '@explorers-club/trivia-jam/ui';
-import { DiffusionaryRoom } from '@explorers-club/diffusionary/ui';
-import { ColyseusContext } from '../../state/colyseus.context';
-import { ClubState } from '@explorers-club/schema-types/ClubState';
+import { FC, useContext } from 'react';
+import { useQuery } from 'react-query';
 import { AuthContext } from '../../state/auth.context';
+import { ColyseusContext } from '../../state/colyseus.context';
+import { ClubStore } from '../../type';
 
 interface Props {
-  roomId: string;
-  clubRoom: Room<ClubState>;
+  clubStore: ClubStore;
 }
 
-export const GameRoom: FC<Props> = ({ roomId, clubRoom }) => {
+export const GameRoom: FC<Props> = ({ clubStore }) => {
   const colyseusClient = useContext(ColyseusContext);
   const { userId } = useContext(AuthContext);
 
   const query = useQuery('game_room', async () => {
-    return await colyseusClient.joinById(roomId, {
+    const { gameRoomId } = clubStore.getSnapshot();
+
+    const room = await colyseusClient.joinById<TriviaJamState>(gameRoomId, {
       userId,
     });
-  });
-  const room = query.data;
 
-  switch (room?.name) {
-    case 'diffusionary':
-      return <DiffusionaryRoom room={room as TRoom<DiffusionaryState>} />;
+    return { type: 'trivia_jam', store: createRoomStore(room) };
+  });
+
+  const store = query.data?.store;
+  if (!store) {
+    return null;
+  }
+  // const;
+
+  switch (query.data?.type) {
+    // case 'diffusionary':
+    //   return <DiffusionaryRoom store={store} />;
     case 'trivia_jam':
-      return (
-        <TriviaJamRoom room={room as TRoom<TriviaJamState>} myUserId={userId} />
-      );
+      return <TriviaJamRoom store={store} myUserId={userId} />;
     default:
       return null;
   }

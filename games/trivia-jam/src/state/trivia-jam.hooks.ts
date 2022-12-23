@@ -1,5 +1,6 @@
 import { contentfulClient } from '@explorers-club/contentful';
-import { useCallback, useContext, useRef } from 'react';
+import { useStoreSelector } from '@explorers-club/room';
+import { useContext } from 'react';
 import { useQuery } from 'react-query';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 import {
@@ -19,7 +20,7 @@ export const useMyUserId = () => {
 
 export const useIsHost = () => {
   const myUserId = useMyUserId();
-  const hostUserId = useStoreSelector(selectHostUserId);
+  const hostUserId = useTriviaJamStoreSelector(selectHostUserId);
   return myUserId === hostUserId;
 };
 
@@ -28,17 +29,11 @@ export const useSend = () => {
   return store.send;
 };
 
-export const useStoreSelector = <T>(
+export const useTriviaJamStoreSelector = <T>(
   selector: (state: TriviaJamStateSerialized) => T
 ) => {
   const { store } = useContext(TriviaJamContext);
-
-  return useSyncExternalStoreWithSelector(
-    store.subscribe,
-    store.getSnapshot,
-    store.getSnapshot,
-    selector
-  );
+  return useStoreSelector(store, selector);
 };
 
 export const useEntryQuery = <T>(entryId: string) => {
@@ -48,7 +43,9 @@ export const useEntryQuery = <T>(entryId: string) => {
 };
 
 export const useCurrentQuestionQuery = () => {
-  const entryId = useStoreSelector((state) => state.currentQuestionEntryId);
+  const entryId = useTriviaJamStoreSelector(
+    (state) => state.currentQuestionEntryId
+  );
   return useEntryQuery<IQuestionFields>(entryId);
 };
 

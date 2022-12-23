@@ -40,6 +40,7 @@ type NonFunctionPropNames<T> = {
 }[keyof T];
 
 export type RoomStore<T extends Schema, TCommand> = {
+  id: string; // todo type this better with RoomId
   subscribe: (cb: () => void) => () => void;
   getSnapshot: () => SerializedSchema<T>;
   send: (command: TCommand) => void;

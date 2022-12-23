@@ -6,36 +6,23 @@ import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
 import { CLUB_ROOM_START_GAME } from '@explorers-club/commands';
-import { useCallback, useEffect, useState } from 'react';
+import { useStoreSelector } from '@explorers-club/room';
+import { useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { useClubRoom, useIsHost } from './club-room.hooks';
+import { useClubStore, useIsHost } from './club-room.hooks';
 
 export const MainScreenComponent = () => {
   const clubName = useParams()['clubName'];
-  const room = useClubRoom();
+  const store = useClubStore();
   const isHost = useIsHost();
-  const hostUserId = "foo";
-
-  // TODO pull this in to a re-usable hook
-  const [players, setPlayers] = useState(
-    Array.from(room.state.players.values())
+  const players = useStoreSelector(store, (state) =>
+    Object.values(state.players)
   );
-
-  useEffect(() => {
-    room.state.players.onAdd = (value, key) => {
-      setPlayers(Array.from(room.state.players.values()));
-    };
-    room.state.players.onChange = (value, key) => {
-      setPlayers(Array.from(room.state.players.values()));
-    };
-    room.state.players.onRemove = (value, key) => {
-      setPlayers(Array.from(room.state.players.values()));
-    };
-  }, [room.state, setPlayers]);
+  const hostUserId = useStoreSelector(store, (state) => state.hostUserId);
 
   const handlePressStart = useCallback(() => {
-    room.send(CLUB_ROOM_START_GAME);
-  }, [room]);
+    store.send({ type: CLUB_ROOM_START_GAME });
+  }, [store]);
 
   return (
     <Flex direction="column" gap="3" css={{ p: '$3' }}>
