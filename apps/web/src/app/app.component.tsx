@@ -8,7 +8,6 @@ import {
   SnapPointProps,
   defaultSnapProps,
 } from 'react-spring-bottom-sheet/dist/types';
-import 'react-spring-bottom-sheet/dist/style.css';
 import { ColyseusContext } from '../state/colyseus.context';
 import {
   Environment,

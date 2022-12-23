@@ -36,8 +36,8 @@ export const MainScreenComponent = () => {
   }, [room]);
 
   return (
-    <Flex direction="column" css={{ p: '$3' }} gap="3">
-      <Caption>{clubName}'s Explorers Club</Caption>
+    <Flex direction="column" gap="3">
+      {/* <Caption>{clubName}'s Explorers Club</Caption> */}
       <Card css={{ p: '$3' }}>
         <Flex gap="3" direction="column">
           <Caption>Playing</Caption>
