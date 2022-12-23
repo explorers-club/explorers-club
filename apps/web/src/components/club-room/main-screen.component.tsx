@@ -1,4 +1,5 @@
 import { Avatar } from '@atoms/Avatar';
+import { Badge } from '@atoms/Badge';
 import { Button } from '@atoms/Button';
 import { Caption } from '@atoms/Caption';
 import { Card } from '@atoms/Card';
@@ -36,12 +37,15 @@ export const MainScreenComponent = () => {
   }, [room]);
 
   return (
-    <Flex direction="column" gap="3">
-      {/* <Caption>{clubName}'s Explorers Club</Caption> */}
+    <Flex direction="column" gap="3" css={{ p: '$3' }}>
+      <Caption variant="crimson">{clubName}'s Explorers Club</Caption>
       <Card css={{ p: '$3' }}>
         <Flex gap="3" direction="column">
           <Caption>Playing</Caption>
           <Heading>Trivia Jam</Heading>
+          <Flex>
+            <Badge>Waiting To Start</Badge>
+          </Flex>
           {isHost && (
             <Button
               size="3"

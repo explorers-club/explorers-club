@@ -53,6 +53,54 @@ export const Text = styled('span', {
       low_contrast: {
         color: '$neutral11',
       },
+      gray: {
+        color: '$slate9',
+      },
+      red: {
+        color: '$red9',
+      },
+      crimson: {
+        color: '$crimson9',
+      },
+      pink: {
+        color: '$pink9',
+      },
+      purple: {
+        color: '$purple9',
+      },
+      violet: {
+        color: '$violet9',
+      },
+      indigo: {
+        color: '$indigo9',
+      },
+      blue: {
+        color: '$blue9',
+      },
+      cyan: {
+        color: '$cyan9',
+      },
+      teal: {
+        color: '$teal9',
+      },
+      green: {
+        color: '$green9',
+      },
+      lime: {
+        color: '$lime9',
+      },
+      yellow: {
+        color: '$yellow9',
+      },
+      orange: {
+        color: '$orange9',
+      },
+      gold: {
+        color: '$gold9',
+      },
+      bronze: {
+        color: '$bronze9',
+      },
     },
     gradient: {
       true: {
