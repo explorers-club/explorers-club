@@ -40,6 +40,7 @@ export class ClubRoom extends Room<ClubState> {
         if (!existingNames.includes(playerName)) {
           const player = new ClubPlayer({
             name: playerName,
+            userId,
           });
           state.players.set(userId, player);
         }

@@ -14,18 +14,26 @@ interface ClubRoomContext {
 export const clubRoomMachine = createMachine(
   {
     id: 'ClubRoomMachine',
-    initial: 'Initializing',
+    initial: 'Loading',
     schema: {
       context: {} as ClubRoomContext,
       events: {} as ClubRoomCommand,
     },
     states: {
       // TODO might still need to wait for store to load?
-      // Loading: {
-      //   invoke: {
-      //     onDone: 'Initializing',
-      //   },
-      // },
+      Loading: {
+        invoke: {
+          src: ({ store }) =>
+            new Promise((resolve) => {
+              // todo use observable here
+              const unsub = store.subscribe(() => {
+                resolve(null);
+                unsub();
+              });
+            }),
+          onDone: 'Initializing',
+        },
+      },
       Initializing: {
         always: [
           {
@@ -72,6 +80,7 @@ export const clubRoomMachine = createMachine(
     actions: {
       setHostPlayerName: ({ store, myUserId }) => {
         const playerName = store.id.replace('club-', '');
+        console.log('setting', playerName);
         store.send({
           type: CLUB_ROOM_ENTER_NAME,
           playerName,
@@ -83,7 +92,7 @@ export const clubRoomMachine = createMachine(
         return store.getSnapshot().hostUserId === myUserId;
       },
       needsNameInput: ({ store, myUserId }) => {
-        return !!store.getSnapshot().players[myUserId]?.name;
+        return !store.getSnapshot().players[myUserId]?.name;
       },
       isNameValid: ({ store }, event) => {
         assertEventType(event, 'ENTER_NAME');
