@@ -3,10 +3,6 @@ import { TriviaJamStateSerialized } from '../types';
 import { createSelector } from 'reselect';
 
 export const selectAllPlayersConnected = (state: TriviaJamState) => {
-  console.log('alc');
-  state.players.forEach((player) =>
-    console.log(player.userId, player.connected)
-  );
   const unconnectedPlayers = Array.from(state.players.values()).filter(
     (player) => !player.connected
   );
