@@ -36,6 +36,7 @@ export const ReviewScreenComponent: FC<Props> = ({
   onPressContinue,
 }) => {
   const QuestionReview = contentTypeToReviewComponent[contentType];
+  console.log(currentQuestionPointsByName);
 
   const correctPlayers = useMemo(() => {
     return Object.entries(currentQuestionPointsByName)

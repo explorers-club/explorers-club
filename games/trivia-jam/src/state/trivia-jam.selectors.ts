@@ -36,7 +36,8 @@ export const selectCurrentQuestionPointsByName = createSelector(
     const currentQuestionPointsByName: Partial<Record<string, number>> = {};
 
     Object.values(players).forEach((player) => {
-      currentQuestionPoints[player.name] = currentQuestionPoints[player.userId];
+      currentQuestionPointsByName[player.name] =
+        currentQuestionPoints[player.userId];
     });
 
     return currentQuestionPointsByName;

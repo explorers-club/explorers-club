@@ -23,14 +23,16 @@ export const EnterNameScreen = () => {
   return (
     <Flex direction="column" css={{ p: '$3' }}>
       <Card>
-        <Flex direction="column" gap="3" css={{ p: '$3' }}>
-          <Caption size="2">{clubName}'s Explorers Club</Caption>
-          <Heading>Choose a name</Heading>
-          <TextField ref={nameRef} placeholder="Name" />
-          <Button size="3" color="primary" onClick={handleSubmitName}>
-            Enter
-          </Button>
-        </Flex>
+        <form onSubmit={handleSubmitName}>
+          <Flex direction="column" gap="3" css={{ p: '$3' }}>
+            <Caption size="2">{clubName}'s Explorers Club</Caption>
+            <Heading>Choose a name</Heading>
+            <TextField ref={nameRef} placeholder="Name" />
+            <Button size="3" color="primary" type="submit">
+              Enter
+            </Button>
+          </Flex>
+        </form>
       </Card>
     </Flex>
   );
