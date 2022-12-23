@@ -14,6 +14,7 @@ export const MainScreenComponent = () => {
   const clubName = useParams()['clubName'];
   const room = useClubRoom();
   const isHost = useIsHost();
+  const hostUserId = "foo";
 
   // TODO pull this in to a re-usable hook
   const [players, setPlayers] = useState(
@@ -70,7 +71,7 @@ export const MainScreenComponent = () => {
               <Avatar size="3" fallback={name[0]} />
               <Flex direction="column">
                 <Heading size="2">{name}</Heading>
-                {/* {userId === hostUserId <Badge variant='crimson'>Host</Badge>} */}
+                {userId === hostUserId && <Badge variant="crimson">Host</Badge>}
               </Flex>
             </Flex>
           ))}

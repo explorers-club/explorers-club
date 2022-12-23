@@ -1,4 +1,6 @@
+import { Box } from '@atoms/Box';
 import { Button } from '@atoms/Button';
+import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
 import { Text } from '@atoms/Text';
@@ -42,26 +44,35 @@ export const ReviewScreenComponent: FC<Props> = ({
   }, [currentQuestionPointsByName]);
 
   return (
-    <Flex css={{ p: '$3' }} direction="column" gap="2">
-      <Heading size="3">{fields.prompt}</Heading>
-      <QuestionReview />
-      <Heading>Who got it right?</Heading>
-      {correctPlayers.length ? (
-        <Flex direction="column">
-          {correctPlayers.map((name) => (
-            <Text key={name}>
-              {name} (+{currentQuestionPointsByName[name]})
-            </Text>
-          ))}
+    <Box css={{ p: '$3' }}>
+      <Card css={{ p: '$3' }}>
+        <Flex direction="column" gap="3">
+          <Heading size="3">{fields.prompt}</Heading>
+          <QuestionReview />
+          <Heading>Who got it right?</Heading>
+          {correctPlayers.length ? (
+            <Flex direction="column">
+              {correctPlayers.map((name) => (
+                <Text key={name}>
+                  {name} (+{currentQuestionPointsByName[name]})
+                </Text>
+              ))}
+            </Flex>
+          ) : (
+            <Text>Nobody!</Text>
+          )}
+          {showContinue && (
+            <Button
+              size="3"
+              fullWidth
+              color="primary"
+              onClick={onPressContinue}
+            >
+              Continue
+            </Button>
+          )}
         </Flex>
-      ) : (
-        <Text>Nobody!</Text>
-      )}
-      {showContinue && (
-        <Button size="3" fullWidth color="primary" onClick={onPressContinue}>
-          Continue
-        </Button>
-      )}
-    </Flex>
+      </Card>
+    </Box>
   );
 };

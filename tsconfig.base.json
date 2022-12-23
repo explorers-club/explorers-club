@@ -37,6 +37,7 @@
         "tools/local-generator-plugin/src/index.ts"
       ],
       "@explorers-club/party": ["libs/party/src/index.ts"],
+      "@explorers-club/room": ["libs/room/src/index.ts"],
       "@explorers-club/schema": ["libs/schema/src/index.ts"],
       "@explorers-club/schema-types/*": ["libs/schema/@types/generated/*"],
       "@explorers-club/styles": ["libs/components/src/stitches.config.ts"],
