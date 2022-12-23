@@ -60,15 +60,18 @@ export const MainScreenComponent = () => {
       </Card>
       <Card css={{ p: '$3' }}>
         <Flex direction="column" gap="3">
-          {players.map(({ name }) => (
+          {players.map(({ name, userId }) => (
             <Flex
               key={name}
               align="center"
               gap="2"
               css={{ backgroundColor: '$panel2', p: '$3' }}
             >
-              <Avatar size="4" fallback={name[0]} />
-              <Heading>{name}</Heading>
+              <Avatar size="3" fallback={name[0]} />
+              <Flex direction="column">
+                <Heading size="2">{name}</Heading>
+                {/* {userId === hostUserId <Badge variant='crimson'>Host</Badge>} */}
+              </Flex>
             </Flex>
           ))}
         </Flex>
