@@ -2,7 +2,6 @@ import { Schema } from '@colyseus/schema';
 import { Room } from 'colyseus.js';
 import { SerializedSchema } from '../types';
 
-// tood hosit to lib
 export const createRoomStore = <
   TSchema extends Schema,
   TCommand extends { type: string }
@@ -13,6 +12,10 @@ export const createRoomStore = <
     room.state.toJSON() as SerializedSchema<TSchema>;
 
   const subscribe = (onStoreChange: () => void) => {
+    // room.onStateChange.once(() => {
+    //   state = room.state.toJSON() as SerializedSchema<TSchema>;
+    //   onStoreChange();
+    // });
     const emitter = room.onStateChange(() => {
       state = room.state.toJSON() as SerializedSchema<TSchema>;
       onStoreChange();
@@ -27,6 +30,8 @@ export const createRoomStore = <
   const send = (command: TCommand) => room.send(command.type, command);
 
   return {
+    id: room.id,
+    // todo: name
     subscribe,
     getSnapshot,
     send,

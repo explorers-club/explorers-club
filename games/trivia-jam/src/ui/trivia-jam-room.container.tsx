@@ -1,18 +1,14 @@
-import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
-import { Room } from 'colyseus.js';
-import { FC, useMemo } from 'react';
+import { TriviaJamStore } from '@explorers-club/room';
+import { FC } from 'react';
 import { TriviaJamContext } from '../state/trivia-jam.context';
-import { createRoomStore } from '@explorers-club/room';
 import { TriviaJamRoomComponent } from './trivia-jam-room.component';
 
 interface Props {
-  room: Room<TriviaJamState>;
+  store: TriviaJamStore;
   myUserId: string;
 }
 
-export const TriviaJamRoom: FC<Props> = ({ room, myUserId }) => {
-  const store = useMemo(() => createRoomStore(room), [room]);
-
+export const TriviaJamRoom: FC<Props> = ({ store, myUserId }) => {
   return (
     <TriviaJamContext.Provider value={{ store, myUserId }}>
       <TriviaJamRoomComponent />

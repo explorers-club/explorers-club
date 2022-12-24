@@ -1,21 +1,20 @@
-import { ClubState } from '@explorers-club/schema-types/ClubState';
 import { useInterpret } from '@xstate/react';
-import { Room } from 'colyseus.js';
 import { FC, useContext, useMemo } from 'react';
 import { AuthContext } from '../../state/auth.context';
+import { ClubStore } from '@explorers-club/room';
 import { ClubRoomComponent } from './club-room.component';
 import { ClubRoomContext } from './club-room.context';
 import { clubRoomMachine } from './club-room.machine';
 
 interface Props {
-  room: Room<ClubState>;
+  store: ClubStore;
 }
 
-export const ClubRoom: FC<Props> = ({ room }) => {
+export const ClubRoom: FC<Props> = ({ store }) => {
   const { userId } = useContext(AuthContext);
   const machine = useMemo(
-    () => clubRoomMachine.withContext({ room, myUserId: userId }),
-    [room, userId]
+    () => clubRoomMachine.withContext({ store, myUserId: userId }),
+    [store, userId]
   );
   const service = useInterpret(machine);
 

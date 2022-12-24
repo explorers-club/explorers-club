@@ -3,7 +3,7 @@ import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
 import { FC } from 'react';
 import { useEntryQuery } from '../../queries/useEntryQuery';
-import { useIsHost, useStoreSelector } from '../../state/trivia-jam.hooks';
+import { useIsHost, useTriviaJamStoreSelector } from '../../state/trivia-jam.hooks';
 import { IQuestionType } from '../../types';
 import { MultipleAnswerHostPreview } from '../components/host-previews/multiple-answer-host-preview.container';
 import { MultipleChoiceHostPreview } from '../components/host-previews/multiple-choice-host-preview.container';

@@ -1,15 +1,14 @@
-import {
-  ClubRoomCommand,
-  CLUB_ROOM_ENTER_NAME,
-} from '@explorers-club/commands';
-import { ClubState } from '@explorers-club/schema-types/ClubState';
-import { Room } from 'colyseus.js';
+import { ClubRoomCommand, CLUB_ROOM_ENTER_NAME } from '@explorers-club/room';
+import { assertEventType } from '@explorers-club/utils';
 import { ActorRefFrom, createMachine, StateFrom } from 'xstate';
+import { ClubStore } from '@explorers-club/room';
 
 interface ClubRoomContext {
-  room: Room<ClubState>;
+  store: ClubStore;
   myUserId: string;
 }
+
+type ConfigureEvent = { type: 'CONFIGURE' };
 
 export const clubRoomMachine = createMachine(
   {
@@ -17,13 +16,20 @@ export const clubRoomMachine = createMachine(
     initial: 'Loading',
     schema: {
       context: {} as ClubRoomContext,
-      events: {} as ClubRoomCommand,
+      events: {} as ClubRoomCommand | ConfigureEvent,
     },
     states: {
+      // TODO might still need to wait for store to load?
       Loading: {
         invoke: {
-          src: ({ room }) =>
-            new Promise((resolve) => room.onStateChange.once(resolve)),
+          src: ({ store }) =>
+            new Promise((resolve) => {
+              // todo use observable here
+              const unsub = store.subscribe(() => {
+                resolve(null);
+                unsub();
+              });
+            }),
           onDone: 'Initializing',
         },
       },
@@ -46,22 +52,33 @@ export const clubRoomMachine = createMachine(
           ENTER_NAME: {
             target: 'Idle',
             cond: 'isNameValid',
-            actions: ({ room }, event) => {
-              room.send(event.type, event);
+            actions: ({ store }, event) => {
+              store.send(event);
             },
           },
         },
       },
       Idle: {
         on: {
+          CONFIGURE: 'Configuring',
           SELECT_GAME: {
-            actions: ({ room }, event) => {
-              room.send(event.type, event);
+            actions: ({ store }, event) => {
+              store.send(event);
             },
           },
           START_GAME: {
-            actions: ({ room }, event) => {
-              room.send(event.type, event);
+            actions: ({ store }, event) => {
+              store.send(event);
+            },
+          },
+        },
+      },
+      Configuring: {
+        on: {
+          SET_GAME_CONFIG: {
+            target: 'Idle',
+            actions: ({ store }, event) => {
+              store.send(event);
             },
           },
         },
@@ -71,24 +88,27 @@ export const clubRoomMachine = createMachine(
   },
   {
     actions: {
-      setHostPlayerName: ({ room, myUserId }) => {
-        const playerName = room.id.replace('club-', '');
-        room.send(CLUB_ROOM_ENTER_NAME, {
+      setHostPlayerName: ({ store, myUserId }) => {
+        const playerName = store.id.replace('club-', '');
+        store.send({
           type: CLUB_ROOM_ENTER_NAME,
           playerName,
         });
       },
     },
     guards: {
-      isHost: ({ room, myUserId }) => {
-        return room.state.hostUserId === myUserId;
+      isHost: ({ store, myUserId }) => {
+        return store.getSnapshot().hostUserId === myUserId;
       },
-      needsNameInput: ({ room }) => {
-        const player = room.state.players.get(room.sessionId);
-        return !player?.name;
+      needsNameInput: ({ store, myUserId }) => {
+        return !store.getSnapshot().players[myUserId]?.name;
       },
-      isNameValid: () => {
-        return true;
+      isNameValid: ({ store }, event) => {
+        assertEventType(event, 'ENTER_NAME');
+        const playerNames = Object.values(store.getSnapshot().players).map(
+          (player) => player.name
+        );
+        return !playerNames.includes(event.playerName);
       },
     },
   }

@@ -5,37 +5,31 @@ import { Caption } from '@atoms/Caption';
 import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
-import { CLUB_ROOM_START_GAME } from '@explorers-club/commands';
-import { useCallback, useEffect, useState } from 'react';
+import { IconButton } from '@atoms/IconButton';
+import { CLUB_ROOM_START_GAME, useStoreSelector } from '@explorers-club/room';
+import { GearIcon } from '@radix-ui/react-icons';
+import { useCallback, useContext } from 'react';
 import { useParams } from 'react-router-dom';
-import { useClubRoom, useIsHost } from './club-room.hooks';
+import { ClubRoomContext } from './club-room.context';
+import { useClubStore, useIsHost } from './club-room.hooks';
 
 export const MainScreenComponent = () => {
   const clubName = useParams()['clubName'];
-  const room = useClubRoom();
+  const service = useContext(ClubRoomContext);
+  const store = useClubStore();
   const isHost = useIsHost();
-  const hostUserId = "foo";
-
-  // TODO pull this in to a re-usable hook
-  const [players, setPlayers] = useState(
-    Array.from(room.state.players.values())
+  const players = useStoreSelector(store, (state) =>
+    Object.values(state.players)
   );
+  const hostUserId = useStoreSelector(store, (state) => state.hostUserId);
 
-  useEffect(() => {
-    room.state.players.onAdd = (value, key) => {
-      setPlayers(Array.from(room.state.players.values()));
-    };
-    room.state.players.onChange = (value, key) => {
-      setPlayers(Array.from(room.state.players.values()));
-    };
-    room.state.players.onRemove = (value, key) => {
-      setPlayers(Array.from(room.state.players.values()));
-    };
-  }, [room.state, setPlayers]);
+  const handlePressConfigure = useCallback(() => {
+    service.send('CONFIGURE');
+  }, [service]);
 
   const handlePressStart = useCallback(() => {
-    room.send(CLUB_ROOM_START_GAME);
-  }, [room]);
+    store.send({ type: CLUB_ROOM_START_GAME });
+  }, [store]);
 
   return (
     <Flex direction="column" gap="3" css={{ p: '$3' }}>
@@ -48,14 +42,19 @@ export const MainScreenComponent = () => {
             <Badge>Waiting To Start</Badge>
           </Flex>
           {isHost && (
-            <Button
-              size="3"
-              fullWidth
-              color="primary"
-              onClick={handlePressStart}
-            >
-              Start
-            </Button>
+            <Flex gap="2">
+              <Button
+                size="3"
+                color="primary"
+                onClick={handlePressStart}
+                css={{ flex: '1' }}
+              >
+                Start
+              </Button>
+              <IconButton size="3" onClick={handlePressConfigure}>
+                <GearIcon />
+              </IconButton>
+            </Flex>
           )}
         </Flex>
       </Card>
@@ -71,7 +70,7 @@ export const MainScreenComponent = () => {
               <Avatar size="3" fallback={name[0]} />
               <Flex direction="column">
                 <Heading size="2">{name}</Heading>
-                {userId === hostUserId && <Badge variant="crimson">Host</Badge>}
+                {userId === hostUserId && <Badge>Host</Badge>}
               </Flex>
             </Flex>
           ))}

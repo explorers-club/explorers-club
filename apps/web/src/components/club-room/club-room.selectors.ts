@@ -1,3 +1,7 @@
-import { ClubRoomState } from './club-room.machine';
+import { ClubStateSerialized } from '@explorers-club/room';
 
-export const selectRoom = (state: ClubRoomState) => state.context.room;
+export const selectHostUserId = (state: ClubStateSerialized) =>
+  state.hostUserId;
+
+export const selectGameRoomId = (state: ClubStateSerialized) =>
+  state.gameRoomId;

@@ -1,4 +1,4 @@
-import { QuestionResponse, TriviaJamCommand } from '@explorers-club/commands';
+import { QuestionResponse, TriviaJamCommand } from '@explorers-club/room';
 import {
   IMultipleAnswerFields,
   IMultipleChoiceFields,

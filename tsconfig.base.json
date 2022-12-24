@@ -19,7 +19,6 @@
       "@3d/*": ["libs/components/src/3d/*"],
       "@atoms/*": ["libs/components/src/atoms/*"],
       "@explorers-club/actor": ["libs/actor/src/index.ts"],
-      "@explorers-club/commands": ["libs/commands/src/index.ts"],
       "@explorers-club/contentful": ["libs/contentful/src/index.ts"],
       "@explorers-club/contentful-types": [
         "libs/contentful/@types/generated/contentful"
@@ -41,6 +40,9 @@
       "@explorers-club/schema": ["libs/schema/src/index.ts"],
       "@explorers-club/schema-types/*": ["libs/schema/@types/generated/*"],
       "@explorers-club/styles": ["libs/components/src/stitches.config.ts"],
+      "@explorers-club/trivia-jam/configuration": [
+        "games/trivia-jam/src/configuration/index.ts"
+      ],
       "@explorers-club/trivia-jam/scene": [
         "games/trivia-jam/src/scene/index.ts"
       ],

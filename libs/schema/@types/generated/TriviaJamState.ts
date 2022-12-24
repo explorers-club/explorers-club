@@ -7,10 +7,12 @@
 
 import { Schema, type, ArraySchema, MapSchema, SetSchema, DataChange } from '@colyseus/schema';
 import { ClubPlayer } from './ClubPlayer'
+import { TriviaJamConfig } from './TriviaJamConfig'
 import { TriviaJamPlayer } from './TriviaJamPlayer'
 
 export class TriviaJamState extends Schema {
     @type(ClubPlayer) public hostPlayer: ClubPlayer = new ClubPlayer();
+    @type(TriviaJamConfig) public config: TriviaJamConfig = new TriviaJamConfig();
     @type("string") public currentQuestionEntryId!: string;
     @type({ set: "string" }) public currentStates: SetSchema<string> = new SetSchema<string>();
     @type({ map: "string" }) public currentResponsesSerialized: MapSchema<string> = new MapSchema<string>();

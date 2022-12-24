@@ -1,10 +1,10 @@
-import { CONTINUE } from '@explorers-club/commands';
 import { IMultipleChoiceFields } from '@explorers-club/contentful-types';
+import { CONTINUE } from '@explorers-club/room';
 import { useCallback } from 'react';
 import {
   useCurrentQuestionFields,
   useSend,
-  useStoreSelector,
+  useTriviaJamStoreSelector
 } from '../../../state/trivia-jam.hooks';
 import { selectResponsesByPlayerName } from '../../../state/trivia-jam.selectors';
 import { MultipleChoiceHostPreviewComponent } from './multiple-choice-host-preview.component';
@@ -14,7 +14,7 @@ export const MultipleChoiceHostPreview = () => {
     useCurrentQuestionFields<IMultipleChoiceFields>('multipleChoice');
 
   const send = useSend();
-  const responsesByPlayerName = useStoreSelector(
+  const responsesByPlayerName = useTriviaJamStoreSelector(
     selectResponsesByPlayerName<string>
   );
   const handleContinue = useCallback(() => {
