@@ -1,11 +1,14 @@
 import {
   ClubRoomEnterNameCommand,
+  ClubRoomSetGameConfigCommand,
   CLUB_ROOM_ENTER_NAME,
+  CLUB_ROOM_SET_GAME_CONFIG,
   CLUB_ROOM_START_GAME,
-} from '@explorers-club/commands';
+} from '@explorers-club/room';
 import { ClubMetadata } from '@explorers-club/schema';
 import { ClubPlayer } from '@explorers-club/schema-types/ClubPlayer';
 import { ClubState } from '@explorers-club/schema-types/ClubState';
+import { TriviaJamConfig } from '@explorers-club/schema-types/TriviaJamConfig';
 import { TriviaJamRoom } from '@explorers-club/trivia-jam/server';
 import { Client, matchMaker, Room } from 'colyseus';
 
@@ -23,9 +26,14 @@ export class ClubRoom extends Room<ClubState> {
     };
     this.setMetadata(metadata);
 
+    const config = new TriviaJamConfig();
+    config.questionSetEntryId = 'dSX6kC0PNliXTl7qHYJLH';
+
     const state = new ClubState();
     state.hostUserId = userId;
     state.selectedGame = 'trivia_jam';
+    state.configDataSerialized = JSON.stringify(config.toJSON());
+
     this.setState(state);
 
     // TODO pull the message handlers in to server state machine
@@ -44,6 +52,14 @@ export class ClubRoom extends Room<ClubState> {
           });
           state.players.set(userId, player);
         }
+      }
+    );
+    this.onMessage(
+      CLUB_ROOM_SET_GAME_CONFIG,
+      async (client, command: ClubRoomSetGameConfigCommand) => {
+        this.state = this.state.assign({
+          configDataSerialized: JSON.stringify(command.config.data),
+        });
       }
     );
 

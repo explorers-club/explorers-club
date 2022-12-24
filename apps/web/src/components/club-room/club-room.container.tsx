@@ -1,7 +1,7 @@
 import { useInterpret } from '@xstate/react';
 import { FC, useContext, useMemo } from 'react';
 import { AuthContext } from '../../state/auth.context';
-import { ClubStore } from '../../type';
+import { ClubStore } from '@explorers-club/room';
 import { ClubRoomComponent } from './club-room.component';
 import { ClubRoomContext } from './club-room.context';
 import { clubRoomMachine } from './club-room.machine';

@@ -1,4 +1,4 @@
-import { TRIVIA_JAM_SUBMIT_RESPONSE } from '@explorers-club/commands';
+import { TRIVIA_JAM_SUBMIT_RESPONSE } from '@explorers-club/room';
 import { INumberInputFields } from '@explorers-club/contentful-types';
 import { useCallback } from 'react';
 import {

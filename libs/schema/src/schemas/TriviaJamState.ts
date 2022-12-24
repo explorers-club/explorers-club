@@ -5,8 +5,13 @@ export class TriviaJamPlayer extends ClubPlayer {
   @type('number') score = 0;
 }
 
+export class TriviaJamConfig extends Schema {
+  @type('string') questionSetEntryId!: string;
+}
+
 export class TriviaJamState extends Schema {
   @type(ClubPlayer) hostPlayer!: ClubPlayer;
+  @type(TriviaJamConfig) config!: TriviaJamConfig;
   @type('string') currentQuestionEntryId: string | undefined;
   @type({ set: 'string' }) currentStates: SetSchema<string> = new SetSchema();
   @type({ map: 'string' }) currentResponsesSerialized: MapSchema<string> =

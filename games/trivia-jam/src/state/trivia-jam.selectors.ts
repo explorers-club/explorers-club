@@ -1,5 +1,5 @@
 import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
-import { TriviaJamStateSerialized } from '../types';
+import { TriviaJamStateSerialized } from '@explorers-club/room';
 import { createSelector } from 'reselect';
 
 export const selectAllPlayersConnected = (state: TriviaJamState) => {

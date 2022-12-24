@@ -1,6 +1,6 @@
+import { TriviaJamStore } from '@explorers-club/room';
 import { FC } from 'react';
 import { TriviaJamContext } from '../state/trivia-jam.context';
-import { TriviaJamStore } from '../types';
 import { TriviaJamRoomComponent } from './trivia-jam-room.component';
 
 interface Props {

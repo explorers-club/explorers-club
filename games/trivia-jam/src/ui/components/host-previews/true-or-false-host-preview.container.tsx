@@ -1,4 +1,4 @@
-import { CONTINUE } from '@explorers-club/commands';
+import { CONTINUE } from '@explorers-club/room';
 import { ITrueOrFalseFields } from '@explorers-club/contentful-types';
 import { useCallback } from 'react';
 import {

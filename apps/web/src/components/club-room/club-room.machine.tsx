@@ -1,15 +1,14 @@
-import {
-  ClubRoomCommand,
-  CLUB_ROOM_ENTER_NAME,
-} from '@explorers-club/commands';
+import { ClubRoomCommand, CLUB_ROOM_ENTER_NAME } from '@explorers-club/room';
 import { assertEventType } from '@explorers-club/utils';
 import { ActorRefFrom, createMachine, StateFrom } from 'xstate';
-import { ClubStore } from '../../type';
+import { ClubStore } from '@explorers-club/room';
 
 interface ClubRoomContext {
   store: ClubStore;
   myUserId: string;
 }
+
+type ConfigureEvent = { type: 'CONFIGURE' };
 
 export const clubRoomMachine = createMachine(
   {
@@ -17,7 +16,7 @@ export const clubRoomMachine = createMachine(
     initial: 'Loading',
     schema: {
       context: {} as ClubRoomContext,
-      events: {} as ClubRoomCommand,
+      events: {} as ClubRoomCommand | ConfigureEvent,
     },
     states: {
       // TODO might still need to wait for store to load?
@@ -61,12 +60,23 @@ export const clubRoomMachine = createMachine(
       },
       Idle: {
         on: {
+          CONFIGURE: 'Configuring',
           SELECT_GAME: {
             actions: ({ store }, event) => {
               store.send(event);
             },
           },
           START_GAME: {
+            actions: ({ store }, event) => {
+              store.send(event);
+            },
+          },
+        },
+      },
+      Configuring: {
+        on: {
+          SET_GAME_CONFIG: {
+            target: 'Idle',
             actions: ({ store }, event) => {
               store.send(event);
             },
@@ -80,7 +90,6 @@ export const clubRoomMachine = createMachine(
     actions: {
       setHostPlayerName: ({ store, myUserId }) => {
         const playerName = store.id.replace('club-', '');
-        console.log('setting', playerName);
         store.send({
           type: CLUB_ROOM_ENTER_NAME,
           playerName,

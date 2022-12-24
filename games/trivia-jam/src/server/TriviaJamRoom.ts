@@ -1,12 +1,12 @@
+import { contentfulClient } from '@explorers-club/contentful';
+import { IQuestionSetFields } from '@explorers-club/contentful-types';
 import {
   CONTINUE,
   JOIN,
   LEAVE,
   TriviaJamSubmitResponseCommand,
-  TRIVIA_JAM_SUBMIT_RESPONSE,
-} from '@explorers-club/commands';
-import { contentfulClient } from '@explorers-club/contentful';
-import { IQuestionSetFields } from '@explorers-club/contentful-types';
+  TRIVIA_JAM_SUBMIT_RESPONSE
+} from '@explorers-club/room';
 import { TriviaJamRoomId } from '@explorers-club/schema';
 import { ClubPlayer } from '@explorers-club/schema-types/ClubPlayer';
 import { ClubState } from '@explorers-club/schema-types/ClubState';
@@ -16,7 +16,7 @@ import { Client, matchMaker, Room } from 'colyseus';
 import { interpret } from 'xstate';
 import {
   createTriviaJamServerMachine,
-  TriviaJamServerService,
+  TriviaJamServerService
 } from './trivia-jam-server.machine';
 
 const sampleQuestionSetEntryId = 'dSX6kC0PNliXTl7qHYJLH';

@@ -2,16 +2,11 @@ import { contentfulClient } from '@explorers-club/contentful';
 import { useStoreSelector } from '@explorers-club/room';
 import { useContext } from 'react';
 import { useQuery } from 'react-query';
-import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
-import {
-  IQuestion,
-  IQuestionFields,
-  IQuestionType,
-  TriviaJamStateSerialized,
-} from '../types';
+import { IQuestion, IQuestionFields, IQuestionType } from '../types';
 import { unwrapFields } from '../utils';
 import { TriviaJamContext } from './trivia-jam.context';
 import { selectHostUserId } from './trivia-jam.selectors';
+import { TriviaJamStateSerialized } from '@explorers-club/room';
 
 export const useMyUserId = () => {
   const { myUserId } = useContext(TriviaJamContext);

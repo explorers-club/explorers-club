@@ -5,7 +5,7 @@ import { FC, useContext } from 'react';
 import { useQuery } from 'react-query';
 import { AuthContext } from '../../state/auth.context';
 import { ColyseusContext } from '../../state/colyseus.context';
-import { ClubStore } from '../../type';
+import { ClubStore } from '@explorers-club/room';
 
 interface Props {
   clubStore: ClubStore;

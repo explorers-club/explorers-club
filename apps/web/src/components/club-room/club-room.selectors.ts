@@ -1,4 +1,4 @@
-import { ClubStateSerialized } from '../../type';
+import { ClubStateSerialized } from '@explorers-club/room';
 
 export const selectHostUserId = (state: ClubStateSerialized) =>
   state.hostUserId;

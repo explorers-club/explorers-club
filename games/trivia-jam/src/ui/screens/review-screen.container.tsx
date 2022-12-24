@@ -1,4 +1,4 @@
-import { CONTINUE } from '@explorers-club/commands';
+import { CONTINUE } from '@explorers-club/room';
 import { useCallback } from 'react';
 import { useEntryQuery } from '../../queries/useEntryQuery';
 import {
