@@ -12,15 +12,15 @@ export const createRoomStore = <
     room.state.toJSON() as SerializedSchema<TSchema>;
 
   const subscribe = (onStoreChange: () => void) => {
-    // room.onStateChange.once(() => {
-    //   state = room.state.toJSON() as SerializedSchema<TSchema>;
-    //   onStoreChange();
-    // });
-    const emitter = room.onStateChange(() => {
+    const handleOnStateChange = () => {
       state = room.state.toJSON() as SerializedSchema<TSchema>;
       onStoreChange();
-    });
-    return () => emitter.remove(onStoreChange);
+    };
+    const emitter = room.onStateChange(handleOnStateChange);
+
+    state = room.state.toJSON() as SerializedSchema<TSchema>;
+    onStoreChange();
+    return () => emitter.remove(handleOnStateChange);
   };
 
   const getSnapshot = () => {
@@ -31,7 +31,6 @@ export const createRoomStore = <
 
   return {
     id: room.id,
-    // todo: name
     subscribe,
     getSnapshot,
     send,

@@ -87,6 +87,7 @@ export class ClubRoom extends Room<ClubState> {
 
       this.clients.forEach((client, index) => {
         client.send('RESERVED_GAME_SEAT', reservations[index]);
+        console.log('RSG');
       });
 
       this.state = this.state.assign({

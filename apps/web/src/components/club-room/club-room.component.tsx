@@ -8,9 +8,7 @@ import { ConfigurationScreen } from './configuration-screen.container';
 
 export const ClubRoomComponent = () => {
   const service = useContext(ClubRoomContext);
-
   const state = useSelector(service, (state) => state);
-  console.log(state);
 
   switch (true) {
     case state.matches('EnteringName'):

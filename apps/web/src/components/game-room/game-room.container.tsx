@@ -21,6 +21,7 @@ export const GameRoom: FC<Props> = ({ clubStore }) => {
     const room = await colyseusClient.joinById<TriviaJamState>(gameRoomId, {
       userId,
     });
+    await new Promise((resolve) => room.onStateChange.once(resolve));
 
     return { type: 'trivia_jam', store: createRoomStore(room) };
   });

@@ -1,9 +1,13 @@
-import { createRoomStore } from '@explorers-club/room';
+import {
+  ClubStore,
+  createRoomStore,
+  useStoreSelector,
+} from '@explorers-club/room';
 import { ClubRoomId, ClubRoomIdSchema } from '@explorers-club/schema';
 // import { matchMaker } from 'colyseus';
 import { ClubState } from '@explorers-club/schema-types/ClubState';
 import { Room as TRoom } from 'colyseus.js';
-import { useContext } from 'react';
+import { FC, useContext } from 'react';
 import { useQuery } from 'react-query';
 import { useParams } from 'react-router-dom';
 import { ClubRoom } from '../components/club-room';
@@ -59,6 +63,10 @@ export const Room = () => {
     localStorage.setItem(room.id, room.sessionId);
 
     const store = createRoomStore(room);
+
+    // wait until the room has synced before returning
+    await new Promise((resolve) => room.onStateChange.once(resolve));
+
     return store;
   });
   const store = query.data;
@@ -67,7 +75,15 @@ export const Room = () => {
     return null;
   }
 
-  const { gameRoomId } = store.getSnapshot();
+  return <RoomComponent store={store} />;
+};
+
+interface Props {
+  store: ClubStore;
+}
+
+const RoomComponent: FC<Props> = ({ store }) => {
+  const gameRoomId = useStoreSelector(store, (state) => state.gameRoomId);
 
   if (gameRoomId) {
     return <GameRoom clubStore={store} />;

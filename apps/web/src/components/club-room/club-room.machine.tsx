@@ -24,10 +24,9 @@ export const clubRoomMachine = createMachine(
         invoke: {
           src: ({ store }) =>
             new Promise((resolve) => {
-              // todo use observable here
-              const unsub = store.subscribe(() => {
+              // todo use observable here, memory leak
+              store.subscribe(() => {
                 resolve(null);
-                unsub();
               });
             }),
           onDone: 'Initializing',
