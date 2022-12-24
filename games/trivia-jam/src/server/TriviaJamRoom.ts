@@ -5,7 +5,7 @@ import {
   JOIN,
   LEAVE,
   TriviaJamSubmitResponseCommand,
-  TRIVIA_JAM_SUBMIT_RESPONSE
+  TRIVIA_JAM_SUBMIT_RESPONSE,
 } from '@explorers-club/room';
 import { TriviaJamRoomId } from '@explorers-club/schema';
 import { ClubPlayer } from '@explorers-club/schema-types/ClubPlayer';
@@ -16,10 +16,10 @@ import { Client, matchMaker, Room } from 'colyseus';
 import { interpret } from 'xstate';
 import {
   createTriviaJamServerMachine,
-  TriviaJamServerService
+  TriviaJamServerService,
 } from './trivia-jam-server.machine';
 
-const sampleQuestionSetEntryId = 'dSX6kC0PNliXTl7qHYJLH';
+const sampleQuestionSetEntryId = '3Xd6DkL434TO1AFYI1TME2';
 
 interface CreateProps {
   roomId: TriviaJamRoomId;
