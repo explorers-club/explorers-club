@@ -76,9 +76,10 @@ const weightColor = d3
   .domain([0, 1e7]);
 
 export const HexBins: Story = (args, loaded) => {
+  const res = 4;
   const query = trpc.tile.allCells.useInfiniteQuery(
     {
-      res: 2,
+      res,
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -105,11 +106,11 @@ export const HexBins: Story = (args, loaded) => {
     // globe.showAtmosphere(false);
     // globe.showGlobe(false);
     // globe.showGlobe(false);
-    globe.hexBinResolution(2);
+    globe.hexBinResolution(res);
     globe.hexMargin(0.5);
     globe.hexAltitude((d) => d.sumWeight * 6e-3);
-    globe.hexTopColor((d) => weightColor(d.sumWeight));
-    globe.hexSideColor((d) => weightColor(d.sumWeight));
+    globe.hexTopColor(() => 'red');
+    globe.hexSideColor(() => 'rgba(0,255,0,0.8)');
     globe.hexBinMerge(true);
 
     return globe;
@@ -120,6 +121,32 @@ export const HexBins: Story = (args, loaded) => {
     return <></>;
   }
 
+  return <World globe={globe} />;
+};
+
+// https://github.com/vasturiano/three-globe/blob/master/example/ripples/index.html
+export const Ripples: Story = (args) => {
+  const globe = useMemo(() => {
+    // Gen random data
+    const N = 10;
+    const gData = [...Array(N).keys()].map(() => ({
+      lat: (Math.random() - 0.5) * 180,
+      lng: (Math.random() - 0.5) * 360,
+      maxR: Math.random() * 20 + 3,
+      propagationSpeed: (Math.random() - 0.5) * 20 + 1,
+      repeatPeriod: Math.random() * 2000 + 200,
+    }));
+
+    const colorInterpolator = (t: number) => `rgba(255,100,50,${1 - t})`;
+
+    const globe = new ThreeGlobe();
+    globe.ringsData(gData);
+    globe.ringColor(() => colorInterpolator);
+    globe.ringMaxRadius('maxR');
+    globe.ringPropagationSpeed('propagationSpeed');
+    globe.ringRepeatPeriod('repeatPeriod');
+    return globe;
+  }, []);
   return <World globe={globe} />;
 };
 
