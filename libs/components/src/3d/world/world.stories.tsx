@@ -2,7 +2,7 @@ import { transformer, trpc } from '@explorers-club/api-client';
 import { Meta, Story } from '@storybook/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { httpBatchLink } from '@trpc/client';
-import { useMemo, useState } from 'react';
+import { useContext, useMemo, useState } from 'react';
 import ThreeGlobe from 'three-globe';
 import { SunsetSky } from '../sky/sky.component';
 import { CanvasSetup } from '../__stories/CanvasSetup';
@@ -68,23 +68,31 @@ export const HexPolygons: Story = (args) => {
   return <World globe={globe} />;
 };
 
-export const HexBins: Story = (args) => {
+export const HexBins: Story = (args, loaded) => {
+  const query = trpc.tile.allCells.useInfiniteQuery(
+    {
+      res: 2,
+    },
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    }
+  );
   const globe = useMemo(() => {
-    const N = 3000;
-    const gData: { lat: number; lng: number }[] = [];
-    for (let i = 0; i < N; i++) {
-      gData.push({
-        lat: (Math.random() - 0.5) * 180 * 0.9,
-        lng: ((Math.random() - 0.5) * 360) / 1,
-      });
+    if (!query.data) {
+      return null;
+    }
+
+    const page = query.data.pages[0];
+    if (!page) {
+      return null;
     }
 
     const globe = new ThreeGlobe();
-        globe.globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg');
-        globe.bumpImageUrl(
-          '//unpkg.com/three-globe/example/img/earth-topology.png'
-        );
-    globe.hexBinPointsData(gData);
+    globe.globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg');
+    globe.bumpImageUrl(
+      '//unpkg.com/three-globe/example/img/earth-topology.png'
+    );
+    globe.hexBinPointsData(page.items);
     globe.hexBinPointWeight(3);
     globe.hexBinResolution(2);
     globe.hexMargin(0.2);
@@ -93,9 +101,20 @@ export const HexBins: Story = (args) => {
     globe.hexBinMerge(true);
 
     return globe;
-  }, []);
+  }, [query.data]);
+
+  if (!globe) {
+    return null;
+  }
+
   return <World globe={globe} />;
 };
+
+// HexBins.loaders = [
+// 	async () => {
+// 		useContext
+// 	}
+// ]
 
 //   render: () => {
 //     return (
