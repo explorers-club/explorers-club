@@ -9,10 +9,10 @@ interface Props {
 export const World: FC<Props> = ({ globeImageUrl }) => {
   const globe = useMemo(() => {
     const globe = new ThreeGlobe();
-    globe.globeImageUrl(globeImageUrl);
+    // globe.globeImageUrl(globeImageUrl);
     globe.hexPolygonsData(countries.features);
     globe.hexPolygonResolution(3);
-    globe.hexPolygonMargin(0.3);
+    globe.hexPolygonMargin(0.5);
     globe.hexPolygonColor(
       () =>
         `#${Math.round(Math.random() * Math.pow(2, 24))

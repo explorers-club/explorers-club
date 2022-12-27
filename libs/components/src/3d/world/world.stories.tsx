@@ -27,7 +27,7 @@ export default {
       return (
         <CanvasSetup
           // orthographic
-          camera={{ position: [0, 0, 50], zoom: 10, up: [0, 0, 1], far: 10000 }}
+          camera={{ position: [0, 200, 2000], zoom: 10, far: 10000 }}
         >
           <trpc.Provider client={trpcClient} queryClient={queryClient}>
             <QueryClientProvider client={queryClient}>
