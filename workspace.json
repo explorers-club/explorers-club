@@ -3,6 +3,8 @@
   "version": 2,
   "projects": {
     "actor": "libs/actor",
+    "api": "libs/api",
+    "api-server": "apps/api-server",
     "components": "libs/components",
     "contentful": "libs/contentful",
     "database": "libs/database",
