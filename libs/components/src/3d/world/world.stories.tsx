@@ -1,11 +1,13 @@
 import { transformer, trpc } from '@explorers-club/api-client';
-import { Meta } from '@storybook/react';
+import { Meta, Story } from '@storybook/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { httpBatchLink } from '@trpc/client';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import ThreeGlobe from 'three-globe';
 import { SunsetSky } from '../sky/sky.component';
 import { CanvasSetup } from '../__stories/CanvasSetup';
 import { World } from './world.component';
+import { countries } from './__stories/countries';
 
 // geoJson.features.
 
@@ -28,7 +30,9 @@ export default {
         <CanvasSetup
           // orthographic
           camera={{ position: [0, 200, 2000], zoom: 10, far: 10000 }}
+          //   lights={false}
         >
+          {/* <pointLight intensity={1.2} position={[0, 0, -5000]} /> */}
           <trpc.Provider client={trpcClient} queryClient={queryClient}>
             <QueryClientProvider client={queryClient}>
               <Story />
@@ -41,16 +45,67 @@ export default {
   ],
 } as Meta;
 
-export const Primary = {
-  render: () => {
-    return (
-      <World globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg" />
+export const HexPolygons: Story = (args) => {
+  const globe = useMemo(() => {
+    const globe = new ThreeGlobe();
+    globe.globeImageUrl(
+      '//unpkg.com/three-globe/example/img/earth-blue-marble.jpg'
     );
-  },
-  parameters: {
-    layout: 'fullscreen',
-  },
+    globe.bumpImageUrl(
+      '//unpkg.com/three-globe/example/img/earth-topology.png'
+    );
+    globe.hexPolygonsData(countries.features);
+    globe.hexPolygonResolution(3);
+    globe.hexPolygonMargin(0.5);
+    globe.hexPolygonColor(
+      () =>
+        `#${Math.round(Math.random() * Math.pow(2, 24))
+          .toString(16)
+          .padStart(6, '0')}`
+    );
+    return globe;
+  }, []);
+  return <World globe={globe} />;
 };
+
+export const HexBins: Story = (args) => {
+  const globe = useMemo(() => {
+    const N = 3000;
+    const gData: { lat: number; lng: number }[] = [];
+    for (let i = 0; i < N; i++) {
+      gData.push({
+        lat: (Math.random() - 0.5) * 180 * 0.9,
+        lng: ((Math.random() - 0.5) * 360) / 1,
+      });
+    }
+
+    const globe = new ThreeGlobe();
+        globe.globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg');
+        globe.bumpImageUrl(
+          '//unpkg.com/three-globe/example/img/earth-topology.png'
+        );
+    globe.hexBinPointsData(gData);
+    globe.hexBinPointWeight(3);
+    globe.hexBinResolution(2);
+    globe.hexMargin(0.2);
+    globe.hexTopColor(() => 'red');
+    globe.hexSideColor(() => 'rgba(0,255,0,0.8)');
+    globe.hexBinMerge(true);
+
+    return globe;
+  }, []);
+  return <World globe={globe} />;
+};
+
+//   render: () => {
+//     return (
+//      <World globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg" />
+//     );
+//   },
+//   parameters: {
+//     layout: 'fullscreen',
+//   },
+// };
 
 // export const Primary = {
 //   render: () => {
