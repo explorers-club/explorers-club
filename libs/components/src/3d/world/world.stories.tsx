@@ -1,6 +1,7 @@
 import { transformer, trpc } from '@explorers-club/api-client';
 import { Meta, Story } from '@storybook/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import * as d3 from 'd3';
 import { httpBatchLink } from '@trpc/client';
 import { useContext, useMemo, useState } from 'react';
 import ThreeGlobe from 'three-globe';
@@ -56,7 +57,9 @@ export const HexPolygons: Story = (args) => {
     );
     globe.hexPolygonsData(countries.features);
     globe.hexPolygonResolution(3);
-    globe.hexPolygonMargin(0.5);
+    globe.hexPolygonMargin(0.1);
+    globe.showGlobe(false);
+    globe.showAtmosphere(false);
     globe.hexPolygonColor(
       () =>
         `#${Math.round(Math.random() * Math.pow(2, 24))
@@ -67,6 +70,10 @@ export const HexPolygons: Story = (args) => {
   }, []);
   return <World globe={globe} />;
 };
+
+const weightColor = d3
+  .scaleSequentialSqrt(d3.interpolateYlOrRd)
+  .domain([0, 1e7]);
 
 export const HexBins: Story = (args, loaded) => {
   const query = trpc.tile.allCells.useInfiniteQuery(
@@ -94,17 +101,23 @@ export const HexBins: Story = (args, loaded) => {
     );
     globe.hexBinPointsData(page.items);
     globe.hexBinPointWeight(3);
+    globe.showGraticules(true);
+    // globe.showAtmosphere(false);
+    // globe.showGlobe(false);
+    // globe.showGlobe(false);
     globe.hexBinResolution(2);
-    globe.hexMargin(0.2);
-    globe.hexTopColor(() => 'red');
-    globe.hexSideColor(() => 'rgba(0,255,0,0.8)');
+    globe.hexMargin(0.5);
+    globe.hexAltitude((d) => d.sumWeight * 6e-3);
+    globe.hexTopColor((d) => weightColor(d.sumWeight));
+    globe.hexSideColor((d) => weightColor(d.sumWeight));
     globe.hexBinMerge(true);
 
     return globe;
   }, [query.data]);
 
   if (!globe) {
-    return null;
+    // eslint-disable-next-line react/jsx-no-useless-fragment
+    return <></>;
   }
 
   return <World globe={globe} />;

@@ -53,6 +53,8 @@ export const tileRouter = router({
       z.object({
         polygon: z.array(z.array(z.number())),
         res: z.number(),
+        limit: z.number().min(1).max(3000).default(3000),
+        cursor: z.number().nullish(), // <-- "cursor" needs to exist, but can be any type
       })
     )
     .query(({ ctx, input }) => {
