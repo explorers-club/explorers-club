@@ -46,6 +46,30 @@
       "options": {
         "lintFilePatterns": ["apps/api-server/**/*.ts"]
       }
+    },
+    "deploy-staging": {
+      "executor": "nx:run-commands",
+      "dependsOn": [{ "projects": "self", "target": "build" }],
+      "options": {
+        "parallel": false,
+        "commands": [
+          "cp apps/api-server/Procfile ./dist/apps/api-server/Procfile",
+          "cp apps/api-server/fly.staging.toml ./dist/apps/api-server/fly.toml",
+          "flyctl deploy ./dist/apps/api-server --remote-only"
+        ]
+      }
+    },
+    "deploy-production": {
+      "executor": "nx:run-commands",
+      "dependsOn": [{ "projects": "self", "target": "build" }],
+      "options": {
+        "parallel": false,
+        "commands": [
+          "cp apps/api-server/Procfile ./dist/apps/api-server/Procfile",
+          "cp apps/api-server/fly.production.toml ./dist/apps/api-server/fly.toml",
+          "flyctl deploy ./dist/apps/api-server --remote-only"
+        ]
+      }
     }
   },
   "tags": []
