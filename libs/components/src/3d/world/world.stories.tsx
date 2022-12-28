@@ -150,6 +150,33 @@ export const Ripples: Story = (args) => {
   return <World globe={globe} />;
 };
 
+export const CustomMaterial: Story = (args) => {
+  const globe = useMemo(() => {
+    // Gen random data
+
+    const globe = new ThreeGlobe();
+    globe.globeImageUrl(
+      '//unpkg.com/three-globe/example/img/earth-blue-marble.jpg'
+    );
+    globe.bumpImageUrl(
+      '//unpkg.com/three-globe/example/img/earth-topology.png'
+    );
+    const globeMaterial = globe.globeMaterial();
+    // new THREE.TextureLoader().load(
+    //   '//unpkg.com/three-globe/example/img/earth-water.png',
+    //   (texture) => {
+    //     globeMaterial.specularMap = texture;
+    //     globeMaterial.specular = new THREE.Color('grey');
+    //     globeMaterial.shininess = 15;
+    //   }
+    // );
+
+    // globeMaterial.bumpScale = 5;
+    return globe;
+  }, []);
+  return <World globe={globe} />;
+};
+
 // HexBins.loaders = [
 // 	async () => {
 // 		useContext
