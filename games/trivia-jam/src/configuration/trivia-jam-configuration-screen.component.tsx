@@ -1,3 +1,4 @@
+import { Box } from '@atoms/Box';
 import { Button } from '@atoms/Button';
 import { Caption } from '@atoms/Caption';
 import { Card } from '@atoms/Card';
@@ -21,12 +22,17 @@ export const TriviaJamConfigurationScreenComponent: FC<Props> = ({
   initialConfig,
   onSubmitConfig,
 }) => {
+  const maxPlayersEntryRef = useRef<HTMLSelectElement>(null);
+
   const questionSetEntryRef = useRef<HTMLSelectElement>(null);
   const handlePressSave = useCallback(() => {
     const questionSetEntryId = questionSetEntryRef.current?.value;
-    if (questionSetEntryId) {
+    const maxPlayers = maxPlayersEntryRef.current?.value;
+    // todo use zod here for parsing and validation
+    if (maxPlayers && questionSetEntryId) {
       onSubmitConfig({
         questionSetEntryId,
+        maxPlayers: parseInt(maxPlayers),
       });
     }
   }, [onSubmitConfig]);
@@ -36,19 +42,40 @@ export const TriviaJamConfigurationScreenComponent: FC<Props> = ({
       <Flex direction="column" gap="2">
         <Caption>Configure</Caption>
         <Heading size="3">Game Settings</Heading>
-        <Text size="2">Question Set</Text>
-        <Select
-          ref={questionSetEntryRef}
-          defaultValue={initialConfig.questionSetEntryId}
-        >
-          {questionSetEntries.map((entry) => {
-            return (
-              <option key={entry.sys.id} value={entry.sys.id}>
-                {entry.fields.name}
-              </option>
-            );
-          })}
-        </Select>
+        <Box>
+          <Text size="2">Max Players</Text>
+          <Select
+            ref={maxPlayersEntryRef}
+            defaultValue={initialConfig.maxPlayers}
+          >
+            {Array(7)
+              .fill(0)
+              .map((_, index) => {
+                const MAX_PLAYERS = 10;
+                const value = MAX_PLAYERS - index;
+                return (
+                  <option key={index} value={value}>
+                    {value}
+                  </option>
+                );
+              })}
+          </Select>
+        </Box>
+        <Box>
+          <Text size="2">Question Set</Text>
+          <Select
+            ref={questionSetEntryRef}
+            defaultValue={initialConfig.questionSetEntryId}
+          >
+            {questionSetEntries.map((entry) => {
+              return (
+                <option key={entry.sys.id} value={entry.sys.id}>
+                  {entry.fields.name}
+                </option>
+              );
+            })}
+          </Select>
+        </Box>
         <Button size="3" color="primary" onClick={handlePressSave}>
           Save
         </Button>

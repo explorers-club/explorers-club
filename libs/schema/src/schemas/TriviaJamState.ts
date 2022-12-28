@@ -7,6 +7,7 @@ export class TriviaJamPlayer extends ClubPlayer {
 
 export class TriviaJamConfig extends Schema {
   @type('string') questionSetEntryId!: string;
+  @type('number') maxPlayers!: number;
 }
 
 export class TriviaJamState extends Schema {
