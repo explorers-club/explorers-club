@@ -8,19 +8,24 @@ import { Heading } from '@atoms/Heading';
 import { IconButton } from '@atoms/IconButton';
 import { CLUB_ROOM_START_GAME, useStoreSelector } from '@explorers-club/room';
 import { GearIcon } from '@radix-ui/react-icons';
+import { useStore } from '@react-three/fiber';
 import { useCallback, useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import { ClubRoomContext } from './club-room.context';
 import { useClubStore, useIsHost } from './club-room.hooks';
+import {
+  selectGameConfig,
+  selectPlayerBySlotNumber,
+} from './club-room.selectors';
 
 export const MainScreenComponent = () => {
   const clubName = useParams()['clubName'];
   const service = useContext(ClubRoomContext);
   const store = useClubStore();
   const isHost = useIsHost();
-  const players = useStoreSelector(store, (state) =>
-    Object.values(state.players)
-  );
+  const playersBySlotNumber = useStoreSelector(store, selectPlayerBySlotNumber);
+  const gameConfig = useStoreSelector(store, selectGameConfig);
+  const { maxPlayers } = gameConfig.data;
   const hostUserId = useStoreSelector(store, (state) => state.hostUserId);
 
   const handlePressConfigure = useCallback(() => {
@@ -60,20 +65,29 @@ export const MainScreenComponent = () => {
       </Card>
       <Card css={{ p: '$3' }}>
         <Flex direction="column" gap="3">
-          {players.map(({ name, userId }) => (
-            <Flex
-              key={name}
-              align="center"
-              gap="2"
-              css={{ backgroundColor: '$panel2', p: '$3' }}
-            >
-              <Avatar size="3" fallback={name[0]} />
-              <Flex direction="column">
-                <Heading size="2">{name}</Heading>
-                {userId === hostUserId && <Badge>Host</Badge>}
-              </Flex>
-            </Flex>
-          ))}
+          {Array(maxPlayers)
+            .fill(0)
+            .map((_, i) => {
+              const player = playersBySlotNumber[i + 1];
+
+              const name = player?.name || 'Empty';
+              const userId = player?.userId;
+
+              return (
+                <Flex
+                  key={i}
+                  align="center"
+                  gap="2"
+                  css={{ backgroundColor: '$panel2', p: '$3' }}
+                >
+                  <Avatar size="3" fallback={name[0]} />
+                  <Flex direction="column">
+                    <Heading size="2">{name}</Heading>
+                    {userId === hostUserId && <Badge>Host</Badge>}
+                  </Flex>
+                </Flex>
+              );
+            })}
         </Flex>
       </Card>
     </Flex>
