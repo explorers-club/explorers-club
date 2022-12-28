@@ -12,4 +12,5 @@ export class ClubPlayer extends Schema {
     @type("string") public userId!: string;
     @type("string") public name!: string;
     @type("boolean") public connected!: boolean;
+    @type("number") public slotNumber!: number;
 }
