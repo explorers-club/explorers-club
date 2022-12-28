@@ -1,9 +1,10 @@
 import { Plane, useTexture } from '@react-three/drei';
 
 export const Terrain = () => {
-  const { height, normals } = useTexture({
+  const { colors, height, normals } = useTexture({
     height: './assets/elevation.png',
     normals: './assets/NormalMap.png',
+    colors: './assets/colors.png',
   });
 
   return (
@@ -14,6 +15,7 @@ export const Terrain = () => {
     >
       <meshStandardMaterial
         color="white"
+        map={colors}
         metalness={0.2}
         displacementMap={height}
         normalMap={normals}
