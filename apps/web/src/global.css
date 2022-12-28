@@ -7,7 +7,6 @@ body {
   :root {
     --rsbs-max-w: 400px;
     --rsbs-ml: auto;
-    --rsbs-mr: auto;
   }
 }
 
@@ -28,10 +27,10 @@ body {
 [data-rsbs-overlay]:focus {
   outline: none;
 }
-[data-rsbs-is-blocking='false'] [data-rsbs-overlay] {
+/* [data-rsbs-is-blocking='false'] [data-rsbs-overlay] {
   box-shadow: 0 -5px 60px 0 rgba(38, 89, 115, 0.11),
     0 -1px 0 rgba(38, 89, 115, 0.05);
-}
+} */
 [data-rsbs-overlay],
 [data-rsbs-root]:after {
   max-width: var(--rsbs-max-w);
