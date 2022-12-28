@@ -7,6 +7,16 @@ on:
   workflow_dispatch:
 
 jobs:
+  deploy-api-server:
+    runs-on: ubuntu-22.04
+    env:
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: npm ci
+      - run: npx nx run api-server:deploy-staging
+
   deploy-room-server:
     runs-on: ubuntu-22.04
     env:

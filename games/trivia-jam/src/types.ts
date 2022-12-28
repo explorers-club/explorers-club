@@ -1,30 +1,7 @@
-import {
-  IMultipleAnswer,
-  IMultipleAnswerFields,
-  IMultipleChoice,
-  IMultipleChoiceFields,
-  INumberInput,
-  INumberInputFields,
-  ITextInput,
-  ITextInputFields,
-  ITrueOrFalse,
-  ITrueOrFalseFields,
-} from '@explorers-club/contentful-types';
+import { IQuestionSetFields } from '@explorers-club/contentful-types';
 
-export type IQuestion =
-  | IMultipleChoice
-  | IMultipleAnswer
-  | INumberInput
-  | ITextInput
-  | ITrueOrFalse;
+type Unarray<T> = T extends Array<infer U> ? U : T;
 
-export type IQuestionFields =
-  | IMultipleChoiceFields
-  | IMultipleAnswerFields
-  | INumberInputFields
-  | ITextInputFields
-  | ITrueOrFalseFields;
-
-export type IAnswer =
-  | { type: 'multipleChoice'; selectedAnswer: string }
-  | { type: 'multipleAnswer'; selectedAnswers: string[] };
+export type IQuestion = Unarray<IQuestionSetFields['questions']>;
+export type IQuestionFields = IQuestion['fields'];
+export type IQuestionType = IQuestion['sys']['contentType']['sys']['id'];

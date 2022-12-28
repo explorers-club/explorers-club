@@ -1,6 +1,10 @@
-import React from 'react';
-import { Flex } from '@atoms/Flex';
+import { Heading } from '@atoms/Heading';
+import { ITextInputFields } from '@explorers-club/contentful-types';
 
-export const TextInputReviewComponent = () => {
-  return <Flex>Generated textInputReview component</Flex>;
+export const TextInputReviewComponent = ({
+  fields,
+}: {
+  fields: ITextInputFields;
+}) => {
+  return <Heading size="3">{fields.correctAnswer}</Heading>;
 };

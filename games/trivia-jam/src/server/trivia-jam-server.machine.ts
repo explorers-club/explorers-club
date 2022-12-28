@@ -1,4 +1,4 @@
-import { QuestionResponse, TriviaJamCommand } from '@explorers-club/commands';
+import { QuestionResponse, TriviaJamCommand } from '@explorers-club/room';
 import {
   IMultipleAnswerFields,
   IMultipleChoiceFields,
@@ -23,7 +23,8 @@ export interface TriviaJamServerContext {
   questions: Questions;
   currentQuestionIndex: number;
 }
-export type TriviaJamServerEvent = TriviaJamCommand;
+
+export type TriviaJamServerEvent = TriviaJamCommand & { userId: string };
 
 export const createTriviaJamServerMachine = (
   room: Room<TriviaJamState>,
@@ -131,6 +132,7 @@ export const createTriviaJamServerMachine = (
       actions: {
         setPlayerResponse: ({ room }, event) => {
           assertEventType(event, 'TRIVIA_JAM_SUBMIT_RESPONSE');
+          // event.type === "TRIVIA_JAM_SUBMIT_RESPONSE"
 
           room.state.currentResponsesSerialized.set(
             event.userId,

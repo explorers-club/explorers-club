@@ -1,4 +1,4 @@
-app = "explorers-club-room-server-production"
+app = "room-server-production"
 kill_signal = "SIGINT"
 kill_timeout = 60
 

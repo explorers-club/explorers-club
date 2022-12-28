@@ -1,6 +1,7 @@
 // Theme setup from: https://storybook.js.org/blog/how-to-add-a-theme-switcher-to-storybook/
 import { DecoratorFn } from '@storybook/react';
 import React from 'react';
+import './global.css';
 import { Box } from '../src/atoms/Box';
 
 // import { GlobalStyle } from '../src/styles/GlobalStyle';
@@ -38,3 +39,9 @@ export const globalTypes = {
 
 // export all decorators that should be globally applied in an array
 export const decorators = [withTheme];
+
+// export const parameters = {
+//   viewport: {
+//     defaultViewport: 'mobile1',
+//   },
+// };

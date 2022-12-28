@@ -1,8 +1,7 @@
-import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
-import { Room } from 'colyseus.js';
 import { createContext } from 'react';
+import { TriviaJamStore } from '@explorers-club/room';
 
 export const TriviaJamContext = createContext({
-  room: {} as Room<TriviaJamState>,
+  store: {} as TriviaJamStore,
   myUserId: '' as string,
 });

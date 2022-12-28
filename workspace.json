@@ -3,7 +3,8 @@
   "version": 2,
   "projects": {
     "actor": "libs/actor",
-    "commands": "libs/commands",
+    "api": "libs/api",
+    "api-server": "apps/api-server",
     "components": "libs/components",
     "contentful": "libs/contentful",
     "database": "libs/database",
@@ -12,6 +13,7 @@
     "local-generator-plugin": "tools/local-generator-plugin",
     "party": "libs/party",
     "party-server": "apps/party-server",
+    "room": "libs/room",
     "room-server": "apps/room-server",
     "schema": "libs/schema",
     "trivia-jam": "games/trivia-jam",

@@ -1,0 +1,76 @@
+{
+  "name": "api-server",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/api-server/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "@nrwl/webpack:webpack",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "target": "node",
+        "compiler": "tsc",
+        "outputPath": "dist/apps/api-server",
+        "main": "apps/api-server/src/main.ts",
+        "tsConfig": "apps/api-server/tsconfig.app.json",
+        "assets": ["apps/api-server/src/assets"]
+      },
+      "configurations": {
+        "production": {
+          "optimization": true,
+          "extractLicenses": true,
+          "inspect": false,
+          "fileReplacements": [
+            {
+              "replace": "apps/api-server/src/environments/environment.ts",
+              "with": "apps/api-server/src/environments/environment.prod.ts"
+            }
+          ]
+        }
+      }
+    },
+    "serve": {
+      "executor": "@nrwl/js:node",
+      "options": {
+        "buildTarget": "api-server:build"
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "api-server:build:production"
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/api-server/**/*.ts"]
+      }
+    },
+    "deploy-staging": {
+      "executor": "nx:run-commands",
+      "dependsOn": [{ "projects": "self", "target": "build" }],
+      "options": {
+        "parallel": false,
+        "commands": [
+          "cp apps/api-server/Procfile ./dist/apps/api-server/Procfile",
+          "cp apps/api-server/fly.staging.toml ./dist/apps/api-server/fly.toml",
+          "flyctl deploy ./dist/apps/api-server --remote-only"
+        ]
+      }
+    },
+    "deploy-production": {
+      "executor": "nx:run-commands",
+      "dependsOn": [{ "projects": "self", "target": "build" }],
+      "options": {
+        "parallel": false,
+        "commands": [
+          "cp apps/api-server/Procfile ./dist/apps/api-server/Procfile",
+          "cp apps/api-server/fly.production.toml ./dist/apps/api-server/fly.toml",
+          "flyctl deploy ./dist/apps/api-server --remote-only"
+        ]
+      }
+    }
+  },
+  "tags": []
+}

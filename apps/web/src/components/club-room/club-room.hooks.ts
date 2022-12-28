@@ -1,15 +1,19 @@
 import { useSelector } from '@xstate/react';
 import { useContext } from 'react';
-import { AuthContext } from '../../state/auth.context';
 import { ClubRoomContext } from './club-room.context';
 
-export const useClubRoom = () => {
+export const useClubStore = () => {
   const service = useContext(ClubRoomContext);
-  return useSelector(service, (state) => state.context.room);
+  return useSelector(service, (state) => state.context.store);
+};
+
+export const useMyUserId = () => {
+  const service = useContext(ClubRoomContext);
+  return useSelector(service, (state) => state.context.myUserId);
 };
 
 export const useIsHost = () => {
-  const clubRoom = useClubRoom();
-  const { userId } = useContext(AuthContext);
-  return clubRoom.state.hostUserId === userId;
+  const store = useClubStore();
+  const myUserId = useMyUserId();
+  return myUserId === store.getSnapshot().hostUserId;
 };

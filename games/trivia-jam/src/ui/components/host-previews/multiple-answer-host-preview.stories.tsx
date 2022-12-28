@@ -1,11 +1,36 @@
 import { ComponentStory, Meta } from '@storybook/react';
-import React from 'react';
+import { contentfulClient } from '@explorers-club/contentful';
 import { MultipleAnswerHostPreviewComponent } from './multiple-answer-host-preview.component';
+import { IMultipleAnswerFields } from '@explorers-club/contentful-types';
+import { MULTIPLE_ANSWER_SAMPLE_ENTRY_ID } from '../../../../.storybook/trivia-jam-story-data';
 
-export default { component: MultipleAnswerHostPreviewComponent } as Meta;
+export default {
+  component: MultipleAnswerHostPreviewComponent,
+  argTypes: {
+    onContinue: { action: 'continue' },
+  },
+} as Meta;
 
 export const Primary: ComponentStory<
   typeof MultipleAnswerHostPreviewComponent
-> = (args) => {
-  return <MultipleAnswerHostPreviewComponent />;
+> = (args, { loaded }) => {
+  return <MultipleAnswerHostPreviewComponent {...args} {...loaded} />;
 };
+
+Primary.args = {
+  responsesByPlayerName: {
+    Teddy: ['Meeks', 'Lu'],
+    Inspector: ['Cat'],
+    Jamba: undefined,
+  },
+};
+
+Primary.loaders = [
+  async () => ({
+    fields: (
+      await contentfulClient.getEntry<IMultipleAnswerFields>(
+        MULTIPLE_ANSWER_SAMPLE_ENTRY_ID
+      )
+    ).fields,
+  }),
+];

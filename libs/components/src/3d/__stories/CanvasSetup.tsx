@@ -28,13 +28,15 @@ export const CanvasSetup = ({
     camera={{ position: cameraPosition, fov: cameraFov }}
     {...restProps}
   >
-    {children}
-    {lights && (
-      <>
-        <ambientLight intensity={0.8} />
-        <pointLight intensity={1} position={[0, 6, 0]} />
-      </>
-    )}
-    {controls && <OrbitControls />}
+    <>
+      {children}
+      {lights && (
+        <>
+          <ambientLight intensity={0.8} />
+          <pointLight intensity={1} position={[0, 6, 0]} />
+        </>
+      )}
+      {controls && <OrbitControls />}
+    </>
   </Canvas>
 );

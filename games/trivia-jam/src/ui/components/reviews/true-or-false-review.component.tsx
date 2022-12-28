@@ -1,6 +1,10 @@
-import React from 'react';
-import { Flex } from '@atoms/Flex';
+import { Heading } from '@atoms/Heading';
+import { ITrueOrFalseFields } from '@explorers-club/contentful-types';
 
-export const TrueOrFalseReviewComponent = () => {
-  return <Flex>Generated trueOrFalseReview component</Flex>;
+export const TrueOrFalseReviewComponent = ({
+  fields,
+}: {
+  fields: ITrueOrFalseFields;
+}) => {
+  return <Heading size="3">{fields.answer ? 'True' : 'False'}</Heading>;
 };

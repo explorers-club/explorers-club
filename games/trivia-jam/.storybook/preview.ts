@@ -21,4 +21,7 @@ export const parameters = {
     fetchProfile,
     fetchQuestion,
   },
+  viewport: {
+    defaultViewport: 'mobile1',
+  },
 };

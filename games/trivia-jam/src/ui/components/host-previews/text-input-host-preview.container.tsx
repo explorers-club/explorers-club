@@ -1,28 +1,34 @@
-import { CONTINUE } from '@explorers-club/commands';
+import { CONTINUE } from '@explorers-club/room';
 import { ITextInputFields } from '@explorers-club/contentful-types';
-import { FC, useCallback } from 'react';
-import { useTriviaJamRoom } from '../../../state/trivia-jam.hooks';
-import { IQuestion } from '../../../types';
-import { unwrapFields } from '../../../utils';
+import { useCallback } from 'react';
+import {
+  useCurrentQuestionFields,
+  useSend,
+  useTriviaJamStoreSelector,
+} from '../../../state/trivia-jam.hooks';
+import { selectResponsesByPlayerName } from '../../../state/trivia-jam.selectors';
 import { TextInputHostPreviewComponent } from './text-input-host-preview.component';
 
-interface Props {
-  question: IQuestion;
-}
+export const TextInputHostPreview = () => {
+  const fields = useCurrentQuestionFields<ITextInputFields>('textInput');
 
-export const TextInpuHostPreview: FC<Props> = ({ question }) => {
-  const room = useTriviaJamRoom();
-
-  const { prompt } = unwrapFields<ITextInputFields>(question, 'multipleAnswer');
-
+  const send = useSend();
   const handleContinue = useCallback(() => {
-    room.send(CONTINUE);
-  }, [room]);
+    send({ type: CONTINUE });
+  }, [send]);
+  const responsesByPlayerName = useTriviaJamStoreSelector(
+    selectResponsesByPlayerName<string>
+  );
+
+  if (!fields) {
+    return null;
+  }
 
   return (
     <TextInputHostPreviewComponent
       onContinue={handleContinue}
-      prompt={prompt}
+      responsesByPlayerName={responsesByPlayerName}
+      fields={fields}
     />
   );
 };

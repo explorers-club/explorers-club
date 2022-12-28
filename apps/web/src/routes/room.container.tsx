@@ -1,8 +1,13 @@
+import {
+  ClubStore,
+  createRoomStore,
+  useStoreSelector,
+} from '@explorers-club/room';
 import { ClubRoomId, ClubRoomIdSchema } from '@explorers-club/schema';
 // import { matchMaker } from 'colyseus';
 import { ClubState } from '@explorers-club/schema-types/ClubState';
 import { Room as TRoom } from 'colyseus.js';
-import { useContext, useEffect, useState } from 'react';
+import { FC, useContext } from 'react';
 import { useQuery } from 'react-query';
 import { useParams } from 'react-router-dom';
 import { ClubRoom } from '../components/club-room';
@@ -34,7 +39,10 @@ export const Room = () => {
         try {
           room = await colyseusClient.reconnect(clubRoomId, sessionId);
         } catch (ex) {
-          console.warn('error when trying to reconnect, joining normally', ex);
+          console.warn(
+            `error when trying to reconnect with ${sessionId} on ${clubRoomId}, joining normally`,
+            ex
+          );
           // todo pass up auth tokens instead of user ids
           room = await colyseusClient.joinById(clubRoomId, { userId });
         }
@@ -49,30 +57,37 @@ export const Room = () => {
     }
 
     room.onMessage('RESERVED_GAME_SEAT', ({ room, sessionId }) => {
-      console.log('reserved', room.roomId);
       localStorage.setItem(room.roomId, sessionId);
     });
 
     localStorage.setItem(room.id, room.sessionId);
-    return room;
+
+    const store = createRoomStore(room);
+
+    // wait until the room has synced before returning
+    await new Promise((resolve) => room.onStateChange.once(resolve));
+
+    return store;
   });
-  const room = query.data;
-  const [gameRoomId, setGameRoomId] = useState<string | undefined>(
-    room?.state.gameRoomId
-  );
+  const store = query.data;
 
-  useEffect(() => {
-    room?.state.listen('gameRoomId', setGameRoomId);
-  }, [room]);
-
-  if (!room) {
-    // todo placeholder
+  if (!store) {
     return null;
   }
 
+  return <RoomComponent store={store} />;
+};
+
+interface Props {
+  store: ClubStore;
+}
+
+const RoomComponent: FC<Props> = ({ store }) => {
+  const gameRoomId = useStoreSelector(store, (state) => state.gameRoomId);
+
   if (gameRoomId) {
-    return <GameRoom roomId={gameRoomId} clubRoom={room} />;
+    return <GameRoom clubStore={store} />;
   } else {
-    return <ClubRoom room={room} />;
+    return <ClubRoom store={store} />;
   }
 };

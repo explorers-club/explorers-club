@@ -1,7 +1,5 @@
 import { EventObject } from 'xstate';
 
-export * from './hooks';
-
 export function assertEventType<
   TE extends EventObject,
   TType extends TE['type']

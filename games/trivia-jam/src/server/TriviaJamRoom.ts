@@ -1,13 +1,14 @@
+import { contentfulClient } from '@explorers-club/contentful';
+import { IQuestionSetFields } from '@explorers-club/contentful-types';
 import {
   CONTINUE,
   JOIN,
   LEAVE,
   TriviaJamSubmitResponseCommand,
   TRIVIA_JAM_SUBMIT_RESPONSE,
-} from '@explorers-club/commands';
-import { contentfulClient } from '@explorers-club/contentful';
-import { IQuestionSetFields } from '@explorers-club/contentful-types';
+} from '@explorers-club/room';
 import { TriviaJamRoomId } from '@explorers-club/schema';
+import { ClubPlayer } from '@explorers-club/schema-types/ClubPlayer';
 import { ClubState } from '@explorers-club/schema-types/ClubState';
 import { TriviaJamPlayer } from '@explorers-club/schema-types/TriviaJamPlayer';
 import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
@@ -18,7 +19,7 @@ import {
   TriviaJamServerService,
 } from './trivia-jam-server.machine';
 
-const sampleQuestionSetEntryId = 'dSX6kC0PNliXTl7qHYJLH';
+const sampleQuestionSetEntryId = '3Xd6DkL434TO1AFYI1TME2';
 
 interface CreateProps {
   roomId: TriviaJamRoomId;
@@ -60,7 +61,12 @@ export class TriviaJamRoom extends Room<TriviaJamState> {
   }
 
   async onCreate(options: OnCreateOptions) {
-    const { roomId, userId, playerInfo, questionSetEntryId } = options;
+    const {
+      roomId,
+      userId: hostUserId,
+      playerInfo,
+      questionSetEntryId,
+    } = options;
 
     const questionSetEntry =
       await contentfulClient.getEntry<IQuestionSetFields>(questionSetEntryId);
@@ -69,17 +75,24 @@ export class TriviaJamRoom extends Room<TriviaJamState> {
     this.autoDispose = false;
 
     const state = new TriviaJamState();
-    state.hostUserId = userId;
     this.setState(state);
 
     playerInfo.forEach(({ userId, name }) => {
-      const player = new TriviaJamPlayer({
-        name,
-        connected: false,
-        score: 0,
-        userId,
-      });
-      state.players.set(userId, player);
+      if (hostUserId === userId) {
+        state.hostPlayer = new ClubPlayer({
+          name,
+          connected: false,
+          userId,
+        });
+      } else {
+        const player = new TriviaJamPlayer({
+          name,
+          connected: false,
+          score: 0,
+          userId,
+        });
+        state.players.set(userId, player);
+      }
     });
 
     const room = this as Room<TriviaJamState>;
@@ -91,8 +104,11 @@ export class TriviaJamRoom extends Room<TriviaJamState> {
       state.toStrings().forEach((state) => room.state.currentStates.add(state));
     });
 
-    this.onMessage(CONTINUE, (_) => {
-      this.service.send({ type: CONTINUE });
+    this.onMessage(CONTINUE, (client) => {
+      this.service.send({
+        type: CONTINUE,
+        userId: client.userData.userId as string,
+      });
     });
 
     this.onMessage(
@@ -108,29 +124,51 @@ export class TriviaJamRoom extends Room<TriviaJamState> {
   }
 
   onJoin(client: Client, options) {
+    const { hostPlayer, players } = this.state;
     const { userId } = options;
-    this.state.players.get(userId).connected = true;
+
+    let player: ClubPlayer;
+    if (userId === hostPlayer.userId) {
+      player = hostPlayer;
+    } else if (players.has(userId)) {
+      player = players.get(userId);
+    }
+
+    if (!player) {
+      console.warn('couldnt find player on join', userId);
+    }
+
+    player.connected = true;
+    this.setState(this.state);
     this.service.send({ type: JOIN, userId });
     client.userData = { userId };
   }
 
   async onLeave(client: Client) {
+    const { hostPlayer, players } = this.state;
     const { userId } = client.userData;
     this.service.send({ type: LEAVE, userId });
 
     // When player leaves, hold for 30 seconds before they disconnect
-    const player = this.state.players.get(client.userData.userId);
+    const player =
+      players.get(userId) || hostPlayer.userId === userId
+        ? hostPlayer
+        : undefined;
     if (!player) {
-      console.warn('error finding player in onLeave');
+      console.warn('couldnt find player on leave', userId);
       return;
     }
-    player.connected = false;
 
     try {
-      await this.allowReconnection(client, 30);
+      player.connected = false;
+      // tood figure out biz logic here. when do we allow reconnects?
+      // probably always
+      await this.allowReconnection(client, 600);
       player.connected = true;
     } catch (ex) {
-      this.state.players.delete(userId);
+      // if (players.get(userId)) {
+      //   this.state.players.delete(userId);
+      // }
     }
   }
 }
