@@ -5,7 +5,6 @@ export const Terrain = () => {
     height: './assets/elevation.png',
     normals: './assets/NormalMap.png',
   });
-  console.log({ height, normals });
 
   return (
     <Plane
@@ -13,7 +12,12 @@ export const Terrain = () => {
       position={[0, -3, 0]}
       args={[64, 64, 1024, 1024]}
     >
-      <meshStandardMaterial color="white" metalness={0.2} />
+      <meshStandardMaterial
+        color="white"
+        metalness={0.2}
+        displacementMap={height}
+        normalMap={normals}
+      />
     </Plane>
   );
 };
