@@ -9,7 +9,6 @@ export default {
     (Story) => (
       <CanvasSetup>
         <Story />
-        <Grid infiniteGrid={true} />
       </CanvasSetup>
     ),
   ],

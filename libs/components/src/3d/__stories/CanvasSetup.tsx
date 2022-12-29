@@ -23,7 +23,7 @@ export const CanvasSetup = ({
   lights = true,
   ...restProps
 }: Props) => {
-  const { showGrid, showStats } = useControls('global', {
+  const { showGrid, showStats } = useControls('Global', {
     showStats: true,
     showGrid: true,
   });
