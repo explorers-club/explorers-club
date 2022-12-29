@@ -1,16 +1,10 @@
 import { Meta } from '@storybook/react';
+import { withCanvasSetup } from '../__stories/CanvasSetup';
 import { Terrain } from './terrain.component';
-import { CanvasSetup } from '../__stories/CanvasSetup';
 
 export default {
   component: Terrain,
-  decorators: [
-    (Story) => (
-      <CanvasSetup>
-        <Story />
-      </CanvasSetup>
-    ),
-  ],
+  decorators: [withCanvasSetup],
 } as Meta;
 
 export const Default = {

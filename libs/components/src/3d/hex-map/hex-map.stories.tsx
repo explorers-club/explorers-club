@@ -1,16 +1,10 @@
 import { transformer, trpc } from '@explorers-club/api-client';
-import {
-  MapControls,
-  OrbitControls,
-  OrthographicCamera,
-  useHelper,
-} from '@react-three/drei';
-import { Canvas, useThree } from '@react-three/fiber';
+import { OrbitControls } from '@react-three/drei';
 import { Meta } from '@storybook/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { httpBatchLink } from '@trpc/client';
-import { Suspense, useState, useRef } from 'react';
-import { CameraHelper, Vector3 } from 'three';
+import { Suspense, useState } from 'react';
+import { Vector3 } from 'three';
 import { CanvasSetup } from '../__stories/CanvasSetup';
 import { HexMap } from './hex-map.component';
 

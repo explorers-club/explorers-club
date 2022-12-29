@@ -1,22 +1,16 @@
-import { Grid, useAnimations, useGLTF } from '@react-three/drei';
+import { useAnimations, useGLTF } from '@react-three/drei';
 import { Meta, Story } from '@storybook/react';
 import { useInterpret } from '@xstate/react';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { CanvasSetup } from '../__stories/CanvasSetup';
+import { withCanvasSetup } from '../__stories/CanvasSetup';
 import { Character } from './character.component';
 import { CharacterActor, createCharacterMachine } from './character.machine';
 import { CharacterAnimationAction, GLTFResult } from './character.types';
 
 export default {
   component: Character,
-  decorators: [
-    (Story) => (
-      <CanvasSetup>
-        <Story />
-      </CanvasSetup>
-    ),
-  ],
+  decorators: [withCanvasSetup],
 } as Meta;
 
 const Template: Story<{ run?: (actor: CharacterActor) => void }> = ({

@@ -1,16 +1,10 @@
 import { Meta } from '@storybook/react';
+import { withCanvasSetup } from '../__stories/CanvasSetup';
 import { SunsetSky } from './sky.component';
-import { CanvasSetup } from '../__stories/CanvasSetup';
 
 export default {
   component: SunsetSky,
-  decorators: [
-    (Story) => (
-      <CanvasSetup>
-        <Story />
-      </CanvasSetup>
-    ),
-  ],
+  decorators: [withCanvasSetup],
 } as Meta;
 
 export const Primary = {
