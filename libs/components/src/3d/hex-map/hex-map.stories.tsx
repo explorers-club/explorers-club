@@ -1,10 +1,18 @@
+import { transformer, trpc } from '@explorers-club/api-client';
+import {
+  MapControls,
+  OrbitControls,
+  OrthographicCamera,
+  useHelper,
+} from '@react-three/drei';
+import { Canvas, useThree } from '@react-three/fiber';
 import { Meta } from '@storybook/react';
-import { HexMap } from './hex-map.component';
-import { CanvasSetup } from '../__stories/CanvasSetup';
-import { httpBatchLink } from '@trpc/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useState } from 'react';
-import { trpc, transformer } from '@explorers-club/api-client';
+import { httpBatchLink } from '@trpc/client';
+import { Suspense, useState, useRef } from 'react';
+import { CameraHelper, Vector3 } from 'three';
+import { CanvasSetup } from '../__stories/CanvasSetup';
+import { HexMap } from './hex-map.component';
 
 export default {
   component: HexMap,
@@ -21,14 +29,24 @@ export default {
           ],
         })
       );
+      // const cameraRef = useRef(null);
+      // useHelper(cameraRef, CameraHelper)
       return (
         <CanvasSetup
           orthographic
-          camera={{ position: [0, 0, 50], zoom: 10, up: [0, 0, 1], far: 10000 }}
+          cameraPosition={new Vector3(0, 1, 0)}
+          controls={false}
         >
+          <OrbitControls />
+          {/* <MapControls /> */}
+          {/* <OrthographicCamera position={[0, 500, 0]} makeDefault zoom={40} />
+          <ambientLight intensity={0.8} /> */}
+          {/* <MapControls /> */}
           <trpc.Provider client={trpcClient} queryClient={queryClient}>
             <QueryClientProvider client={queryClient}>
-              <Story />
+              <Suspense fallback={null}>
+                <Story />
+              </Suspense>
             </QueryClientProvider>
           </trpc.Provider>
         </CanvasSetup>
