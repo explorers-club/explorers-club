@@ -1,10 +1,10 @@
 // From https://github.com/pmndrs/drei/blob/master/.storybook/Setup.tsx
 // Also duplicated from trivia jam, pull in to common lib
-import * as React from 'react';
-import { useControls } from 'leva';
-import { Vector3 } from 'three';
-import { Canvas, Props as CanvasProps } from '@react-three/fiber';
 import { OrbitControls, Stats } from '@react-three/drei';
+import { Canvas, Props as CanvasProps } from '@react-three/fiber';
+import { useControls } from 'leva';
+import * as React from 'react';
+import { Vector3 } from 'three';
 
 type Props = React.PropsWithChildren<
   CanvasProps & {
@@ -38,6 +38,7 @@ export const CanvasSetup = ({
       <>
         {showStats && <Stats />}
         {showGrid && <gridHelper />}
+        {/* <cameraHelper /> */}
         {children}
         {lights && (
           <>

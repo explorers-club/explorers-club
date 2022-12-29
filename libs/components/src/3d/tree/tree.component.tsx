@@ -15,7 +15,6 @@ export function Tree(props: JSX.IntrinsicElements['group']) {
   const { nodes, materials } = useGLTF(
     './assets/tree.glb'
   ) as unknown as GLTFResult;
-  console.log({ nodes });
   return (
     <group {...props} dispose={null}>
       <mesh

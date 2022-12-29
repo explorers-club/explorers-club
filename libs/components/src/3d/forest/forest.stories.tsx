@@ -1,14 +1,13 @@
 import { Meta } from '@storybook/react';
 import { Vector3 } from 'three';
 import { CanvasSetup } from '../__stories/CanvasSetup';
-import { Tree } from './tree.component';
-import { PalmTreeModel } from './palm-tree-model.component';
+import { Forest } from './forest.component';
 
 export default {
-  component: Tree,
+  component: Forest,
   decorators: [
     (Story) => (
-      <CanvasSetup>
+      <CanvasSetup cameraPosition={new Vector3(-15, 10, 40)}>
         <Story />
       </CanvasSetup>
     ),
@@ -16,9 +15,5 @@ export default {
 } as Meta;
 
 export const Default = () => {
-  return <Tree />;
-};
-
-export const PalmTree = () => {
-  return <PalmTreeModel />;
+  return <Forest />;
 };
