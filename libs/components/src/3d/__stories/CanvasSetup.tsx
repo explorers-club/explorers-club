@@ -2,7 +2,7 @@
 // Also duplicated from trivia jam, pull in to common lib
 import { OrbitControls, Stats } from '@react-three/drei';
 import { Canvas, Props as CanvasProps } from '@react-three/fiber';
-import { useControls } from 'leva';
+import { Leva, useControls } from 'leva';
 import * as React from 'react';
 import { Vector3 } from 'three';
 
@@ -29,13 +29,16 @@ export const CanvasSetup = ({
   });
 
   return (
-    <Canvas
-      style={{ height: '100vh' }}
-      shadows
-      camera={{ position: cameraPosition, fov: cameraFov }}
-      {...restProps}
-    >
-      <>
+    <>
+      <Leva
+        collapsed /* https://github.com/pmndrs/leva/blob/main/docs/configuration.md */
+      />
+      <Canvas
+        style={{ height: '100vh' }}
+        shadows
+        camera={{ position: cameraPosition, fov: cameraFov }}
+        {...restProps}
+      >
         {showStats && <Stats />}
         {showGrid && <gridHelper />}
         {/* <cameraHelper /> */}
@@ -47,7 +50,7 @@ export const CanvasSetup = ({
           </>
         )}
         {controls && <OrbitControls />}
-      </>
-    </Canvas>
+      </Canvas>
+    </>
   );
 };
