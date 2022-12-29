@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { Vector3 } from 'three';
 import { Canvas, Props as CanvasProps } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { OrbitControls, Stats } from '@react-three/drei';
 
 type Props = React.PropsWithChildren<
   CanvasProps & {
@@ -29,6 +29,7 @@ export const CanvasSetup = ({
     {...restProps}
   >
     <>
+      <Stats />
       {children}
       {lights && (
         <>
