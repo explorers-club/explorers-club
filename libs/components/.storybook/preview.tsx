@@ -40,6 +40,10 @@ export const globalTypes = {
 // export all decorators that should be globally applied in an array
 export const decorators = [withTheme];
 
+export const parameters = {
+  layout: 'fullscreen',
+};
+
 // export const parameters = {
 //   viewport: {
 //     defaultViewport: 'mobile1',

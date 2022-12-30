@@ -1,6 +1,9 @@
-import { cellsToMultiPolygon, polygonToCells } from 'h3-js';
+import { cellToLatLng, gridDisk, latLngToCell } from 'h3-js';
 import { z } from 'zod';
 import { publicProcedure, router } from '../trpc';
+import { createNoise2D } from 'simplex-noise';
+
+const noise2D = createNoise2D();
 
 export const tileRouter = router({
   allCells: publicProcedure
@@ -48,18 +51,31 @@ export const tileRouter = router({
         nextCursor,
       };
     }),
-  polygonToCells: publicProcedure
+  gridDisk: publicProcedure
     .input(
       z.object({
-        polygon: z.array(z.array(z.number())),
-        res: z.number(),
-        limit: z.number().min(1).max(3000).default(3000),
-        cursor: z.number().nullish(), // <-- "cursor" needs to exist, but can be any type
+        // tilesetId: z.string().default('earth'),
+        res: z.number().min(0).max(15),
+        lat: z.number().min(-90).max(90),
+        lng: z.number().min(-180).max(180),
+        radius: z.number().min(1).max(40).default(20),
       })
     )
-    .query(({ ctx, input }) => {
-      const cells = polygonToCells(input.polygon, input.res);
-      const coordinates = cellsToMultiPolygon(cells, true);
-      return { cells, coordinates };
+    .query(({ input }) => {
+      const { res, lat, lng, radius } = input;
+
+      const h3Index = latLngToCell(lat, lng, res);
+      const disk = gridDisk(h3Index, radius);
+
+      const tiles = disk.map((h3Index) => {
+        const [lat, lng] = cellToLatLng(h3Index);
+        const elevation = noise2D(lat, lng);
+        // todo add terrain type here based off elevation
+        return { h3Index, lat, lng, elevation };
+      });
+
+      return {
+        tiles,
+      };
     }),
 });

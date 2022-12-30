@@ -1,56 +1,53 @@
-import { transformer, trpc } from '@explorers-club/api-client';
-import { OrbitControls } from '@react-three/drei';
+import * as cover from '@mapbox/tile-cover';
+import { useThree } from '@react-three/fiber';
 import { Meta } from '@storybook/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { httpBatchLink } from '@trpc/client';
-import { Suspense, useState } from 'react';
-import { Vector3 } from 'three';
-import { CanvasSetup } from '../__stories/CanvasSetup';
+import { useInterpret } from '@xstate/react';
+import { latLngToCell } from 'h3-js';
+import { useState } from 'react';
+import json from '../__fixtures/world.json';
+import { withCanvasSetup } from '../__stories/CanvasSetup';
+import { withTrpcClient } from '../__stories/withTrpcClient';
 import { HexMap } from './hex-map.component';
+import { createHexMapMachine } from './hex-map.machine';
+// var poly = JSON.parse(fs.readFileSync('./poly.geojson'));
+
+// console.log(tiles(json as any, { max_zoom: 15, min_zoom: 5 }));
 
 export default {
   component: HexMap,
-  decorators: [
-    (Story) => {
-      const [queryClient] = useState(() => new QueryClient());
-      const [trpcClient] = useState(() =>
-        trpc.createClient({
-          transformer,
-          links: [
-            httpBatchLink({
-              url: `http://localhost:4400/api`, // todo change to current port
-            }),
-          ],
-        })
-      );
-      // const cameraRef = useRef(null);
-      // useHelper(cameraRef, CameraHelper)
-      return (
-        <CanvasSetup
-          orthographic
-          cameraPosition={new Vector3(0, 1, 0)}
-          controls={false}
-        >
-          <OrbitControls />
-          {/* <MapControls /> */}
-          {/* <OrthographicCamera position={[0, 500, 0]} makeDefault zoom={40} />
-          <ambientLight intensity={0.8} /> */}
-          {/* <MapControls /> */}
-          <trpc.Provider client={trpcClient} queryClient={queryClient}>
-            <QueryClientProvider client={queryClient}>
-              <Suspense fallback={null}>
-                <Story />
-              </Suspense>
-            </QueryClientProvider>
-          </trpc.Provider>
-        </CanvasSetup>
-      );
-    },
-  ],
+  decorators: [withTrpcClient, withCanvasSetup],
 } as Meta;
 
+// const originLatLng = [21.33823, -158.124891];
+
+const StoryComponent = () => {
+  const camera = useThree((state) => state.camera);
+
+  const limits = {
+    min_zoom: 4,
+    max_zoom: 9,
+  };
+  // console.log(cover.tiles(json as any, limits));
+  // cover.tiles(json as any, limits);
+
+  // const query = trpc.tile.gridDisk.useQuery({ res: 3, lat: 19, lng: -155 });
+
+  // useFrame((state) => {
+  // trpc.tile.gridDisk.useQuery()
+  // console.log(state.camera.position.y);
+  // });
+
+  const res = 15;
+  const indexAtOrigin = latLngToCell(-15, 155, res);
+
+  const [machine] = useState(createHexMapMachine(camera, indexAtOrigin));
+  const actor = useInterpret(machine);
+
+  return <HexMap actor={actor} />;
+};
+
 export const Primary = {
-  render: () => <HexMap />,
+  render: () => <StoryComponent />,
   parameters: {
     layout: 'fullscreen',
   },

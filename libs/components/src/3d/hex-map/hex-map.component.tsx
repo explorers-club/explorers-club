@@ -1,72 +1,53 @@
 import { trpc } from '@explorers-club/api-client';
-import { GeoJsonGeometry } from 'three-geojson-geometry';
-import { useMemo } from 'react';
-import { Grid, useHelper } from '@react-three/drei';
+import { useFrame } from '@react-three/fiber';
+import { useSelector } from '@xstate/react';
+import { cellToLatLng } from 'h3-js';
+import { FC } from 'react';
+import { ActorRef } from 'xstate';
 import { Terrain } from '../terrain';
-import { useFrame, useThree } from '@react-three/fiber';
-import { CameraHelper } from 'three';
+import { HexMapEvent, HexMapState } from './hex-map.machine';
 
-/**
- * Maps a camera zoom to an h3 resolution
- * @param zoom
- */
-const getResolution = (zoom: number) => {
-  if (zoom < 4) {
-    return 0;
-  } else if (zoom < 8) {
-    return 1;
-  } else if (zoom < 16) {
-    return 2;
-  } else if (zoom < 32) {
-    return 3;
-  } else if (zoom < 64) {
-    return 4;
-  } else if (zoom < 128) {
-    return 5;
-  } else {
-    return 6;
-  }
-};
+interface Props {
+  actor: ActorRef<HexMapEvent, HexMapState>;
+}
 
-const worldPolygon = [
-  [-180, -85],
-  [180, -85],
-  [180, 85],
-  [-180, 85],
-];
-
-// const polygon = [
-//   [37.813318999983238, -122.4089866999972145],
-//   [37.7198061999978478, -122.3544736999993603],
-//   [37.8151571999998453, -122.4798767000009008],
-// ];
-
-export const HexMap = () => {
-  const tileQuery = trpc.tile.polygonToCells.useQuery({
-    polygon: worldPolygon,
-    res: 2,
-  });
-
-  const geometry = useMemo(() => {
-    const coordinates = tileQuery.data?.coordinates;
-    if (coordinates) {
-      const geo = new GeoJsonGeometry({ type: 'MultiPolygon', coordinates });
-      return geo;
-    }
-    return null;
-  }, [tileQuery.data]);
-
-  useFrame((state, delta, xFrame) => {
-    const res = getResolution(state.camera.zoom);
-    const { x, z } = state.camera.position;
-    console.log(res);
-    // X, Z -> lat long
-  });
+export const HexMap: FC<Props> = ({ actor }) => {
+  const visibleChunks = useSelector(
+    actor,
+    (state) => state.context.visibleChunks
+  );
+  console.log({ visibleChunks });
 
   return (
     <>
-      <Terrain />
-      <Grid infiniteGrid={true} followCamera />
+      {visibleChunks.map((h3Index) => {
+        return <HexChunk h3Index={h3Index} key={h3Index} />;
+      })}
     </>
   );
+};
+
+interface ChunkProps {
+  h3Index: string;
+}
+
+const HexChunk: FC<ChunkProps> = ({ h3Index }) => {
+  const [lat, lng] = cellToLatLng(h3Index);
+  // const camera = useThree((state) => state.camera);
+
+  useFrame((state) => {
+    // calculate distance between camera and the chunk
+    // state.camera.position
+  });
+  // calculate lod based off distance from camera
+  const res = 3; // should be
+  const query = trpc.tile.gridDisk.useQuery({ res, lat, lng });
+
+  if (!query.data) {
+    // todo placeholder
+    return null;
+  }
+
+  // todo calculate the hex geometry from here..
+  return <Terrain />;
 };

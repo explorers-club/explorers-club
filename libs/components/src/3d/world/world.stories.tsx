@@ -113,7 +113,7 @@ const HexBinsTemplate: Story<{ res: number }> = ({ res }, loaded) => {
     globe.hexBinMerge(true);
 
     return globe;
-  }, [query.data]);
+  }, [query.data, res]);
 
   if (!globe) {
     // eslint-disable-next-line react/jsx-no-useless-fragment
