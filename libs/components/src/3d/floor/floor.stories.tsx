@@ -1,16 +1,10 @@
 import { Meta } from '@storybook/react';
+import { withCanvasSetup } from '../__stories/CanvasSetup';
 import { Floor } from './floor.component';
-import { CanvasSetup } from '../__stories/CanvasSetup';
 
 export default {
   component: Floor,
-  decorators: [
-    (Story) => (
-      <CanvasSetup>
-        <Story />
-      </CanvasSetup>
-    ),
-  ],
+  decorators: [withCanvasSetup],
 } as Meta;
 
 export const Primary = {

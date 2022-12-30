@@ -56,7 +56,7 @@ export const HexPolygons: Story = (args) => {
       '//unpkg.com/three-globe/example/img/earth-topology.png'
     );
     globe.hexPolygonsData(countries.features);
-    globe.hexPolygonResolution(3);
+    globe.hexPolygonResolution(0);
     globe.hexPolygonMargin(0.1);
     globe.showGlobe(false);
     globe.showAtmosphere(false);
@@ -75,8 +75,7 @@ const weightColor = d3
   .scaleSequentialSqrt(d3.interpolateYlOrRd)
   .domain([0, 1e7]);
 
-export const HexBins: Story = (args, loaded) => {
-  const res = 4;
+const HexBinsTemplate: Story<{ res: number }> = ({ res }, loaded) => {
   const query = trpc.tile.allCells.useInfiniteQuery(
     {
       res,
@@ -107,14 +106,14 @@ export const HexBins: Story = (args, loaded) => {
     // globe.showGlobe(false);
     // globe.showGlobe(false);
     globe.hexBinResolution(res);
-    globe.hexMargin(0.5);
+    globe.hexMargin(0);
     globe.hexAltitude((d) => d.sumWeight * 6e-3);
     globe.hexTopColor(() => 'red');
     globe.hexSideColor(() => 'rgba(0,255,0,0.8)');
     globe.hexBinMerge(true);
 
     return globe;
-  }, [query.data]);
+  }, [query.data, res]);
 
   if (!globe) {
     // eslint-disable-next-line react/jsx-no-useless-fragment
@@ -122,6 +121,36 @@ export const HexBins: Story = (args, loaded) => {
   }
 
   return <World globe={globe} />;
+};
+
+export const Res0 = HexBinsTemplate.bind({});
+
+Res0.args = {
+  res: 0,
+};
+
+export const Res1 = HexBinsTemplate.bind({});
+
+Res1.args = {
+  res: 1,
+};
+
+export const Res2 = HexBinsTemplate.bind({});
+
+Res2.args = {
+  res: 2,
+};
+
+export const Res3 = HexBinsTemplate.bind({});
+
+Res3.args = {
+  res: 3,
+};
+
+export const Res4 = HexBinsTemplate.bind({});
+
+Res4.args = {
+  res: 4,
 };
 
 // https://github.com/vasturiano/three-globe/blob/master/example/ripples/index.html
@@ -145,6 +174,33 @@ export const Ripples: Story = (args) => {
     globe.ringMaxRadius('maxR');
     globe.ringPropagationSpeed('propagationSpeed');
     globe.ringRepeatPeriod('repeatPeriod');
+    return globe;
+  }, []);
+  return <World globe={globe} />;
+};
+
+export const CustomMaterial: Story = (args) => {
+  const globe = useMemo(() => {
+    // Gen random data
+
+    const globe = new ThreeGlobe();
+    globe.globeImageUrl(
+      '//unpkg.com/three-globe/example/img/earth-blue-marble.jpg'
+    );
+    globe.bumpImageUrl(
+      '//unpkg.com/three-globe/example/img/earth-topology.png'
+    );
+    const globeMaterial = globe.globeMaterial();
+    // new THREE.TextureLoader().load(
+    //   '//unpkg.com/three-globe/example/img/earth-water.png',
+    //   (texture) => {
+    //     globeMaterial.specularMap = texture;
+    //     globeMaterial.specular = new THREE.Color('grey');
+    //     globeMaterial.shininess = 15;
+    //   }
+    // );
+
+    // globeMaterial.bumpScale = 5;
     return globe;
   }, []);
   return <World globe={globe} />;

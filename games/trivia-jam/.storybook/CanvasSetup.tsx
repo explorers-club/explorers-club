@@ -1,8 +1,8 @@
 // From https://github.com/pmndrs/drei/blob/master/.storybook/Setup.tsx
-import * as React from 'react';
 import { Vector3 } from 'three';
 import { Canvas, Props as CanvasProps } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
+import { Suspense } from 'react';
 
 type Props = React.PropsWithChildren<
   CanvasProps & {
@@ -29,10 +29,10 @@ export const CanvasSetup = ({
   >
     {children}
     {lights && (
-      <>
+      <Suspense fallback={null}>
         <ambientLight intensity={0.8} />
         <pointLight intensity={1} position={[0, 6, 0]} />
-      </>
+      </Suspense>
     )}
     {controls && <OrbitControls />}
   </Canvas>

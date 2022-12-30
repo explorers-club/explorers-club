@@ -10,4 +10,5 @@ import { Schema, type, ArraySchema, MapSchema, SetSchema, DataChange } from '@co
 
 export class TriviaJamConfig extends Schema {
     @type("string") public questionSetEntryId!: string;
+    @type("number") public maxPlayers!: number;
 }

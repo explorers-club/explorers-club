@@ -4,6 +4,7 @@ export class ClubPlayer extends Schema {
   @type('string') userId!: string;
   @type('string') name!: string;
   @type('boolean') connected = true;
+  @type('number') slotNumber!: number;
 }
 
 export class ClubState extends Schema {
