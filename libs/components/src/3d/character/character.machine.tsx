@@ -9,6 +9,7 @@ type CharacterContext = {
 type CharacterEvent =
   | { type: 'MOVE'; lat: number; lng: number }
   | { type: 'SHOOT' }
+  | { type: 'IDLE' }
   | { type: 'TAKE_DAMAGE'; amount: number };
 
 export const createCharacterMachine = (actions: CharacterAnimationAction) =>
@@ -29,6 +30,8 @@ export const createCharacterMachine = (actions: CharacterAnimationAction) =>
         states: {
           Idle: {
             entry: () => {
+              actions.RunForward.stop();
+              actions.DrawArrow.stop();
               actions.StandingIdle.play();
             },
             on: {
@@ -41,12 +44,15 @@ export const createCharacterMachine = (actions: CharacterAnimationAction) =>
               actions.RunForward.play();
             },
             on: {
-              SHOOT: 'Shooting',
+              IDLE: 'Idle',
             },
           },
           Shooting: {
             entry: () => {
               actions.DrawArrow.play();
+            },
+            after: {
+              1100: 'Idle',
             },
           },
         },
