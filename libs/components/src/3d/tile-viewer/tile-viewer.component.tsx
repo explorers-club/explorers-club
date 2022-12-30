@@ -7,7 +7,13 @@ interface Props {
   actor: TileViewerActor;
 }
 export const TileViewer: FC<Props> = ({ actor }) => {
-  console.log(actor);
+  // what do I need to ultimately render...
+  // hexagons
+  // what i need is an elevation and terrain type
+  // my inputs are a... resolution and ring size and a current location
+
+  //  current location is a lat long and a resolution
+  // trpc.tile.gridDisk(5)
   return <Water />;
 };
 

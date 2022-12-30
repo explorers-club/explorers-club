@@ -26,7 +26,19 @@ export default {
 
 const ComponentStory = () => {
   const camera = useThree((state) => state.camera);
-  const { res } = useControls('TileViewer', {
+  const { res, lat, lng } = useControls('TileViewer', {
+    lat: {
+      value: 19,
+      step: 1,
+      min: -90,
+      max: 90,
+    },
+    lng: {
+      value: -155,
+      step: 1,
+      min: -180,
+      max: 180,
+    },
     res: {
       value: 3,
       min: 0,
@@ -41,7 +53,13 @@ const ComponentStory = () => {
     camera.position.setY(distance);
   });
 
-  const [machine] = useState(createTileViewerMachine(camera));
+  const [machine] = useState(
+    createTileViewerMachine(camera).withContext({
+      lat,
+      lng,
+      res,
+    })
+  );
   const actor = useInterpret(machine);
 
   return <TileViewer actor={actor} />;
