@@ -18,6 +18,12 @@ export const Section = styled('section', {
       '1': {
         py: '$3',
       },
+      '2': {
+        py: '$6',
+      },
+      '3': {
+        py: '$9',
+      },
     },
   },
   defaultVariants: {

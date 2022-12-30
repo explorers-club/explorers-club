@@ -38,7 +38,7 @@ export default {
       },
     },
     color: {
-      defaultValue: '',
+      defaultValue: 'neutral',
       control: {
         type: 'select',
         options: [
