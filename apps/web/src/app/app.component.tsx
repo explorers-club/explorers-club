@@ -17,6 +17,7 @@ import {
 import { Floor } from '@3d/floor';
 import { SunsetSky } from '@3d/sky';
 import { Treehouse } from '@3d/treehouse';
+import { darkTheme } from '@explorers-club/styles';
 
 const DEFAULT_SNAP_POINTS = ({ minHeight }: SnapPointProps) => [minHeight];
 
@@ -32,7 +33,9 @@ export const AppComponent = () => {
         snapPoints={DEFAULT_SNAP_POINTS}
         expandOnContentDrag={true}
       >
-        <Routes />
+        <Box className={darkTheme.className}>
+          <Routes />
+        </Box>
       </BottomSheet>
       <SceneContainer>
         <>
