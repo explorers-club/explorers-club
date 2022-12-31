@@ -11,6 +11,8 @@ import { TriviaJamConfigSerialized } from '@explorers-club/room';
 import { Entry } from 'contentful';
 import { FC, useCallback, useRef } from 'react';
 
+const MAX_PLAYERS = 8;
+
 interface Props {
   questionSetEntries: Entry<IQuestionSetFields>[];
   initialConfig: TriviaJamConfigSerialized;
@@ -51,7 +53,6 @@ export const TriviaJamConfigurationScreenComponent: FC<Props> = ({
             {Array(7)
               .fill(0)
               .map((_, index) => {
-                const MAX_PLAYERS = 10;
                 const value = MAX_PLAYERS - index;
                 return (
                   <option key={index} value={value}>
