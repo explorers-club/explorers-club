@@ -15,7 +15,9 @@ export const MultipleAnswerReviewComponent: FC<Props> = ({ fields }) => {
       <Heading>Correct Answers</Heading>
       {/* // TODO why are these nullable */}
       {fields.correctAnswers!.map((answer) => (
-        <Text key={answer}>{answer}</Text>
+        <Text key={answer}>
+          {answer}
+        </Text>
       ))}
       <Heading>Incorrect Answers</Heading>
       {fields.incorrectAnswers!.map((answer) => (
