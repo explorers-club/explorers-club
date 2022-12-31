@@ -21,7 +21,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@atoms/Tabs';
 import { Routes } from '../routes/routes.container';
 import { ColyseusContext } from '../state/colyseus.context';
 
-const DEFAULT_SNAP_POINTS = ({ minHeight }: SnapPointProps) => [minHeight];
+const DEFAULT_SNAP_POINTS = ({ minHeight }: SnapPointProps) => [
+  minHeight,
+  window.innerHeight * 0.4,
+];
 
 const DEFAULT_SNAP = ({ snapPoints }: defaultSnapProps) => snapPoints[0];
 
