@@ -3,9 +3,11 @@ import { ITrueOrFalseFields } from '@explorers-club/contentful-types';
 import { ComponentMeta, ComponentStory } from '@storybook/react';
 import { TRUE_OR_FALSE_SAMPLE_ENTRY_ID } from '../../../../.storybook/trivia-jam-story-data';
 import { TrueOrFalseQuestionComponent } from './true-or-false-question.component';
+import { withCardDecorator } from '@storybook-decorators/CardDecorator';
 
 const meta = {
   component: TrueOrFalseQuestionComponent,
+  decorators: [withCardDecorator],
   argTypes: { onSubmitResponse: { action: 'submitted' } },
 } as ComponentMeta<typeof TrueOrFalseQuestionComponent>;
 

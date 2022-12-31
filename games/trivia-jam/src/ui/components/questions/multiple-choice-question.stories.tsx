@@ -3,9 +3,11 @@ import { MULTIPLE_CHOICE_SAMPLE_ENTRY_ID } from '../../../../.storybook/trivia-j
 import { IMultipleChoiceFields } from '@explorers-club/contentful-types';
 import { contentfulClient } from '@explorers-club/contentful';
 import { MultipleChoiceQuestionComponent } from './multiple-choice-question.component';
+import { withCardDecorator } from '@storybook-decorators/CardDecorator';
 
 const meta = {
   component: MultipleChoiceQuestionComponent,
+  decorators: [withCardDecorator],
   argTypes: { onSubmitResponse: { action: 'submitted' } },
 } as ComponentMeta<typeof MultipleChoiceQuestionComponent>;
 

@@ -3,9 +3,11 @@ import { MULTIPLE_ANSWER_SAMPLE_ENTRY_ID } from '../../../../.storybook/trivia-j
 import { IMultipleAnswerFields } from '../../../../../../libs/contentful/@types/generated/contentful';
 import { contentfulClient } from '@explorers-club/contentful';
 import { MultipleAnswerQuestionComponent } from './multiple-answer-question.component';
+import { withCardDecorator } from '@storybook-decorators/CardDecorator';
 
 const meta = {
   component: MultipleAnswerQuestionComponent,
+  decorators: [withCardDecorator],
   argTypes: { onSubmitResponse: { action: 'submitted' } },
 } as ComponentMeta<typeof MultipleAnswerQuestionComponent>;
 
