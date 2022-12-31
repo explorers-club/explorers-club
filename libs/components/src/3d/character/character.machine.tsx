@@ -1,13 +1,17 @@
+import { Vector3 } from 'three';
 import { ActorRefFrom, createMachine, StateFrom } from 'xstate';
+import { assign } from 'xstate/lib/actions';
 import { CharacterAnimationAction } from './character.types';
 
 type CharacterContext = {
   healthPoints: number;
   ammo: number;
+  position: THREE.Vector3;
 };
 
+type CharacterEventMove = { type: 'MOVE'; dx: number; dz: number };
 type CharacterEvent =
-  | { type: 'MOVE'; lat: number; lng: number }
+  | CharacterEventMove
   | { type: 'SHOOT' }
   | { type: 'IDLE' }
   | { type: 'TAKE_DAMAGE'; amount: number };
@@ -22,6 +26,7 @@ export const createCharacterMachine = (actions: CharacterAnimationAction) =>
     context: {
       healthPoints: 100,
       ammo: 10,
+      position: new Vector3(0, 0, 0),
     },
     type: 'parallel',
     states: {
@@ -36,7 +41,19 @@ export const createCharacterMachine = (actions: CharacterAnimationAction) =>
             },
             on: {
               SHOOT: 'Shooting',
-              MOVE: 'Running',
+              MOVE: {
+                target: 'Running',
+                actions: [
+                  assign<CharacterContext, CharacterEventMove>({
+                    position: (context, event) =>
+                      new Vector3(
+                        context.position.x + event.dx,
+                        context.position.y,
+                        context.position.z + event.dz
+                      ),
+                  }),
+                ],
+              },
             },
           },
           Running: {

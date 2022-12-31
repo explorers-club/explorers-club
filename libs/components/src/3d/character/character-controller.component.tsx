@@ -1,6 +1,6 @@
 import { useGLTF, useAnimations } from '@react-three/drei';
-import { useInterpret } from '@xstate/react';
-import { useRef, useMemo, useEffect } from 'react';
+import { useMachine } from '@xstate/react';
+import { useRef, useEffect } from 'react';
 import { useInput } from '../../hooks/useInput';
 import { Character } from './character.component';
 import { createCharacterMachine } from './character.machine';
@@ -12,20 +12,21 @@ export const CharacterController = () => {
   const { actions } = useAnimations(gltf.animations, group) as unknown as {
     actions: CharacterAnimationAction;
   };
-  const machine = useMemo(() => createCharacterMachine(actions), [actions]);
-  const actor = useInterpret(machine);
+  const [state, send] = useMachine(() => createCharacterMachine(actions));
 
   const { forward, shift } = useInput();
 
   useEffect(() => {
     if (shift) {
-      actor.send('SHOOT');
+      send('SHOOT');
     } else if (forward) {
-      actor.send({ type: 'MOVE', lat: 10, lng: 10 });
+      send({ type: 'MOVE', dx: 0.5, dz: 0.5 });
     } else {
-      actor.send('IDLE');
+      send('IDLE');
     }
   });
 
-  return <Character gltf={gltf} group={group} />;
+  return (
+    <Character gltf={gltf} group={group} position={state.context.position} />
+  );
 };
