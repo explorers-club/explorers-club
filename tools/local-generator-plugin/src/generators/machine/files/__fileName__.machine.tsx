@@ -5,13 +5,14 @@ import {
   EventFrom,
   StateFrom,
 } from 'xstate';
-import { createModel } from 'xstate/lib/model';
 
-const <%= propertyName %>Model = createModel({}, {});
+export interface <%= name %>Context {
+  hello: "world" as const
+}
 
-export const <%= name %>Events = <%= propertyName %>Model.events;
-export type <%= name %>Context = ContextFrom<typeof <%= propertyName %>Model>;
-export type <%= name %>Event = EventFrom<typeof <%= propertyName %>Model>;
+export interface <%= name %>Event {
+  type: "FOO"
+}
 
 export const <%= propertyName %>Machine = createMachine({
   id: '<%= name %>Machine',

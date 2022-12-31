@@ -55,8 +55,8 @@
       "@explorers-club/utils": ["libs/utils/src/index.ts"],
       "@molecules/*": ["libs/components/src/molecules/*"],
       "@organisms/*": ["libs/components/src/organisms/*"],
-      "@templates/*": ["libs/components/src/templates/*"],
-      "@storybook-decorators/*": ["libs/components/src/decorators/*"]
+      "@storybook-decorators/*": ["libs/components/src/decorators/*"],
+      "@templates/*": ["libs/components/src/templates/*"]
     }
   },
   "exclude": ["node_modules", "tmp"]
