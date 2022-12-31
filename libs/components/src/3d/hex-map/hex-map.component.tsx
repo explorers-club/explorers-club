@@ -116,11 +116,15 @@ const HexChunk: FC<ChunkProps> = ({ h3Index }) => {
 
   const [lat, lng] = cellToLatLng(h3Index);
   const point = fromLatLngToPoint(lat, lng);
-  console.log(point, lat, lng);
+  const [originLat, originLng] = cellToLatLng(indexAtOrigin);
+  const origin = fromLatLngToPoint(originLat, originLng);
 
   return (
-    <group rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0 + Math.random()]}>
-      <HexTerrain points={points} lod={lod} tiles={tiles} />
+    <group
+      rotation={[-Math.PI / 2, 0, 0]}
+      position={[point.x - origin.x, 0, point.y - origin.y]}
+    >
+      <HexTerrain points={points} h3Index={h3Index} lod={lod} tiles={tiles} />
     </group>
   );
 };
