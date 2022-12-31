@@ -13,14 +13,14 @@ export const Default: ComponentStory<typeof Tabs> = (props) => (
       <TabsTrigger value="map">Map</TabsTrigger>
       <TabsTrigger value="party">Party</TabsTrigger>
     </TabsList>
-    <TabsContent value="tab-one">
-      <Text>Party</Text>
+    <TabsContent value="objectives">
+      <Text>Objectives</Text>
     </TabsContent>
-    <TabsContent value="tab-two">
+    <TabsContent value="map">
       <Text>Map</Text>
     </TabsContent>
-    <TabsContent value="tab-three">
-      <Text>Objectives</Text>
+    <TabsContent value="party">
+      <Text>Party</Text>
     </TabsContent>
   </Tabs>
 );
