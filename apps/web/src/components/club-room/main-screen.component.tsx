@@ -8,9 +8,9 @@ import { Heading } from '@atoms/Heading';
 import { IconButton } from '@atoms/IconButton';
 import { CLUB_ROOM_START_GAME, useStoreSelector } from '@explorers-club/room';
 import { GearIcon } from '@radix-ui/react-icons';
-import { useStore } from '@react-three/fiber';
 import { useCallback, useContext } from 'react';
 import { useParams } from 'react-router-dom';
+import { colorBySlotNumber } from './club-room.constants';
 import { ClubRoomContext } from './club-room.context';
 import { useClubStore, useIsHost } from './club-room.hooks';
 import {
@@ -68,10 +68,13 @@ export const MainScreenComponent = () => {
           {Array(maxPlayers)
             .fill(0)
             .map((_, i) => {
+              const slotNumber = i + 1;
               const player = playersBySlotNumber[i + 1];
 
-              const name = player?.name || 'Empty';
+              const isEmpty = !player?.name;
+              const name = !isEmpty ? player.name : 'Empty';
               const userId = player?.userId;
+              const color = colorBySlotNumber[slotNumber];
 
               return (
                 <Flex
@@ -80,9 +83,17 @@ export const MainScreenComponent = () => {
                   gap="2"
                   css={{ backgroundColor: '$panel2', p: '$3' }}
                 >
-                  <Avatar size="3" fallback={name[0]} />
+                  <Avatar
+                    size="3"
+                    variant={color}
+                    fallback={`P${slotNumber}`}
+                  />
                   <Flex direction="column">
-                    <Heading size="2">{name}</Heading>
+                    {player?.name ? (
+                      <Heading size="1">{name}</Heading>
+                    ) : (
+                      <Caption size="2">{name}</Caption>
+                    )}
                     {userId === hostUserId && <Badge>Host</Badge>}
                   </Flex>
                 </Flex>

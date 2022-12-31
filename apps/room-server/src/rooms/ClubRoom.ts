@@ -14,7 +14,7 @@ import { Client, matchMaker, Room } from 'colyseus';
 
 // trivia jam defaults
 const DEFAULT_QUESTION_SET_ENTRY_ID = 'dSX6kC0PNliXTl7qHYJLH';
-const DEFAULT_MAX_PLAYERS = 10;
+const DEFAULT_MAX_PLAYERS = 8;
 
 export class ClubRoom extends Room<ClubState> {
   ROOMS_CHANNEL = '#rooms';
