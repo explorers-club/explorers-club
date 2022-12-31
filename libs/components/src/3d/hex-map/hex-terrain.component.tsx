@@ -1,11 +1,10 @@
+import { Tile } from '@explorers-club/api-client';
 import { FC, useCallback, useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { FrontSide, InstancedMesh, Vector3 } from 'three';
 import { BeveledHexagonGeometry } from './beveled-hexagon-geometry.component';
-import { Tile } from '@explorers-club/api-client';
 
 import { useSpring } from '@react-spring/three';
-import { getHexagonEdgeLengthAvg, getResolution, UNITS } from 'h3-js';
 
 const tempV4 = new THREE.Object3D();
 
@@ -16,9 +15,7 @@ interface Props {
   tiles?: Tile[];
 }
 
-export const HexTerrain: FC<Props> = ({ points, h3Index, lod }) => {
-  const elevation = 4;
-
+export const HexTerrain: FC<Props> = ({ points, h3Index, lod, tiles }) => {
   const p1 = points[0];
   const p2 = points[1];
   const edgeLength = p1.distanceTo(p2);
@@ -43,9 +40,12 @@ export const HexTerrain: FC<Props> = ({ points, h3Index, lod }) => {
           tempV4.scale.multiplyScalar(scale);
         }
 
-        tempV4.scale.z *= 5 * elevation;
-        tempV4.scale.x *= 2 * edgeLength; // todo add rotation to fit and fix sizes here
-        tempV4.scale.y *= 2 * edgeLength;
+        const tile = tiles && tiles[i];
+        const elevation = tile ? 1 + tile.elevation * 10 : 1;
+
+        tempV4.scale.z *= elevation * 2;
+        tempV4.scale.x *= edgeLength; // todo add rotation to fit and fix sizes here
+        tempV4.scale.y *= edgeLength;
         tempV4.updateMatrix();
         mesh.setMatrixAt(i, tempV4.matrix);
         //   mesh.setColorAt(i, c);
@@ -53,7 +53,7 @@ export const HexTerrain: FC<Props> = ({ points, h3Index, lod }) => {
       mesh.instanceMatrix.needsUpdate = true;
       // mesh.instanceColor.needsUpdate = true;
     },
-    [points]
+    [points, tiles, edgeLength]
   );
 
   const { scale } = useSpring({
@@ -64,8 +64,10 @@ export const HexTerrain: FC<Props> = ({ points, h3Index, lod }) => {
   });
 
   useEffect(() => {
-    scale.start({ from: 0, to: 1 });
-  }, [scale]);
+    if (tiles) {
+      scale.start({ from: 0, to: 1 });
+    }
+  }, [tiles, scale]);
 
   useEffect(() => {
     generate(1);
