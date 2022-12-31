@@ -39,7 +39,7 @@ export const CanvasSetup = ({
       <Canvas
         style={{ height: '100vh' }}
         shadows
-        camera={{ position: cameraPosition, fov: cameraFov, far: 20000 }}
+        camera={{ position: cameraPosition, fov: cameraFov, far: 250000 }}
         {...restProps}
       >
         <Fragment>

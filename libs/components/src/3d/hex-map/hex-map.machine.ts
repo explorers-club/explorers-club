@@ -1,9 +1,8 @@
 import {
-  cellsToDirectedEdge,
   cellToLatLng,
   cellToParent,
-  gridDisk,
-  latLngToCell,
+  getResolution,
+  gridDisk
 } from 'h3-js';
 import { Camera, Vector3 } from 'three';
 import { ActorRefFrom, assign, createMachine, StateFrom } from 'xstate';
@@ -12,10 +11,8 @@ export type HexMapEvent = { type: 'CHANGE_RESOLUTION' };
 
 export type HexMapContext = {
   visibleChunks: string[];
-  currentIndex: string;
+  indexAtOrigin: string;
 };
-
-const INIT_POSITION = { lat: 19, lng: -155 };
 
 const resDistanceMap: Record<number, number> = {
   15: 2,
@@ -59,7 +56,7 @@ export const createHexMapMachine = (camera: Camera, indexAtOrigin: string) =>
     initial: 'Initializing',
     context: {
       visibleChunks: [],
-      currentIndex: indexAtOrigin,
+      indexAtOrigin,
     },
     schema: {
       context: {} as HexMapContext,
@@ -113,9 +110,20 @@ export const createHexMapMachine = (camera: Camera, indexAtOrigin: string) =>
             // }),
             actions: assign<HexMapContext, HexMapEvent>({
               visibleChunks: () => {
+                // const [lat, lng] = cellToLatLng(indexAtOrigin);
                 const [lat, lng] = cellToLatLng(indexAtOrigin);
 
-                console.log(lat, lng, camera.position);
+                const res = getResolution(indexAtOrigin);
+                const ancestor = cellToParent(indexAtOrigin, res - 4);
+
+                const toRender = gridDisk(ancestor, 3);
+
+                // const indexes = toRender.flatMap((value) => {
+
+                // })
+                // console.log(toRender);
+
+                // console.log(lat, lng, camera.position);
 
                 // const res = getTargetResolution(camera.position);
                 // const cell = latLngToCell(
@@ -126,7 +134,7 @@ export const createHexMapMachine = (camera: Camera, indexAtOrigin: string) =>
 
                 // const parent = cellToParent(cell, res - 3);
 
-                return [];
+                return toRender;
               },
             }),
             target: 'Initialized',

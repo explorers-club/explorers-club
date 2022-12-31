@@ -1,9 +1,9 @@
 import { router } from '../trpc';
 import { tileRouter } from './tiles';
 
-export const appRouter = router({
+export const apiRouter = router({
   tile: tileRouter,
 });
 
 // export type definition of API
-export type AppRouter = typeof appRouter;
+export type ApiRouter = typeof apiRouter;

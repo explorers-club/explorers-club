@@ -1,4 +1,10 @@
-import { cellToLatLng, gridDisk, latLngToCell } from 'h3-js';
+import {
+  cellToChildren,
+  cellToLatLng,
+  getResolution,
+  gridDisk,
+  latLngToCell,
+} from 'h3-js';
 import { z } from 'zod';
 import { publicProcedure, router } from '../trpc';
 import { createNoise2D } from 'simplex-noise';
@@ -6,6 +12,33 @@ import { createNoise2D } from 'simplex-noise';
 const noise2D = createNoise2D();
 
 export const tileRouter = router({
+  byIndex: publicProcedure
+    .input(
+      z.object({
+        h3Index: z.string(), // todo validate against h3 parse function
+        lod: z.number().min(1).max(4),
+        // limit: z.number().min(1).max(3000).default(3000),
+        // cursor: z.number().nullish(),
+      })
+    )
+    .query(({ input }) => {
+      const { h3Index, lod } = input;
+
+      const res = getResolution(h3Index);
+
+      const indexes = cellToChildren(h3Index, res + lod);
+
+      const tiles = indexes.map((h3Index) => {
+        const [lat, lng] = cellToLatLng(h3Index);
+        const elevation = noise2D(lat, lng);
+        // todo add terrain type here based off elevation
+        return { h3Index, lat, lng, elevation };
+      });
+
+      return {
+        tiles,
+      };
+    }),
   allCells: publicProcedure
     .input(
       z.object({
