@@ -10,9 +10,11 @@ import { GLTFResult } from './character.types';
 interface Props {
   gltf: GLTFResult;
   group: RefObject<THREE.Group>;
+  position: THREE.Vector3;
+  rotation: THREE.Euler;
 }
 
-export function Character({ gltf, group }: Props) {
+export function Character({ gltf, group, position, rotation }: Props) {
   const { nodes, materials } = gltf;
   // // const { nodes, materials, animations } = useGLTF(
   // //   './assets/character.glb'
@@ -22,7 +24,7 @@ export function Character({ gltf, group }: Props) {
   // };
 
   return (
-    <group ref={group} dispose={null}>
+    <group ref={group} dispose={null} position={position} rotation={rotation}>
       <group name="Scene">
         <group name="Armature" rotation={[Math.PI / 2, 0, 0]} scale={0.01}>
           <primitive object={nodes.mixamorigHips} />
