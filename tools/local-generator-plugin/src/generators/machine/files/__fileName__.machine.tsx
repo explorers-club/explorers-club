@@ -7,22 +7,20 @@ import {
 } from 'xstate';
 
 export interface <%= name %>Context {
-  hello: "world" as const
+  foobar: "string"
 }
 
-export interface <%= name %>Event {
-  type: "FOO"
-}
+export type <%= name %>Event = { type: "Foo" };
 
 export const <%= propertyName %>Machine = createMachine({
   id: '<%= name %>Machine',
-  initial: 'Loading',
+  initial: 'Idle',
   schema: {
     context: {} as <%= name %>Context,
     events: {} as <%= name %>Event,
   },
   states: {
-    Loading: {},
+    Idle: {},
   },
 });
 
