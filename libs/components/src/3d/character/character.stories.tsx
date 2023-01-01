@@ -1,3 +1,4 @@
+import { addons } from '@storybook/addons';
 import { Meta, Story } from '@storybook/react';
 import { withCanvasSetup } from '../__stories/CanvasSetup';
 import { Character } from './character.component';
@@ -7,6 +8,10 @@ export default {
   component: Character,
   decorators: [withCanvasSetup],
 } as Meta;
+
+addons.setConfig({
+  enableShortcuts: false,
+});
 
 export const ControlledCharacter: Story = () => {
   return <CharacterController />;

@@ -1,4 +1,4 @@
-import { Vector3 } from 'three';
+import { Euler, Quaternion, Vector3 } from 'three';
 import { ActorRefFrom, createMachine, StateFrom } from 'xstate';
 import { assign } from 'xstate/lib/actions';
 import { CharacterAnimationAction } from './character.types';
@@ -6,12 +6,16 @@ import { CharacterAnimationAction } from './character.types';
 type CharacterContext = {
   healthPoints: number;
   ammo: number;
+  velocity: THREE.Vector3;
   position: THREE.Vector3;
+  rotation: THREE.Euler;
 };
 
-type CharacterEventMove = { type: 'MOVE'; dx: number; dz: number };
+type CharacterEventMove = { type: 'MOVE'; velocity: THREE.Vector3 };
+type CharacterEventFrame = { type: 'FRAME'; timeDeltaS: number };
 type CharacterEvent =
   | CharacterEventMove
+  | CharacterEventFrame
   | { type: 'SHOOT' }
   | { type: 'IDLE' }
   | { type: 'TAKE_DAMAGE'; amount: number };
@@ -26,7 +30,9 @@ export const createCharacterMachine = (actions: CharacterAnimationAction) =>
     context: {
       healthPoints: 100,
       ammo: 10,
+      velocity: new Vector3(0, 0, 0),
       position: new Vector3(0, 0, 0),
+      rotation: new Euler(0, 0, 0),
     },
     type: 'parallel',
     states: {
@@ -45,12 +51,7 @@ export const createCharacterMachine = (actions: CharacterAnimationAction) =>
                 target: 'Running',
                 actions: [
                   assign<CharacterContext, CharacterEventMove>({
-                    position: (context, event) =>
-                      new Vector3(
-                        context.position.x + event.dx,
-                        context.position.y,
-                        context.position.z + event.dz
-                      ),
+                    velocity: (context, event) => event.velocity,
                   }),
                 ],
               },
@@ -62,6 +63,32 @@ export const createCharacterMachine = (actions: CharacterAnimationAction) =>
             },
             on: {
               IDLE: 'Idle',
+              FRAME: {
+                actions: [
+                  assign<CharacterContext, CharacterEventFrame>({
+                    position: (context, event) =>
+                      // Apply current velocity to current position
+                      new Vector3(
+                        context.position.x +
+                          context.velocity.x * event.timeDeltaS,
+                        context.position.y +
+                          context.velocity.y * event.timeDeltaS,
+                        context.position.z +
+                          context.velocity.z * event.timeDeltaS
+                      ),
+                    rotation: (context, _event) => {
+                      // Rotate to face current velocity
+                      const quaternion = new Quaternion();
+                      const vNormalized = context.velocity.clone().normalize();
+                      quaternion.setFromUnitVectors(
+                        new Vector3(0, 0, 1), // Character modeled facing +Z
+                        vNormalized
+                      );
+                      return new Euler().setFromQuaternion(quaternion);
+                    },
+                  }),
+                ],
+              },
             },
           },
           Shooting: {
