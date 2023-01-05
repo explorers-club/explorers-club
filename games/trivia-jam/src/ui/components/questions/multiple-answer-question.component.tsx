@@ -1,6 +1,7 @@
 import { Caption } from '@atoms/Caption';
 import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
+import { Text } from '@atoms/Text';
 import { IMultipleAnswerFields } from '@explorers-club/contentful-types';
 import { CheckboxCard } from '@molecules/CheckboxCard';
 import { FC, useCallback, useMemo, useRef } from 'react';
@@ -46,7 +47,7 @@ export const MultipleAnswerQuestionComponent: FC<Props> = ({
               onCheckedChange={handleCheckChange(answer)}
               key={answer}
             >
-              {answer}
+              <Text>{answer}</Text>
             </CheckboxCard>
           );
         })}
