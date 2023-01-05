@@ -1,17 +1,18 @@
 import { Avatar } from '@atoms/Avatar';
 import { Badge } from '@atoms/Badge';
+import { Box } from '@atoms/Box';
 import { Button } from '@atoms/Button';
 import { Caption } from '@atoms/Caption';
 import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
 import { IconButton } from '@atoms/IconButton';
+import { Text } from '@atoms/Text';
 import {
   ClubStore,
   TriviaJamConfigSerialized,
   useStoreSelector,
 } from '@explorers-club/room';
-import { GameRoomId } from '@explorers-club/schema';
 import { TriviaJamConfigurationScreen } from '@explorers-club/trivia-jam/configuration';
 import { GearIcon } from '@radix-ui/react-icons';
 import { useSelector } from '@xstate/react';
@@ -19,7 +20,6 @@ import { FC, useCallback, useContext, useEffect, useLayoutEffect } from 'react';
 import { NameForm } from '../../components/molecules/name-form';
 import { AppContext } from '../../state/app.context';
 import { AuthContext } from '../../state/auth.context';
-import { usePrevious } from '../../utils';
 import { colorBySlotNumber } from './club-tab.constants';
 import {
   selectGameConfig,
@@ -31,8 +31,7 @@ interface Props {
 }
 
 export const ClubTabComponent: FC<Props> = ({ store }) => {
-  const { modalActor, clubTabActor } =
-    useContext(AppContext);
+  const { modalActor, clubTabActor } = useContext(AppContext);
   const hostUserId = useStoreSelector(store, (store) => store.hostUserId);
   const { userId } = useContext(AuthContext);
   const isHost = hostUserId === userId;
@@ -92,6 +91,7 @@ export const ClubTabComponent: FC<Props> = ({ store }) => {
 
   return (
     <Flex css={{ p: '$3' }} direction="column" gap="2">
+      <DisconnectHandler store={store} />
       <Card css={{ p: '$3' }}>
         <Flex gap="3" direction="column">
           <Caption>Playing</Caption>
@@ -158,7 +158,41 @@ export const ClubTabComponent: FC<Props> = ({ store }) => {
   );
 };
 
-// const selectGameRoomId = (state: Game)
-//   const gameRoomId = useStoreSelector(store, (state) => state.gameRoomId);
+interface Props {
+  store: ClubStore;
+}
 
-// }
+const DisconnectHandler: FC<Props> = ({ store }) => {
+  const { modalActor, clubTabActor } = useContext(AppContext);
+  const isDisconnected = useSelector(clubTabActor, (state) =>
+    state.matches('Room.Disconnected')
+  );
+
+  const handlePressReconnect = useCallback(() => {
+    clubTabActor.send('RECONNECT');
+    modalActor.send('CLOSE');
+  }, [clubTabActor, modalActor]);
+
+  useEffect(() => {
+    if (isDisconnected) {
+      modalActor.send({
+        type: 'SHOW',
+        component: (
+          <Box css={{ p: '$3' }}>
+            <Card css={{ p: '$3' }}>
+              <Flex gap="3" direction="column">
+                <Caption>Oops!</Caption>
+                <Heading>You've been disconnected</Heading>
+                <Button size="3" onClick={handlePressReconnect}>
+                  Reconnect
+                </Button>
+              </Flex>
+            </Card>
+          </Box>
+        ),
+      });
+    }
+  }, [isDisconnected, modalActor, handlePressReconnect]);
+
+  return null;
+};

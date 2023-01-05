@@ -6,13 +6,14 @@ import { Logo } from '@atoms/Logo';
 import { GameRoomId } from '@explorers-club/schema';
 import { darkTheme } from '@explorers-club/styles';
 import {
-  NotificationsComponent, notificationsMachine
+  NotificationsComponent,
+  notificationsMachine,
 } from '@organisms/notifications';
 import { createTabBarMachine, TabBar } from '@organisms/tab-bar';
 import {
   Environment,
   OrbitControls,
-  useContextBridge
+  useContextBridge,
 } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { useInterpret, useSelector } from '@xstate/react';
@@ -23,12 +24,12 @@ import {
   Suspense,
   useContext,
   useEffect,
-  useState
+  useState,
 } from 'react';
 import { BottomSheet } from 'react-spring-bottom-sheet';
 import {
   defaultSnapProps,
-  SnapPointProps
+  SnapPointProps,
 } from 'react-spring-bottom-sheet/dist/types';
 import { ModalComponent, modalMachine } from '../components/organisms/modal';
 import { environment } from '../environments/environment';
@@ -72,7 +73,12 @@ export const AppComponent = () => {
 
   const clubName = getClubNameFromPath();
   const [clubTabMachine] = useState(
-    createClubTabMachine(colyseusClient, authContext.userId, clubName)
+    createClubTabMachine(
+      colyseusClient,
+      authContext.userId,
+      notificationsActor,
+      clubName
+    )
   );
   const clubTabActor = useInterpret(clubTabMachine);
 

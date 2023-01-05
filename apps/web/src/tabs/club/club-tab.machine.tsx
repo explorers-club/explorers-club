@@ -6,6 +6,7 @@ import {
 import { ClubRoomId, ClubRoomIdSchema } from '@explorers-club/schema';
 import { ClubState } from '@explorers-club/schema-types/ClubState';
 import { assertEventType } from '@explorers-club/utils';
+import { NotificationsActor } from '@organisms/notifications';
 import { TabMetadata } from '@organisms/tab-bar';
 import { HomeIcon } from '@radix-ui/react-icons';
 import { Client, Room } from 'colyseus.js';
@@ -16,7 +17,6 @@ import {
   DoneInvokeEvent,
   StateFrom,
 } from 'xstate';
-import { GameTabActor } from '../game';
 
 type ClubRoomStore = RoomStore<ClubState, ClubRoomCommand>;
 
@@ -29,11 +29,13 @@ type ClubTabEvent =
   | { type: 'CONNECT'; clubName: string }
   | { type: 'CONFIGURE' }
   | { type: 'ENTER_NAME'; playerName: string }
+  | { type: 'RECONNECT' }
   | { type: 'START_GAME' };
 
 export const createClubTabMachine = (
   colyseusClient: Client,
   userId: string, // todo pass in an actor here intead?
+  notificationsActor: NotificationsActor,
   clubName?: string
 ) =>
   createMachine(
@@ -137,6 +139,10 @@ export const createClubTabMachine = (
             },
             Connected: {
               initial: 'Uninitialized',
+              invoke: {
+                src: 'onDisconnect',
+                onDone: 'Disconnected',
+              },
               states: {
                 Uninitialized: {
                   always: [
@@ -167,6 +173,11 @@ export const createClubTabMachine = (
                     },
                   },
                 },
+              },
+            },
+            Disconnected: {
+              on: {
+                RECONNECT: 'Connecting',
               },
             },
             Error: {},
@@ -206,6 +217,13 @@ export const createClubTabMachine = (
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           const { players } = roomStore!.getSnapshot();
           return !players[userId];
+        },
+      },
+      services: {
+        onDisconnect: async () => {
+          return new Promise((resolve) => {
+            setTimeout(resolve, 1000);
+          });
         },
       },
       actions: {
