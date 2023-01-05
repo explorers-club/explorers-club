@@ -16,13 +16,13 @@ export const createRoomStore = <
   };
   room.onStateChange(handleOnStateChange);
 
-  const subscribe = (onStoreChange: () => void) => {
+  const subscribe = (onStoreChange: (state: SerializedSchema<TSchema>) => void) => {
     const handleOnStateChange = () => {
-      onStoreChange();
+      onStoreChange(state);
     };
     const emitter = room.onStateChange(handleOnStateChange);
 
-    onStoreChange();
+    onStoreChange(state);
     return () => emitter.remove(handleOnStateChange);
   };
 

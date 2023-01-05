@@ -31,7 +31,7 @@ interface Props {
 }
 
 export const ClubTabComponent: FC<Props> = ({ store }) => {
-  const { modalActor, clubTabActor, gameTabActor, tabBarActor } =
+  const { modalActor, clubTabActor } =
     useContext(AppContext);
   const hostUserId = useStoreSelector(store, (store) => store.hostUserId);
   const { userId } = useContext(AuthContext);
@@ -42,18 +42,6 @@ export const ClubTabComponent: FC<Props> = ({ store }) => {
   const needsNameInput = useSelector(clubTabActor, (state) =>
     state.matches('Room.Connected.EnteringName')
   );
-  const gameRoomId = useStoreSelector(store, (state) => state.gameRoomId);
-  const prevGameRoomId = usePrevious(gameRoomId);
-
-  useEffect(() => {
-    if (gameRoomId && gameRoomId !== prevGameRoomId) {
-      gameTabActor.send({
-        type: 'CONNECT',
-        roomId: gameRoomId as GameRoomId,
-      });
-      tabBarActor.send({ type: 'NAVIGATE', tab: 'Game' });
-    }
-  }, [gameTabActor, tabBarActor, gameRoomId, prevGameRoomId]);
 
   const handleSubmitConfig = useCallback(
     (data: TriviaJamConfigSerialized) => {

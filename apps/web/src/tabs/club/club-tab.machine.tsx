@@ -16,6 +16,7 @@ import {
   DoneInvokeEvent,
   StateFrom,
 } from 'xstate';
+import { GameTabActor } from '../game';
 
 type ClubRoomStore = RoomStore<ClubState, ClubRoomCommand>;
 

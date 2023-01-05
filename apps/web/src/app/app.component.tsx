@@ -3,26 +3,34 @@ import { SunsetSky } from '@3d/sky';
 import { Treehouse } from '@3d/treehouse';
 import { Box } from '@atoms/Box';
 import { Logo } from '@atoms/Logo';
+import { GameRoomId } from '@explorers-club/schema';
 import { darkTheme } from '@explorers-club/styles';
-import { createTabBarMachine, TabBar } from '@organisms/tab-bar';
 import {
-  notificationsMachine,
-  NotificationsComponent,
+  NotificationsComponent, notificationsMachine
 } from '@organisms/notifications';
+import { createTabBarMachine, TabBar } from '@organisms/tab-bar';
 import {
   Environment,
   OrbitControls,
-  useContextBridge,
+  useContextBridge
 } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { useInterpret, useSelector } from '@xstate/react';
 import * as Colyseus from 'colyseus.js';
-import { FC, ReactElement, Suspense, useContext, useState } from 'react';
+import {
+  FC,
+  ReactElement,
+  Suspense,
+  useContext,
+  useEffect,
+  useState
+} from 'react';
 import { BottomSheet } from 'react-spring-bottom-sheet';
 import {
   defaultSnapProps,
-  SnapPointProps,
+  SnapPointProps
 } from 'react-spring-bottom-sheet/dist/types';
+import { ModalComponent, modalMachine } from '../components/organisms/modal';
 import { environment } from '../environments/environment';
 import { AppContext } from '../state/app.context';
 import { AuthContext } from '../state/auth.context';
@@ -32,7 +40,6 @@ import { createGameTabMachine, GameTab } from '../tabs/game';
 import { createLobbyTabMachine, LobbyTab } from '../tabs/lobby';
 import { createProfileTabMachine, ProfileTab } from '../tabs/profile';
 import { getClubNameFromPath } from '../utils';
-import { modalMachine, ModalComponent } from '../components/organisms/modal';
 
 const DEFAULT_SNAP_POINTS = ({ minHeight }: SnapPointProps) => [
   minHeight /* height of child contents (will go to full screen then scroll) */,
@@ -111,6 +118,7 @@ export const AppComponent = () => {
         modalActor,
       }}
     >
+      <NavigationHelper />
       <Box
         css={{
           position: 'absolute',
@@ -185,4 +193,28 @@ const SceneContainer: FC<SceneContainerProps> = ({ children }) => {
       </Canvas>
     </Box>
   );
+};
+
+// Unrendered component that helps run navigation related
+// business logic
+const NavigationHelper = () => {
+  const { clubTabActor, gameTabActor, tabBarActor } = useContext(AppContext);
+
+  useEffect(() => {
+    clubTabActor.subscribe(({ context }) => {
+      let currentGameRoomId: string;
+      context.roomStore?.subscribe(({ gameRoomId }) => {
+        if (!currentGameRoomId) {
+          currentGameRoomId = gameRoomId;
+          gameTabActor.send({
+            type: 'CONNECT',
+            roomId: gameRoomId as GameRoomId,
+          });
+          tabBarActor.send({ type: 'NAVIGATE', tab: 'Game' });
+        }
+      });
+    });
+  }, [gameTabActor, clubTabActor, tabBarActor]);
+
+  return null;
 };
