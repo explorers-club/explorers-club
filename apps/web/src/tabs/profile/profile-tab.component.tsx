@@ -10,7 +10,7 @@ interface Props {
 
 export const ProfileTabComponent: FC<Props> = ({ actor }) => {
   return (
-    <Flex direction="column">
+    <Flex direction="column" css={{ p: '$3' }}>
       <Card css={{ p: '$3' }}>
         <Caption>Profile</Caption>
       </Card>
