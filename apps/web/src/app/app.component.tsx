@@ -40,6 +40,7 @@ import { createGameTabMachine, GameTab } from '../tabs/game';
 import { createLobbyTabMachine, LobbyTab } from '../tabs/lobby';
 import { createProfileTabMachine, ProfileTab } from '../tabs/profile';
 import { getClubNameFromPath } from '../utils';
+import { NavigationHelper } from './navigation-helper.component';
 
 const DEFAULT_SNAP_POINTS = ({ minHeight }: SnapPointProps) => [
   minHeight /* height of child contents (will go to full screen then scroll) */,
@@ -193,28 +194,4 @@ const SceneContainer: FC<SceneContainerProps> = ({ children }) => {
       </Canvas>
     </Box>
   );
-};
-
-// Unrendered component that helps run navigation related
-// business logic
-const NavigationHelper = () => {
-  const { clubTabActor, gameTabActor, tabBarActor } = useContext(AppContext);
-
-  useEffect(() => {
-    clubTabActor.subscribe(({ context }) => {
-      let currentGameRoomId: string;
-      context.roomStore?.subscribe(({ gameRoomId }) => {
-        if (!currentGameRoomId) {
-          currentGameRoomId = gameRoomId;
-          gameTabActor.send({
-            type: 'CONNECT',
-            roomId: gameRoomId as GameRoomId,
-          });
-          tabBarActor.send({ type: 'NAVIGATE', tab: 'Game' });
-        }
-      });
-    });
-  }, [gameTabActor, clubTabActor, tabBarActor]);
-
-  return null;
 };
