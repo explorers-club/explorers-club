@@ -36,20 +36,28 @@ export class ClubRoom extends Room<ClubState> {
     this.config = config;
 
     // Initialize open spots
-    this.openSlots = Array(config.maxPlayers)
+    this.openSlots = Array(config.maxPlayers - 1)
       .fill(0)
-      .map((_, i) => i + 1);
+      .map((_, i) => i + 2);
+    const clubName = this.roomId.replace('club-', '');
 
     // Set up initialize state ane metadata
     const metadata: ClubMetadata = {
-      clubName: this.roomId.replace('club-', ''),
+      clubName,
     };
     this.setMetadata(metadata);
+
+    const hostPlayer = new ClubPlayer();
+    hostPlayer.name = clubName;
+    hostPlayer.userId = userId;
+    hostPlayer.slotNumber = 1;
+    hostPlayer.connected = true;
 
     const state = new ClubState();
     state.hostUserId = userId;
     state.selectedGame = 'trivia_jam';
     state.configDataSerialized = JSON.stringify(config.toJSON());
+    state.players.set(userId, hostPlayer);
     this.setState(state);
 
     // TODO pull the message handlers in to server state machine
@@ -108,7 +116,6 @@ export class ClubRoom extends Room<ClubState> {
 
       this.clients.forEach((client, index) => {
         client.send('RESERVED_GAME_SEAT', reservations[index]);
-        console.log('RSG');
       });
 
       this.state = this.state.assign({

@@ -13,7 +13,6 @@ export const NotificationsComponent: FC<Props> = ({ actor }) => {
     actor,
     (state) => state.context.notifications
   );
-  console.log(notifications);
 
   return (
     <Flex direction="column">

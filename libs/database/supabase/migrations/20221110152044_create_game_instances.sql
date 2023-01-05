@@ -3,6 +3,30 @@
 -- and may require manual changes to the script to ensure changes are applied in the correct order.
 -- Please report an issue for any failure with the reproduction steps.
 
+CREATE TABLE IF NOT EXISTS public.games
+(
+    id character varying COLLATE pg_catalog."default" NOT NULL,
+    name character varying COLLATE pg_catalog."default" NOT NULL,
+    created_at timestamp with time zone NOT NULL DEFAULT now(),
+    CONSTRAINT games_pkey PRIMARY KEY (id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.games
+    OWNER to postgres;
+
+GRANT ALL ON TABLE public.games TO anon;
+
+GRANT ALL ON TABLE public.games TO authenticated;
+
+GRANT ALL ON TABLE public.games TO postgres;
+
+GRANT ALL ON TABLE public.games TO service_role;
+
+COMMENT ON TABLE public.games
+    IS 'List of games available on Explorers Club';
+
 CREATE TABLE IF NOT EXISTS public.game_instances
 (
     id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -41,27 +65,3 @@ GRANT ALL ON TABLE public.game_instances TO service_role;
 
 COMMENT ON TABLE public.game_instances
     IS 'Holds information about an instance of game can be played';
-
-CREATE TABLE IF NOT EXISTS public.games
-(
-    id character varying COLLATE pg_catalog."default" NOT NULL,
-    name character varying COLLATE pg_catalog."default" NOT NULL,
-    created_at timestamp with time zone NOT NULL DEFAULT now(),
-    CONSTRAINT games_pkey PRIMARY KEY (id)
-)
-
-TABLESPACE pg_default;
-
-ALTER TABLE IF EXISTS public.games
-    OWNER to postgres;
-
-GRANT ALL ON TABLE public.games TO anon;
-
-GRANT ALL ON TABLE public.games TO authenticated;
-
-GRANT ALL ON TABLE public.games TO postgres;
-
-GRANT ALL ON TABLE public.games TO service_role;
-
-COMMENT ON TABLE public.games
-    IS 'List of games available on Explorers Club';

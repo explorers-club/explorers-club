@@ -1,5 +1,5 @@
 import { ActorRefFrom, assign, createMachine, spawn, StateFrom } from 'xstate';
-import { NotificationOptions } from './notfications.types';
+import { NotificationOptions } from './notifications.types';
 import {
   createNotificationItemMachine,
   NotificationItemActor,
@@ -35,6 +35,7 @@ export const notificationsMachine = createMachine({
       },
     },
   },
+  predictableActionArguments: true,
 });
 
 export type NotificationsMachine = typeof notificationsMachine;

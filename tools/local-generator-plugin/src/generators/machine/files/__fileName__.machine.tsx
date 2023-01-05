@@ -1,13 +1,7 @@
-import {
-  ActorRefFrom,
-  ContextFrom,
-  createMachine,
-  EventFrom,
-  StateFrom,
-} from 'xstate';
+import { createMachine } from 'xstate';
 
 export interface <%= name %>Context {
-  foobar: "string"
+  hello: string
 }
 
 export type <%= name %>Event = { type: "Foo" };

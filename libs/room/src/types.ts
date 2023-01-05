@@ -10,6 +10,7 @@ import { ClubState } from '@explorers-club/schema-types/ClubState';
 import { TriviaJamConfig } from '@explorers-club/schema-types/TriviaJamConfig';
 import { TriviaJamPlayer } from '@explorers-club/schema-types/TriviaJamPlayer';
 import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
+import { DiffusionaryState } from '@explorers-club/schema-types/DiffusionaryState';
 
 // From a prop in colyseus schema, return the serialized
 // version of it so that we can call toJSON() and type it.
@@ -89,6 +90,12 @@ export type TriviaJamStateSerialized = SerializedSchema<TriviaJamState>;
 export type TriviaJamConfigSerialized = SerializedSchema<TriviaJamConfig>;
 export type TriviaJamPlayerSerialized = SerializedSchema<TriviaJamPlayer>;
 
+export type DiffusionaryCommand = ContinueCommand;
+export type DiffusionaryStore = RoomStore<
+  DiffusionaryState,
+  DiffusionaryCommand
+>;
+
 export type GameConfig = {
   type: 'trivia_jam';
   data: TriviaJamConfigSerialized;
@@ -100,6 +107,8 @@ export const CLUB_ROOM_SELECT_GAME = 'SELECT_GAME';
 export const CLUB_ROOM_SET_GAME_CONFIG = 'SET_GAME_CONFIG';
 export const CLUB_ROOM_START_GAME = 'START_GAME';
 
+export type GameId = 'diffusionary' | 'trivia_jam';
+
 export type ClubRoomEnterNameCommand = {
   type: typeof CLUB_ROOM_ENTER_NAME;
   playerName: string;
@@ -107,7 +116,7 @@ export type ClubRoomEnterNameCommand = {
 
 export type ClubRoomSelectGameCommand = {
   type: typeof CLUB_ROOM_SELECT_GAME;
-  gameId: 'diffusionary' | 'trivia_jam';
+  gameId: GameId;
 };
 
 export type ClubRoomSetGameConfigCommand = {

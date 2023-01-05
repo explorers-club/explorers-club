@@ -221,12 +221,14 @@ const scoreMultipleAnswer = (
   fields: IMultipleAnswerFields,
   response: string[]
 ) => {
-  const matchedCorrectAnswers = fields.correctAnswers.filter((answer) => {
-    return response.includes(answer);
-  }).length;
-  const matchedIncorrectAnswers = fields.incorrectAnswers.filter((answer) => {
-    return !response.includes(answer);
-  }).length;
+  const matchedCorrectAnswers =
+    fields.correctAnswers?.filter((answer) => {
+      return response.includes(answer);
+    }).length || 0;
+  const matchedIncorrectAnswers =
+    fields.incorrectAnswers?.filter((answer) => {
+      return !response.includes(answer);
+    }).length || 0;
   return matchedCorrectAnswers + matchedIncorrectAnswers;
 };
 

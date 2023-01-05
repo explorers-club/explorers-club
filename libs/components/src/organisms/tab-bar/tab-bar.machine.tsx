@@ -1,25 +1,47 @@
 import { ReactNode } from 'react';
-import { ActorRefFrom, assign, createMachine, spawn, StateFrom } from 'xstate';
-import { TabBarItemActor, tabBarItemMachine } from './tab-bar-item.machine';
+import {
+  ActorRefFrom,
+  AnyActorRef,
+  assign,
+  createMachine,
+  StateFrom,
+} from 'xstate';
 import { TabName } from './tab-bar.types';
 
-interface TabBarContext {
-  tabs: Partial<Record<TabName, TabBarItemActor>>;
-  currentTab: TabName;
-}
+type TabConfig = Record<
+  TabName,
+  {
+    name: TabName;
+    actor: AnyActorRef;
+    Component: ReactNode;
+  }
+>;
+
+type TabBarContext = {
+  tabs: Partial<TabConfig>;
+  current: TabName;
+};
 
 type TabBarEvent = {
-  type: 'OPEN';
+  type: 'NAVIGATE';
   tab: TabName;
 };
 
-type TabComponents = Record<TabName, ReactNode>;
+export const createTabBarMachine = (tabs: Partial<TabConfig>) => {
+  // get the first visual tab to determine
+  let initialTab: TabName | undefined;
+  Object.entries(tabs).forEach(([, { name, actor }]) => {
+    if (!initialTab && actor.getSnapshot().matches('Tab.Visible')) {
+      initialTab = name;
+    }
+  });
 
-export const createTabBarMachine = (
-  components: TabComponents,
-  initialTabs: TabName[]
-) =>
-  createMachine(
+  if (!initialTab) {
+    console.warn("warning couldn't find inital tab, default to Lobby");
+    initialTab = 'Lobby';
+  }
+
+  return createMachine(
     {
       id: 'TabBarMachine',
       initial: 'Idle',
@@ -28,23 +50,14 @@ export const createTabBarMachine = (
         events: {} as TabBarEvent,
       },
       context: {
-        currentTab: initialTabs[0],
-        tabs: (() => {
-          const tabs: Partial<Record<TabName, TabBarItemActor>> = {};
-          initialTabs.forEach((tab) => {
-            const component = components[tab];
-            tabs[tab] = spawn(
-              tabBarItemMachine.withContext({ component, tab })
-            );
-          });
-          return tabs;
-        })(),
+        tabs,
+        current: initialTab,
       },
       states: {
         Idle: {
           on: {
-            OPEN: {
-              actions: ['setCurrentTab', 'spawnCurrentTab'],
+            NAVIGATE: {
+              actions: 'setCurrentTab',
             },
           },
         },
@@ -53,25 +66,12 @@ export const createTabBarMachine = (
     {
       actions: {
         setCurrentTab: assign<TabBarContext, TabBarEvent>({
-          currentTab: (_, event) => event.tab,
-        }),
-        spawnCurrentTab: assign<TabBarContext, TabBarEvent>({
-          tabs: ({ tabs, currentTab }) => {
-            if (!tabs[currentTab]) {
-              const component = components[currentTab];
-              return {
-                ...tabs,
-                [currentTab]: spawn(
-                  tabBarItemMachine.withContext({ component })
-                ),
-              };
-            }
-            return tabs;
-          },
+          current: (_, event) => event.tab,
         }),
       },
     }
   );
+};
 
 export type TabBarMachine = ReturnType<typeof createTabBarMachine>;
 export type TabBarActor = ActorRefFrom<TabBarMachine>;

@@ -1,5 +1,5 @@
 import { ActorRefFrom, createMachine, StateFrom } from 'xstate';
-import { NotificationOptions } from './notfications.types';
+import { NotificationOptions } from './notifications.types';
 
 export interface NotificationItemContext {
   options: NotificationOptions;

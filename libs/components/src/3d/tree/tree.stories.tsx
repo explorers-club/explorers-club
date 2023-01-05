@@ -1,11 +1,9 @@
 import { Meta } from '@storybook/react';
-import { Vector3 } from 'three';
 import { CanvasSetup } from '../__stories/CanvasSetup';
-import { Tree } from './tree.component';
-import { PalmTreeModel } from './palm-tree-model.component';
+import { TreeModel } from './tree.component';
 
 export default {
-  component: Tree,
+  component: TreeModel,
   decorators: [
     (Story) => (
       <CanvasSetup>
@@ -16,9 +14,5 @@ export default {
 } as Meta;
 
 export const Default = () => {
-  return <Tree />;
-};
-
-export const PalmTree = () => {
-  return <PalmTreeModel />;
+  return <TreeModel />;
 };

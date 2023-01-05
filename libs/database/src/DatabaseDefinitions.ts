@@ -13,26 +13,29 @@ export interface Database {
         Row: {
           host_user_id: string
           game_id: string | null
-          id: string
           starting_at: string | null
           started_at: string | null
+          id: string
           created_at: string | null
+          is_listable: boolean
         }
         Insert: {
           host_user_id: string
           game_id?: string | null
-          id?: string
           starting_at?: string | null
           started_at?: string | null
+          id?: string
           created_at?: string | null
+          is_listable?: boolean
         }
         Update: {
           host_user_id?: string
           game_id?: string | null
-          id?: string
           starting_at?: string | null
           started_at?: string | null
+          id?: string
           created_at?: string | null
+          is_listable?: boolean
         }
       }
       games: {

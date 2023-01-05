@@ -1,31 +1,37 @@
-import { useSelector } from '@xstate/react';
-import { FC } from 'react';
-import { Flex } from '../../atoms/Flex';
-import { TabBarActor } from './tab-bar.machine';
 import * as Tabs from '@radix-ui/react-tabs';
-import { TabBarItemComponent } from './tab-bar-item.component';
+import { useSelector } from '@xstate/react';
+import { FC, useCallback } from 'react';
+import { Flex } from '../../atoms/Flex';
+import { TabBarItem } from './tab-bar-item.component';
+import { TabBarActor } from './tab-bar.machine';
+import { TabName } from './tab-bar.types';
 
 interface Props {
   actor: TabBarActor;
 }
 
-export const TabBarComponent: FC<Props> = ({ actor }) => {
+export const TabBar: FC<Props> = ({ actor }) => {
   const tabs = useSelector(actor, (state) => state.context.tabs);
-  const currentTab = useSelector(actor, (state) => state.context.currentTab);
+  const currentTab = useSelector(actor, (state) => state.context.current);
+
+  // Handles navigations from Tabs.Trigger in children
+  const handleChange = useCallback(
+    (tab: string) => {
+      actor.send({ type: 'NAVIGATE', tab: tab as TabName });
+    },
+    [actor]
+  );
 
   return (
-    <Tabs.Root defaultValue={currentTab}>
+    <Tabs.Root value={currentTab} onValueChange={handleChange}>
       <Tabs.List>
-        {Object.entries(tabs).map(([tab, actor]) => (
-          <TabBarItemComponent key={tab} actor={actor} />
-        ))}
+        <Flex direction="rowReverse" gap="2" css={{ p: '$3' }}>
+          {Object.entries(tabs).map(([tab, { actor }]) => {
+            return <TabBarItem key={tab} actor={actor} name={tab as TabName} />;
+          })}
+        </Flex>
       </Tabs.List>
-      {Object.entries(tabs).map(([tab, actorRef]) => {
-        const Component = actorRef.getSnapshot()?.context.component;
-        if (!Component) {
-          console.warn('couldnt find component for ', tab);
-          return null;
-        }
+      {Object.entries(tabs).map(([tab, { Component }]) => {
         return (
           <Tabs.Content key={tab} value={tab}>
             {Component}

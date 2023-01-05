@@ -1,9 +1,8 @@
-import { ReactNode } from 'react';
-import { ActorRefFrom, createMachine, StateFrom } from 'xstate';
+import { ActorRefFrom, AnyActorRef, createMachine, StateFrom } from 'xstate';
 import { TabName } from './tab-bar.types';
 
 export type TabBarItemContext = {
-  component: ReactNode;
+  service: AnyActorRef;
   tab: TabName;
 };
 

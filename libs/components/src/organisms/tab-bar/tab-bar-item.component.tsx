@@ -1,14 +1,30 @@
 import * as Tabs from '@radix-ui/react-tabs';
 import { useSelector } from '@xstate/react';
-import { FC } from 'react';
-import { TabBarItemActor } from './tab-bar-item.machine';
+import { FC, useCallback } from 'react';
+import { AnyActorRef } from 'xstate';
+import { Button } from '../../atoms/Button';
+import { TabMetadata, TabName } from './tab-bar.types';
 
 interface Props {
-  actor: TabBarItemActor;
+  actor: AnyActorRef;
+  name: TabName;
 }
 
-export const TabBarItemComponent: FC<Props> = ({ actor }) => {
-  const tab = useSelector(actor, (state) => state.context.tab);
+export const TabBarItem: FC<Props> = ({ actor, name }) => {
+  const isVisible = useSelector(actor, (state) => state.matches('Tab.Visible'));
+  const meta = useSelector(
+    actor,
+    (state) =>
+      Object.assign({}, ...Object.values(state.meta)) as Partial<TabMetadata>
+  );
 
-  return <Tabs.Trigger value={tab}>{tab}</Tabs.Trigger>;
+  if (!isVisible) {
+    return null;
+  }
+
+  return (
+    <Tabs.Trigger value={name}>
+      {meta.icon ? meta.icon : meta.displayName}
+    </Tabs.Trigger>
+  );
 };
