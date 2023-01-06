@@ -32,7 +32,6 @@ export const ClubTabComponent: FC<Props> = ({ store }) => {
     state.matches('Room.Connected.EnteringName')
   );
 
-
   const onSubmitName = useCallback(
     (playerName: string) => {
       clubTabActor.send({ type: 'ENTER_NAME', playerName });

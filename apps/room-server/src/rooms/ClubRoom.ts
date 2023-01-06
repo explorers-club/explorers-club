@@ -1,7 +1,9 @@
 import {
   ClubRoomEnterNameCommand,
+  ClubRoomSelectGameCommand,
   ClubRoomSetGameConfigCommand,
   CLUB_ROOM_ENTER_NAME,
+  CLUB_ROOM_SELECT_GAME,
   CLUB_ROOM_SET_GAME_CONFIG,
   CLUB_ROOM_START_GAME,
 } from '@explorers-club/room';
@@ -83,9 +85,19 @@ export class ClubRoom extends Room<ClubState> {
     );
     this.onMessage(
       CLUB_ROOM_SET_GAME_CONFIG,
-      async (client, command: ClubRoomSetGameConfigCommand) => {
+      async (_, command: ClubRoomSetGameConfigCommand) => {
         this.state = this.state.assign({
           configDataSerialized: JSON.stringify(command.config.data),
+        });
+        // todo if maxPLayers changed then might need to do something
+        // to make the game not startable, or lock lobby from being joinable.
+      }
+    );
+    this.onMessage(
+      CLUB_ROOM_SELECT_GAME,
+      async (_, { gameId }: ClubRoomSelectGameCommand) => {
+        this.state = this.state.assign({
+          selectedGame: gameId,
         });
         // todo if maxPLayers changed then might need to do something
         // to make the game not startable, or lock lobby from being joinable.

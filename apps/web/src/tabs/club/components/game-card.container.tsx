@@ -5,7 +5,7 @@ import {
 } from '@explorers-club/room';
 import { TriviaJamConfigurationScreen } from '@explorers-club/trivia-jam/configuration';
 import { useSelector } from '@xstate/react';
-import { FC, useCallback, useContext } from 'react';
+import { FC, ReactNode, useCallback, useContext } from 'react';
 import { AppContext } from '../../../state/app.context';
 import { AuthContext } from '../../../state/auth.context';
 import { GameCardComponent } from './game-card.component';
@@ -17,18 +17,21 @@ interface Props {
 
 const TRIVIA_JAM_CONFIG = {
   name: 'Trivia Jam',
-  configuration: TriviaJamConfigurationScreen,
-} as const;
+};
 
 const DIFFUSIONARY_CONFIG = {
   name: 'Diffusionary',
-  configuration: TriviaJamConfigurationScreen, // todo swap for diffusionary
-} as const;
+};
 
-const GAMES_CONFIG = {
+interface GameCardConfig {
+  name: string;
+  ConfigComponent?: ReactNode;
+}
+
+const GAMES_CONFIG: Record<GameId, GameCardConfig> = {
   trivia_jam: TRIVIA_JAM_CONFIG,
   diffusionary: DIFFUSIONARY_CONFIG,
-} as const;
+};
 
 export const GameCard: FC<Props> = ({ gameId }) => {
   const { modalActor, clubTabActor } = useContext(AppContext);
@@ -39,7 +42,7 @@ export const GameCard: FC<Props> = ({ gameId }) => {
   const { userId } = useContext(AuthContext);
   const isHost = hostUserId === userId;
 
-  const { name, configuration } = GAMES_CONFIG[gameId];
+  const { name } = GAMES_CONFIG[gameId];
 
   const handleSubmitConfig = useCallback(
     (data: TriviaJamConfigSerialized) => {
