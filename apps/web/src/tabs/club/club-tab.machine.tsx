@@ -160,8 +160,8 @@ export const createClubTabMachine = (
                 Idle: {
                   on: {
                     START_GAME: {
-                      actions: () => {
-                        console.log('game');
+                      actions: ({ store }, event) => {
+                        store?.send(event);
                       },
                     },
                   },
@@ -191,12 +191,10 @@ export const createClubTabMachine = (
                   if (!sessionId) {
                     throw new Error('couldnt find session id for reconnect');
                   }
-                  console.log('reconnecting');
                   const res = await colyseusClient.reconnect(
                     clubRoomId,
                     sessionId
                   );
-                  console.log('e', res);
                 },
                 onDone: 'Connected',
                 onError: 'Error',

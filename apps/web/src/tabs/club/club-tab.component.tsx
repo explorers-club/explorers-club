@@ -1,18 +1,14 @@
 import { Avatar } from '@atoms/Avatar';
 import { Badge } from '@atoms/Badge';
-import { Button } from '@atoms/Button';
 import { Caption } from '@atoms/Caption';
 import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
-import { IconButton } from '@atoms/IconButton';
 import {
   ClubStore,
   TriviaJamConfigSerialized,
   useStoreSelector
 } from '@explorers-club/room';
-import { TriviaJamConfigurationScreen } from '@explorers-club/trivia-jam/configuration';
-import { GearIcon } from '@radix-ui/react-icons';
 import { useSelector } from '@xstate/react';
 import { FC, useCallback, useContext, useLayoutEffect } from 'react';
 import { NameForm } from '../../components/molecules/name-form';
@@ -23,6 +19,7 @@ import {
   selectGameConfig,
   selectPlayerBySlotNumber
 } from './club-tab.selectors';
+import { GameCarousel } from './components/game-carousel.component';
 
 interface Props {
   store: ClubStore;
@@ -54,18 +51,6 @@ export const ClubTabComponent: FC<Props> = ({ store }) => {
     [store, modalActor]
   );
 
-  const handlePressConfigure = useCallback(() => {
-    modalActor.send({
-      type: 'SHOW',
-      component: (
-        <TriviaJamConfigurationScreen
-          initialConfig={gameConfig.data}
-          onSubmitConfig={handleSubmitConfig}
-        />
-      ),
-    });
-  }, [modalActor, gameConfig, handleSubmitConfig]);
-
   const onSubmitName = useCallback(
     (playerName: string) => {
       clubTabActor.send({ type: 'ENTER_NAME', playerName });
@@ -83,35 +68,10 @@ export const ClubTabComponent: FC<Props> = ({ store }) => {
     }
   }, [modalActor, onSubmitName, needsNameInput]);
 
-  const handlePressStart = useCallback(() => {
-    store.send({ type: 'START_GAME' });
-  }, [store]);
-
   return (
     <Flex css={{ p: '$3' }} direction="column" gap="2">
-      <Card css={{ p: '$3' }}>
-        <Flex gap="3" direction="column">
-          <Caption>Playing</Caption>
-          <Heading>Trivia Jam</Heading>
-          <Flex>
-            <Badge>Waiting To Start</Badge>
-          </Flex>
-          {isHost && (
-            <Flex gap="2">
-              <Button
-                size="3"
-                color="primary"
-                onClick={handlePressStart}
-                css={{ flex: '1' }}
-              >
-                Start
-              </Button>
-              <IconButton size="3" onClick={handlePressConfigure}>
-                <GearIcon />
-              </IconButton>
-            </Flex>
-          )}
-        </Flex>
+      <Card>
+        <GameCarousel />
       </Card>
       <Card css={{ p: '$3' }}>
         <Flex direction="column" gap="3">
@@ -154,4 +114,3 @@ export const ClubTabComponent: FC<Props> = ({ store }) => {
     </Flex>
   );
 };
-
