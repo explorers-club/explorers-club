@@ -5,15 +5,12 @@ import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
 import {
-  ClubStore,
-  TriviaJamConfigSerialized,
-  useStoreSelector
+  ClubStore, useStoreSelector
 } from '@explorers-club/room';
 import { useSelector } from '@xstate/react';
 import { FC, useCallback, useContext, useLayoutEffect } from 'react';
 import { NameForm } from '../../components/molecules/name-form';
 import { AppContext } from '../../state/app.context';
-import { AuthContext } from '../../state/auth.context';
 import { colorBySlotNumber } from './club-tab.constants';
 import {
   selectGameConfig,
@@ -28,8 +25,6 @@ interface Props {
 export const ClubTabComponent: FC<Props> = ({ store }) => {
   const { modalActor, clubTabActor } = useContext(AppContext);
   const hostUserId = useStoreSelector(store, (store) => store.hostUserId);
-  const { userId } = useContext(AuthContext);
-  const isHost = hostUserId === userId;
   const playersBySlotNumber = useStoreSelector(store, selectPlayerBySlotNumber);
   const gameConfig = useStoreSelector(store, selectGameConfig);
   const { maxPlayers } = gameConfig.data;
@@ -37,19 +32,6 @@ export const ClubTabComponent: FC<Props> = ({ store }) => {
     state.matches('Room.Connected.EnteringName')
   );
 
-  const handleSubmitConfig = useCallback(
-    (data: TriviaJamConfigSerialized) => {
-      store.send({
-        type: 'SET_GAME_CONFIG',
-        config: {
-          type: 'trivia_jam',
-          data,
-        },
-      });
-      modalActor.send('CLOSE');
-    },
-    [store, modalActor]
-  );
 
   const onSubmitName = useCallback(
     (playerName: string) => {
