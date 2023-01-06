@@ -10,7 +10,7 @@ export const NavigationHelper = () => {
   useEffect(() => {
     clubTabActor.subscribe(({ context }) => {
       let currentGameRoomId: string;
-      context.roomStore?.subscribe(({ gameRoomId }) => {
+      context.store?.subscribe(({ gameRoomId }) => {
         if (gameRoomId && !currentGameRoomId) {
           currentGameRoomId = gameRoomId;
           gameTabActor.send({

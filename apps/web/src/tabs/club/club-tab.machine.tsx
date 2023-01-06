@@ -21,8 +21,9 @@ import {
 type ClubRoomStore = RoomStore<ClubState, ClubRoomCommand>;
 
 export interface ClubTabContext {
-  roomStore?: ClubRoomStore;
+  store?: ClubRoomStore;
   clubName?: string;
+  room?: Room<ClubState>;
 }
 
 type ClubTabEvent =
@@ -30,6 +31,7 @@ type ClubTabEvent =
   | { type: 'CONFIGURE' }
   | { type: 'ENTER_NAME'; playerName: string }
   | { type: 'RECONNECT' }
+  | { type: 'RETRY' }
   | { type: 'START_GAME' };
 
 export const createClubTabMachine = (
@@ -37,8 +39,10 @@ export const createClubTabMachine = (
   userId: string, // todo pass in an actor here intead?
   notificationsActor: NotificationsActor,
   clubName?: string
-) =>
-  createMachine(
+) => {
+  const clubRoomId: ClubRoomId = `club-${clubName}`;
+
+  return createMachine(
     {
       id: 'ClubTabMachine',
       type: 'parallel',
@@ -75,7 +79,6 @@ export const createClubTabMachine = (
                   const clubRoomIds = clubRooms.map((room) =>
                     ClubRoomIdSchema.parse(room.roomId)
                   );
-                  const clubRoomId: ClubRoomId = `club-${clubName}`;
 
                   if (clubRoomIds.includes(clubRoomId)) {
                     const sessionId = localStorage.getItem(clubRoomId);
@@ -123,15 +126,16 @@ export const createClubTabMachine = (
                     room.onStateChange.once(resolve)
                   );
 
-                  return store;
+                  return [store, room];
                 },
                 onDone: {
                   target: 'Connected',
                   actions: assign<
                     ClubTabContext,
-                    DoneInvokeEvent<ClubRoomStore>
+                    DoneInvokeEvent<[ClubRoomStore, Room<ClubState>]>
                   >({
-                    roomStore: (_, { data }) => data,
+                    store: (_, { data }) => data[0],
+                    room: (_, { data }) => data[1],
                   }),
                 },
                 onError: 'Error',
@@ -166,9 +170,9 @@ export const createClubTabMachine = (
                   on: {
                     ENTER_NAME: {
                       target: 'Idle',
-                      actions: ({ roomStore }, event) => {
+                      actions: ({ store }, event) => {
                         assertEventType(event, 'ENTER_NAME');
-                        roomStore?.send(event);
+                        store?.send(event);
                       },
                     },
                   },
@@ -177,10 +181,32 @@ export const createClubTabMachine = (
             },
             Disconnected: {
               on: {
-                RECONNECT: 'Connecting',
+                RECONNECT: 'Reconnecting',
               },
             },
-            Error: {},
+            Reconnecting: {
+              invoke: {
+                src: async ({ room }) => {
+                  const sessionId = localStorage.getItem(clubRoomId);
+                  if (!sessionId) {
+                    throw new Error('couldnt find session id for reconnect');
+                  }
+                  console.log('reconnecting');
+                  const res = await colyseusClient.reconnect(
+                    clubRoomId,
+                    sessionId
+                  );
+                  console.log('e', res);
+                },
+                onDone: 'Connected',
+                onError: 'Error',
+              },
+            },
+            Error: {
+              on: {
+                RETRY: 'Connecting',
+              },
+            },
           },
         },
         Tab: {
@@ -213,18 +239,17 @@ export const createClubTabMachine = (
     },
     {
       guards: {
-        isMissingName: ({ roomStore }) => {
+        isMissingName: ({ store }) => {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          const { players } = roomStore!.getSnapshot();
+          const { players } = store!.getSnapshot();
           return !players[userId];
         },
       },
       services: {
-        onDisconnect: async () => {
-          return new Promise((resolve) => {
-            setTimeout(resolve, 1000);
-          });
-        },
+        onDisconnect: async ({ room }) =>
+          new Promise((resolve) => {
+            room?.onLeave(resolve);
+          }),
       },
       actions: {
         setClubName: assign<ClubTabContext, ClubTabEvent>({
@@ -241,6 +266,7 @@ export const createClubTabMachine = (
       },
     }
   );
+};
 
 export type ClubTabMachine = ReturnType<typeof createClubTabMachine>;
 export type ClubTabActor = ActorRefFrom<ClubTabMachine>;
