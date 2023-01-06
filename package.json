@@ -51,6 +51,7 @@
     "firebase": "^9.10.0",
     "geojson2h3": "^1.2.0",
     "globe.gl": "^2.26.11",
+    "glslify": "^7.1.1",
     "h3-js": "^4.0.1",
     "honeycomb-grid": "^4.0.0",
     "leva": "^0.9.30",
