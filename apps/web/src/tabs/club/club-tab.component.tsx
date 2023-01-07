@@ -1,20 +1,28 @@
 import { Avatar } from '@atoms/Avatar';
 import { Badge } from '@atoms/Badge';
+import { Box } from '@atoms/Box';
+import { Button } from '@atoms/Button';
 import { Caption } from '@atoms/Caption';
 import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
+import { IconButton } from '@atoms/IconButton';
 import {
-  ClubStore, useStoreSelector
+  ClubStore,
+  TriviaJamConfigSerialized,
+  useStoreSelector,
 } from '@explorers-club/room';
+import { TriviaJamConfigurationScreen } from '@explorers-club/trivia-jam/configuration';
+import { GearIcon } from '@radix-ui/react-icons';
 import { useSelector } from '@xstate/react';
 import { FC, useCallback, useContext, useLayoutEffect } from 'react';
 import { NameForm } from '../../components/molecules/name-form';
 import { AppContext } from '../../state/app.context';
+import { AuthContext } from '../../state/auth.context';
 import { colorBySlotNumber } from './club-tab.constants';
 import {
   selectGameConfig,
-  selectPlayerBySlotNumber
+  selectPlayerBySlotNumber,
 } from './club-tab.selectors';
 import { GameCarousel } from './components/game-carousel.component';
 
@@ -31,6 +39,8 @@ export const ClubTabComponent: FC<Props> = ({ store }) => {
   const needsNameInput = useSelector(clubTabActor, (state) =>
     state.matches('Room.Connected.EnteringName')
   );
+  const { userId } = useContext(AuthContext);
+  const isHost = hostUserId === userId;
 
   const onSubmitName = useCallback(
     (playerName: string) => {
@@ -49,10 +59,57 @@ export const ClubTabComponent: FC<Props> = ({ store }) => {
     }
   }, [modalActor, onSubmitName, needsNameInput]);
 
+  const handleSubmitConfig = useCallback(
+    (data: TriviaJamConfigSerialized) => {
+      store.send({
+        type: 'SET_GAME_CONFIG',
+        config: {
+          type: 'trivia_jam',
+          data,
+        },
+      });
+      modalActor.send('CLOSE');
+    },
+    [store, modalActor]
+  );
+
+  const handlePressConfigure = useCallback(() => {
+    modalActor.send({
+      type: 'SHOW',
+      component: (
+        <TriviaJamConfigurationScreen
+          initialConfig={gameConfig.data}
+          onSubmitConfig={handleSubmitConfig}
+        />
+      ),
+    });
+  }, [handleSubmitConfig, gameConfig, modalActor]);
+
+  const handlePressStart = useCallback(() => {
+    clubTabActor.send('START_GAME');
+  }, [clubTabActor]);
+
   return (
     <Flex css={{ p: '$3' }} direction="column" gap="2">
       <Card>
         <GameCarousel />
+        <Box css={{ p: '$3' }}>
+          {isHost && (
+            <Flex gap="2">
+              <Button
+                size="3"
+                color="primary"
+                onClick={handlePressStart}
+                css={{ flex: '1' }}
+              >
+                Start
+              </Button>
+              <IconButton size="3" onClick={handlePressConfigure}>
+                <GearIcon />
+              </IconButton>
+            </Flex>
+          )}
+        </Box>
       </Card>
       <Card css={{ p: '$3' }}>
         <Flex direction="column" gap="3">

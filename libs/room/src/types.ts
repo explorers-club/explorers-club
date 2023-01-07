@@ -107,7 +107,7 @@ export const CLUB_ROOM_SELECT_GAME = 'SELECT_GAME';
 export const CLUB_ROOM_SET_GAME_CONFIG = 'SET_GAME_CONFIG';
 export const CLUB_ROOM_START_GAME = 'START_GAME';
 
-export type GameId = 'diffusionary' | 'trivia_jam';
+export type GameId = 'diffusionary' | 'trivia_jam' | 'little_vigilante';
 
 export type ClubRoomEnterNameCommand = {
   type: typeof CLUB_ROOM_ENTER_NAME;

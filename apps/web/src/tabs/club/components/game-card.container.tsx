@@ -1,84 +1,23 @@
-import {
-  GameId,
-  TriviaJamConfigSerialized,
-  useStoreSelector,
-} from '@explorers-club/room';
-import { TriviaJamConfigurationScreen } from '@explorers-club/trivia-jam/configuration';
-import { useSelector } from '@xstate/react';
-import { FC, ReactNode, useCallback, useContext } from 'react';
-import { AppContext } from '../../../state/app.context';
-import { AuthContext } from '../../../state/auth.context';
+import { GameId } from '@explorers-club/room';
+import { FC } from 'react';
 import { GameCardComponent } from './game-card.component';
-import { selectGameConfig } from '../club-tab.selectors';
+
+import { LITTLE_VIGILANTE_CONFIG } from '@explorers-club/little-vigilante/configuration';
+import { TRIVIA_JAM_CONFIG } from '@explorers-club/trivia-jam/configuration';
+import { DIFFUSIONARY_CONFIG } from '@explorers-club/diffusionary/configuration';
 
 interface Props {
   gameId: GameId;
 }
 
-const TRIVIA_JAM_CONFIG = {
-  name: 'Trivia Jam',
-};
-
-const DIFFUSIONARY_CONFIG = {
-  name: 'Diffusionary',
-};
-
-interface GameCardConfig {
-  name: string;
-  ConfigComponent?: ReactNode;
-}
-
-const GAMES_CONFIG: Record<GameId, GameCardConfig> = {
-  trivia_jam: TRIVIA_JAM_CONFIG,
-  diffusionary: DIFFUSIONARY_CONFIG,
-};
+const GAMES_CONFIG = {
+  [LITTLE_VIGILANTE_CONFIG.gameId]: LITTLE_VIGILANTE_CONFIG,
+  [DIFFUSIONARY_CONFIG.gameId]: DIFFUSIONARY_CONFIG,
+  [TRIVIA_JAM_CONFIG.gameId]: TRIVIA_JAM_CONFIG,
+} as const;
 
 export const GameCard: FC<Props> = ({ gameId }) => {
-  const { modalActor, clubTabActor } = useContext(AppContext);
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const store = useSelector(clubTabActor, (state) => state.context.store!);
-  const gameConfig = useStoreSelector(store, selectGameConfig);
-  const hostUserId = useStoreSelector(store, (store) => store.hostUserId);
-  const { userId } = useContext(AuthContext);
-  const isHost = hostUserId === userId;
+  const config = GAMES_CONFIG[gameId];
 
-  const { name } = GAMES_CONFIG[gameId];
-
-  const handleSubmitConfig = useCallback(
-    (data: TriviaJamConfigSerialized) => {
-      store.send({
-        type: 'SET_GAME_CONFIG',
-        config: {
-          type: 'trivia_jam',
-          data,
-        },
-      });
-      modalActor.send('CLOSE');
-    },
-    [store, modalActor]
-  );
-
-  const handlePressConfigure = useCallback(() => {
-    modalActor.send({
-      type: 'SHOW',
-      component: (
-        <TriviaJamConfigurationScreen
-          initialConfig={gameConfig.data}
-          onSubmitConfig={handleSubmitConfig}
-        />
-      ),
-    });
-  }, [handleSubmitConfig, gameConfig, modalActor]);
-
-  const handlePressStart = useCallback(() => {
-    clubTabActor.send('START_GAME');
-  }, [clubTabActor]);
-
-  return (
-    <GameCardComponent
-      name={name}
-      onPressConfigure={handlePressConfigure}
-      onPressStart={isHost ? handlePressStart : undefined}
-    />
-  );
+  return <GameCardComponent {...config} />;
 };

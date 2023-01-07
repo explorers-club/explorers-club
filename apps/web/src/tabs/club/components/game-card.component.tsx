@@ -1,40 +1,46 @@
-import { Button } from '@atoms/Button';
+import { Box } from '@atoms/Box';
+import { Caption } from '@atoms/Caption';
 import { Card } from '@atoms/Card';
-import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
-import { IconButton } from '@atoms/IconButton';
-import { GearIcon } from '@radix-ui/react-icons';
 import { FC } from 'react';
 
 interface Props {
-  name: string;
-  onPressStart?: () => void;
-  onPressConfigure?: () => void;
+  displayName: string;
+  coverImageUrl: string;
+  minPlayers: number;
+  maxPlayers: number;
 }
 
 export const GameCardComponent: FC<Props> = ({
-  name,
-  onPressStart,
-  onPressConfigure,
+  displayName,
+  coverImageUrl,
+  minPlayers,
+  maxPlayers,
 }) => {
   return (
-    <Card>
-      <Heading>{name}</Heading>
-      {onPressStart && (
-        <Flex gap="2">
-          <Button
-            size="3"
-            color="primary"
-            onClick={onPressStart}
-            css={{ flex: '1' }}
-          >
-            Start
-          </Button>
-          <IconButton size="3" onClick={onPressConfigure}>
-            <GearIcon />
-          </IconButton>
-        </Flex>
-      )}
+    <Card
+      css={{
+        aspectRatio: 1,
+        backgroundSize: 'contain',
+        backgroundImage: `url(${coverImageUrl})`,
+      }}
+    >
+      <Box
+        css={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          width: '100%',
+          p: '$4',
+          pt: '$8',
+          background: 'linear-gradient(rgba(0,0,0,0), rgba(0,0,0,1))',
+        }}
+      >
+        <Heading size="2">{displayName}</Heading>
+        <Caption size="2">
+          {minPlayers} - {maxPlayers} players
+        </Caption>
+      </Box>
     </Card>
   );
 };
