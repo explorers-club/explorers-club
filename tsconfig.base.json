@@ -18,11 +18,6 @@
     "paths": {
       "@3d/*": ["libs/components/src/3d/*"],
       "@atoms/*": ["libs/components/src/atoms/*"],
-      "@molecules/*": ["libs/components/src/molecules/*"],
-      "@organisms/*": ["libs/components/src/organisms/*"],
-      "@storybook-decorators/*": ["libs/components/src/decorators/*"],
-      "@templates/*": ["libs/components/src/templates/*"],
-
       "@explorers-club/actor": ["libs/actor/src/index.ts"],
       "@explorers-club/api": ["libs/api/src/index.ts"],
       "@explorers-club/api-client": ["libs/api/src/client"],
@@ -31,20 +26,19 @@
         "libs/contentful/@types/generated/contentful"
       ],
       "@explorers-club/database": ["libs/database/src/index.ts"],
-      "@explorers-club/lobby": ["libs/lobby/src/index.ts"],
-      "@explorers-club/local-generator-plugin": [
-        "tools/local-generator-plugin/src/index.ts"
+      "@explorers-club/diffusionary/configuration": [
+        "games/diffusionary/src/configuration/index.ts"
       ],
-      "@explorers-club/party": ["libs/party/src/index.ts"],
-      "@explorers-club/room": ["libs/room/src/index.ts"],
-      "@explorers-club/schema": ["libs/schema/src/index.ts"],
-      "@explorers-club/schema-types/*": ["libs/schema/@types/generated/*"],
-      "@explorers-club/styles": ["libs/components/src/stitches.config.ts"],
-      "@explorers-club/utils": ["libs/utils/src/index.ts"],
-
-      // Games
-
-      // Little Vigilante
+      "@explorers-club/diffusionary/scene": [
+        "games/diffusionary/src/scene/index.ts"
+      ],
+      "@explorers-club/diffusionary/server": [
+        "games/diffusionary/src/server/index.ts"
+      ],
+      "@explorers-club/diffusionary/state": [
+        "games/diffusionary/src/state/index.ts"
+      ],
+      "@explorers-club/diffusionary/ui": ["games/diffusionary/src/ui/index.ts"],
       "@explorers-club/little-vigilante/configuration": [
         "games/little-vigilante/src/configuration/index.ts"
       ],
@@ -57,23 +51,15 @@
       "@explorers-club/little-vigilante/ui": [
         "games/little-vigilante/src/ui/index.ts"
       ],
-
-      // Diffusionary
-      "@explorers-club/diffusionary/configuration": [
-        "games/diffusionary/src/configuration/index.ts"
+      "@explorers-club/lobby": ["libs/lobby/src/index.ts"],
+      "@explorers-club/local-generator-plugin": [
+        "tools/local-generator-plugin/src/index.ts"
       ],
-      "@explorers-club/diffusionary/scene": [
-        "games/diffusionary/src/scene/index.ts"
-      ],
-      "@explorers-club/diffusionary/state": [
-        "games/diffusionary/src/state/index.ts"
-      ],
-      "@explorers-club/diffusionary/server": [
-        "games/diffusionary/src/server/index.ts"
-      ],
-      "@explorers-club/diffusionary/ui": ["games/diffusionary/src/ui/index.ts"],
-
-      // Trivia Jam
+      "@explorers-club/party": ["libs/party/src/index.ts"],
+      "@explorers-club/room": ["libs/room/src/index.ts"],
+      "@explorers-club/schema": ["libs/schema/src/index.ts"],
+      "@explorers-club/schema-types/*": ["libs/schema/@types/generated/*"],
+      "@explorers-club/styles": ["libs/components/src/stitches.config.ts"],
       "@explorers-club/trivia-jam/configuration": [
         "games/trivia-jam/src/configuration/index.ts"
       ],
@@ -83,7 +69,12 @@
       "@explorers-club/trivia-jam/server": [
         "games/trivia-jam/src/server/index.ts"
       ],
-      "@explorers-club/trivia-jam/ui": ["games/trivia-jam/src/ui/index.ts"]
+      "@explorers-club/trivia-jam/ui": ["games/trivia-jam/src/ui/index.ts"],
+      "@explorers-club/utils": ["libs/utils/src/index.ts"],
+      "@molecules/*": ["libs/components/src/molecules/*"],
+      "@organisms/*": ["libs/components/src/organisms/*"],
+      "@storybook-decorators/*": ["libs/components/src/decorators/*"],
+      "@templates/*": ["libs/components/src/templates/*"]
     }
   },
   "exclude": ["node_modules", "tmp"]
