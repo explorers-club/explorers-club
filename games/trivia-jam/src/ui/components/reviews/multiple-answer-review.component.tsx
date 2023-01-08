@@ -14,11 +14,11 @@ export const MultipleAnswerReviewComponent: FC<Props> = ({ fields }) => {
     <Flex direction="column">
       <Heading>Correct Answers</Heading>
       {/* // TODO why are these nullable */}
-      {fields.correctAnswers!.map((answer) => (
+      {fields.correctAnswers?.map((answer) => (
         <Text key={answer}>{answer}</Text>
       ))}
       <Heading>Incorrect Answers</Heading>
-      {fields.incorrectAnswers!.map((answer) => (
+      {fields.incorrectAnswers?.map((answer) => (
         <Text key={answer}>{answer}</Text>
       ))}
     </Flex>

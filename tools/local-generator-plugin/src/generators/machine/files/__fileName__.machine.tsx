@@ -1,27 +1,20 @@
-import {
-  ActorRefFrom,
-  ContextFrom,
-  createMachine,
-  EventFrom,
-  StateFrom,
-} from 'xstate';
-import { createModel } from 'xstate/lib/model';
+import { createMachine } from 'xstate';
 
-const <%= propertyName %>Model = createModel({}, {});
+export interface <%= name %>Context {
+  hello: string
+}
 
-export const <%= name %>Events = <%= propertyName %>Model.events;
-export type <%= name %>Context = ContextFrom<typeof <%= propertyName %>Model>;
-export type <%= name %>Event = EventFrom<typeof <%= propertyName %>Model>;
+export type <%= name %>Event = { type: "Foo" };
 
 export const <%= propertyName %>Machine = createMachine({
   id: '<%= name %>Machine',
-  initial: 'Loading',
+  initial: 'Idle',
   schema: {
     context: {} as <%= name %>Context,
     events: {} as <%= name %>Event,
   },
   states: {
-    Loading: {},
+    Idle: {},
   },
 });
 

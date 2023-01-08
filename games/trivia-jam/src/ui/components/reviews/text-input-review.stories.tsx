@@ -3,8 +3,12 @@ import { ITextInputFields } from '@explorers-club/contentful-types';
 import { TextInputReviewComponent } from './text-input-review.component';
 import { contentfulClient } from '@explorers-club/contentful';
 import { TEXT_INPUT_SAMPLE_ENTRY_ID } from '../../../../.storybook/trivia-jam-story-data';
+import { withCardDecorator } from '@storybook-decorators/CardDecorator';
 
-export default { component: TextInputReviewComponent } as Meta;
+export default {
+  component: TextInputReviewComponent,
+  decorators: [withCardDecorator],
+} as Meta;
 
 export const Primary: ComponentStory<typeof TextInputReviewComponent> = (
   args,

@@ -1,14 +1,5 @@
-import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
 import { TriviaJamStateSerialized } from '@explorers-club/room';
 import { createSelector } from 'reselect';
-
-export const selectAllPlayersConnected = (state: TriviaJamState) => {
-  const unconnectedPlayers = Array.from(state.players.values()).filter(
-    (player) => !player.connected
-  );
-
-  return unconnectedPlayers.length === 0 && state.hostPlayer.connected;
-};
 
 export const selectHostUserId = (state: TriviaJamStateSerialized) => {
   return state.hostPlayer.userId;
@@ -25,9 +16,6 @@ export const selectPlayers = (state: TriviaJamStateSerialized) => {
 
 export const selectCurrentStates = (state: TriviaJamStateSerialized) =>
   state.currentStates;
-
-export const selectCurrentResponsesSerialized = (state: TriviaJamState) =>
-  state.currentResponsesSerialized;
 
 export const selectCurrentQuestionPointsByName = createSelector(
   selectPlayers,

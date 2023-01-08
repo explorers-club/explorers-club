@@ -39,7 +39,7 @@ interface OnCreateOptions {
 }
 
 export class TriviaJamRoom extends Room<TriviaJamState> {
-  private service: TriviaJamServerService;
+  private service!: TriviaJamServerService;
 
   static async create({ roomId, clubRoom }: CreateProps) {
     const hostUserId = clubRoom.state.hostUserId.valueOf();
@@ -123,19 +123,20 @@ export class TriviaJamRoom extends Room<TriviaJamState> {
     );
   }
 
-  onJoin(client: Client, options) {
+  onJoin(client: Client, options: { userId: string }) {
     const { hostPlayer, players } = this.state;
-    const { userId } = options;
+    const userId = options.userId;
 
-    let player: ClubPlayer;
+    let player: ClubPlayer | undefined;
     if (userId === hostPlayer.userId) {
       player = hostPlayer;
-    } else if (players.has(userId)) {
+    } else {
       player = players.get(userId);
     }
 
     if (!player) {
       console.warn('couldnt find player on join', userId);
+      return;
     }
 
     player.connected = true;

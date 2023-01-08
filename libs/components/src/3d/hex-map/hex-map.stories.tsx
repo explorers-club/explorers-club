@@ -1,4 +1,5 @@
 import * as cover from '@mapbox/tile-cover';
+import { bboxToTile } from '@mapbox/tilebelt';
 import { useThree } from '@react-three/fiber';
 import { Meta } from '@storybook/react';
 import { useInterpret } from '@xstate/react';
@@ -42,6 +43,9 @@ const StoryComponent = () => {
 
   const [machine] = useState(createHexMapMachine(camera, indexAtOrigin));
   const actor = useInterpret(machine);
+
+  // const tile = bboxToTile([-178, 84, -177, 85]);
+  // console.log({ tile });
 
   return <HexMap actor={actor} />;
 };

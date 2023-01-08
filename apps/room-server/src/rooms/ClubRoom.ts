@@ -1,20 +1,25 @@
+import { DiffusionaryRoom } from '@explorers-club/diffusionary/server';
+import { LittleVigilanteRoom } from '@explorers-club/little-vigilante/server';
 import {
   ClubRoomEnterNameCommand,
+  ClubRoomSelectGameCommand,
   ClubRoomSetGameConfigCommand,
   CLUB_ROOM_ENTER_NAME,
+  CLUB_ROOM_SELECT_GAME,
   CLUB_ROOM_SET_GAME_CONFIG,
   CLUB_ROOM_START_GAME,
+  GameId,
 } from '@explorers-club/room';
 import { ClubMetadata } from '@explorers-club/schema';
 import { ClubPlayer } from '@explorers-club/schema-types/ClubPlayer';
 import { ClubState } from '@explorers-club/schema-types/ClubState';
 import { TriviaJamConfig } from '@explorers-club/schema-types/TriviaJamConfig';
 import { TriviaJamRoom } from '@explorers-club/trivia-jam/server';
-import { Client, matchMaker, Room } from 'colyseus';
+import { Client, matchMaker, Room, RoomListingData } from 'colyseus';
 
 // trivia jam defaults
 const DEFAULT_QUESTION_SET_ENTRY_ID = 'dSX6kC0PNliXTl7qHYJLH';
-const DEFAULT_MAX_PLAYERS = 10;
+const DEFAULT_MAX_PLAYERS = 8;
 
 export class ClubRoom extends Room<ClubState> {
   ROOMS_CHANNEL = '#rooms';
@@ -36,20 +41,28 @@ export class ClubRoom extends Room<ClubState> {
     this.config = config;
 
     // Initialize open spots
-    this.openSlots = Array(config.maxPlayers)
+    this.openSlots = Array(config.maxPlayers - 1)
       .fill(0)
-      .map((_, i) => i + 1);
+      .map((_, i) => i + 2);
+    const clubName = this.roomId.replace('club-', '');
 
     // Set up initialize state ane metadata
     const metadata: ClubMetadata = {
-      clubName: this.roomId.replace('club-', ''),
+      clubName,
     };
     this.setMetadata(metadata);
 
+    const hostPlayer = new ClubPlayer();
+    hostPlayer.name = clubName;
+    hostPlayer.userId = userId;
+    hostPlayer.slotNumber = 1;
+    hostPlayer.connected = true;
+
     const state = new ClubState();
     state.hostUserId = userId;
-    state.selectedGame = 'trivia_jam';
+    state.selectedGame = 'little_vigilante';
     state.configDataSerialized = JSON.stringify(config.toJSON());
+    state.players.set(userId, hostPlayer);
     this.setState(state);
 
     // TODO pull the message handlers in to server state machine
@@ -75,9 +88,19 @@ export class ClubRoom extends Room<ClubState> {
     );
     this.onMessage(
       CLUB_ROOM_SET_GAME_CONFIG,
-      async (client, command: ClubRoomSetGameConfigCommand) => {
+      async (_, command: ClubRoomSetGameConfigCommand) => {
         this.state = this.state.assign({
           configDataSerialized: JSON.stringify(command.config.data),
+        });
+        // todo if maxPLayers changed then might need to do something
+        // to make the game not startable, or lock lobby from being joinable.
+      }
+    );
+    this.onMessage(
+      CLUB_ROOM_SELECT_GAME,
+      async (_, { gameId }: ClubRoomSelectGameCommand) => {
+        this.state = this.state.assign({
+          selectedGame: gameId,
         });
         // todo if maxPLayers changed then might need to do something
         // to make the game not startable, or lock lobby from being joinable.
@@ -90,14 +113,29 @@ export class ClubRoom extends Room<ClubState> {
         return;
       }
 
-      const roomPath = this.roomId.replace('club-', '');
-      const gameRoomId = `trivia_jam-${roomPath}` as const;
+      const roomName = this.roomId.replace('club-', '');
+      const gameId = this.state.selectedGame as GameId;
+      const gameRoomId = `${gameId}-${roomName}` as const;
 
-      // todo add diffusionary
-      const gameRoom = await TriviaJamRoom.create({
-        roomId: gameRoomId,
-        clubRoom: this,
-      });
+      let gameRoom: RoomListingData<any>;
+      if (gameId === 'trivia_jam') {
+        gameRoom = await TriviaJamRoom.create({
+          roomId: `trivia_jam-${clubName}`,
+          clubRoom: this,
+        });
+      } else if (gameId === 'diffusionary') {
+        gameRoom = await DiffusionaryRoom.create({
+          roomId: `diffusionary-${clubName}`,
+          clubRoom: this,
+        });
+      } else if (gameId === 'little_vigilante') {
+        gameRoom = await LittleVigilanteRoom.create({
+          roomId: `little_vigilante-${clubName}`,
+          clubRoom: this,
+        });
+      } else {
+        console.warn("couldn't find room for " + gameId);
+      }
 
       // Make a reservation for everybody currently connected
       const reservations = await Promise.all(
@@ -108,7 +146,6 @@ export class ClubRoom extends Room<ClubState> {
 
       this.clients.forEach((client, index) => {
         client.send('RESERVED_GAME_SEAT', reservations[index]);
-        console.log('RSG');
       });
 
       this.state = this.state.assign({

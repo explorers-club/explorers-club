@@ -3,9 +3,11 @@ import { TEXT_INPUT_SAMPLE_ENTRY_ID } from '../../../../.storybook/trivia-jam-st
 import { ITextInputFields } from '@explorers-club/contentful-types';
 import { contentfulClient } from '@explorers-club/contentful';
 import { TextInputHostPreviewComponent } from './text-input-host-preview.component';
+import { withCardDecorator } from '@storybook-decorators/CardDecorator';
 
 export default {
   component: TextInputHostPreviewComponent,
+  decorators: [withCardDecorator],
   argTypes: {
     onContinue: { action: 'continue' },
   },
@@ -20,8 +22,8 @@ export const Primary: ComponentStory<typeof TextInputHostPreviewComponent> = (
 
 Primary.args = {
   responsesByPlayerName: {
-    Teddy: "Key West",
-    Inspector: "Miami",
+    Teddy: 'Key West',
+    Inspector: 'Miami',
     Jamba: undefined,
   },
 };

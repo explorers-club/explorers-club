@@ -1,4 +1,3 @@
-import { QuestionResponse, TriviaJamCommand } from '@explorers-club/room';
 import {
   IMultipleAnswerFields,
   IMultipleChoiceFields,
@@ -7,12 +6,11 @@ import {
   ITextInputFields,
   ITrueOrFalseFields,
 } from '@explorers-club/contentful-types';
+import { QuestionResponse, TriviaJamCommand } from '@explorers-club/room';
 import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
 import { assertEventType } from '@explorers-club/utils';
 import { Room } from 'colyseus';
-import { Observable } from 'rxjs';
 import { ActorRefFrom, assign, createMachine } from 'xstate';
-import { selectAllPlayersConnected } from '../state/trivia-jam.selectors';
 import { IQuestion } from '../types';
 import { unwrapFields } from '../utils';
 
@@ -221,12 +219,14 @@ const scoreMultipleAnswer = (
   fields: IMultipleAnswerFields,
   response: string[]
 ) => {
-  const matchedCorrectAnswers = fields.correctAnswers.filter((answer) => {
-    return response.includes(answer);
-  }).length;
-  const matchedIncorrectAnswers = fields.incorrectAnswers.filter((answer) => {
-    return !response.includes(answer);
-  }).length;
+  const matchedCorrectAnswers =
+    fields.correctAnswers?.filter((answer) => {
+      return response.includes(answer);
+    }).length || 0;
+  const matchedIncorrectAnswers =
+    fields.incorrectAnswers?.filter((answer) => {
+      return !response.includes(answer);
+    }).length || 0;
   return matchedCorrectAnswers + matchedIncorrectAnswers;
 };
 
@@ -258,16 +258,13 @@ const scoreTextInput = (
   return fields.correctAnswer === response ? 1 : 0;
 };
 
-export function fromRoom<TState extends TriviaJamState>(
-  room: Room<TState, unknown>
-): Observable<TState> {
-  return new Observable((subscriber) => {
-    subscriber.next(room.state);
-    room.state.onChange = (_) => {
-      subscriber.next(room.state);
-    };
-  });
-}
-
 type TriviaJamServerMachine = ReturnType<typeof createTriviaJamServerMachine>;
 export type TriviaJamServerService = ActorRefFrom<TriviaJamServerMachine>;
+
+const selectAllPlayersConnected = (state: TriviaJamState) => {
+  const unconnectedPlayers = Array.from(state.players.values()).filter(
+    (player) => !player.connected
+  );
+
+  return unconnectedPlayers.length === 0 && state.hostPlayer.connected;
+};

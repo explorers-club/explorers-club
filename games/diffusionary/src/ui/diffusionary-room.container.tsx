@@ -1,12 +1,17 @@
+import { DiffusionaryStore } from '@explorers-club/room';
 import { FC } from 'react';
-import { Room } from 'colyseus.js';
+import { DiffusionaryContext } from '../state/diffusionary.context';
 import { DiffusionaryRoomComponent } from './diffusionary-room.component';
-import { DiffusionaryState } from '@explorers-club/schema-types/DiffusionaryState';
 
 interface Props {
-  room: Room<DiffusionaryState>;
+  store: DiffusionaryStore;
+  myUserId: string;
 }
 
-export const DiffusionaryRoom: FC<Props> = ({ room }) => {
-  return <DiffusionaryRoomComponent />;
+export const DiffusionaryRoom: FC<Props> = ({ store, myUserId }) => {
+  return (
+    <DiffusionaryContext.Provider value={{ store, myUserId }}>
+      <DiffusionaryRoomComponent />
+    </DiffusionaryContext.Provider>
+  );
 };

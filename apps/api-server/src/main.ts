@@ -1,4 +1,4 @@
-import { appRouter, createContext } from '@explorers-club/api';
+import { apiRouter, createContext } from '@explorers-club/api';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import * as express from 'express';
 import * as morgan from 'morgan';
@@ -9,7 +9,7 @@ const app = express();
 app.use(
   '/api',
   trpcExpress.createExpressMiddleware({
-    router: appRouter,
+    router: apiRouter,
     createContext,
   })
 );

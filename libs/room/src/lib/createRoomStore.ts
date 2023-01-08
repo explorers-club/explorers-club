@@ -11,15 +11,18 @@ export const createRoomStore = <
   let state: SerializedSchema<TSchema> =
     room.state.toJSON() as SerializedSchema<TSchema>;
 
-  const subscribe = (onStoreChange: () => void) => {
+  const handleOnStateChange = () => {
+    state = room.state.toJSON() as SerializedSchema<TSchema>;
+  };
+  room.onStateChange(handleOnStateChange);
+
+  const subscribe = (onStoreChange: (state: SerializedSchema<TSchema>) => void) => {
     const handleOnStateChange = () => {
-      state = room.state.toJSON() as SerializedSchema<TSchema>;
-      onStoreChange();
+      onStoreChange(state);
     };
     const emitter = room.onStateChange(handleOnStateChange);
 
-    state = room.state.toJSON() as SerializedSchema<TSchema>;
-    onStoreChange();
+    onStoreChange(state);
     return () => emitter.remove(handleOnStateChange);
   };
 

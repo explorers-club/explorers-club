@@ -3,9 +3,12 @@ import { INumberInputFields } from '@explorers-club/contentful-types';
 import { ComponentMeta, ComponentStory } from '@storybook/react';
 import { NUMBER_INPUT_SAMPLE_ENTRY_ID } from '../../../../.storybook/trivia-jam-story-data';
 import { NumberInputQuestionComponent } from './number-input-question.component';
+import { withCardDecorator } from '@storybook-decorators/CardDecorator';
+
 
 const meta = {
   component: NumberInputQuestionComponent,
+  decorators: [withCardDecorator],
   argTypes: { onSubmitResponse: { action: 'submitted' } },
 } as ComponentMeta<typeof NumberInputQuestionComponent>;
 

@@ -10,6 +10,10 @@ import { ClubState } from '@explorers-club/schema-types/ClubState';
 import { TriviaJamConfig } from '@explorers-club/schema-types/TriviaJamConfig';
 import { TriviaJamPlayer } from '@explorers-club/schema-types/TriviaJamPlayer';
 import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
+import { DiffusionaryState } from '@explorers-club/schema-types/DiffusionaryState';
+import { DiffusionaryPlayer } from '@explorers-club/schema-types/DiffusionaryPlayer';
+import { LittleVigilanteState } from '@explorers-club/schema-types/LittleVigilanteState';
+import { LittleVigilantePlayer } from '@explorers-club/schema-types/LittleVigilantePlayer';
 
 // From a prop in colyseus schema, return the serialized
 // version of it so that we can call toJSON() and type it.
@@ -48,7 +52,7 @@ type NonFunctionPropNames<T> = {
 
 export type RoomStore<T extends Schema, TCommand> = {
   id: string; // todo type this better with RoomId
-  subscribe: (cb: () => void) => () => void;
+  subscribe: (cb: (state: SerializedSchema<T>) => void) => () => void;
   getSnapshot: () => SerializedSchema<T>;
   send: (command: TCommand) => void;
 };
@@ -89,6 +93,26 @@ export type TriviaJamStateSerialized = SerializedSchema<TriviaJamState>;
 export type TriviaJamConfigSerialized = SerializedSchema<TriviaJamConfig>;
 export type TriviaJamPlayerSerialized = SerializedSchema<TriviaJamPlayer>;
 
+export type DiffusionaryCommand = JoinCommand;
+export type DiffusionaryStore = RoomStore<
+  DiffusionaryState,
+  DiffusionaryCommand
+>;
+export type DiffusionaryPlayerSerialized = SerializedSchema<DiffusionaryPlayer>;
+
+export type LittleVigilanteCommand = JoinCommand;
+export type LittleVigilanteStore = RoomStore<
+  LittleVigilanteState,
+  LittleVigilanteCommand
+>;
+export type LittleVigilantePlayerSerialized =
+  SerializedSchema<LittleVigilantePlayer>;
+
+export type GameStore =
+  | TriviaJamStore
+  | DiffusionaryStore
+  | LittleVigilanteStore;
+
 export type GameConfig = {
   type: 'trivia_jam';
   data: TriviaJamConfigSerialized;
@@ -100,6 +124,8 @@ export const CLUB_ROOM_SELECT_GAME = 'SELECT_GAME';
 export const CLUB_ROOM_SET_GAME_CONFIG = 'SET_GAME_CONFIG';
 export const CLUB_ROOM_START_GAME = 'START_GAME';
 
+export type GameId = 'diffusionary' | 'trivia_jam' | 'little_vigilante';
+
 export type ClubRoomEnterNameCommand = {
   type: typeof CLUB_ROOM_ENTER_NAME;
   playerName: string;
@@ -107,7 +133,7 @@ export type ClubRoomEnterNameCommand = {
 
 export type ClubRoomSelectGameCommand = {
   type: typeof CLUB_ROOM_SELECT_GAME;
-  gameId: 'diffusionary' | 'trivia_jam';
+  gameId: GameId;
 };
 
 export type ClubRoomSetGameConfigCommand = {

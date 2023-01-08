@@ -1,4 +1,5 @@
 import { EventObject } from 'xstate';
+export * from './types';
 
 export function assertEventType<
   TE extends EventObject,
@@ -80,12 +81,3 @@ export function generateUUID() {
     return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
   });
 }
-
-// export function fromRoom<TState extends TriviaJamState>(
-//   room: Room<TState>
-// ): Observable<TState> {
-//   return new Observable((subscriber) => {
-//     room.onStateChange.once(subscriber.next);
-//     room.onStateChange(subscriber.next);
-//   });
-// }

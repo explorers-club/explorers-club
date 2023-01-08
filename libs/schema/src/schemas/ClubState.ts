@@ -9,9 +9,9 @@ export class ClubPlayer extends Schema {
 
 export class ClubState extends Schema {
   @type('string') hostUserId!: string;
-  @type('string') gameRoomId: string | undefined;
   @type('string') selectedGame!: 'trivia_jam' | 'diffusionary';
   @type('string') configDataSerialized!: string;
+  @type('string') gameRoomId: string | undefined;
   @type({ map: ClubPlayer }) public players: MapSchema<ClubPlayer> =
     new MapSchema<ClubPlayer>();
 }

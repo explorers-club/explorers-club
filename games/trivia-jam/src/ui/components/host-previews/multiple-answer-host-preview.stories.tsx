@@ -3,9 +3,11 @@ import { contentfulClient } from '@explorers-club/contentful';
 import { MultipleAnswerHostPreviewComponent } from './multiple-answer-host-preview.component';
 import { IMultipleAnswerFields } from '@explorers-club/contentful-types';
 import { MULTIPLE_ANSWER_SAMPLE_ENTRY_ID } from '../../../../.storybook/trivia-jam-story-data';
+import { withCardDecorator } from '@storybook-decorators/CardDecorator';
 
 export default {
   component: MultipleAnswerHostPreviewComponent,
+  decorators: [withCardDecorator],
   argTypes: {
     onContinue: { action: 'continue' },
   },

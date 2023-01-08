@@ -10,5 +10,6 @@ import { DiffusionaryPlayer } from './DiffusionaryPlayer'
 
 export class DiffusionaryState extends Schema {
     @type("number") public currentRound!: number;
+    @type({ set: "string" }) public currentStates: SetSchema<string> = new SetSchema<string>();
     @type({ map: DiffusionaryPlayer }) public players: MapSchema<DiffusionaryPlayer> = new MapSchema<DiffusionaryPlayer>();
 }

@@ -1,8 +1,6 @@
 import { contentfulClient } from '@explorers-club/contentful';
 import { IQuestionSetFields } from '@explorers-club/contentful-types';
-import {
-  TriviaJamConfigSerialized
-} from '@explorers-club/room';
+import { TriviaJamConfigSerialized } from '@explorers-club/room';
 import { FC } from 'react';
 import { useQuery } from 'react-query';
 import { TriviaJamConfigurationScreenComponent } from './trivia-jam-configuration-screen.component';
@@ -12,10 +10,7 @@ interface Props {
   onSubmitConfig: (config: TriviaJamConfigSerialized) => void;
 }
 
-export const TriviaJamConfigurationScreen: FC<Props> = ({
-  initialConfig,
-  onSubmitConfig,
-}) => {
+export const TriviaJamConfigurationScreen: FC<Props> = (props) => {
   const query = useQuestionSetEntriesQuery();
 
   if (!query.data) {
@@ -25,8 +20,7 @@ export const TriviaJamConfigurationScreen: FC<Props> = ({
   return (
     <TriviaJamConfigurationScreenComponent
       questionSetEntries={query.data}
-      initialConfig={initialConfig}
-      onSubmitConfig={onSubmitConfig}
+      {...props}
     />
   );
 };
