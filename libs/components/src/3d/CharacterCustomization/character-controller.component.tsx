@@ -15,12 +15,12 @@ export const CharacterController = () => {
   const machine = useMemo(() => createCharacterMachine(actions), [actions]);
   const actor = useInterpret(machine);
 
-  const { forward, shift } = useInput();
+  const { move, attack } = useInput();
 
   useEffect(() => {
-    if (shift) {
+    if (attack) {
       actor.send('DANCE');
-    } else if (forward) {
+    } else if (move) {
       actor.send({ type: 'MOVE', lat: 10, lng: 10 });
     } else {
       actor.send('IDLE');
