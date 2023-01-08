@@ -75,7 +75,6 @@ export const HeadConfigurator = () => {
       </Fieldset>
       <Fieldset>
         <Label css={{ color: '$primary1' }}>Skin</Label>
-
         <Input
           type="color"
           css={{ width: '30px' }}
