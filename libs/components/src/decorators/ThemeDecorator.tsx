@@ -16,7 +16,7 @@ export const withTheme: DecoratorFn = (StoryFn, context) => {
 export const themeGlobalType = {
   name: 'Theme',
   description: 'Global theme for components',
-  defaultValue: 'light',
+  defaultValue: 'dark',
   toolbar: {
     // The icon for the toolbar item
     icon: 'circlehollow',
