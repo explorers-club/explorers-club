@@ -39,9 +39,7 @@ export const CanvasSetup = ({
 
   return (
     <Fragment>
-      <Leva
-        collapsed /* https://github.com/pmndrs/leva/blob/main/docs/configuration.md */
-      />
+      <Leva collapsed />
       <Canvas
         style={{ height: '100vh' }}
         shadows
@@ -59,8 +57,6 @@ export const CanvasSetup = ({
               <pointLight intensity={1} position={[0, 6, 0]} />
             </>
           )}
-          {/* {controls && <OrbitControls />} */}
-          {/* {controls && <CameraControls />} */}
         </Fragment>
       </Canvas>
     </Fragment>
