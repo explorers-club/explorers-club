@@ -7,6 +7,7 @@ import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
 import { IconButton } from '@atoms/IconButton';
+import { Text } from '@atoms/Text';
 import {
   ClubStore,
   TriviaJamConfigSerialized,
@@ -32,6 +33,7 @@ interface Props {
 
 export const ClubTabComponent: FC<Props> = ({ store }) => {
   const { modalActor, clubTabActor } = useContext(AppContext);
+  const gameRoomId = useStoreSelector(store, (store) => store.gameRoomId);
   const hostUserId = useStoreSelector(store, (store) => store.hostUserId);
   const playersBySlotNumber = useStoreSelector(store, selectPlayerBySlotNumber);
   const gameConfig = useStoreSelector(store, selectGameConfig);
@@ -89,7 +91,7 @@ export const ClubTabComponent: FC<Props> = ({ store }) => {
     clubTabActor.send('START_GAME');
   }, [clubTabActor]);
 
-  return (
+  return !gameRoomId ? (
     <Flex css={{ p: '$3' }} direction="column" gap="2">
       <Card>
         <GameCarousel />
@@ -148,6 +150,23 @@ export const ClubTabComponent: FC<Props> = ({ store }) => {
               );
             })}
         </Flex>
+      </Card>
+    </Flex>
+  ) : (
+    <InGame />
+  );
+};
+
+const InGame = () => {
+  const { clubTabActor } = useContext(AppContext);
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const store = useSelector(clubTabActor, (state) => state.context.store!);
+  const selectedGame = useStoreSelector(store, (state) => state.selectedGame);
+
+  return (
+    <Flex css={{ p: '$3' }} direction="column" gap="2">
+      <Card css={{ p: '$3' }}>
+        <Text>Current playing {selectedGame}</Text>
       </Card>
     </Flex>
   );
