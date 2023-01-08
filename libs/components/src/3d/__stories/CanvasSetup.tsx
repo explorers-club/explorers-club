@@ -8,6 +8,7 @@ import { Fragment } from 'react';
 import { Vector3 } from 'three';
 import { Args, DecoratorFunction } from '@storybook/csf';
 import { ReactFramework } from '@storybook/react';
+import { CameraControls } from '@3d/CharacterCustomization/Customization.cameracontrols';
 
 type Props = React.PropsWithChildren<
   CanvasProps & {
