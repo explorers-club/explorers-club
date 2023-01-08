@@ -1,5 +1,15 @@
-import { createRoomStore, GameId, TriviaJamStore } from '@explorers-club/room';
-import { GameRoomId } from '@explorers-club/schema';
+import {
+  createRoomStore,
+  GameId,
+  GameStore,
+  TriviaJamStore,
+} from '@explorers-club/room';
+import {
+  DiffusionaryRoomIdSchema,
+  GameRoomId,
+  LittleVigilanteRoomIdSchema,
+  TriviaJamRoomIdSchema,
+} from '@explorers-club/schema';
 import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
 import { TabMetadata } from '@organisms/tab-bar';
 import { RocketIcon } from '@radix-ui/react-icons';
@@ -14,8 +24,8 @@ import {
 
 export type GameTabContext = {
   roomId: GameRoomId;
-  type?: GameId;
-  store?: TriviaJamStore;
+  gameId?: GameId;
+  store?: GameStore;
 };
 
 type GameTabEvent = { type: 'CONNECT'; roomId: GameRoomId };
@@ -108,7 +118,17 @@ export const createGameTabMachine = (colyseusClient: Client, userId: string) =>
       actions: {
         setRoomId: assign<GameTabContext, GameTabEvent>({
           roomId: (_, { roomId }) => roomId,
-          type: (_, { roomId }) => 'trivia_jam', // todo parse id to get
+          gameId: (_, { roomId }) => {
+            if (TriviaJamRoomIdSchema.safeParse(roomId).success) {
+              return 'trivia_jam';
+            } else if (DiffusionaryRoomIdSchema.safeParse(roomId).success) {
+              return 'diffusionary';
+            } else if (LittleVigilanteRoomIdSchema.safeParse(roomId).success) {
+              return 'little_vigilante';
+            } else {
+              throw new Error("couldn't parse gameId from roomId " + roomId);
+            }
+          },
         }),
       },
     }

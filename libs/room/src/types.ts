@@ -108,6 +108,11 @@ export type LittleVigilanteStore = RoomStore<
 export type LittleVigilantePlayerSerialized =
   SerializedSchema<LittleVigilantePlayer>;
 
+export type GameStore =
+  | TriviaJamStore
+  | DiffusionaryStore
+  | LittleVigilanteStore;
+
 export type GameConfig = {
   type: 'trivia_jam';
   data: TriviaJamConfigSerialized;

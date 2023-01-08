@@ -8,11 +8,9 @@ import {
   CLUB_ROOM_SELECT_GAME,
   CLUB_ROOM_SET_GAME_CONFIG,
   CLUB_ROOM_START_GAME,
-  GameId
+  GameId,
 } from '@explorers-club/room';
-import {
-  ClubMetadata
-} from '@explorers-club/schema';
+import { ClubMetadata } from '@explorers-club/schema';
 import { ClubPlayer } from '@explorers-club/schema-types/ClubPlayer';
 import { ClubState } from '@explorers-club/schema-types/ClubState';
 import { TriviaJamConfig } from '@explorers-club/schema-types/TriviaJamConfig';
@@ -62,7 +60,7 @@ export class ClubRoom extends Room<ClubState> {
 
     const state = new ClubState();
     state.hostUserId = userId;
-    state.selectedGame = 'trivia_jam';
+    state.selectedGame = 'little_vigilante';
     state.configDataSerialized = JSON.stringify(config.toJSON());
     state.players.set(userId, hostPlayer);
     this.setState(state);

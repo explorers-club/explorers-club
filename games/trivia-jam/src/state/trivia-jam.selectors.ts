@@ -1,4 +1,3 @@
-import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
 import { TriviaJamStateSerialized } from '@explorers-club/room';
 import { createSelector } from 'reselect';
 
@@ -17,9 +16,6 @@ export const selectPlayers = (state: TriviaJamStateSerialized) => {
 
 export const selectCurrentStates = (state: TriviaJamStateSerialized) =>
   state.currentStates;
-
-export const selectCurrentResponsesSerialized = (state: TriviaJamState) =>
-  state.currentResponsesSerialized;
 
 export const selectCurrentQuestionPointsByName = createSelector(
   selectPlayers,
