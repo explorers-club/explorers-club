@@ -2,7 +2,6 @@
   "$schema": "./node_modules/nx/schemas/workspace-schema.json",
   "version": 2,
   "projects": {
-    "actor": "libs/actor",
     "api": "libs/api",
     "api-server": "apps/api-server",
     "components": "libs/components",
@@ -10,10 +9,7 @@
     "database": "libs/database",
     "diffusionary": "games/diffusionary",
     "little-vigilante": "games/little-vigilante",
-    "lobby": "libs/lobby",
     "local-generator-plugin": "tools/local-generator-plugin",
-    "party": "libs/party",
-    "party-server": "apps/party-server",
     "room": "libs/room",
     "room-server": "apps/room-server",
     "schema": "libs/schema",
