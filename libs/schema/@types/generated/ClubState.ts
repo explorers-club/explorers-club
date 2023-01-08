@@ -10,8 +10,8 @@ import { ClubPlayer } from './ClubPlayer'
 
 export class ClubState extends Schema {
     @type("string") public hostUserId!: string;
-    @type("string") public gameRoomId!: string;
     @type("string") public selectedGame!: string;
     @type("string") public configDataSerialized!: string;
+    @type("string") public gameRoomId!: string;
     @type({ map: ClubPlayer }) public players: MapSchema<ClubPlayer> = new MapSchema<ClubPlayer>();
 }

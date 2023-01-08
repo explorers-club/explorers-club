@@ -1,11 +1,7 @@
 import { z } from 'zod';
-// could use z.custom here https://github.com/colinhacks/zod#custom-schemas
-// to add validation
-// export type ClubRoomID = `club-${string}`;
-// export type TriviaJamRoomID = `trivia_jam-${string}`;
-// export type DiffusionaryRoomID = `diffusionary-${string}`;
-
-// export type RoomID = ClubRoomID | TriviaJamRoomID | DiffusionaryRoomID;
+import { TriviaJamState } from '../@types/generated/TriviaJamState';
+import { DiffusionaryState } from '../@types/generated/DiffusionaryState';
+import { LittleVigilanteState } from '../@types/generated/LittleVigilanteState';
 
 export const ClubRoomIdSchema = z.custom<`club-${string}`>((val) => {
   return /^club-\w+$/.test(val as string);
@@ -18,12 +14,26 @@ export const DiffusionaryRoomIdSchema = z.custom<`diffusionary-${string}`>(
     return /^diffusionary-\w+$/.test(val as string);
   }
 );
+export const LittleVigilanteRoomIdSchema = z.custom<`little_vigilante-${string}`>(
+  (val) => {
+    return /^little_vigilante-\w+$/.test(val as string);
+  }
+);
 
 export type ClubRoomId = z.infer<typeof ClubRoomIdSchema>;
 export type TriviaJamRoomId = z.infer<typeof TriviaJamRoomIdSchema>;
 export type DiffusionaryRoomId = z.infer<typeof DiffusionaryRoomIdSchema>;
+export type LittleVigilanteRoomId = z.infer<typeof LittleVigilanteRoomIdSchema>;
 
-export type GameRoomId = TriviaJamRoomId | DiffusionaryRoomId;
+export type GameState =
+  | TriviaJamState
+  | DiffusionaryState
+  | LittleVigilanteState;
+
+export type GameRoomId =
+  | TriviaJamRoomId
+  | DiffusionaryRoomId
+  | LittleVigilanteRoomId;
 
 export type RoomId = ClubRoomId | GameRoomId;
 

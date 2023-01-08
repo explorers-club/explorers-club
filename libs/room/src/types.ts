@@ -11,6 +11,9 @@ import { TriviaJamConfig } from '@explorers-club/schema-types/TriviaJamConfig';
 import { TriviaJamPlayer } from '@explorers-club/schema-types/TriviaJamPlayer';
 import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
 import { DiffusionaryState } from '@explorers-club/schema-types/DiffusionaryState';
+import { DiffusionaryPlayer } from '@explorers-club/schema-types/DiffusionaryPlayer';
+import { LittleVigilanteState } from '@explorers-club/schema-types/LittleVigilanteState';
+import { LittleVigilantePlayer } from '@explorers-club/schema-types/LittleVigilantePlayer';
 
 // From a prop in colyseus schema, return the serialized
 // version of it so that we can call toJSON() and type it.
@@ -90,11 +93,20 @@ export type TriviaJamStateSerialized = SerializedSchema<TriviaJamState>;
 export type TriviaJamConfigSerialized = SerializedSchema<TriviaJamConfig>;
 export type TriviaJamPlayerSerialized = SerializedSchema<TriviaJamPlayer>;
 
-export type DiffusionaryCommand = ContinueCommand;
+export type DiffusionaryCommand = JoinCommand;
 export type DiffusionaryStore = RoomStore<
   DiffusionaryState,
   DiffusionaryCommand
 >;
+export type DiffusionaryPlayerSerialized = SerializedSchema<DiffusionaryPlayer>;
+
+export type LittleVigilanteCommand = JoinCommand;
+export type LittleVigilanteStore = RoomStore<
+  LittleVigilanteState,
+  LittleVigilanteCommand
+>;
+export type LittleVigilantePlayerSerialized =
+  SerializedSchema<LittleVigilantePlayer>;
 
 export type GameConfig = {
   type: 'trivia_jam';

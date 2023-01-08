@@ -68,6 +68,9 @@
       "@explorers-club/diffusionary/state": [
         "games/diffusionary/src/state/index.ts"
       ],
+      "@explorers-club/diffusionary/server": [
+        "games/diffusionary/src/server/index.ts"
+      ],
       "@explorers-club/diffusionary/ui": ["games/diffusionary/src/ui/index.ts"],
 
       // Trivia Jam

@@ -1,3 +1,5 @@
+import { DiffusionaryRoom } from '@explorers-club/diffusionary/server';
+import { LittleVigilanteRoom } from '@explorers-club/little-vigilante/server';
 import {
   ClubRoomEnterNameCommand,
   ClubRoomSelectGameCommand,
@@ -6,13 +8,16 @@ import {
   CLUB_ROOM_SELECT_GAME,
   CLUB_ROOM_SET_GAME_CONFIG,
   CLUB_ROOM_START_GAME,
+  GameId
 } from '@explorers-club/room';
-import { ClubMetadata } from '@explorers-club/schema';
+import {
+  ClubMetadata
+} from '@explorers-club/schema';
 import { ClubPlayer } from '@explorers-club/schema-types/ClubPlayer';
 import { ClubState } from '@explorers-club/schema-types/ClubState';
 import { TriviaJamConfig } from '@explorers-club/schema-types/TriviaJamConfig';
 import { TriviaJamRoom } from '@explorers-club/trivia-jam/server';
-import { Client, matchMaker, Room } from 'colyseus';
+import { Client, matchMaker, Room, RoomListingData } from 'colyseus';
 
 // trivia jam defaults
 const DEFAULT_QUESTION_SET_ENTRY_ID = 'dSX6kC0PNliXTl7qHYJLH';
@@ -110,14 +115,29 @@ export class ClubRoom extends Room<ClubState> {
         return;
       }
 
-      const roomPath = this.roomId.replace('club-', '');
-      const gameRoomId = `trivia_jam-${roomPath}` as const;
+      const roomName = this.roomId.replace('club-', '');
+      const gameId = this.state.selectedGame as GameId;
+      const gameRoomId = `${gameId}-${roomName}` as const;
 
-      // todo add diffusionary
-      const gameRoom = await TriviaJamRoom.create({
-        roomId: gameRoomId,
-        clubRoom: this,
-      });
+      let gameRoom: RoomListingData<any>;
+      if (gameId === 'trivia_jam') {
+        gameRoom = await TriviaJamRoom.create({
+          roomId: `trivia_jam-${clubName}`,
+          clubRoom: this,
+        });
+      } else if (gameId === 'diffusionary') {
+        gameRoom = await DiffusionaryRoom.create({
+          roomId: `diffusionary-${clubName}`,
+          clubRoom: this,
+        });
+      } else if (gameId === 'little_vigilante') {
+        gameRoom = await LittleVigilanteRoom.create({
+          roomId: `little_vigilante-${clubName}`,
+          clubRoom: this,
+        });
+      } else {
+        console.warn("couldn't find room for " + gameId);
+      }
 
       // Make a reservation for everybody currently connected
       const reservations = await Promise.all(
