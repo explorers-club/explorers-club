@@ -18,7 +18,6 @@
     "paths": {
       "@3d/*": ["libs/components/src/3d/*"],
       "@atoms/*": ["libs/components/src/atoms/*"],
-      "@explorers-club/actor": ["libs/actor/src/index.ts"],
       "@explorers-club/api": ["libs/api/src/index.ts"],
       "@explorers-club/api-client": ["libs/api/src/client"],
       "@explorers-club/contentful": ["libs/contentful/src/index.ts"],
@@ -51,11 +50,9 @@
       "@explorers-club/little-vigilante/ui": [
         "games/little-vigilante/src/ui/index.ts"
       ],
-      "@explorers-club/lobby": ["libs/lobby/src/index.ts"],
       "@explorers-club/local-generator-plugin": [
         "tools/local-generator-plugin/src/index.ts"
       ],
-      "@explorers-club/party": ["libs/party/src/index.ts"],
       "@explorers-club/room": ["libs/room/src/index.ts"],
       "@explorers-club/schema": ["libs/schema/src/index.ts"],
       "@explorers-club/schema-types/*": ["libs/schema/@types/generated/*"],
