@@ -105,6 +105,8 @@ export type LittleVigilanteStore = RoomStore<
   LittleVigilanteState,
   LittleVigilanteCommand
 >;
+export type LittleVigilanteStateSerialized =
+  SerializedSchema<LittleVigilanteState>;
 export type LittleVigilantePlayerSerialized =
   SerializedSchema<LittleVigilantePlayer>;
 
