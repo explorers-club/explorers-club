@@ -12,7 +12,7 @@ export type LittleVigilanteServerEvent = LittleVigilanteCommand & {
 };
 
 export const createLittleVigilanteServerMachine = (
-  room: Room<LittleVigilanteState>,
+  room: Room<LittleVigilanteState>
 ) => {
   const triviaJamMachine = createMachine(
     {
@@ -49,9 +49,13 @@ export const createLittleVigilanteServerMachine = (
           onDone: 'GameOver',
           initial: 'Introduction',
           states: {
-            Introduction: {},
-            Night: {},
-            Talking: {},
+            AwaitingNext: {
+              on: {
+                CONTINUE: 'NightPhase',
+              },
+            },
+            NightPhase: {},
+            DiscussionPhase: {},
             Reveal: {},
           },
         },

@@ -5,10 +5,10 @@ import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
 import { Scoreboard } from '@molecules/Scoreboard';
 import { FC } from 'react';
-import { TriviaJamPlayerSerialized } from '@explorers-club/room';
+import { LittleVigilantePlayerSerialized } from '@explorers-club/room';
 
 interface Props {
-  players: TriviaJamPlayerSerialized[];
+  players: LittleVigilantePlayerSerialized[];
   showNext: boolean;
   onPressNext?: () => void;
 }

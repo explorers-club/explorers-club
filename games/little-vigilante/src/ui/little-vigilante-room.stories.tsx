@@ -42,40 +42,88 @@ const Template: Story<{
   );
 };
 
-export const Initial = Template.bind({});
-
-Initial.args = {
-  myUserId: "bar",
-  state: {
-    currentRound: 1,
-    currentStates: ['Initial'],
-    players: {
-      bar: {
-        score: 0,
-        name: 'Jon',
-        connected: false,
-        userId: 'bar',
-        slotNumber: 1,
-      },
-    },
+const players = {
+  foo: {
+    score: 0,
+    name: 'Bar',
+    connected: true,
+    userId: 'foo',
+    slotNumber: 1,
+  },
+  bar: {
+    score: 0,
+    name: 'Bar',
+    connected: true,
+    userId: 'bar',
+    slotNumber: 2,
+  },
+  buz: {
+    score: 0,
+    name: 'Buz',
+    connected: true,
+    userId: 'buz',
+    slotNumber: 3,
+  },
+  lightYear: {
+    score: 0,
+    name: 'Lightyear',
+    connected: true,
+    userId: 'lightyear',
+    slotNumber: 4,
   },
 };
 
-export const Playing = Template.bind({});
+export const PlayingAwaitingNext = Template.bind({});
 
-Playing.args = {
-  myUserId: "foo",
+PlayingAwaitingNext.args = {
+  myUserId: 'bar',
   state: {
     currentRound: 1,
-    currentStates: ['Playing'],
-    players: {
-      bar: {
-        score: 0,
-        name: 'Jon',
-        connected: false,
-        userId: 'bar',
-        slotNumber: 1,
-      },
-    },
+    currentStates: ['Playing', 'Playing.AwaitingNext'],
+    players,
+  },
+};
+
+export const PlayingNightPhase = Template.bind({});
+
+PlayingNightPhase.args = {
+  myUserId: 'foo',
+  state: {
+    currentRound: 1,
+    currentStates: ['Playing', 'Playing.NightPhase'],
+    players,
+  },
+};
+
+export const PlayingDiscussionPhase = Template.bind({});
+
+PlayingDiscussionPhase.args = {
+  myUserId: 'foo',
+  state: {
+    currentRound: 1,
+    currentStates: ['Playing', 'Playing.DiscussionPhase'],
+    players,
+  },
+};
+
+export const PlayingReveal = Template.bind({});
+
+PlayingReveal.args = {
+  myUserId: 'foo',
+  state: {
+    currentRound: 1,
+    currentStates: ['Playing', 'Playing.Reveal'],
+    players,
+  },
+};
+
+export const GameOver = Template.bind({});
+
+GameOver.args = {
+  myUserId: 'foo',
+  state: {
+    currentRound: 1,
+    currentStates: ['GameOver'],
+    players,
   },
 };
