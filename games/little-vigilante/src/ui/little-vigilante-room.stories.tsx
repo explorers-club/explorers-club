@@ -117,6 +117,17 @@ PlayingReveal.args = {
   },
 };
 
+export const PlayingVoting = Template.bind({});
+
+PlayingVoting.args = {
+  myUserId: 'foo',
+  state: {
+    currentRound: 1,
+    currentStates: ['Playing', 'Playing.Voting'],
+    players,
+  },
+};
+
 export const GameOver = Template.bind({});
 
 GameOver.args = {

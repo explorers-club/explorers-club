@@ -6,6 +6,5 @@ export const ScoreboardScreen = () => {
   const players = useLittleVigilanteSelector((state) =>
     Object.values(state.players)
   );
-  console.log({ isHost, players });
   return <ScoreboardScreenComponent showNext={isHost} players={players} />;
 };

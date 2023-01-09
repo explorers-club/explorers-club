@@ -8,7 +8,6 @@ export class LittleVigilantePlayer extends ClubPlayer {
 export class LittleVigilanteState extends Schema {
   @type('number') currentRound = 1;
   @type({ set: 'string' }) currentStates: SetSchema<string> = new SetSchema();
-
   @type({ map: LittleVigilantePlayer })
   public players: MapSchema<LittleVigilantePlayer> = new MapSchema<LittleVigilantePlayer>();
 }
