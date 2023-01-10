@@ -71,17 +71,20 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
     this.service = interpret(createLittleVigilanteServerMachine(room)).start();
     this.service.subscribe((state) => {
       room.state.currentStates.clear();
+      console.log('state change', state.value);
       state.toStrings().forEach((state) => room.state.currentStates.add(state));
     });
   }
 
   override onJoin(client: Client, options: OnJoinOptions) {
     const userId = options.userId;
+
     const player = this.state.players.get(userId);
     if (player) {
       player.connected = true;
-      console.log(player.name + " connected");
+      console.log(player.name + ' connected');
     }
+    this.service.send({ type: 'JOIN', userId });
     client.userData = { userId };
   }
 
@@ -90,7 +93,8 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
     const player = this.state.players.get(userId);
     if (player) {
       player.connected = false;
-      console.log(player.name + " disconnected");
+      console.log(player.name + ' disconnected');
     }
+    this.service.send({ type: 'LEAVE', userId });
   }
 }

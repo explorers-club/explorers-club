@@ -100,7 +100,7 @@ export type DiffusionaryStore = RoomStore<
 >;
 export type DiffusionaryPlayerSerialized = SerializedSchema<DiffusionaryPlayer>;
 
-export type LittleVigilanteCommand = JoinCommand | ContinueCommand;
+export type LittleVigilanteCommand = JoinCommand | ContinueCommand | LeaveCommand;
 export type LittleVigilanteStore = RoomStore<
   LittleVigilanteState,
   LittleVigilanteCommand

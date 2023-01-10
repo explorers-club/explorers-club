@@ -1,9 +1,8 @@
-import { createRoomStore } from '@explorers-club/room';
+import { createRoomStore, LittleVigilanteStore } from '@explorers-club/room';
 import { LittleVigilanteState } from '@explorers-club/schema-types/LittleVigilanteState';
-import { generateRandomString, sleep } from '@explorers-club/utils';
-import { withQueryClient } from '@storybook-decorators/QueryClientDecorator';
+import { generateRandomString } from '@explorers-club/utils';
+import { useEffect } from '@storybook/addons';
 import { ComponentMeta, Story } from '@storybook/react';
-import { useQuery } from '@tanstack/react-query';
 import * as Colyseus from 'colyseus.js';
 import { useState } from 'react';
 import { OnCreateOptions } from '../server/LittleVigilanteRoom';
@@ -12,7 +11,6 @@ import { LittleVigilanteRoomComponent } from './little-vigilante-room.component'
 
 export default {
   component: LittleVigilanteRoomComponent,
-  decorators: [withQueryClient],
 } as ComponentMeta<typeof LittleVigilanteRoomComponent>;
 
 // const createMockStore = (state: LittleVigilanteStateSerialized) => {
@@ -35,10 +33,11 @@ export default {
 
 const Template: Story<OnCreateOptions & { myUserId: string }> = (args) => {
   const { roomId, myUserId } = args;
-  const query = useQuery(['room'], async () => {
-    return await joinAndCreateStore(roomId, myUserId);
-  });
-  const store = query.data;
+  const [store, setStore] = useState<LittleVigilanteStore | null>(null);
+
+  useEffect(() => {
+    joinAndCreateStore(roomId, myUserId).then(setStore);
+  }, [roomId, myUserId, setStore]);
 
   if (!store) {
     // eslint-disable-next-line react/jsx-no-useless-fragment
@@ -109,87 +108,4 @@ Default.play = async (context) => {
       .map(({ userId }) => joinAndCreateStore(roomId, userId))
   );
   console.log(stores);
-  // playerInfo.forEach(async ({ name, userId }) => {
-  //   if (userId !== myUserId) {
-  //     const client = new Colyseus.Client('ws://localhost:2567');
-  //     const room = await client.joinById<LittleVigilanteState>(roomId, {
-  //       userId,
-  //     });
-  //     await new Promise((resolve) => {
-  //       room.onStateChange.once(resolve);
-  //     });
-  //     const store = createRoomStore(room);
-  //     console.log(store);
-  //   }
-  // });
 };
-
-// export const PlayingAwaitingNext = Template.bind({});
-
-// PlayingAwaitingNext.args = {
-//   myUserId: 'bar',
-//   state: {
-//     currentRound: 1,
-//     currentStates: ['Playing', 'Playing.AwaitingNext'],
-//     players,
-//   },
-// };
-
-// export const PlayingNightPhase = Template.bind({});
-
-// PlayingNightPhase.args = {
-//   myUserId: 'foo',
-//   state: {
-//     currentRound: 1,
-//     currentStates: ['Playing', 'Playing.Round', 'Playing.Round.NightPhase'],
-//     players,
-//   },
-// };
-
-// export const PlayingDiscussionPhase = Template.bind({});
-
-// PlayingDiscussionPhase.args = {
-//   myUserId: 'foo',
-//   state: {
-//     currentRound: 1,
-//     currentStates: [
-//       'Playing',
-//       'Playing.Round',
-//       'Playing.Round.DiscussionPhase',
-//     ],
-//     players,
-//   },
-// };
-
-// export const PlayingReveal = Template.bind({});
-
-// PlayingReveal.args = {
-//   myUserId: 'foo',
-//   state: {
-//     currentRound: 1,
-//     currentStates: ['Playing', 'Playing.Round', 'Playing.Round.Reveal'],
-//     players,
-//   },
-// };
-
-// export const PlayingVoting = Template.bind({});
-
-// PlayingVoting.args = {
-//   myUserId: 'foo',
-//   state: {
-//     currentRound: 1,
-//     currentStates: ['Playing', 'Playing.Round', 'Playing.Round.Voting'],
-//     players,
-//   },
-// };
-
-// export const GameOver = Template.bind({});
-
-// GameOver.args = {
-//   myUserId: 'foo',
-//   state: {
-//     currentRound: 1,
-//     currentStates: ['GameOver'],
-//     players,
-//   },
-// };
