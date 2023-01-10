@@ -1,18 +1,14 @@
-import {
-  createRoomStore,
-  LittleVigilanteStateSerialized,
-  LittleVigilanteStore,
-} from '@explorers-club/room';
-import { useEffect } from '@storybook/addons';
+import { createRoomStore } from '@explorers-club/room';
+import { LittleVigilanteState } from '@explorers-club/schema-types/LittleVigilanteState';
+import { generateRandomString, sleep } from '@explorers-club/utils';
+import { withQueryClient } from '@storybook-decorators/QueryClientDecorator';
 import { ComponentMeta, Story } from '@storybook/react';
+import { useQuery } from '@tanstack/react-query';
 import * as Colyseus from 'colyseus.js';
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { OnCreateOptions } from '../server/LittleVigilanteRoom';
 import { LittleVigilanteContext } from '../state/little-vigilante.context';
 import { LittleVigilanteRoomComponent } from './little-vigilante-room.component';
-import { OnCreateOptions } from '../server/LittleVigilanteRoom';
-import { withQueryClient } from '@storybook-decorators/QueryClientDecorator';
-import { LittleVigilanteState } from '../../../../libs/schema/@types/generated/LittleVigilanteState';
 
 export default {
   component: LittleVigilanteRoomComponent,
@@ -38,21 +34,9 @@ export default {
 // };
 
 const Template: Story<OnCreateOptions & { myUserId: string }> = (args) => {
-  const { roomId, playerInfo, myUserId } = args;
-  const [colyseusClient] = useState(new Colyseus.Client('ws://localhost:2567'));
-
+  const { roomId, myUserId } = args;
   const query = useQuery(['room'], async () => {
-    const room = await colyseusClient.create<LittleVigilanteState>(
-      'little_vigilante',
-      {
-        roomId,
-        playerInfo,
-      }
-    );
-    await new Promise((resolve) => room.onStateChange.once(resolve));
-
-    const store = createRoomStore(room);
-    return store;
+    return await joinAndCreateStore(roomId, myUserId);
   });
   const store = query.data;
 
@@ -72,7 +56,7 @@ export const Default = Template.bind({});
 
 Default.args = {
   myUserId: 'foo',
-  roomId: 'little_vigilante-test',
+  roomId: `little_vigilante-${generateRandomString()}`,
   playerInfo: [
     {
       name: 'Foo',
@@ -93,14 +77,51 @@ Default.args = {
   ],
 };
 
-Default.play = async (context) => {
-  const { playerInfo, myUserId } = context.args;
-
-  playerInfo.forEach(({ name, userId }) => {
-    if (userId !== myUserId) {
-      console.log(userId);
-    }
+const joinAndCreateStore = async (roomId: string, userId: string) => {
+  const client = new Colyseus.Client('ws://localhost:2567');
+  const room = await client.joinById<LittleVigilanteState>(roomId, {
+    userId,
   });
+  await new Promise((resolve) => {
+    room.onStateChange.once(resolve);
+  });
+  const store = createRoomStore(room);
+  return store;
+};
+
+Default.play = async (context) => {
+  const { roomId, playerInfo, myUserId } = context.args;
+
+  const colyseusClient = new Colyseus.Client('ws://localhost:2567');
+  const room = await colyseusClient.create<LittleVigilanteState>(
+    'little_vigilante',
+    {
+      roomId,
+      playerInfo,
+    }
+  );
+  await new Promise((resolve) => room.onStateChange.once(resolve));
+
+  // Mimic joining all the other player clients
+  const stores = await Promise.all(
+    playerInfo
+      .filter(({ userId }) => userId !== myUserId)
+      .map(({ userId }) => joinAndCreateStore(roomId, userId))
+  );
+  console.log(stores);
+  // playerInfo.forEach(async ({ name, userId }) => {
+  //   if (userId !== myUserId) {
+  //     const client = new Colyseus.Client('ws://localhost:2567');
+  //     const room = await client.joinById<LittleVigilanteState>(roomId, {
+  //       userId,
+  //     });
+  //     await new Promise((resolve) => {
+  //       room.onStateChange.once(resolve);
+  //     });
+  //     const store = createRoomStore(room);
+  //     console.log(store);
+  //   }
+  // });
 };
 
 // export const PlayingAwaitingNext = Template.bind({});

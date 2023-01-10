@@ -19,6 +19,10 @@ export interface OnCreateOptions {
   playerInfo: PlayerInfo[];
 }
 
+interface OnJoinOptions {
+  userId: string;
+}
+
 interface CreateProps {
   roomId: LittleVigilanteRoomId;
   clubRoom: Room<ClubState>;
@@ -71,11 +75,22 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
     });
   }
 
-  override onJoin(client: Client) {
-    console.log(client.sessionId, 'joined!');
+  override onJoin(client: Client, options: OnJoinOptions) {
+    const userId = options.userId;
+    const player = this.state.players.get(userId);
+    if (player) {
+      player.connected = true;
+      console.log(player.name + " connected");
+    }
+    client.userData = { userId };
   }
 
   override onLeave(client: Client) {
-    console.log(client.sessionId, 'left!');
+    const { userId } = client.userData;
+    const player = this.state.players.get(userId);
+    if (player) {
+      player.connected = false;
+      console.log(player.name + " disconnected");
+    }
   }
 }

@@ -61,7 +61,7 @@ export const createLittleVigilanteServerMachine = (
               states: {
                 NightPhase: {
                   initial: 'Vigilante',
-                  onDone: "DiscussionPhase",
+                  onDone: 'DiscussionPhase',
                   states: {
                     Vigilante: {
                       after: {
@@ -94,8 +94,8 @@ export const createLittleVigilanteServerMachine = (
                       },
                     },
                     Complete: {
-                      type: "final"
-                    }
+                      type: 'final',
+                    },
                   },
                 },
                 DiscussionPhase: {},
@@ -133,7 +133,7 @@ export const createLittleVigilanteServerMachine = (
           //   questions[currentQuestionIndex].sys.id;
         },
         clearCurrentRoles: ({ room }) => {
-          room.state.currentRoles.clear();
+          room.state.currentRoundRoles.clear();
         },
       },
     }

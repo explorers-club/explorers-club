@@ -89,3 +89,13 @@ export function shuffle<T>(array: T[]): T[] {
   }
   return array;
 }
+
+export function generateRandomString(): string {
+  const characters =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < 5; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+}
