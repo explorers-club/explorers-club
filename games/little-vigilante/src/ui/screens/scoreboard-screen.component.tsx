@@ -9,13 +9,11 @@ import { LittleVigilantePlayerSerialized } from '@explorers-club/room';
 
 interface Props {
   players: LittleVigilantePlayerSerialized[];
-  showNext: boolean;
   onPressNext?: () => void;
 }
 
 export const ScoreboardScreenComponent: FC<Props> = ({
   players,
-  showNext,
   onPressNext,
 }) => {
   return (
@@ -24,7 +22,7 @@ export const ScoreboardScreenComponent: FC<Props> = ({
         <Flex direction="column" css={{ p: '$3' }}>
           <Caption>Scoreboard</Caption>
           <Scoreboard players={players} />
-          {showNext && (
+          {onPressNext && (
             <Button size="3" color="primary" fullWidth onClick={onPressNext}>
               Next
             </Button>

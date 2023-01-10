@@ -1,10 +1,27 @@
-import { useLittleVigilanteSelector } from '../../state/little-vigilante.hooks';
+import { CONTINUE } from '@explorers-club/room';
+import { useCallback } from 'react';
+import {
+  useIsHost,
+  useLittleVigilanteSelector,
+  useLittleVigilanteSend,
+} from '../../state/little-vigilante.hooks';
 import { ScoreboardScreenComponent } from './scoreboard-screen.component';
 
 export const ScoreboardScreen = () => {
-  const isHost = true; // todo pull from hostUserId
+  const isHost = useIsHost();
   const players = useLittleVigilanteSelector((state) =>
     Object.values(state.players)
   );
-  return <ScoreboardScreenComponent showNext={isHost} players={players} />;
+  const send = useLittleVigilanteSend();
+
+  const onPressNext = useCallback(() => {
+    send({ type: CONTINUE });
+  }, [send]);
+
+  return (
+    <ScoreboardScreenComponent
+      onPressNext={isHost ? onPressNext : undefined}
+      players={players}
+    />
+  );
 };

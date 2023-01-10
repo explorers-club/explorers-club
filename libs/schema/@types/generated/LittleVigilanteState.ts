@@ -11,6 +11,7 @@ import { LittleVigilantePlayer } from './LittleVigilantePlayer'
 export class LittleVigilanteState extends Schema {
     @type("number") public currentRound!: number;
     @type({ set: "string" }) public currentStates: SetSchema<string> = new SetSchema<string>();
+    @type({ set: "string" }) public hostUserIds: SetSchema<string> = new SetSchema<string>();
     @type({ map: "string" }) public currentRoundRoles: MapSchema<string> = new MapSchema<string>();
     @type({ map: "number" }) public currentRoundPoints: MapSchema<number> = new MapSchema<number>();
     @type({ map: LittleVigilantePlayer }) public players: MapSchema<LittleVigilantePlayer> = new MapSchema<LittleVigilantePlayer>();

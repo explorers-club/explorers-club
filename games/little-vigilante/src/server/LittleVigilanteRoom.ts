@@ -8,6 +8,7 @@ import {
 import { LittleVigilanteState } from '@explorers-club/schema-types/LittleVigilanteState';
 import { interpret } from 'xstate';
 import { LittleVigilantePlayer } from '@explorers-club/schema-types/LittleVigilantePlayer';
+import { CONTINUE } from '@explorers-club/room';
 
 interface PlayerInfo {
   userId: string;
@@ -67,12 +68,21 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
       state.players.set(userId, player);
     });
 
+    state.hostUserIds.add(playerInfo[0].userId);
+
     const room = this as Room<LittleVigilanteState>;
     this.service = interpret(createLittleVigilanteServerMachine(room)).start();
     this.service.subscribe((state) => {
       room.state.currentStates.clear();
       console.log('state change', state.value);
       state.toStrings().forEach((state) => room.state.currentStates.add(state));
+    });
+
+    this.onMessage(CONTINUE, (client) => {
+      this.service.send({
+        type: CONTINUE,
+        userId: client.userData.userId as string,
+      });
     });
   }
 

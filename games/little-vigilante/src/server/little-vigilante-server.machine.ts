@@ -151,10 +151,6 @@ const selectAllPlayersConnected = (state: LittleVigilanteState) => {
   const unconnectedPlayers = Array.from(state.players.values()).filter(
     (player) => !player.connected
   );
-  console.log(
-    'ALP',
-    unconnectedPlayers.map((f) => f.name)
-  );
 
   return unconnectedPlayers.length === 0;
 };
