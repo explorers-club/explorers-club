@@ -14,7 +14,7 @@ interface PlayerInfo {
   name: string;
 }
 
-interface OnCreateOptions {
+export interface OnCreateOptions {
   roomId: string;
   playerInfo: PlayerInfo[];
 }
@@ -72,10 +72,10 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
   }
 
   override onJoin(client: Client) {
-    console.log(client.sessionId, 'joined!', this.roomId, this.roomName);
+    console.log(client.sessionId, 'joined!');
   }
 
   override onLeave(client: Client) {
-    console.log(client.sessionId, 'left!', this.roomId, this.roomName);
+    console.log(client.sessionId, 'left!');
   }
 }

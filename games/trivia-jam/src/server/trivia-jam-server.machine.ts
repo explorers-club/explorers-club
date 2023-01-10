@@ -139,8 +139,9 @@ export const createTriviaJamServerMachine = (
         },
         updatePointTotals: ({ room }) => {
           room.state.players.forEach((player) => {
-            player.score =
-              player.score + room.state.currentQuestionPoints[player.userId];
+            const points =
+              room.state.currentQuestionPoints.get(player.userId) || 0;
+            player.score = player.score + points;
           });
         },
         judgeResponse: ({ room, questions, currentQuestionIndex }) => {

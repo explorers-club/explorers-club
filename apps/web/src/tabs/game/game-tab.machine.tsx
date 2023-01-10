@@ -57,7 +57,7 @@ export const createGameTabMachine = (colyseusClient: Client, userId: string) =>
             },
             Connecting: {
               invoke: {
-                src: async (_, { roomId }) => {
+                src: async ({ roomId }) => {
                   const room = await colyseusClient.joinById<TriviaJamState>(
                     roomId,
                     {

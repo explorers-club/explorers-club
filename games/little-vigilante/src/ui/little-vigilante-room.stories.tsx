@@ -1,39 +1,65 @@
 import {
+  createRoomStore,
   LittleVigilanteStateSerialized,
   LittleVigilanteStore,
 } from '@explorers-club/room';
+import { useEffect } from '@storybook/addons';
 import { ComponentMeta, Story } from '@storybook/react';
+import * as Colyseus from 'colyseus.js';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { LittleVigilanteContext } from '../state/little-vigilante.context';
 import { LittleVigilanteRoomComponent } from './little-vigilante-room.component';
+import { OnCreateOptions } from '../server/LittleVigilanteRoom';
+import { withQueryClient } from '@storybook-decorators/QueryClientDecorator';
+import { LittleVigilanteState } from '../../../../libs/schema/@types/generated/LittleVigilanteState';
 
 export default {
   component: LittleVigilanteRoomComponent,
+  decorators: [withQueryClient],
 } as ComponentMeta<typeof LittleVigilanteRoomComponent>;
 
-const createMockStore = (state: LittleVigilanteStateSerialized) => {
-  const store: LittleVigilanteStore = {
-    id: 'foo',
-    subscribe(cb) {
-      return () => {
-        // no-op
-      };
-    },
-    getSnapshot() {
-      return state;
-    },
-    send(command) {
-      // no-op
-    },
-  };
-  return store;
-};
+// const createMockStore = (state: LittleVigilanteStateSerialized) => {
+//   const store: LittleVigilanteStore = {
+//     id: 'foo',
+//     subscribe(cb) {
+//       return () => {
+//         // no-op
+//       };
+//     },
+//     getSnapshot() {
+//       return state;
+//     },
+//     send(command) {
+//       // no-op
+//     },
+//   };
+//   return store;
+// };
 
-const Template: Story<{
-  state: LittleVigilanteStateSerialized;
-  myUserId: string;
-}> = (args) => {
-  const { state, myUserId } = args;
-  const store = createMockStore(state);
+const Template: Story<OnCreateOptions & { myUserId: string }> = (args) => {
+  const { roomId, playerInfo, myUserId } = args;
+  const [colyseusClient] = useState(new Colyseus.Client('ws://localhost:2567'));
+
+  const query = useQuery(['room'], async () => {
+    const room = await colyseusClient.create<LittleVigilanteState>(
+      'little_vigilante',
+      {
+        roomId,
+        playerInfo,
+      }
+    );
+    await new Promise((resolve) => room.onStateChange.once(resolve));
+
+    const store = createRoomStore(room);
+    return store;
+  });
+  const store = query.data;
+
+  if (!store) {
+    // eslint-disable-next-line react/jsx-no-useless-fragment
+    return <></>;
+  }
 
   return (
     <LittleVigilanteContext.Provider value={{ store, myUserId }}>
@@ -42,99 +68,107 @@ const Template: Story<{
   );
 };
 
-const players = {
-  foo: {
-    score: 0,
-    name: 'Bar',
-    connected: true,
-    userId: 'foo',
-    slotNumber: 1,
-  },
-  bar: {
-    score: 0,
-    name: 'Bar',
-    connected: true,
-    userId: 'bar',
-    slotNumber: 2,
-  },
-  buz: {
-    score: 0,
-    name: 'Buz',
-    connected: true,
-    userId: 'buz',
-    slotNumber: 3,
-  },
-  lightYear: {
-    score: 0,
-    name: 'Lightyear',
-    connected: true,
-    userId: 'lightyear',
-    slotNumber: 4,
-  },
-};
+export const Default = Template.bind({});
 
-export const PlayingAwaitingNext = Template.bind({});
-
-PlayingAwaitingNext.args = {
-  myUserId: 'bar',
-  state: {
-    currentRound: 1,
-    currentStates: ['Playing', 'Playing.AwaitingNext'],
-    players,
-  },
-};
-
-export const PlayingNightPhase = Template.bind({});
-
-PlayingNightPhase.args = {
+Default.args = {
   myUserId: 'foo',
-  state: {
-    currentRound: 1,
-    currentStates: ['Playing', 'Playing.NightPhase'],
-    players,
-  },
+  roomId: 'little_vigilante-test',
+  playerInfo: [
+    {
+      name: 'Foo',
+      userId: 'foo',
+    },
+    {
+      name: 'Bar',
+      userId: 'bar',
+    },
+    {
+      name: 'Buz',
+      userId: 'buz',
+    },
+    {
+      name: 'Lightyear',
+      userId: 'lightyear',
+    },
+  ],
 };
 
-export const PlayingDiscussionPhase = Template.bind({});
+Default.play = async (context) => {
+  const { playerInfo, myUserId } = context.args;
 
-PlayingDiscussionPhase.args = {
-  myUserId: 'foo',
-  state: {
-    currentRound: 1,
-    currentStates: ['Playing', 'Playing.DiscussionPhase'],
-    players,
-  },
+  playerInfo.forEach(({ name, userId }) => {
+    if (userId !== myUserId) {
+      console.log(userId);
+    }
+  });
 };
 
-export const PlayingReveal = Template.bind({});
+// export const PlayingAwaitingNext = Template.bind({});
 
-PlayingReveal.args = {
-  myUserId: 'foo',
-  state: {
-    currentRound: 1,
-    currentStates: ['Playing', 'Playing.Reveal'],
-    players,
-  },
-};
+// PlayingAwaitingNext.args = {
+//   myUserId: 'bar',
+//   state: {
+//     currentRound: 1,
+//     currentStates: ['Playing', 'Playing.AwaitingNext'],
+//     players,
+//   },
+// };
 
-export const PlayingVoting = Template.bind({});
+// export const PlayingNightPhase = Template.bind({});
 
-PlayingVoting.args = {
-  myUserId: 'foo',
-  state: {
-    currentRound: 1,
-    currentStates: ['Playing', 'Playing.Voting'],
-    players,
-  },
-};
+// PlayingNightPhase.args = {
+//   myUserId: 'foo',
+//   state: {
+//     currentRound: 1,
+//     currentStates: ['Playing', 'Playing.Round', 'Playing.Round.NightPhase'],
+//     players,
+//   },
+// };
 
-export const GameOver = Template.bind({});
+// export const PlayingDiscussionPhase = Template.bind({});
 
-GameOver.args = {
-  myUserId: 'foo',
-  state: {
-    currentRound: 1,
-    currentStates: ['GameOver'],
-    players,
-  },
-};
+// PlayingDiscussionPhase.args = {
+//   myUserId: 'foo',
+//   state: {
+//     currentRound: 1,
+//     currentStates: [
+//       'Playing',
+//       'Playing.Round',
+//       'Playing.Round.DiscussionPhase',
+//     ],
+//     players,
+//   },
+// };
+
+// export const PlayingReveal = Template.bind({});
+
+// PlayingReveal.args = {
+//   myUserId: 'foo',
+//   state: {
+//     currentRound: 1,
+//     currentStates: ['Playing', 'Playing.Round', 'Playing.Round.Reveal'],
+//     players,
+//   },
+// };
+
+// export const PlayingVoting = Template.bind({});
+
+// PlayingVoting.args = {
+//   myUserId: 'foo',
+//   state: {
+//     currentRound: 1,
+//     currentStates: ['Playing', 'Playing.Round', 'Playing.Round.Voting'],
+//     players,
+//   },
+// };
+
+// export const GameOver = Template.bind({});
+
+// GameOver.args = {
+//   myUserId: 'foo',
+//   state: {
+//     currentRound: 1,
+//     currentStates: ['GameOver'],
+//     players,
+//   },
+// };
