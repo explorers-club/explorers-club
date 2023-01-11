@@ -57,6 +57,7 @@ export const createLittleVigilanteServerMachine = (
             },
             Round: {
               initial: 'AssigningRoles',
+              onDone: 'AwaitingNext',
               states: {
                 AssigningRoles: {
                   entry: 'assignRoles',
@@ -167,6 +168,7 @@ export const createLittleVigilanteServerMachine = (
                   },
                 },
                 Reveal: {
+                  entry: 'calcCurrentRoundPoints',
                   on: {
                     CONTINUE: 'Complete',
                   },
@@ -191,6 +193,35 @@ export const createLittleVigilanteServerMachine = (
           selectAllPlayersConnected(room.state),
       },
       actions: {
+        calcCurrentRoundPoints: ({ room }) => {
+          const votesByRole = Array.from(
+            room.state.currentRoundVotes.entries()
+          ).reduce((acc, [userId, votedUserId]) => {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const votedRole = room.state.currentRoundRoles.get(votedUserId)!;
+            const votes = acc.get(votedRole) || 0;
+            acc.set(votedRole, votes + 1);
+            return acc;
+          }, new Map<string, number>());
+
+          const maxVotes = Math.max(...Array.from(votesByRole.values()));
+
+          const vigilanteVotes = votesByRole.get('vigilante') || 0;
+          const vigilanteWins = vigilanteVotes === maxVotes;
+
+          room.state.currentRoundRoles.forEach((role, userId) => {
+            const isVigilanteTeam = VIGILANTE_TEAM.includes(role);
+
+            const points = isVigilanteTeam
+              ? vigilanteWins
+                ? 1
+                : 0
+              : !vigilanteWins
+              ? 1
+              : 0;
+            room.state.currentRoundPoints.set(userId, points);
+          });
+        },
         resetTimer: ({ room }) => {
           room.state.timeRemaining = 15;
         },
@@ -198,7 +229,10 @@ export const createLittleVigilanteServerMachine = (
           room.state.timeRemaining -= 1;
         },
         updateScores: () => {
-          console.log('round complete, updating scores');
+          room.state.currentRoundPoints.forEach((points, userId) => {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            room.state.players.get(userId)!.score += points;
+          });
         },
         assignRoles: ({ room }) => {
           // room.state.players
@@ -247,3 +281,5 @@ function getRoles(playerCount: number) {
   ].slice(0, playerCount);
   return shuffle(roles);
 }
+
+const VIGILANTE_TEAM = ['vigilante', 'sidekick', 'butler'];
