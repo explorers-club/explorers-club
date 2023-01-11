@@ -100,7 +100,16 @@ export type DiffusionaryStore = RoomStore<
 >;
 export type DiffusionaryPlayerSerialized = SerializedSchema<DiffusionaryPlayer>;
 
-export type LittleVigilanteCommand = JoinCommand | ContinueCommand | LeaveCommand;
+export const LITTLE_VIGILANTE_VOTE = 'VOTE';
+export type LittleVigilanteVoteCommand = {
+  type: typeof LITTLE_VIGILANTE_VOTE;
+  votedUserId: string;
+};
+export type LittleVigilanteCommand =
+  | JoinCommand
+  | ContinueCommand
+  | LeaveCommand
+  | LittleVigilanteVoteCommand;
 export type LittleVigilanteStore = RoomStore<
   LittleVigilanteState,
   LittleVigilanteCommand

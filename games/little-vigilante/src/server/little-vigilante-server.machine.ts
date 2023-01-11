@@ -56,9 +56,14 @@ export const createLittleVigilanteServerMachine = (
               },
             },
             Round: {
-              initial: 'NightPhase',
-              entry: 'assignRoles',
+              initial: 'AssigningRoles',
               states: {
+                AssigningRoles: {
+                  entry: 'assignRoles',
+                  after: {
+                    5000: 'NightPhase',
+                  },
+                },
                 NightPhase: {
                   initial: 'Vigilante',
                   onDone: 'DiscussionPhase',
@@ -75,15 +80,20 @@ export const createLittleVigilanteServerMachine = (
                     },
                     Jester: {
                       after: {
-                        5000: 'Cops',
+                        5000: 'Cop',
                       },
                     },
-                    Cops: {
+                    Cop: {
                       after: {
                         5000: 'Detective',
                       },
                     },
                     Detective: {
+                      after: {
+                        5000: 'Butler',
+                      },
+                    },
+                    Butler: {
                       after: {
                         5000: 'Mayor',
                       },
@@ -98,11 +108,71 @@ export const createLittleVigilanteServerMachine = (
                     },
                   },
                 },
-                DiscussionPhase: {},
-                Voting: {},
-                Reveal: {},
+                DiscussionPhase: {
+                  entry: ({ room }) => (room.state.timeRemaining = 25),
+                  initial: 'Idle',
+                  onDone: 'Voting',
+                  states: {
+                    Idle: {
+                      after: {
+                        1000: [
+                          {
+                            target: 'Complete',
+                            cond: 'timesUp',
+                          },
+                          {
+                            target: 'Idle',
+                            actions: 'timerTick',
+                          },
+                        ],
+                      },
+                    },
+                    Complete: {
+                      type: 'final',
+                    },
+                  },
+                },
+                Voting: {
+                  entry: ({ room }) => (room.state.timeRemaining = 10),
+                  initial: 'Idle',
+                  onDone: 'Reveal',
+                  on: {
+                    VOTE: {
+                      actions: ({ room }, event) => {
+                        room.state.currentRoundVotes.set(
+                          event.userId,
+                          event.votedUserId
+                        );
+                      },
+                    },
+                  },
+                  states: {
+                    Idle: {
+                      after: {
+                        1000: [
+                          {
+                            target: 'Complete',
+                            cond: 'timesUp',
+                          },
+                          {
+                            target: 'Idle',
+                            actions: 'timerTick',
+                          },
+                        ],
+                      },
+                    },
+                    Complete: {
+                      type: 'final',
+                    },
+                  },
+                },
+                Reveal: {
+                  on: {
+                    CONTINUE: 'Complete',
+                  },
+                },
                 Complete: {
-                  entry: 'updatePointTotals',
+                  entry: 'updateScores',
                   exit: ['clearCurrentRoles'],
                   type: 'final' as const,
                 },
@@ -116,21 +186,28 @@ export const createLittleVigilanteServerMachine = (
     },
     {
       guards: {
+        timesUp: ({ room }) => room.state.timeRemaining <= 0,
         allPlayersConnected: ({ room }, event) =>
           selectAllPlayersConnected(room.state),
       },
       actions: {
+        resetTimer: ({ room }) => {
+          room.state.timeRemaining = 15;
+        },
+        timerTick: ({ room }) => {
+          room.state.timeRemaining -= 1;
+        },
+        updateScores: () => {
+          console.log('round complete, updating scores');
+        },
         assignRoles: ({ room }) => {
-          const allRoles = getRoles(room.state.players.keys.length);
+          // room.state.players
+          const allRoles = getRoles(room.state.players.size);
 
-          // room.state.players.forEach((player) => {})
-          // room.state.players.forEach((player) => {
-          //   // room.state.currentRoles[player.userId] = roles.pop();
-          //   // const role = roles.pop();
-          //   // player.role = role;
-          // });
-          // room.state.currentQuestionEntryId =
-          //   questions[currentQuestionIndex].sys.id;
+          room.state.players.forEach((player) => {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            room.state.currentRoundRoles.set(player.userId, allRoles.pop()!);
+          });
         },
         clearCurrentRoles: ({ room }) => {
           room.state.currentRoundRoles.clear();
@@ -162,10 +239,11 @@ function getRoles(playerCount: number) {
     'butler',
     'detective',
     'cop',
+    'cop',
     'mayor',
     'citizen',
     'citizen',
     'citizen',
-  ];
+  ].slice(0, playerCount);
   return shuffle(roles);
 }

@@ -1,5 +1,6 @@
 import { useLittleVigilanteSelector } from '../../state/little-vigilante.hooks';
-import { DiscussionPhaseScreen } from './discussion-phase.container';
+import { AssigningRolesScreen } from './assigning-roles-screen.container';
+import { DiscussionPhaseScreen } from './discussion-phase-screen.container';
 import { NightPhaseScreen } from './night-phase-screen.container';
 import { RevealScreen } from './reveal-screen.container';
 import { ScoreboardScreen } from './scoreboard-screen.constainer';
@@ -7,11 +8,12 @@ import { VotingPhaseScreen } from './voting-phase-screen.container';
 
 export const PlayScreen = () => {
   const states = useLittleVigilanteSelector((state) => state.currentStates);
-  console.log(states);
 
   switch (true) {
     case states.includes('Playing.AwaitingNext'):
       return <ScoreboardScreen />;
+    case states.includes('Playing.Round.AssigningRoles'):
+      return <AssigningRolesScreen />;
     case states.includes('Playing.Round.NightPhase'):
       return <NightPhaseScreen />;
     case states.includes('Playing.Round.DiscussionPhase'):
