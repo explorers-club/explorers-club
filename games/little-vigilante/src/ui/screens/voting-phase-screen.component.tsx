@@ -1,7 +1,6 @@
 import { Box } from '@atoms/Box';
 import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
-import { Text } from '@atoms/Text';
 import { Heading } from '@atoms/Heading';
 import { FC } from 'react';
 import { Caption } from '@atoms/Caption';
@@ -23,6 +22,7 @@ export const VotingPhaseScreenComponent: FC<Props> = ({
       <Card css={{ p: '$3' }}>
         <Flex direction="column" gap="2">
           <Caption>{timeRemaining} seconds left</Caption>
+          <Heading>Who is the Vigilante?</Heading>
           <RadioCardGroup onValueChange={onSubmitVote}>
             <Flex direction="column" gap="3">
               {playerVoteCounts.map(({ userId, name, count }) => (

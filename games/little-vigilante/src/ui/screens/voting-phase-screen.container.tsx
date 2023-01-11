@@ -10,18 +10,37 @@ export const VotingPhaseScreen = () => {
   const timeRemaining = useLittleVigilanteSelector(
     (state) => state.timeRemaining
   );
-  const playerVoteCounts = useLittleVigilanteSelector((state) => {
-    const count = 0;
-    return Object.entries(state.players).map(([userId, player]) => ({
-      userId,
-      name: player.name,
-      count,
-    }));
+
+  const countsByPlayerId = useLittleVigilanteSelector((state) => {
+    return Object.entries(state.currentRoundVotes).reduce(
+      (acc, [userId, votedUserId]) => {
+        if (acc[votedUserId]) {
+          acc[votedUserId]++;
+        } else {
+          acc[votedUserId] = 1;
+        }
+        return acc;
+      },
+      {} as Record<string, number>
+    );
   });
 
-  const handleSubmitVote = useCallback((votedUserId: string) => {
-    send({ type: 'VOTE', votedUserId });
-  }, []);
+  const playerVoteCounts = useLittleVigilanteSelector((state) => {
+    return Object.entries(state.players).map(([userId, player]) => {
+      return {
+        userId,
+        name: player.name,
+        count: countsByPlayerId[userId] || 0,
+      };
+    });
+  });
+
+  const handleSubmitVote = useCallback(
+    (votedUserId: string) => {
+      send({ type: 'VOTE', votedUserId });
+    },
+    [send]
+  );
 
   return (
     <VotingPhaseScreenComponent
