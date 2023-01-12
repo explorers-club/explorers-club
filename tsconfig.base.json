@@ -39,7 +39,7 @@
       ],
       "@explorers-club/diffusionary/ui": ["games/diffusionary/src/ui/index.ts"],
       "@explorers-club/little-vigilante/meta": [
-        "games/little-vigilante/src/meta/index.ts"
+        "games/little-vigilante/src/meta/index.tsx"
       ],
       "@explorers-club/little-vigilante/scene": [
         "games/little-vigilante/src/scene/index.ts"

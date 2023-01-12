@@ -1,14 +1,20 @@
 import { Box } from '@atoms/Box';
 import { Caption } from '@atoms/Caption';
 import { Card } from '@atoms/Card';
+import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
-import { FC } from 'react';
+import { IconButton } from '@atoms/IconButton';
+import { InfoCircledIcon } from '@radix-ui/react-icons';
+import { FC, ReactNode, useCallback, useContext } from 'react';
+import { CloseableModal } from '../../../components/organisms/modal/modal-wrapper.component';
+import { AppContext } from '../../../state/app.context';
 
 interface Props {
   displayName: string;
   coverImageUrl: string;
   minPlayers: number;
   maxPlayers: number;
+  GameInfoScreenComponent?: ReactNode;
 }
 
 export const GameCardComponent: FC<Props> = ({
@@ -16,7 +22,18 @@ export const GameCardComponent: FC<Props> = ({
   coverImageUrl,
   minPlayers,
   maxPlayers,
+  GameInfoScreenComponent,
 }) => {
+  const { modalActor } = useContext(AppContext);
+  const handlePressInfo = useCallback(() => {
+    if (GameInfoScreenComponent) {
+      modalActor.send({
+        type: 'SHOW',
+        component: <CloseableModal component={GameInfoScreenComponent} />,
+      });
+    }
+  }, [modalActor, GameInfoScreenComponent]);
+
   return (
     <Card
       css={{
@@ -36,10 +53,19 @@ export const GameCardComponent: FC<Props> = ({
           background: 'linear-gradient(rgba(0,0,0,0), rgba(0,0,0,1))',
         }}
       >
-        <Heading size="2">{displayName}</Heading>
-        <Caption size="2">
-          {minPlayers} - {maxPlayers} players
-        </Caption>
+        <Flex justify="between">
+          <Box>
+            <Heading size="2">{displayName}</Heading>
+            <Caption size="2">
+              {minPlayers} - {maxPlayers} players
+            </Caption>
+          </Box>
+          {GameInfoScreenComponent && (
+            <IconButton size="3" onClick={handlePressInfo}>
+              <InfoCircledIcon />
+            </IconButton>
+          )}
+        </Flex>
       </Box>
     </Card>
   );
