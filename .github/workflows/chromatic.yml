@@ -45,4 +45,4 @@ jobs:
       - name: Build Storybook
         run: npx nx run little-vigilante:build-storybook
       - name: Deploy Storybook
-        run: npx chromatic --project-token=${{ secrets.CHROMATIC_PROJECT_TOKEN_LITTLE_VIGILANTE }} -d dist/storybook/components --auto-accept-changes --ci
+        run: npx chromatic --project-token=${{ secrets.CHROMATIC_PROJECT_TOKEN_LITTLE_VIGILANTE }} -d dist/storybook/little-vigilante --auto-accept-changes --ci
