@@ -6,12 +6,42 @@ export const teamByRole: Record<string, string> = {
   mayor: 'citizens',
   detective: 'citizens',
   cop: 'citizens',
-  jester: 'jester',
+  jester: 'citizens',
+  student: 'citizens',
+  monk: 'citizens',
+  anarchist: 'anarchist',
+};
+
+export const nightPhaseOrder = [
+  'cop',
+  'vigilante',
+  'student',
+  'butler',
+  'detective',
+  'jester',
+  'politician',
+  'sidekick',
+  'monk',
+];
+
+export const abilityByRole: Record<string, string> = {
+  cop: 'Has the ability to arrest one player, preventing them from using their ability.',
+  vigilante:
+    'Has the ability to see one role that is not being played by another player',
+  student: 'Has the ability to see which player is the other student.',
+  detective: 'Has the ability to investigate one player to find out their role',
+  jester: 'Has the ability to swap the roles of two other players',
+  butler: 'Has the ability to see which player is the vigilante.',
+  politician: 'Has the ability to swap their role with another player',
+  sidekick: 'Has the ability to see which player is the vigilante.',
+  monk: 'Has the ability to inspect their own role at the end of the night.',
+  mayor: 'Has the ability to have their vote count twice',
+  anarchist: 'Has no special ability',
 };
 
 export const objectiveByTeam: Record<string, string> = {
-  jester: 'Convince others that you are the vigilante',
-  citizens: 'Identity the vigilante',
+  anarchist: 'Convince others that you are the vigilante',
+  citizens: 'Identify the vigilante',
   vigilante: 'Protect the identity of the vigilante',
 };
 
