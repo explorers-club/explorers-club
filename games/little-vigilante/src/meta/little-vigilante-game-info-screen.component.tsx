@@ -3,7 +3,11 @@ import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
 import { Text } from '@atoms/Text';
 import { Heading } from '@atoms/Heading';
-import { abilityByRole, teamByRole } from './little-vigilante.constants';
+import {
+  abilityByRole,
+  nightPhaseOrder,
+  teamByRole,
+} from './little-vigilante.constants';
 
 export const LittleVigilanteGameInfoScreen = () => {
   return (
@@ -20,7 +24,7 @@ export const LittleVigilanteGameInfoScreen = () => {
           </Text>
           <Text>Here are the basic rules of the game:</Text>
           <Text>
-            1. Each player is dealt a role card at the start of the round.
+            1. Each player is dealt a role card at the start of each round.
           </Text>
           <Text>
             2. The game is divided into two phases: night and morning. During
@@ -30,8 +34,15 @@ export const LittleVigilanteGameInfoScreen = () => {
           </Text>
           <Text>
             3. If the the player with the vigilante role receives the most
-            votes, the citizen team wins. If the vigilante does not receive the
-            most votes, the vigilante team wins.
+            votes, the citizen team wins the round. If the vigilante does not
+            receive the most votes, the vigilante team wins the round.
+          </Text>
+          <Text>Each round lasts about five minutes.</Text>
+          <Text>
+            Before the game starts, players choose how many rounds they would
+            like to play for. Players earn a point each time they win a round.
+            After completing the last round, the player with the most points
+            wins.
           </Text>
         </Flex>
       </Card>
@@ -46,6 +57,28 @@ export const LittleVigilanteGameInfoScreen = () => {
             </Flex>
           ))}
         </Flex>
+      </Card>
+      <Card css={{ p: '$3' }}>
+        <Heading size="3">Night Order</Heading>
+        <Text>During the night phase, players always go in this order:</Text>
+        <Flex direction="column" gap="3">
+          {nightPhaseOrder.map((role) => (
+            <Heading size="2" key={role}>
+              {role}
+            </Heading>
+          ))}
+        </Flex>
+      </Card>
+      <Card css={{ p: '$3' }}>
+        <Heading>Rules</Heading>
+        <Text>
+          · If two players split the vote and one of those players is the
+          vigilante, the citizens team wins.
+        </Text>
+        <Text>
+          · The anarchist can win by receiving the most votes. If the anarchist
+          wins, the vigilante team does not.
+        </Text>
       </Card>
     </Flex>
   );
