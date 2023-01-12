@@ -17,48 +17,48 @@ export const NightPhaseScreenComponent: FC<Props> = ({ role }) => {
 const getComponent = (role: string) => {
   switch (role) {
     case 'vigilante':
-      return <VigilanteScreen />;
+      return <Vigilante />;
     case 'sidekick':
-      return <SidekickScreen />;
+      return <Sidekick />;
     case 'jester':
-      return <JesterScreen />;
+      return <Jester />;
     case 'cop':
-      return <CopScreen />;
+      return <Cop />;
     case 'detective':
-      return <DetectiveScreen />;
+      return <Detective />;
     case 'butler':
-      return <ButlerScreen />;
+      return <Butler />;
     case 'mayor':
-      return <MayorScreen />;
+      return <Mayor />;
     default:
       return null;
   }
 };
 
-const VigilanteScreen = () => {
+const Vigilante = () => {
   return <Text>Vigilante, look at one other players role</Text>;
 };
 
-const SidekickScreen = () => {
+const Sidekick = () => {
   return <Text>Sidekick, look at the vigilante</Text>;
 };
 
-const JesterScreen = () => {
+const Jester = () => {
   return <Text>Jester, swap any two players cards</Text>;
 };
 
-const CopScreen = () => {
+const Cop = () => {
   return <Text>Cop, see other copy</Text>;
 };
 
-const DetectiveScreen = () => {
+const Detective = () => {
   return <Text>Detective see other detective</Text>;
 };
 
-const ButlerScreen = () => {
+const Butler = () => {
   return <Text>Butler you know who the vigilante is</Text>;
 };
 
-const MayorScreen = () => {
+const Mayor = () => {
   return <Text>Mayor get two votes</Text>;
 };
