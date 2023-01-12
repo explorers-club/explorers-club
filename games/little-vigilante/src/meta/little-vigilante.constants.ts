@@ -1,15 +1,47 @@
 export const teamByRole: Record<string, string> = {
   vigilante: 'vigilante',
-  sidekick: 'vigilante',
   butler: 'vigilante',
-  citizen: 'citizens',
-  mayor: 'citizens',
-  detective: 'citizens',
+  sidekick: 'vigilante',
   cop: 'citizens',
-  jester: 'citizens',
   student: 'citizens',
+  detective: 'citizens',
+  conspirator: 'citizens',
+  politician: 'citizens',
   monk: 'citizens',
-  anarchist: 'anarchist',
+  mayor: 'citizens',
+  anarchist: 'anarachist',
+};
+
+const FOUR_PLAYER_ROLES = [
+  'vigilante',
+  'butler',
+  'student',
+  'student',
+  'detective',
+  'conspirator',
+  'politician',
+];
+
+const FIVE_PLAYER_ROLES = [...FOUR_PLAYER_ROLES, 'anarchist'];
+
+const SIX_PLAYER_ROLES = [...FIVE_PLAYER_ROLES, 'monk'];
+
+const SEVEN_PLAYER_ROLES = [...SIX_PLAYER_ROLES, 'sidekick'];
+
+const EIGHT_PLAYER_ROLES = [...SEVEN_PLAYER_ROLES, 'cop'];
+
+const NINE_PLAYER_ROLES = [...EIGHT_PLAYER_ROLES, 'mayor'];
+
+const TEN_PLAYER_ROLES = [...NINE_PLAYER_ROLES, 'student'];
+
+export const rolesByPlayerCount = {
+  4: FOUR_PLAYER_ROLES,
+  5: FIVE_PLAYER_ROLES,
+  6: SIX_PLAYER_ROLES,
+  7: SEVEN_PLAYER_ROLES,
+  8: EIGHT_PLAYER_ROLES,
+  9: NINE_PLAYER_ROLES,
+  10: TEN_PLAYER_ROLES,
 };
 
 export const nightPhaseOrder = [
@@ -18,7 +50,7 @@ export const nightPhaseOrder = [
   'student',
   'butler',
   'detective',
-  'jester',
+  'conspirator',
   'politician',
   'sidekick',
   'monk',
@@ -29,10 +61,10 @@ export const abilityByRole: Record<string, string> = {
   vigilante:
     'Has the ability to see one role that is not in use by another player.',
   student: 'Has the ability to see which player is the other student.',
+  butler: 'Has the ability to see which player is the vigilante.',
   detective:
     'Has the ability to investigate one player to find out their role.',
-  jester: 'Has the ability to swap the roles of two other players.',
-  butler: 'Has the ability to see which player is the vigilante.',
+  conspirator: 'Has the ability to swap the roles of two other players.',
   politician: 'Has the ability to swap their role with another player.',
   sidekick: 'Has the ability to see which player is the vigilante.',
   monk: 'Has the ability to inspect their own role at the end of the night.',

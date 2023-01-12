@@ -105,11 +105,22 @@ export type LittleVigilanteVoteCommand = {
   type: typeof LITTLE_VIGILANTE_VOTE;
   votedUserId: string;
 };
+
+type LittleVigilanteArrestCommand = {
+  type: 'ARREST';
+  arrestedUserId: string;
+};
+type LittleVigilanteSwapCommand = {
+  type: 'SWAP';
+  arrestedUserId: string;
+};
 export type LittleVigilanteCommand =
   | JoinCommand
   | ContinueCommand
   | LeaveCommand
-  | LittleVigilanteVoteCommand;
+  | LittleVigilanteVoteCommand
+  | LittleVigilanteArrestCommand
+  | LittleVigilanteSwapCommand;
 export type LittleVigilanteStore = RoomStore<
   LittleVigilanteState,
   LittleVigilanteCommand

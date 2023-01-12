@@ -12,6 +12,7 @@
     "@mapbox/martini": "github:mapbox/martini#f0d6dcaeb656b4d256c0da5bfe53de9262c4a8f1",
     "@mapbox/tile-cover": "^3.0.2",
     "@mapbox/tilebelt": "^1.0.2",
+    "@mobily/ts-belt": "^3.13.1",
     "@nestjs/common": "^9.0.0",
     "@nestjs/core": "^9.0.0",
     "@nestjs/platform-express": "^9.0.0",

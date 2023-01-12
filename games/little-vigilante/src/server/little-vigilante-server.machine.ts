@@ -1,8 +1,10 @@
-import { LittleVigilanteCommand } from '@explorers-club/room';
+import { LittleVigilanteCommand, SerializedSchema } from '@explorers-club/room';
+import { A } from '@mobily/ts-belt';
 import { LittleVigilanteState } from '@explorers-club/schema-types/LittleVigilanteState';
 import { shuffle } from '@explorers-club/utils';
 import { Room } from 'colyseus';
-import { ActorRefFrom, createMachine } from 'xstate';
+import { createSelector } from 'reselect';
+import { actions, ActorRefFrom, createMachine } from 'xstate';
 
 export interface LittleVigilanteServerContext {
   room: Room<LittleVigilanteState>;
@@ -69,37 +71,75 @@ export const createLittleVigilanteServerMachine = (
                   initial: 'Vigilante',
                   onDone: 'DiscussionPhase',
                   states: {
+                    Cop: {
+                      always: {
+                        target: 'Vigilante',
+                        cond: ({ room }) => !selectCopPlayer(room.state),
+                      },
+                      on: {
+                        ARREST: {
+                          target: 'Vigilante',
+                          actions: 'arrestPlayer',
+                        },
+                      },
+                    },
                     Vigilante: {
                       after: {
-                        5000: 'Sidekick',
+                        5000: 'Student',
                       },
                     },
-                    Sidekick: {
-                      after: {
-                        5000: 'Jester',
+                    Student: {
+                      always: {
+                        target: 'Butler',
+                        cond: ({ room }) =>
+                          !selectStudentPlayers(room.state).length,
                       },
-                    },
-                    Jester: {
-                      after: {
-                        5000: 'Cop',
-                      },
-                    },
-                    Cop: {
-                      after: {
-                        5000: 'Detective',
-                      },
-                    },
-                    Detective: {
                       after: {
                         5000: 'Butler',
                       },
                     },
                     Butler: {
+                      always: {
+                        target: 'Detective',
+                        cond: ({ room }) => !selectButlerPlayer(room.state),
+                      },
                       after: {
-                        5000: 'Mayor',
+                        5000: 'Detective',
                       },
                     },
-                    Mayor: {
+                    Detective: {
+                      always: {
+                        target: 'Conpsirator',
+                        cond: ({ room }) => !selectDetectivePlayer(room.state),
+                      },
+                      after: {
+                        5000: 'Conspirator',
+                      },
+                    },
+                    Conpsirator: {
+                      always: {
+                        target: 'Sidekick',
+                        cond: ({ room }) =>
+                          !selectConspiratorPlayer(room.state),
+                      },
+                      after: {
+                        5000: 'Sidekick',
+                      },
+                    },
+                    Sidekick: {
+                      always: {
+                        target: 'Monk',
+                        cond: ({ room }) => !selectSidekickPlayer(room.state),
+                      },
+                      after: {
+                        5000: 'Monk',
+                      },
+                    },
+                    Monk: {
+                      always: {
+                        target: 'Monk',
+                        cond: ({ room }) => !selectMonkPlayer(room.state),
+                      },
                       after: {
                         5000: 'Complete',
                       },
@@ -193,6 +233,9 @@ export const createLittleVigilanteServerMachine = (
           selectAllPlayersConnected(room.state),
       },
       actions: {
+        arrestPlayer({ room }, event) {
+          console.log('arrest', event);
+        },
         calcCurrentRoundPoints: ({ room }) => {
           const votesByRole = Array.from(
             room.state.currentRoundVotes.entries()
@@ -265,6 +308,74 @@ const selectAllPlayersConnected = (state: LittleVigilanteState) => {
 
   return unconnectedPlayers.length === 0;
 };
+
+const selectSerializedState = (state: LittleVigilanteState) => {
+  return state.toJSON() as SerializedSchema<LittleVigilanteState>;
+};
+
+const selectCurrentRoundRoles = createSelector(
+  selectSerializedState,
+  (state) => state.currentRoundRoles
+);
+
+const createPlayersInRoleSelector = (role: string) =>
+  createSelector(selectCurrentRoundRoles, (currentRoles) =>
+    Object.entries(currentRoles)
+      .filter(([_, playerRole]) => playerRole === role)
+      .map(([userId]) => userId)
+  );
+
+const selectCopPlayer = createSelector(
+  createPlayersInRoleSelector('cop'),
+  A.head
+);
+
+const selectVigilantePlayer = createSelector(
+  createPlayersInRoleSelector('vigilante'),
+  A.head
+);
+
+const selectButlerPlayer = createSelector(
+  createPlayersInRoleSelector('butler'),
+  A.head
+);
+
+const selectStudentPlayers = createPlayersInRoleSelector('student');
+
+const selectDetectivePlayer = createSelector(
+  createPlayersInRoleSelector('detective'),
+  A.head
+);
+
+const selectConspiratorPlayer = createSelector(
+  createPlayersInRoleSelector('conspirator'),
+  A.head
+);
+
+const selectPoliticianPlayer = createSelector(
+  createPlayersInRoleSelector('politician'),
+  A.head
+);
+
+const selectSidekickPlayer = createSelector(
+  createPlayersInRoleSelector('sidekick'),
+  A.head
+);
+
+const selectMonkPlayer = createSelector(
+  createPlayersInRoleSelector('monk'),
+  A.head
+);
+
+const selectMayorPlayer = createSelector(
+  createPlayersInRoleSelector('mayor'),
+  A.head
+);
+
+const selectAnarachistPlayer = createSelector(
+  createPlayersInRoleSelector('anarchist'),
+  A.head
+);
 
 function getRoles(playerCount: number) {
   const roles = [
