@@ -4,6 +4,7 @@ import { generateRandomString } from '@explorers-club/utils';
 import { useEffect } from '@storybook/addons';
 import { ComponentMeta, Story } from '@storybook/react';
 import * as Colyseus from 'colyseus.js';
+import { Room } from 'colyseus.js';
 import { useState } from 'react';
 import { OnCreateOptions } from '../server/LittleVigilanteRoom';
 import { LittleVigilanteContext } from '../state/little-vigilante.context';
@@ -13,30 +14,12 @@ export default {
   component: LittleVigilanteRoomComponent,
 } as ComponentMeta<typeof LittleVigilanteRoomComponent>;
 
-// const createMockStore = (state: LittleVigilanteStateSerialized) => {
-//   const store: LittleVigilanteStore = {
-//     id: 'foo',
-//     subscribe(cb) {
-//       return () => {
-//         // no-op
-//       };
-//     },
-//     getSnapshot() {
-//       return state;
-//     },
-//     send(command) {
-//       // no-op
-//     },
-//   };
-//   return store;
-// };
-
 const Template: Story<OnCreateOptions & { myUserId: string }> = (args) => {
   const { roomId, myUserId } = args;
   const [store, setStore] = useState<LittleVigilanteStore | null>(null);
 
   useEffect(() => {
-    joinAndCreateStore(roomId, myUserId).then(setStore);
+    joinAndCreateStore(roomId, myUserId).then(setStore).catch(console.error);
   }, [roomId, myUserId, setStore]);
 
   if (!store) {
@@ -92,20 +75,30 @@ Default.play = async (context) => {
   const { roomId, playerInfo, myUserId } = context.args;
 
   const colyseusClient = new Colyseus.Client('ws://localhost:2567');
-  const room = await colyseusClient.create<LittleVigilanteState>(
-    'little_vigilante',
-    {
-      roomId,
-      playerInfo,
-    }
-  );
+  let room: Room<LittleVigilanteState>;
+  try {
+    room = await colyseusClient.create<LittleVigilanteState>(
+      'little_vigilante',
+      {
+        roomId,
+        playerInfo,
+      }
+    );
+  } catch (ex) {
+    console.error(ex);
+    return;
+  }
   await new Promise((resolve) => room.onStateChange.once(resolve));
 
   // Mimic joining all the other player clients
-  const stores = await Promise.all(
-    playerInfo
-      .filter(({ userId }) => userId !== myUserId)
-      .map(({ userId }) => joinAndCreateStore(roomId, userId))
-  );
-  console.log(stores);
+  try {
+    await Promise.all(
+      playerInfo
+        .filter(({ userId }) => userId !== myUserId)
+        .map(({ userId }) => joinAndCreateStore(roomId, userId))
+    );
+  } catch (ex) {
+    console.error(ex);
+    return;
+  }
 };
