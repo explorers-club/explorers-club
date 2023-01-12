@@ -10,6 +10,8 @@ import { interpret } from 'xstate';
 import { LittleVigilantePlayer } from '@explorers-club/schema-types/LittleVigilantePlayer';
 import {
   CONTINUE,
+  LittleVigilanteArrestCommand,
+  LittleVigilanteSwapCommand,
   LittleVigilanteVoteCommand,
   LITTLE_VIGILANTE_VOTE,
 } from '@explorers-club/room';
@@ -83,14 +85,28 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
     });
 
     this.onMessage(
-      LITTLE_VIGILANTE_VOTE,
-      (client, message: LittleVigilanteVoteCommand) => {
+      'ARREST',
+      (client, message: LittleVigilanteArrestCommand) => {
         this.service.send({
           ...message,
           userId: client.userData.userId as string,
         });
       }
     );
+
+    this.onMessage('SWAP', (client, message: LittleVigilanteSwapCommand) => {
+      this.service.send({
+        ...message,
+        userId: client.userData.userId as string,
+      });
+    });
+
+    this.onMessage('VOTE', (client, message: LittleVigilanteVoteCommand) => {
+      this.service.send({
+        ...message,
+        userId: client.userData.userId as string,
+      });
+    });
 
     this.onMessage(CONTINUE, (client) => {
       this.service.send({

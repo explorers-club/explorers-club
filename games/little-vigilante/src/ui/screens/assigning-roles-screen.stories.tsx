@@ -41,7 +41,27 @@ Sidekick.args = {
   role: 'sidekick',
 };
 
-export const Jester = Template.bind({});
-Jester.args = {
-  role: 'jester',
+export const Monk = Template.bind({});
+Monk.args = {
+  role: 'monk',
+};
+
+export const Student = Template.bind({});
+Student.args = {
+  role: 'student',
+};
+
+export const Anarchist = Template.bind({});
+Anarchist.args = {
+  role: 'anarchist',
+};
+
+export const Conspirator = Template.bind({});
+Conspirator.args = {
+  role: 'conspirator',
+};
+
+export const Politician = Template.bind({});
+Politician.args = {
+  role: 'politician',
 };

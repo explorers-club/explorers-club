@@ -1,13 +1,14 @@
 import { LittleVigilanteCommand, SerializedSchema } from '@explorers-club/room';
 import { A } from '@mobily/ts-belt';
 import { LittleVigilanteState } from '@explorers-club/schema-types/LittleVigilanteState';
-import { shuffle } from '@explorers-club/utils';
+import { assertEventType, shuffle } from '@explorers-club/utils';
 import { Room } from 'colyseus';
 import { createSelector } from 'reselect';
-import { actions, ActorRefFrom, createMachine } from 'xstate';
+import { actions, ActorRefFrom, assign, createMachine } from 'xstate';
 
 export interface LittleVigilanteServerContext {
   room: Room<LittleVigilanteState>;
+  arrestedUserId?: string;
 }
 
 export type LittleVigilanteServerEvent = LittleVigilanteCommand & {
@@ -113,17 +114,35 @@ export const createLittleVigilanteServerMachine = (
                         cond: ({ room }) => !selectDetectivePlayer(room.state),
                       },
                       after: {
-                        5000: 'Conspirator',
+                        20000: 'Conspirator',
+                      },
+                      on: {
+                        CONTINUE: 'Conspirator',
                       },
                     },
                     Conpsirator: {
                       always: {
-                        target: 'Sidekick',
+                        target: 'Politician',
                         cond: ({ room }) =>
                           !selectConspiratorPlayer(room.state),
                       },
-                      after: {
-                        5000: 'Sidekick',
+                      on: {
+                        SWAP: {
+                          target: 'Politician',
+                          actions: 'swapPlayers',
+                        },
+                      },
+                    },
+                    Politician: {
+                      always: {
+                        target: 'Sidekick',
+                        cond: ({ room }) => !selectPoliticianPlayer(room.state),
+                      },
+                      on: {
+                        SWAP: {
+                          target: 'Sidekick',
+                          actions: 'swapPlayers',
+                        },
                       },
                     },
                     Sidekick: {
@@ -233,15 +252,36 @@ export const createLittleVigilanteServerMachine = (
           selectAllPlayersConnected(room.state),
       },
       actions: {
-        arrestPlayer({ room }, event) {
-          console.log('arrest', event);
+        arrestPlayer: assign({
+          arrestedUserId: (_, event) => {
+            assertEventType(event, 'ARREST');
+            return event.arrestedUserId;
+          },
+        }),
+        swapPlayers: ({ room }, event) => {
+          assertEventType(event, 'SWAP');
+          const { firstUserId, secondUserId } = event;
+          const firstUserRole =
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            room.state.currentRoundRoles.get(firstUserId)!;
+          const secondUserRole =
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            room.state.currentRoundRoles.get(secondUserId)!;
+          room.state.currentRoundRoles.set(firstUserId, secondUserRole);
+          room.state.currentRoundRoles.set(secondUserId, firstUserRole);
         },
-        calcCurrentRoundPoints: ({ room }) => {
+        calcCurrentRoundPoints: ({ room, arrestedUserId }) => {
           const votesByRole = Array.from(
             room.state.currentRoundVotes.entries()
           ).reduce((acc, [userId, votedUserId]) => {
+            if (userId === arrestedUserId) {
+              // Arrested players don't get to vote
+              return acc;
+            }
+
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             const votedRole = room.state.currentRoundRoles.get(votedUserId)!;
+
             const votes = acc.get(votedRole) || 0;
             acc.set(votedRole, votes + 1);
             return acc;
@@ -252,11 +292,19 @@ export const createLittleVigilanteServerMachine = (
           const vigilanteVotes = votesByRole.get('vigilante') || 0;
           const vigilanteWins = vigilanteVotes === maxVotes;
 
+          const anarchistVotes = votesByRole.get('anarchist') || 0;
+          const anarachistWins = anarchistVotes === maxVotes;
+
           room.state.currentRoundRoles.forEach((role, userId) => {
             const isVigilanteTeam = VIGILANTE_TEAM.includes(role);
+            const isAnarachist = role === 'anarchist';
 
             const points = isVigilanteTeam
               ? vigilanteWins
+                ? 1
+                : 0
+              : isAnarachist
+              ? anarachistWins
                 ? 1
                 : 0
               : !vigilanteWins

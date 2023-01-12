@@ -100,19 +100,19 @@ export type DiffusionaryStore = RoomStore<
 >;
 export type DiffusionaryPlayerSerialized = SerializedSchema<DiffusionaryPlayer>;
 
-export const LITTLE_VIGILANTE_VOTE = 'VOTE';
 export type LittleVigilanteVoteCommand = {
-  type: typeof LITTLE_VIGILANTE_VOTE;
+  type: 'VOTE';
   votedUserId: string;
 };
 
-type LittleVigilanteArrestCommand = {
+export type LittleVigilanteArrestCommand = {
   type: 'ARREST';
   arrestedUserId: string;
 };
-type LittleVigilanteSwapCommand = {
+export type LittleVigilanteSwapCommand = {
   type: 'SWAP';
-  arrestedUserId: string;
+  firstUserId: string;
+  secondUserId: string;
 };
 export type LittleVigilanteCommand =
   | JoinCommand

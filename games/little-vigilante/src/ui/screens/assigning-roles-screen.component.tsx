@@ -6,10 +6,15 @@ import { Heading } from '@atoms/Heading';
 import { Image } from '@atoms/Image';
 import { Text } from '@atoms/Text';
 import { FC } from 'react';
-import { imageByRole, objectiveByTeam, teamByRole } from '../../meta/little-vigilante.constants';
+import {
+  imageByRole,
+  objectiveByTeam,
+  Role,
+  teamByRole,
+} from '../../meta/little-vigilante.constants';
 
 interface Props {
-  role: string;
+  role: Role;
 }
 
 export const AssigningRolesScreenComponent: FC<Props> = ({ role }) => {
