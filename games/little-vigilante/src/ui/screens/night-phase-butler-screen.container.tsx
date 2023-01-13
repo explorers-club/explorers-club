@@ -1,6 +1,8 @@
-import React from 'react';
+import { useLittleVigilanteSelector } from '../../state/little-vigilante.hooks';
+import { selectVigilantePlayerName } from '../../state/little-vigilante.selectors';
 import { NightPhaseButlerScreenComponent } from './night-phase-butler-screen.component';
 
 export const NightPhaseButlerScreen = () => {
-  return <NightPhaseButlerScreenComponent />;
+  const vigilante = useLittleVigilanteSelector(selectVigilantePlayerName);
+  return <NightPhaseButlerScreenComponent vigilante={vigilante} />;
 };
