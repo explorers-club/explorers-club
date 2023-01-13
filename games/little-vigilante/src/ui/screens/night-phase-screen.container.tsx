@@ -3,7 +3,15 @@ import {
   useLittleVigilanteSelector,
   useMyUserId,
 } from '../../state/little-vigilante.hooks';
-import { NightPhaseScreenComponent } from './night-phase-screen.component';
+import { NightPhaseButlerScreen } from './night-phase-butler-screen.container';
+import { NightPhaseConspiratorScreen } from './night-phase-conspirator-screen.container';
+import { NightPhaseCopScreen } from './night-phase-cop-screen.container';
+import { NightPhaseDetectiveScreen } from './night-phase-detective-screen.container';
+import { NightPhaseMonkScreen } from './night-phase-monk-screen.container';
+import { NightPhasePoliticianScreen } from './night-phase-politician-screen.container';
+import { NightPhaseSidekickScreen } from './night-phase-sidekick-screen.container';
+import { NightPhaseStudentScreen } from './night-phase-student-screen.container';
+import { NightPhaseVigilanteScreen } from './night-phase-vigilante-screen.container';
 
 export const NightPhaseScreen = () => {
   const states = useLittleVigilanteSelector((state) => state.currentStates);
@@ -13,26 +21,33 @@ export const NightPhaseScreen = () => {
   );
 
   switch (true) {
+    case states.includes('Playing.Round.NightPhase.Cop') &&
+      myRole === 'cop':
+      return <NightPhaseCopScreen />;
     case states.includes('Playing.Round.NightPhase.Vigilante') &&
       myRole === 'vigilante':
-      return <NightPhaseScreenComponent role="vigilante" />;
-    case states.includes('Playing.Round.NightPhase.Sidekick') &&
-      myRole === 'sidekick':
-      return <NightPhaseScreenComponent role="sidekick" />;
-    case states.includes('Playing.Round.NightPhase.Jester') &&
-      myRole === 'jester':
-      return <NightPhaseScreenComponent role="jester" />;
-    case states.includes('Playing.Round.NightPhase.Cop') && myRole === 'cop':
-      return <NightPhaseScreenComponent role="cop" />;
-    case states.includes('Playing.Round.NightPhase.Detective') &&
-      myRole === 'detective':
-      return <NightPhaseScreenComponent role="detective" />;
+      return <NightPhaseVigilanteScreen />;
+    case states.includes('Playing.Round.NightPhase.Student') &&
+      myRole === 'student':
+      return <NightPhaseStudentScreen />;
     case states.includes('Playing.Round.NightPhase.Butler') &&
       myRole === 'butler':
-      return <NightPhaseScreenComponent role="butler" />;
-    case states.includes('Playing.Round.NightPhase.Mayor') &&
-      myRole === 'mayor':
-      return <NightPhaseScreenComponent role="butler" />;
+      return <NightPhaseButlerScreen />;
+    case states.includes('Playing.Round.NightPhase.Detective') &&
+      myRole === 'detective':
+      return <NightPhaseDetectiveScreen />;
+    case states.includes('Playing.Round.NightPhase.Conspirator') &&
+      myRole === 'conspirator':
+      return <NightPhaseConspiratorScreen />;
+    case states.includes('Playing.Round.NightPhase.Politician') &&
+      myRole === 'politician':
+      return <NightPhasePoliticianScreen />;
+    case states.includes('Playing.Round.NightPhase.Sidekick') &&
+      myRole === 'sidekick':
+      return <NightPhaseSidekickScreen />;
+    case states.includes('Playing.Round.NightPhase.Monk') &&
+      myRole === 'monk':
+      return <NightPhaseMonkScreen />;
     default:
       return null;
   }
