@@ -31,7 +31,7 @@ export const NightPhaseDetectiveScreenComponent: FC<Props> = ({
     <Box css={{ p: '$3' }}>
       <Card css={{ p: '$3' }}>
         <Flex direction="column" gap="3">
-          <Caption>Cop</Caption>
+          <Caption>Detective</Caption>
           {!selectedPlayer ? (
             <>
               <Text>
