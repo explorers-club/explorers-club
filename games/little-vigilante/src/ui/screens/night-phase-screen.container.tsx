@@ -1,8 +1,10 @@
 /* eslint-disable jsx-a11y/aria-role */
+import { ReactNode } from 'react';
 import {
   useLittleVigilanteSelector,
   useMyUserId,
 } from '../../state/little-vigilante.hooks';
+import { NightPhaseArrestedScreen } from './night-phase-arrested-screen.container';
 import { NightPhaseButlerScreen } from './night-phase-butler-screen.container';
 import { NightPhaseConspiratorScreen } from './night-phase-conspirator-screen.container';
 import { NightPhaseCopScreen } from './night-phase-cop-screen.container';
@@ -19,10 +21,22 @@ export const NightPhaseScreen = () => {
   const myRole = useLittleVigilanteSelector(
     (state) => state.currentRoundRoles[myUserId]
   );
+  const arresteduserId = useLittleVigilanteSelector(
+    (state) => state.currentRoundArrestedPlayerId
+  );
+  const Component = getComponent(states, myRole);
 
+  if (!Component) {
+    return null;
+  }
+
+  const isArrested = myUserId === arresteduserId;
+  return !isArrested ? Component : <NightPhaseArrestedScreen />;
+};
+
+const getComponent = (states: string[], myRole: string) => {
   switch (true) {
-    case states.includes('Playing.Round.NightPhase.Cop') &&
-      myRole === 'cop':
+    case states.includes('Playing.Round.NightPhase.Cop') && myRole === 'cop':
       return <NightPhaseCopScreen />;
     case states.includes('Playing.Round.NightPhase.Vigilante') &&
       myRole === 'vigilante':
@@ -45,8 +59,7 @@ export const NightPhaseScreen = () => {
     case states.includes('Playing.Round.NightPhase.Sidekick') &&
       myRole === 'sidekick':
       return <NightPhaseSidekickScreen />;
-    case states.includes('Playing.Round.NightPhase.Monk') &&
-      myRole === 'monk':
+    case states.includes('Playing.Round.NightPhase.Monk') && myRole === 'monk':
       return <NightPhaseMonkScreen />;
     default:
       return null;

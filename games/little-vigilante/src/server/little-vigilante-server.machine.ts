@@ -5,11 +5,10 @@ import { A } from '@mobily/ts-belt';
 import { Room } from 'colyseus';
 import { createSelector } from 'reselect';
 import { ActorRefFrom, assign, createMachine } from 'xstate';
-import { Role, rolesByPlayerCount } from '../meta/little-vigilante.constants';
+import { rolesByPlayerCount } from '../meta/little-vigilante.constants';
 
 export interface LittleVigilanteServerContext {
   room: Room<LittleVigilanteState>;
-  arrestedUserId?: string;
 }
 
 export type LittleVigilanteServerEvent = LittleVigilanteCommand & {
@@ -70,7 +69,7 @@ export const createLittleVigilanteServerMachine = (
                   },
                 },
                 NightPhase: {
-                  initial: 'Vigilante',
+                  initial: 'Cop',
                   onDone: 'DiscussionPhase',
                   states: {
                     Cop: {
@@ -116,6 +115,11 @@ export const createLittleVigilanteServerMachine = (
                       },
                       after: {
                         20000: 'Conspirator',
+                        5000: {
+                          target: 'Conspirator',
+                          cond: ({ room }) =>
+                            selectDetectiveIsArrested(room.state),
+                        },
                       },
                       on: {
                         CONTINUE: 'Conspirator',
@@ -126,6 +130,13 @@ export const createLittleVigilanteServerMachine = (
                         target: 'Politician',
                         cond: ({ room }) =>
                           !selectConspiratorPlayer(room.state),
+                      },
+                      after: {
+                        5000: {
+                          target: 'Politician',
+                          cond: ({ room }) =>
+                            selectConspiratorIsArrested(room.state),
+                        },
                       },
                       on: {
                         SWAP: {
@@ -138,6 +149,13 @@ export const createLittleVigilanteServerMachine = (
                       always: {
                         target: 'Sidekick',
                         cond: ({ room }) => !selectPoliticianPlayer(room.state),
+                      },
+                      after: {
+                        5000: {
+                          target: 'Politician',
+                          cond: ({ room }) =>
+                            selectPoliticianIsArrested(room.state),
+                        },
                       },
                       on: {
                         SWAP: {
@@ -253,12 +271,10 @@ export const createLittleVigilanteServerMachine = (
           selectAllPlayersConnected(room.state),
       },
       actions: {
-        arrestPlayer: assign({
-          arrestedUserId: (_, event) => {
-            assertEventType(event, 'ARREST');
-            return event.arrestedUserId;
-          },
-        }),
+        arrestPlayer: ({ room }, event) => {
+          assertEventType(event, 'ARREST');
+          room.state.currentRoundArrestedPlayerId = event.arrestedUserId;
+        },
         swapPlayers: ({ room }, event) => {
           assertEventType(event, 'SWAP');
           const { firstUserId, secondUserId } = event;
@@ -271,15 +287,10 @@ export const createLittleVigilanteServerMachine = (
           room.state.currentRoundRoles.set(firstUserId, secondUserRole);
           room.state.currentRoundRoles.set(secondUserId, firstUserRole);
         },
-        calcCurrentRoundPoints: ({ room, arrestedUserId }) => {
+        calcCurrentRoundPoints: ({ room }) => {
           const votesByRole = Array.from(
             room.state.currentRoundVotes.entries()
-          ).reduce((acc, [userId, votedUserId]) => {
-            if (userId === arrestedUserId) {
-              // Arrested players don't get to vote
-              return acc;
-            }
-
+          ).reduce((acc, [, votedUserId]) => {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             const votedRole = room.state.currentRoundRoles.get(votedUserId)!;
 
@@ -342,17 +353,12 @@ export const createLittleVigilanteServerMachine = (
             room.state.currentRoundRoles.set(player.userId, gameRoles.pop()!);
           });
         },
-        clearRoundState: assign<
-          LittleVigilanteServerContext,
-          LittleVigilanteServerEvent
-        >({
-          arrestedUserId: () => {
-            room.state.currentRoundRoles.clear();
-            room.state.currentRoundPoints.clear();
-            room.state.currentRoundVotes.clear();
-            return undefined;
-          },
-        }),
+        clearRoundState: ({ room }) => {
+          room.state.currentRoundRoles.clear();
+          room.state.currentRoundPoints.clear();
+          room.state.currentRoundVotes.clear();
+          room.state.currentRoundArrestedPlayerId = '';
+        },
       },
     }
   );
@@ -372,6 +378,9 @@ const selectAllPlayersConnected = (state: LittleVigilanteState) => {
 
   return unconnectedPlayers.length === 0;
 };
+
+const selectArrestedUserId = (state: LittleVigilanteState) =>
+  state.currentRoundArrestedPlayerId;
 
 const selectSerializedState = (state: LittleVigilanteState) => {
   return state.toJSON() as SerializedSchema<LittleVigilanteState>;
@@ -411,14 +420,32 @@ const selectDetectivePlayer = createSelector(
   A.head
 );
 
+const selectDetectiveIsArrested = createSelector(
+  selectDetectivePlayer,
+  selectArrestedUserId,
+  (userId, arrestedId) => userId === arrestedId
+);
+
 const selectConspiratorPlayer = createSelector(
   createPlayersInRoleSelector('conspirator'),
   A.head
 );
 
+const selectConspiratorIsArrested = createSelector(
+  selectConspiratorPlayer,
+  selectArrestedUserId,
+  (userId, arrestedId) => userId === arrestedId
+);
+
 const selectPoliticianPlayer = createSelector(
   createPlayersInRoleSelector('politician'),
   A.head
+);
+
+const selectPoliticianIsArrested = createSelector(
+  selectPoliticianPlayer,
+  selectArrestedUserId,
+  (userId, arrestedId) => userId === arrestedId
 );
 
 const selectSidekickPlayer = createSelector(

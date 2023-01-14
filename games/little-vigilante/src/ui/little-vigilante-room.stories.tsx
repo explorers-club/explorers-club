@@ -81,14 +81,12 @@ const Template: Story<{ numPlayers: number }> = (args) => {
         overflow: 'auto',
       }}
     >
-      {playerInfo.map(({ userId }, index) => (
+      {playerInfo.map(({ userId, name }, index) => (
         <Box
           key={userId}
           css={{ background: '$neutral1', width: '100%', overflowY: 'scroll' }}
         >
-          <Heading css={{ mt: '$2', textAlign: 'center' }}>
-            Player {index + 1}
-          </Heading>
+          <Heading css={{ mt: '$2', textAlign: 'center' }}>{name}</Heading>
           <RoomWrapper roomId={roomId} myUserId={userId} />
         </Box>
       ))}

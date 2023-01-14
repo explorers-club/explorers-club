@@ -22,6 +22,9 @@ export class LittleVigilanteState extends Schema {
   @type({ map: 'number' })
   public currentRoundPoints: MapSchema<number> = new MapSchema<number>();
 
+  @type('string')
+  public currentRoundArrestedPlayerId = '';
+
   @type({ map: LittleVigilantePlayer })
   public players: MapSchema<LittleVigilantePlayer> = new MapSchema<LittleVigilantePlayer>();
 }
