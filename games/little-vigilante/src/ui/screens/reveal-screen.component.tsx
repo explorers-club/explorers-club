@@ -18,12 +18,12 @@ export const RevealScreenComponent: FC<Props> = ({
   return (
     <Box css={{ p: '$3' }}>
       <Card>
-        <Flex direction="column" css={{ p: '$3' }}>
+        <Flex direction="column" css={{ p: '$3' }} gap="3">
           <Caption>Who's who</Caption>
           {playerRoles.map(([playerName, role]) => (
             <Flex key={playerName} justify="between">
-              <Heading>{playerName}</Heading>
-              <Heading>{role}</Heading>
+              <Heading size="3">{playerName}</Heading>
+              <Heading size="3">{role}</Heading>
             </Flex>
           ))}
           {onPressNext && (

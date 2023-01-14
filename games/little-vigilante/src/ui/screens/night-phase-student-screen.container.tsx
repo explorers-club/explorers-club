@@ -1,6 +1,8 @@
-import { useMyUserId } from 'games/trivia-jam/src/state/trivia-jam.hooks';
 import React from 'react';
-import { useLittleVigilanteSelector } from '../../state/little-vigilante.hooks';
+import {
+  useLittleVigilanteSelector,
+  useMyUserId,
+} from '../../state/little-vigilante.hooks';
 import { selectPlayersWithNameAndRole } from '../../state/little-vigilante.selectors';
 import { NightPhaseStudentScreenComponent } from './night-phase-student-screen.component';
 

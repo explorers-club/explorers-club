@@ -25,10 +25,10 @@ export const selectPlayersWithName = (
 export const selectPlayersWithNameAndRole = (
   state: LittleVigilanteStateSerialized
 ) => {
-  return Object.entries(state.players).map(([userId, player]) => {
+  return Object.entries(state.players).map(([_, { userId, name }]) => {
     return {
-      userId,
-      name: player.name,
+      userId: userId,
+      name: name,
       role: state.currentRoundRoles[userId],
     };
   });

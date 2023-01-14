@@ -1,11 +1,12 @@
 import { Caption } from '@atoms/Caption';
 import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
-import { Text } from '@atoms/Text';
 import { Heading } from '@atoms/Heading';
+import { Text } from '@atoms/Text';
 import {
   abilityByRole,
   nightPhaseOrder,
+  Role,
   teamByRole,
 } from './little-vigilante.constants';
 
@@ -52,7 +53,7 @@ export const LittleVigilanteGameInfoScreen = () => {
           {Object.entries(abilityByRole).map(([role, ability]) => (
             <Flex direction="column" gap="2" key={role}>
               <Heading size="2">{role}</Heading>
-              <Text>Team: {teamByRole[role]}</Text>
+              <Text>Team: {teamByRole[role as Role]}</Text>
               <Text>Ability: {ability}</Text>
             </Flex>
           ))}

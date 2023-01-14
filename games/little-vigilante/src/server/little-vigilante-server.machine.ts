@@ -1,10 +1,11 @@
 import { LittleVigilanteCommand, SerializedSchema } from '@explorers-club/room';
-import { A } from '@mobily/ts-belt';
 import { LittleVigilanteState } from '@explorers-club/schema-types/LittleVigilanteState';
 import { assertEventType, shuffle } from '@explorers-club/utils';
+import { A } from '@mobily/ts-belt';
 import { Room } from 'colyseus';
 import { createSelector } from 'reselect';
-import { actions, ActorRefFrom, assign, createMachine } from 'xstate';
+import { ActorRefFrom, assign, createMachine } from 'xstate';
+import { Role, rolesByPlayerCount } from '../meta/little-vigilante.constants';
 
 export interface LittleVigilanteServerContext {
   room: Room<LittleVigilanteState>;
@@ -110,7 +111,7 @@ export const createLittleVigilanteServerMachine = (
                     },
                     Detective: {
                       always: {
-                        target: 'Conpsirator',
+                        target: 'Conspirator',
                         cond: ({ room }) => !selectDetectivePlayer(room.state),
                       },
                       after: {
@@ -120,7 +121,7 @@ export const createLittleVigilanteServerMachine = (
                         CONTINUE: 'Conspirator',
                       },
                     },
-                    Conpsirator: {
+                    Conspirator: {
                       always: {
                         target: 'Politician',
                         cond: ({ room }) =>
@@ -156,7 +157,7 @@ export const createLittleVigilanteServerMachine = (
                     },
                     Monk: {
                       always: {
-                        target: 'Monk',
+                        target: 'Complete',
                         cond: ({ room }) => !selectMonkPlayer(room.state),
                       },
                       after: {
@@ -234,7 +235,7 @@ export const createLittleVigilanteServerMachine = (
                 },
                 Complete: {
                   entry: 'updateScores',
-                  exit: ['clearCurrentRoles'],
+                  exit: ['clearRoundState'],
                   type: 'final' as const,
                 },
               },
@@ -326,17 +327,32 @@ export const createLittleVigilanteServerMachine = (
           });
         },
         assignRoles: ({ room }) => {
+          const playerCount = room.state.players.size;
           // room.state.players
-          const allRoles = getRoles(room.state.players.size);
+          const allRoles = rolesByPlayerCount[playerCount];
+          const withoutVig = allRoles.filter((role) => role !== 'vigilante');
+          const gameRoles = shuffle([
+            ...shuffle(withoutVig).slice(0, playerCount - 1),
+            'vigilante',
+          ]);
+          // const allRoles = getRoles(room.state.players.size);
 
           room.state.players.forEach((player) => {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            room.state.currentRoundRoles.set(player.userId, allRoles.pop()!);
+            room.state.currentRoundRoles.set(player.userId, gameRoles.pop()!);
           });
         },
-        clearCurrentRoles: ({ room }) => {
-          room.state.currentRoundRoles.clear();
-        },
+        clearRoundState: assign<
+          LittleVigilanteServerContext,
+          LittleVigilanteServerEvent
+        >({
+          arrestedUserId: () => {
+            room.state.currentRoundRoles.clear();
+            room.state.currentRoundPoints.clear();
+            room.state.currentRoundVotes.clear();
+            return undefined;
+          },
+        }),
       },
     }
   );
@@ -424,21 +440,5 @@ const selectAnarachistPlayer = createSelector(
   createPlayersInRoleSelector('anarchist'),
   A.head
 );
-
-function getRoles(playerCount: number) {
-  const roles = [
-    'vigilante',
-    'sidekick',
-    'butler',
-    'detective',
-    'cop',
-    'cop',
-    'mayor',
-    'citizen',
-    'citizen',
-    'citizen',
-  ].slice(0, playerCount);
-  return shuffle(roles);
-}
 
 const VIGILANTE_TEAM = ['vigilante', 'sidekick', 'butler'];

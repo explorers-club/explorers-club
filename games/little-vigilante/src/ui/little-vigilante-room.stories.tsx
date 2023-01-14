@@ -1,21 +1,32 @@
 import { createRoomStore, LittleVigilanteStore } from '@explorers-club/room';
 import { LittleVigilanteState } from '@explorers-club/schema-types/LittleVigilanteState';
 import { generateRandomString } from '@explorers-club/utils';
-import { useEffect } from '@storybook/addons';
-import { ComponentMeta, Story } from '@storybook/react';
+import {
+  ComponentMeta,
+  ReactFramework,
+  Story,
+  StoryContext,
+} from '@storybook/react';
 import * as Colyseus from 'colyseus.js';
 import { Room } from 'colyseus.js';
-import { useState } from 'react';
+import { FC, useState, useEffect } from 'react';
+import { Grid } from '@atoms/Grid';
+import { Card } from '@atoms/Card';
 import { OnCreateOptions } from '../server/LittleVigilanteRoom';
 import { LittleVigilanteContext } from '../state/little-vigilante.context';
 import { LittleVigilanteRoomComponent } from './little-vigilante-room.component';
+import { Box } from '@atoms/Box';
+import { Heading } from '@atoms/Heading';
 
 export default {
   component: LittleVigilanteRoomComponent,
+  parameters: {
+    layout: 'fullscreen',
+  },
 } as ComponentMeta<typeof LittleVigilanteRoomComponent>;
 
-const Template: Story<OnCreateOptions & { myUserId: string }> = (args) => {
-  const { roomId, myUserId } = args;
+const RoomWrapper: FC<{ roomId: string; myUserId: string }> = (props) => {
+  const { roomId, myUserId } = props;
   const [store, setStore] = useState<LittleVigilanteStore | null>(null);
 
   useEffect(() => {
@@ -34,45 +45,130 @@ const Template: Story<OnCreateOptions & { myUserId: string }> = (args) => {
   );
 };
 
-export const Default = Template.bind({});
+const Template: Story<{ numPlayers: number }> = (args) => {
+  const [initialized, setInitialized] = useState(false);
+  const [roomId] = useState(`little_vigilante-${generateRandomString()}`);
+  const [playerInfo] = useState(fullPlayerInfo.slice(0, args.numPlayers));
+  // const { roomId, playerInfo } = args;
 
-Default.args = {
-  myUserId: 'foo',
-  roomId: `little_vigilante-${generateRandomString()}`,
-  playerInfo: [
-    {
-      name: 'Foo',
-      userId: 'foo',
-    },
-    {
-      name: 'Bar',
-      userId: 'bar',
-    },
-    {
-      name: 'Buz',
-      userId: 'buz',
-    },
-    {
-      name: 'Lightyear',
-      userId: 'lightyear',
-    },
-  ],
+  useEffect(() => {
+    (async () => {
+      const colyseusClient = new Colyseus.Client('ws://localhost:2567');
+      let room: Room<LittleVigilanteState>;
+      try {
+        room = await colyseusClient.create<LittleVigilanteState>(
+          'little_vigilante',
+          {
+            roomId,
+            playerInfo,
+          }
+        );
+      } catch (ex) {
+        console.error(ex);
+        return;
+      }
+      await new Promise((resolve) => room.onStateChange.once(resolve));
+      setInitialized(true);
+    })();
+  }, [setInitialized, playerInfo, roomId]);
+
+  return initialized ? (
+    <Grid
+      css={{
+        height: '100vh',
+        gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+        gridAutoRows: 'minmax(0, 1fr)',
+        overflow: 'auto',
+      }}
+    >
+      {playerInfo.map(({ userId }, index) => (
+        <Box
+          key={userId}
+          css={{ background: '$neutral1', width: '100%', overflowY: 'scroll' }}
+        >
+          <Heading css={{ mt: '$2', textAlign: 'center' }}>
+            Player {index + 1}
+          </Heading>
+          <RoomWrapper roomId={roomId} myUserId={userId} />
+        </Box>
+      ))}
+    </Grid>
+  ) : (
+    <Card css={{ p: '$3' }}>
+      <Heading>Loading...</Heading>
+    </Card>
+  );
 };
 
-const joinAndCreateStore = async (roomId: string, userId: string) => {
-  const client = new Colyseus.Client('ws://localhost:2567');
-  const room = await client.joinById<LittleVigilanteState>(roomId, {
-    userId,
-  });
-  await new Promise((resolve) => {
-    room.onStateChange.once(resolve);
-  });
-  const store = createRoomStore(room);
-  return store;
+const fullPlayerInfo = [
+  {
+    name: 'Alice',
+    userId: 'alice123',
+  },
+  {
+    name: 'Bob',
+    userId: 'bob123',
+  },
+  {
+    name: 'Charlie',
+    userId: 'charlie123',
+  },
+  {
+    name: 'Dave',
+    userId: 'dave123',
+  },
+  {
+    name: 'Eve',
+    userId: 'eve123',
+  },
+  {
+    name: 'Frank',
+    userId: 'frank123',
+  },
+  {
+    name: 'Grace',
+    userId: 'grace123',
+  },
+  {
+    name: 'Heidi',
+    userId: 'heidi123',
+  },
+];
+
+export const FourPlayer = Template.bind({});
+FourPlayer.args = {
+  numPlayers: 4,
 };
 
-Default.play = async (context) => {
-  const { roomId, playerInfo, myUserId } = context.args;
+export const FivePlayer = Template.bind({});
+FivePlayer.args = {
+  numPlayers: 5,
+};
+
+export const SixPlayer = Template.bind({});
+SixPlayer.args = {
+  numPlayers: 6,
+};
+
+export const SevenPlayer = Template.bind({});
+SevenPlayer.args = {
+  numPlayers: 7,
+};
+
+export const EightPlayer = Template.bind({});
+EightPlayer.args = {
+  numPlayers: 8,
+};
+
+async function play(
+  context: StoryContext<
+    ReactFramework,
+    OnCreateOptions & {
+      myUserId: string;
+    }
+  >
+) {
+  const { roomId, playerInfo } = context.args;
 
   const colyseusClient = new Colyseus.Client('ws://localhost:2567');
   let room: Room<LittleVigilanteState>;
@@ -89,16 +185,16 @@ Default.play = async (context) => {
     return;
   }
   await new Promise((resolve) => room.onStateChange.once(resolve));
+}
 
-  // Mimic joining all the other player clients
-  try {
-    await Promise.all(
-      playerInfo
-        .filter(({ userId }) => userId !== myUserId)
-        .map(({ userId }) => joinAndCreateStore(roomId, userId))
-    );
-  } catch (ex) {
-    console.error(ex);
-    return;
-  }
+const joinAndCreateStore = async (roomId: string, userId: string) => {
+  const client = new Colyseus.Client('ws://localhost:2567');
+  const room = await client.joinById<LittleVigilanteState>(roomId, {
+    userId,
+  });
+  await new Promise((resolve) => {
+    room.onStateChange.once(resolve);
+  });
+  const store = createRoomStore(room);
+  return store;
 };

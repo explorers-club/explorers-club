@@ -13,7 +13,6 @@ import {
   LittleVigilanteArrestCommand,
   LittleVigilanteSwapCommand,
   LittleVigilanteVoteCommand,
-  LITTLE_VIGILANTE_VOTE,
 } from '@explorers-club/room';
 
 interface PlayerInfo {
