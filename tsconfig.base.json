@@ -20,6 +20,16 @@
       "@atoms/*": ["libs/components/src/atoms/*"],
       "@explorers-club/api": ["libs/api/src/index.ts"],
       "@explorers-club/api-client": ["libs/api/src/client"],
+      "@explorers-club/codebreakers/meta": [
+        "games/codebreakers/src/meta/index.tsx"
+      ],
+      "@explorers-club/codebreakers/scene": [
+        "games/codebreakers/src/scene/index.ts"
+      ],
+      "@explorers-club/codebreakers/server": [
+        "games/codebreakers/src/server/index.ts"
+      ],
+      "@explorers-club/codebreakers/ui": ["games/codebreakers/src/ui/index.ts"],
       "@explorers-club/contentful": ["libs/contentful/src/index.ts"],
       "@explorers-club/contentful-types": [
         "libs/contentful/@types/generated/contentful"

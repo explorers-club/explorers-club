@@ -46,3 +46,16 @@ jobs:
         run: npx nx run little-vigilante:build-storybook
       - name: Deploy Storybook
         run: npx chromatic --project-token=${{ secrets.CHROMATIC_PROJECT_TOKEN_LITTLE_VIGILANTE }} -d dist/storybook/little-vigilante --auto-accept-changes --ci
+
+  deploy-storybook-codebreakers:
+    # Operating System
+    runs-on: ubuntu-latest
+    # Job steps
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install dependencies
+        run: npm ci
+      - name: Build Storybook
+        run: npx nx run codebreakers:build-storybook
+      - name: Deploy Storybook
+        run: npx chromatic --project-token=${{ secrets.CHROMATIC_PROJECT_TOKEN_CODEBREAKERS }} -d dist/storybook/codebreakers --auto-accept-changes --ci

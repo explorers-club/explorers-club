@@ -14,6 +14,8 @@ import { DiffusionaryState } from '@explorers-club/schema-types/DiffusionaryStat
 import { DiffusionaryPlayer } from '@explorers-club/schema-types/DiffusionaryPlayer';
 import { LittleVigilanteState } from '@explorers-club/schema-types/LittleVigilanteState';
 import { LittleVigilantePlayer } from '@explorers-club/schema-types/LittleVigilantePlayer';
+import { CodebreakersState } from '@explorers-club/schema-types/CodebreakersState';
+import { CodebreakersPlayer } from '@explorers-club/schema-types/CodebreakersPlayer';
 
 // From a prop in colyseus schema, return the serialized
 // version of it so that we can call toJSON() and type it.
@@ -100,11 +102,33 @@ export type DiffusionaryStore = RoomStore<
 >;
 export type DiffusionaryPlayerSerialized = SerializedSchema<DiffusionaryPlayer>;
 
+export type CodebreakersClueCommand = {
+  type: 'CLUE';
+  clue: string;
+  numWords: number;
+};
+export type CodebreakersGuessCommand = {
+  type: 'GUESS';
+  card: string;
+};
+export type CodebreakersCommand =
+  | JoinCommand
+  | ContinueCommand
+  | LeaveCommand
+  | CodebreakersClueCommand
+  | CodebreakersGuessCommand;
+
+export type CodebreakersStore = RoomStore<
+  CodebreakersState,
+  CodebreakersCommand
+>;
+export type CodebreakersStateSerialized = SerializedSchema<CodebreakersState>;
+export type CodebreakersPlayerSerialized = SerializedSchema<CodebreakersPlayer>;
+
 export type LittleVigilanteVoteCommand = {
   type: 'VOTE';
   votedUserId: string;
 };
-
 export type LittleVigilanteArrestCommand = {
   type: 'ARREST';
   arrestedUserId: string;
@@ -130,6 +154,7 @@ export type LittleVigilanteStateSerialized =
 export type LittleVigilantePlayerSerialized =
   SerializedSchema<LittleVigilantePlayer>;
 
+// Aggregate
 export type GameStore =
   | TriviaJamStore
   | DiffusionaryStore
@@ -146,7 +171,11 @@ export const CLUB_ROOM_SELECT_GAME = 'SELECT_GAME';
 export const CLUB_ROOM_SET_GAME_CONFIG = 'SET_GAME_CONFIG';
 export const CLUB_ROOM_START_GAME = 'START_GAME';
 
-export type GameId = 'diffusionary' | 'trivia_jam' | 'little_vigilante';
+export type GameId =
+  | 'diffusionary'
+  | 'trivia_jam'
+  | 'little_vigilante'
+  | 'codebreakers';
 
 export type ClubRoomEnterNameCommand = {
   type: typeof CLUB_ROOM_ENTER_NAME;
