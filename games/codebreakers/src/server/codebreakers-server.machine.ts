@@ -67,6 +67,7 @@ export const createCodebreakersServerMachine = (
           onDone: 'GameOver',
           states: {
             GivingClue: {
+              entry: 'setTeam',
               on: {
                 CLUE: {
                   target: 'Guessing',
@@ -234,6 +235,10 @@ export const createCodebreakersServerMachine = (
           clueGiverPlayer.clueGiver = true;
         },
 
+        setTeam: ({ room }) => {
+          room.state.currentTeam = room.state.currentTeam === 'A' ? 'B' : 'A';
+        },
+
         setupGame: ({ room }, event) => {
           const { board } = room.state;
           const words = pipe(wordList, A.shuffle, A.take(24));
@@ -254,6 +259,7 @@ export const createCodebreakersServerMachine = (
             shuffledBoard[i].belongsTo = 'B';
           }
           room.state.tripWord = shuffledBoard[18].word;
+          room.state.currentTeam = 'B';
         },
 
         setGuess: ({ room }, event) => {
