@@ -107,15 +107,34 @@ export type CodebreakersClueCommand = {
   clue: string;
   numWords: number;
 };
+
 export type CodebreakersGuessCommand = {
   type: 'GUESS';
-  card: string;
+  word: string;
 };
+
+export type CodebreakersHighlightCommand = {
+  type: 'HIGHLIGHT';
+  word: string;
+};
+
+export type CodebreakersJoinTeamCommand = {
+  type: 'JOIN_TEAM';
+  team: string;
+};
+
+export type CodebreakersBecomeClueGiverCommand = {
+  type: 'BECOME_CLUE_GIVER';
+};
+
 export type CodebreakersCommand =
   | JoinCommand
   | ContinueCommand
   | LeaveCommand
   | CodebreakersClueCommand
+  | CodebreakersHighlightCommand
+  | CodebreakersJoinTeamCommand
+  | CodebreakersBecomeClueGiverCommand
   | CodebreakersGuessCommand;
 
 export type CodebreakersStore = RoomStore<

@@ -8,7 +8,14 @@ import {
 import { CodebreakersState } from '@explorers-club/schema-types/CodebreakersState';
 import { interpret } from 'xstate';
 import { CodebreakersPlayer } from '@explorers-club/schema-types/CodebreakersPlayer';
-import { CONTINUE } from '@explorers-club/room';
+import {
+  CodebreakersBecomeClueGiverCommand,
+  CodebreakersClueCommand,
+  CodebreakersGuessCommand,
+  CodebreakersHighlightCommand,
+  CodebreakersJoinTeamCommand,
+  CONTINUE,
+} from '@explorers-club/room';
 
 interface PlayerInfo {
   userId: string;
@@ -58,13 +65,13 @@ export class CodebreakersRoom extends Room<CodebreakersState> {
     this.roomId = roomId;
     this.autoDispose = false;
 
-    playerInfo.forEach(({ userId, name }) => {
-      const player = new CodebreakersPlayer({
-        name,
-        connected: false,
-        score: 0,
-        userId,
-      });
+    playerInfo.forEach(({ userId, name }, index) => {
+      const player = new CodebreakersPlayer();
+      player.name = name;
+      player.connected = false;
+      player.userId = userId;
+      player.team = index % 2 === 0 ? 'A' : 'B';
+      player.clueGiver = index < 2;
       state.players.set(userId, player);
     });
 
@@ -77,6 +84,50 @@ export class CodebreakersRoom extends Room<CodebreakersState> {
       console.log(state.value);
       state.toStrings().forEach((state) => room.state.currentStates.add(state));
     });
+
+    this.onMessage('CLUE', (client, message: CodebreakersClueCommand) => {
+      this.service.send({
+        ...message,
+        userId: client.userData.userId as string,
+      });
+    });
+
+    this.onMessage('GUESS', (client, message: CodebreakersGuessCommand) => {
+      this.service.send({
+        ...message,
+        userId: client.userData.userId as string,
+      });
+    });
+
+    this.onMessage(
+      'HIGHLIGHT',
+      (client, message: CodebreakersHighlightCommand) => {
+        this.service.send({
+          ...message,
+          userId: client.userData.userId as string,
+        });
+      }
+    );
+
+    this.onMessage(
+      'BECOME_CLUE_GIVER',
+      (client, message: CodebreakersBecomeClueGiverCommand) => {
+        this.service.send({
+          ...message,
+          userId: client.userData.userId as string,
+        });
+      }
+    );
+
+    this.onMessage(
+      'JOIN_TEAM',
+      (client, message: CodebreakersJoinTeamCommand) => {
+        this.service.send({
+          ...message,
+          userId: client.userData.userId as string,
+        });
+      }
+    );
 
     this.onMessage(CONTINUE, (client) => {
       this.service.send({

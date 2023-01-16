@@ -10,5 +10,6 @@ import { ClubPlayer } from './ClubPlayer'
 
 export class CodebreakersPlayer extends ClubPlayer {
     @type("string") public team!: string;
+    @type("boolean") public clueGiver!: boolean;
     @type({ set: "string" }) public highlightedWords: SetSchema<string> = new SetSchema<string>();
 }
