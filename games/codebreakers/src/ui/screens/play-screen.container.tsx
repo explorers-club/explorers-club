@@ -1,3 +1,4 @@
+import { CodebreakersStateSerialized } from '@explorers-club/room';
 import { useCallback } from 'react';
 import {
   useCodebreakersSelector,
@@ -14,6 +15,11 @@ export const PlayScreen = () => {
   const tripWord = useCodebreakersSelector((state) => state.tripWord);
   const currentStates = useCodebreakersSelector((state) => state.currentStates);
   const currentTeam = useCodebreakersSelector((state) => state.currentTeam);
+  const highlightsByWord = useCodebreakersSelector(selectHighlightsByWord);
+  const [currentClue, currentClueCount] = useCodebreakersSelector((state) => [
+    state.currentClue,
+    state.currentClueCount,
+  ]);
   const send = useCodebreakersSend();
 
   const handleEnterClue = useCallback(
@@ -45,9 +51,23 @@ export const PlayScreen = () => {
       tripWord={tripWord}
       currentTeam={currentTeam}
       currentStates={currentStates}
+      currentClue={currentClue}
+      currentClueCount={currentClueCount}
+      highlightsByWord={highlightsByWord}
       onEnterClue={handleEnterClue}
       onLongPressWord={handleLongPressWord}
       onPressWord={handlePressWord}
     />
   );
+};
+
+const selectHighlightsByWord = (state: CodebreakersStateSerialized) => {
+  const highlightsByWord: Record<string, string[]> = {};
+  Object.entries(state.players).forEach(([userId, player]) => {
+    player.highlightedWords.forEach((word) => {
+      highlightsByWord[word] ||= [];
+      highlightsByWord[word].push(player.name);
+    });
+  });
+  return highlightsByWord;
 };

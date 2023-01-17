@@ -18,6 +18,9 @@ interface Props {
   myTeam: string;
   currentStates: string[];
   currentTeam: string;
+  currentClue: string;
+  currentClueCount: number;
+  highlightsByWord: Record<string, string[]>;
   onEnterClue: (clue: string, numWords: number) => void;
   onPressWord: (word: string) => void;
   onLongPressWord: (word: string) => void;
@@ -29,11 +32,16 @@ export const PlayScreenComponent: FC<Props> = ({
   isClueGiver,
   currentTeam,
   currentStates,
+  currentClue,
+  currentClueCount,
+  highlightsByWord,
   myTeam,
   onLongPressWord,
   onPressWord,
+  onEnterClue,
 }) => {
   const waitingForClue = currentStates.includes('Playing.GivingClue');
+  const isGuessing = currentStates.includes('Playing.Guessing');
   const givingClue = waitingForClue && isClueGiver && currentTeam === myTeam;
   const clueRef = useRef<HTMLInputElement>(null);
   const numWordsRef = useRef<HTMLSelectElement>(null);
@@ -41,10 +49,11 @@ export const PlayScreenComponent: FC<Props> = ({
   const handleSubmitClue: FormEventHandler = useCallback(
     (event) => {
       event.preventDefault();
-      console.log(clueRef.current?.value);
-      console.log(numWordsRef.current?.value);
+      const clue = clueRef.current!.value;
+      const numWords = parseInt(numWordsRef.current!.value);
+      onEnterClue(clue, numWords);
     },
-    [clueRef, numWordsRef]
+    [clueRef, numWordsRef, onEnterClue]
   );
 
   const handleLongPress = useCallback(
@@ -77,6 +86,13 @@ export const PlayScreenComponent: FC<Props> = ({
         <Flex direction="column" gap="2">
           <Caption>Team {currentTeam}'s Turn</Caption>
           {waitingForClue && <Text>Waiting for clue</Text>}
+          {isGuessing && (
+            <Box>
+              <Text>
+                {currentClue} {currentClueCount}
+              </Text>
+            </Box>
+          )}
           <Grid
             css={{
               gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
@@ -105,20 +121,33 @@ export const PlayScreenComponent: FC<Props> = ({
                 cellColor = '$error9';
               }
 
+              const highlights = highlightsByWord[word] || [];
+
               return (
                 <Flex
                   data-word={word}
                   css={{
-                    justifyContents: 'center',
-                    alignItems: 'center',
+                    justifyContent: 'center',
+                    alignItems: 'self-end',
                     background: cellColor,
                     aspectRatio: 1,
                     cursor: 'pointer',
+                    position: 'relative',
+                    pb: '$1',
                   }}
                   {...handlePressCell()}
                   key={word}
                 >
                   <Text>{word}</Text>
+                  {highlights.map((highlight, index) => (
+                    <Text
+                      size="1"
+                      css={{ position: 'absolute', top: 11 * index, right: 0 }}
+                      key={highlight}
+                    >
+                      {highlight}
+                    </Text>
+                  ))}
                 </Flex>
               );
             })}

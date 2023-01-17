@@ -13,6 +13,7 @@ export class CodebreakersState extends Schema {
     @type({ set: "string" }) public currentStates: SetSchema<string> = new SetSchema<string>();
     @type("number") public guessesRemaining!: number;
     @type("string") public currentClue!: string;
+    @type("number") public currentClueCount!: number;
     @type("string") public tripWord!: string;
     @type("string") public currentTeam!: string;
     @type({ set: "string" }) public hostUserIds: SetSchema<string> = new SetSchema<string>();

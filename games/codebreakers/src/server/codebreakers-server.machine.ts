@@ -1,10 +1,14 @@
-import { CodebreakersCommand, SerializedSchema } from '@explorers-club/room';
+import {
+  CodebreakersCommand,
+  CodebreakersStateSerialized,
+} from '@explorers-club/room';
 import { CodebreakerBoardItem } from '@explorers-club/schema-types/CodebreakerBoardItem';
 import { CodebreakersState } from '@explorers-club/schema-types/CodebreakersState';
 import { assertEventType } from '@explorers-club/utils';
 import { A, pipe } from '@mobily/ts-belt';
 import { Room } from 'colyseus';
 import { ActorRefFrom, createMachine } from 'xstate';
+import { selectWinningTeam } from '../state/codebreakers.selectors';
 
 export interface CodebreakersServerContext {
   room: Room<CodebreakersState>;
@@ -74,6 +78,7 @@ export const createCodebreakersServerMachine = (
                   actions: ({ room }, event) => {
                     // todo add + 1 if we missed last time
                     room.state.guessesRemaining = event.numWords;
+                    room.state.currentClueCount = event.numWords;
                     room.state.currentClue = event.clue;
                   },
                 },
@@ -92,7 +97,11 @@ export const createCodebreakersServerMachine = (
               ],
               states: {
                 Awaiting: {
+                  entry: () => console.log('waaiting'),
                   on: {
+                    HIGHLIGHT: {
+                      actions: 'highlightWord',
+                    },
                     GUESS: [
                       {
                         target: 'Correct',
@@ -129,6 +138,7 @@ export const createCodebreakersServerMachine = (
                   ],
                 },
                 Complete: {
+                  entry: 'resetRound',
                   type: 'final',
                 },
               },
@@ -195,7 +205,9 @@ export const createCodebreakersServerMachine = (
         },
 
         hasWinner: ({ room }, event) => {
-          return !!selectWinningTeam(room.state);
+          return !!selectWinningTeam(
+            room.state.toJSON() as CodebreakersStateSerialized
+          );
         },
 
         hasGuessesRemaining: ({ room }, event) => {
@@ -203,6 +215,28 @@ export const createCodebreakersServerMachine = (
         },
       },
       actions: {
+        highlightWord: ({ room }, event) => {
+          assertEventType(event, 'HIGHLIGHT');
+          console.log(event);
+          const player = Array.from(room.state.players.values()).find(
+            (player) => player.userId === event.userId
+          );
+
+          if (player?.team !== room.state.currentTeam) {
+            return;
+          }
+
+          const highlightedWords = player?.highlightedWords;
+          if (!highlightedWords) {
+            return;
+          }
+
+          if (player?.highlightedWords.has(event.word)) {
+            player?.highlightedWords.delete(event.word);
+          } else {
+            player?.highlightedWords.add(event.word);
+          }
+        },
         assignPlayerTeam: ({ room }, event) => {
           assertEventType(event, 'JOIN_TEAM');
 
@@ -233,6 +267,14 @@ export const createCodebreakersServerMachine = (
             }
           });
           clueGiverPlayer.clueGiver = true;
+        },
+
+        resetRound: ({ room }) => {
+          room.state.currentClue = '';
+          room.state.currentClueCount = 0;
+          room.state.players.forEach((player) => {
+            player.highlightedWords.clear();
+          });
         },
 
         setTeam: ({ room }) => {
@@ -375,28 +417,3 @@ const selectAllPlayersConnected = (state: CodebreakersState) => {
 // const selectSerializedState = (state: CodebreakersState) => {
 //   return state.toJSON() as SerializedSchema<CodebreakersState>;
 // };
-const selectWinningTeam = (state: CodebreakersState) => {
-  const { board, tripWord } = state;
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const tripWordBoardItem = board.find(({ word }) => word === tripWord)!;
-  if (tripWordBoardItem.guessedBy !== '') {
-    return tripWordBoardItem.guessedBy === 'A' ? 'B' : 'A';
-  }
-
-  const teamAWon =
-    board.filter(
-      (boardItem) => boardItem.belongsTo === 'A' && boardItem.guessedBy !== ''
-    ).length === 9;
-
-  const teamBWon =
-    board.filter(
-      (boardItem) => boardItem.belongsTo === 'B' && boardItem.guessedBy !== ''
-    ).length === 8;
-
-  if (teamAWon) {
-    return 'A';
-  } else if (teamBWon) {
-    return 'B';
-  }
-  return null;
-};

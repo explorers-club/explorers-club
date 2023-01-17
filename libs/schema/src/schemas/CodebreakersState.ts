@@ -25,6 +25,7 @@ export class CodebreakersState extends Schema {
 
   @type('number') guessesRemaining = 0;
   @type('string') currentClue = '';
+  @type('number') currentClueCount = 0;
   @type('string') tripWord!: string;
   @type('string') currentTeam = 'A';
 
