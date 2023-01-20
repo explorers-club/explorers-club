@@ -87,10 +87,21 @@ export const abilityByRole: Record<Role, string> = {
   anarchist: 'Has no special ability.',
 };
 
-export const objectiveByTeam: Record<Team, string> = {
-  anarchist: 'Convince others that you are the vigilante',
-  citizens: 'Identify the vigilante',
-  vigilante: 'Protect the identity of the vigilante',
+const CITIZENS_OBJECTIVE =
+  'Win if the vigilante or sidekick recives the most votes.';
+
+export const objectiveByRole: Record<Role, string> = {
+  cop: CITIZENS_OBJECTIVE,
+  student: CITIZENS_OBJECTIVE,
+  detective: CITIZENS_OBJECTIVE,
+  conspirator: CITIZENS_OBJECTIVE,
+  politician: CITIZENS_OBJECTIVE,
+  monk: CITIZENS_OBJECTIVE,
+  mayor: CITIZENS_OBJECTIVE,
+  butler: "Win if the vigilante or sidekick don't receive the most votes.",
+  sidekick: "Win if you or the vigilante don't receive the most votes.",
+  vigilante: "Win if you or the sidekick don't receive the most votes.",
+  anarchist: 'Win if you receive the most votes.',
 };
 
 export const imageByRole: Record<Role, string> = {

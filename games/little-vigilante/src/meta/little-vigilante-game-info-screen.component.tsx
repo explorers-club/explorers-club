@@ -34,8 +34,8 @@ export const LittleVigilanteGameInfoScreen = () => {
             previous night then vote on who they believe is the Vigilante.
           </Text>
           <Text>
-            3. If the the player with the vigilante role receives the most
-            votes, the citizen team wins the round. If the vigilante does not
+            3. If the player with the vigilante or sidekick role receives the most
+            votes, the citizen team wins the round. If the vigilante or his sidekick does not
             receive the most votes, the vigilante team wins the round.
           </Text>
           <Text>Each round lasts about five minutes.</Text>

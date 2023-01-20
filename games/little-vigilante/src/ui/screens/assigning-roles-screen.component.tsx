@@ -8,9 +8,8 @@ import { Text } from '@atoms/Text';
 import { FC } from 'react';
 import {
   imageByRole,
-  objectiveByTeam,
+  objectiveByRole,
   Role,
-  teamByRole,
 } from '../../meta/little-vigilante.constants';
 
 interface Props {
@@ -19,8 +18,7 @@ interface Props {
 
 export const AssigningRolesScreenComponent: FC<Props> = ({ role }) => {
   const imageSrc = imageByRole[role];
-  const team = teamByRole[role];
-  const objective = objectiveByTeam[team];
+  const objective = objectiveByRole[role];
   return (
     <Box css={{ p: '$3' }}>
       <Card>
@@ -28,7 +26,7 @@ export const AssigningRolesScreenComponent: FC<Props> = ({ role }) => {
           <Heading>{role}</Heading>
           <Caption>Objective</Caption>
           <Text>{objective}</Text>
-          <Image src={imageSrc} alt="" />
+          <Image src={imageSrc} alt={role} />
         </Flex>
       </Card>
     </Box>

@@ -1,5 +1,6 @@
-import { CONTINUE } from '@explorers-club/room';
+import { CONTINUE, LittleVigilanteStateSerialized } from '@explorers-club/room';
 import { useCallback } from 'react';
+import { Role } from '../../meta/little-vigilante.constants';
 import {
   useIsHost,
   useLittleVigilanteSelector,
@@ -15,16 +16,20 @@ export const RevealScreen = () => {
     send({ type: CONTINUE });
   }, [send]);
 
-  const playerRoles = useLittleVigilanteSelector((state) =>
-    Object.entries(state.currentRoundRoles).map(
-      ([userId, role]) => [state.players[userId].name, role] as const
-    )
-  );
+  const playerOutcomes = useLittleVigilanteSelector(selectPlayerOutcomes);
 
   return (
     <RevealScreenComponent
       onPressNext={isHost ? onPressNext : undefined}
-      playerRoles={playerRoles}
+      playerOutcomes={playerOutcomes}
     />
   );
+};
+
+const selectPlayerOutcomes = (state: LittleVigilanteStateSerialized) => {
+  return Object.entries(state.currentRoundRoles).map(([userId, role]) => ({
+    playerName: state.players[userId].name,
+    role: role as Role,
+    winner: state.currentRoundPoints[userId] === 1,
+  }));
 };

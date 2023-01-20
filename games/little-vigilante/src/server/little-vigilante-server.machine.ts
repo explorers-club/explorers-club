@@ -4,7 +4,7 @@ import { assertEventType, shuffle } from '@explorers-club/utils';
 import { A } from '@mobily/ts-belt';
 import { Room } from 'colyseus';
 import { createSelector } from 'reselect';
-import { ActorRefFrom, assign, createMachine } from 'xstate';
+import { ActorRefFrom, createMachine } from 'xstate';
 import { rolesByPlayerCount } from '../meta/little-vigilante.constants';
 
 export interface LittleVigilanteServerContext {
@@ -302,7 +302,9 @@ export const createLittleVigilanteServerMachine = (
           const maxVotes = Math.max(...Array.from(votesByRole.values()));
 
           const vigilanteVotes = votesByRole.get('vigilante') || 0;
-          const vigilanteWins = vigilanteVotes === maxVotes;
+          const sidekickVotes = votesByRole.get('sidekick') || 0;
+          const vigilanteWins =
+            vigilanteVotes !== maxVotes && sidekickVotes !== maxVotes;
 
           const anarchistVotes = votesByRole.get('anarchist') || 0;
           const anarachistWins = anarchistVotes === maxVotes;
@@ -346,7 +348,6 @@ export const createLittleVigilanteServerMachine = (
             ...shuffle(withoutVig).slice(0, playerCount - 1),
             'vigilante',
           ]);
-          // const allRoles = getRoles(room.state.players.size);
 
           room.state.players.forEach((player) => {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
