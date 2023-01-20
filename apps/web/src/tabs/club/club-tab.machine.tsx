@@ -40,8 +40,6 @@ export const createClubTabMachine = (
   notificationsActor: NotificationsActor,
   clubName?: string
 ) => {
-  const clubRoomId: ClubRoomId = `club-${clubName}`;
-
   return createMachine(
     {
       id: 'ClubTabMachine',
@@ -79,6 +77,8 @@ export const createClubTabMachine = (
                   const clubRoomIds = clubRooms.map((room) =>
                     ClubRoomIdSchema.parse(room.roomId)
                   );
+                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                  const clubRoomId = getClubRoomId(clubName!);
 
                   if (clubRoomIds.includes(clubRoomId)) {
                     const sessionId = localStorage.getItem(clubRoomId);
@@ -186,12 +186,14 @@ export const createClubTabMachine = (
             },
             Reconnecting: {
               invoke: {
-                src: async ({ room }) => {
+                src: async ({ room, clubName }) => {
+                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                  const clubRoomId = getClubRoomId(clubName!);
                   const sessionId = localStorage.getItem(clubRoomId);
                   if (!sessionId) {
                     throw new Error('couldnt find session id for reconnect');
                   }
-                  const res = await colyseusClient.reconnect(
+                  await colyseusClient.reconnect(
                     clubRoomId,
                     sessionId
                   );
@@ -265,6 +267,8 @@ export const createClubTabMachine = (
     }
   );
 };
+
+const getClubRoomId = (clubName: string) => `club-${clubName}` as ClubRoomId;
 
 export type ClubTabMachine = ReturnType<typeof createClubTabMachine>;
 export type ClubTabActor = ActorRefFrom<ClubTabMachine>;
