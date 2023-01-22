@@ -4,6 +4,7 @@ import { AppContext } from '../../state/app.context';
 import { ClubTabComponent } from './club-tab.component';
 import { DisconnectHandler } from './components/disconnect-handler.component';
 import { ErrorHandler } from './components/error-handler.component';
+import { ClubTabContext } from './club-tab.context';
 
 export const ClubTab = () => {
   const { clubTabActor } = useContext(AppContext);
@@ -13,7 +14,11 @@ export const ClubTab = () => {
     <>
       <DisconnectHandler />
       <ErrorHandler />
-      {store && <ClubTabComponent store={store} />}
+      {store && (
+        <ClubTabContext.Provider value={{ store }}>
+          <ClubTabComponent />
+        </ClubTabContext.Provider>
+      )}
     </>
   );
 };

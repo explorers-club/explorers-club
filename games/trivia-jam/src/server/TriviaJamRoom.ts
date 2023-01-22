@@ -7,7 +7,7 @@ import {
   TriviaJamSubmitResponseCommand,
   TRIVIA_JAM_SUBMIT_RESPONSE,
 } from '@explorers-club/room';
-import { TriviaJamRoomId } from '@explorers-club/schema';
+import { TriviaJamConfigSchema, TriviaJamRoomId } from '@explorers-club/schema';
 import { ClubPlayer } from '@explorers-club/schema-types/ClubPlayer';
 import { ClubState } from '@explorers-club/schema-types/ClubState';
 import { TriviaJamPlayer } from '@explorers-club/schema-types/TriviaJamPlayer';
@@ -50,10 +50,17 @@ export class TriviaJamRoom extends Room<TriviaJamState> {
       return { userId, name: player.name.valueOf() };
     });
 
+    const json = JSON.parse(
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      clubRoom.state.gameConfigsSerialized.get('trivia_jam')!
+    );
+    const config = TriviaJamConfigSchema.parse(json);
+    const { questionSetEntryId } = config;
+
     const options: OnCreateOptions = {
       roomId,
       userId: hostUserId,
-      questionSetEntryId: sampleQuestionSetEntryId,
+      questionSetEntryId,
       playerInfo,
     };
 

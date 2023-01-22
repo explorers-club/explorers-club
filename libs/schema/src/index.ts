@@ -48,3 +48,34 @@ export type RoomId = ClubRoomId | GameRoomId;
 export type ClubMetadata = {
   clubName: string;
 };
+
+export const TriviaJamConfigSchema = z.object({
+  gameId: z.literal('trivia_jam').default('trivia_jam'),
+  maxPlayers: z.number().max(20).default(20),
+  questionSetEntryId: z.string().default('dSX6kC0PNliXTl7qHYJLH'),
+});
+
+export type TriviaJamConfig = z.infer<typeof TriviaJamConfigSchema>;
+
+export const DiffusionaryConfigSchema = z.object({
+  gameId: z.literal('diffusionary').default('diffusionary'),
+  maxPlayers: z.number().max(10).default(10),
+});
+
+export type DiffusionaryConfig = z.infer<typeof DiffusionaryConfigSchema>;
+
+export const LittleVigilanteConfigSchema = z.object({
+  gameId: z.literal('little_vigilante').default('little_vigilante'),
+  maxPlayers: z.number().max(10).default(10),
+  discussionTimeSeconds: z.number().default(300),
+  votingTimeSeconds: z.number().default(50),
+});
+
+export type LittleVigilanteConfig = z.infer<typeof LittleVigilanteConfigSchema>;
+
+export const CodebreakersConfigSchema = z.object({
+  gameId: z.literal('codebreakers').default('codebreakers'),
+  maxPlayers: z.number().int().max(10).default(10),
+});
+
+export type CodebreakersConfig = z.infer<typeof CodebreakersConfigSchema>;

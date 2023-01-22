@@ -1,31 +1,28 @@
 import { Box } from '@atoms/Box';
-import { GameId } from '@explorers-club/room';
+import { GAME_LIST } from '@explorers-club/room';
 import { useSelector } from '@xstate/react';
 import 'glider-js/glider.min.css';
 import { useCallback, useContext } from 'react';
 import Glider from 'react-glider';
 import { AppContext } from '../../../state/app.context';
+import { useIsHost } from '../club-tab.hooks';
 import { GameCard } from './game-card.container';
-
-const GAME_LIST: GameId[] = [
-  'little_vigilante',
-  'codebreakers',
-  'trivia_jam',
-  'diffusionary',
-];
 
 export const GameCarousel = () => {
   const { clubTabActor } = useContext(AppContext);
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const store = useSelector(clubTabActor, (state) => state.context.store!);
+  const isHost = useIsHost();
 
   const handleSlideVisible = useCallback(
     (event: CustomEvent<{ slide: number }>) => {
       const { slide } = event.detail;
       const gameId = GAME_LIST[slide];
-      store.send({ type: 'SELECT_GAME', gameId });
+      if (isHost) {
+        store.send({ type: 'SELECT_GAME', gameId });
+      }
     },
-    [store]
+    [store, isHost]
   );
 
   return (

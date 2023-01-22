@@ -1,4 +1,6 @@
-export const DIFFUSIONARY_CONFIG = {
+export * from './components';
+
+export const DIFFUSIONARY_METADATA = {
   gameId: 'diffusionary',
   displayName: 'Diffusionary',
   minPlayers: 4,

@@ -7,16 +7,16 @@ import { Heading } from '@atoms/Heading';
 import { Select } from '@atoms/Select';
 import { Text } from '@atoms/Text';
 import { IQuestionSetFields } from '@explorers-club/contentful-types';
-import { TriviaJamConfigSerialized } from '@explorers-club/room';
 import { Entry } from 'contentful';
 import { FC, useCallback, useRef } from 'react';
+import { TriviaJamConfig } from '@explorers-club/schema';
 
 const MAX_PLAYERS = 8;
 
 interface Props {
   questionSetEntries: Entry<IQuestionSetFields>[];
-  initialConfig: TriviaJamConfigSerialized;
-  onSubmitConfig: (config: TriviaJamConfigSerialized) => void;
+  initialConfig: TriviaJamConfig;
+  onSubmitConfig: (config: TriviaJamConfig) => void;
 }
 
 export const TriviaJamConfigurationScreenComponent: FC<Props> = ({
@@ -33,6 +33,7 @@ export const TriviaJamConfigurationScreenComponent: FC<Props> = ({
     // todo use zod here for parsing and validation
     if (maxPlayers && questionSetEntryId) {
       onSubmitConfig({
+        gameId: 'trivia_jam' as const,
         questionSetEntryId,
         maxPlayers: parseInt(maxPlayers),
       });

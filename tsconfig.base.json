@@ -20,9 +20,7 @@
       "@atoms/*": ["libs/components/src/atoms/*"],
       "@explorers-club/api": ["libs/api/src/index.ts"],
       "@explorers-club/api-client": ["libs/api/src/client"],
-      "@explorers-club/codebreakers/meta": [
-        "games/codebreakers/src/meta/index.tsx"
-      ],
+      "@explorers-club/codebreakers/meta/*": ["games/codebreakers/src/meta/*"],
       "@explorers-club/codebreakers/scene": [
         "games/codebreakers/src/scene/index.ts"
       ],
@@ -35,9 +33,7 @@
         "libs/contentful/@types/generated/contentful"
       ],
       "@explorers-club/database": ["libs/database/src/index.ts"],
-      "@explorers-club/diffusionary/configuration": [
-        "games/diffusionary/src/configuration/index.ts"
-      ],
+      "@explorers-club/diffusionary/meta/*": ["games/diffusionary/src/meta/*"],
       "@explorers-club/diffusionary/scene": [
         "games/diffusionary/src/scene/index.ts"
       ],
@@ -48,8 +44,8 @@
         "games/diffusionary/src/state/index.ts"
       ],
       "@explorers-club/diffusionary/ui": ["games/diffusionary/src/ui/index.ts"],
-      "@explorers-club/little-vigilante/meta": [
-        "games/little-vigilante/src/meta/index.tsx"
+      "@explorers-club/little-vigilante/meta/*": [
+        "games/little-vigilante/src/meta/*"
       ],
       "@explorers-club/little-vigilante/scene": [
         "games/little-vigilante/src/scene/index.ts"
@@ -67,9 +63,7 @@
       "@explorers-club/schema": ["libs/schema/src/index.ts"],
       "@explorers-club/schema-types/*": ["libs/schema/@types/generated/*"],
       "@explorers-club/styles": ["libs/components/src/stitches.config.ts"],
-      "@explorers-club/trivia-jam/configuration": [
-        "games/trivia-jam/src/configuration/index.ts"
-      ],
+      "@explorers-club/trivia-jam/meta/*": ["games/trivia-jam/src/meta/*"],
       "@explorers-club/trivia-jam/scene": [
         "games/trivia-jam/src/scene/index.ts"
       ],

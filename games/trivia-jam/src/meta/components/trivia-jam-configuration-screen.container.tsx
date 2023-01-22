@@ -1,13 +1,13 @@
 import { contentfulClient } from '@explorers-club/contentful';
 import { IQuestionSetFields } from '@explorers-club/contentful-types';
-import { TriviaJamConfigSerialized } from '@explorers-club/room';
+import { TriviaJamConfig } from '@explorers-club/schema';
 import { FC } from 'react';
 import { useQuery } from 'react-query';
 import { TriviaJamConfigurationScreenComponent } from './trivia-jam-configuration-screen.component';
 
 interface Props {
-  initialConfig: TriviaJamConfigSerialized;
-  onSubmitConfig: (config: TriviaJamConfigSerialized) => void;
+  initialConfig: TriviaJamConfig;
+  onSubmitConfig: (config: TriviaJamConfig) => void;
 }
 
 export const TriviaJamConfigurationScreen: FC<Props> = (props) => {
