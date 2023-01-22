@@ -49,13 +49,13 @@ export const selectGameConfig = createSelector(
   (json, selectedGame) => {
     switch (selectedGame) {
       case 'little_vigilante':
-        return LittleVigilanteConfigSchema.parse(json) as LittleVigilanteConfig;
+        return LittleVigilanteConfigSchema.parse(json);
       case 'diffusionary':
-        return DiffusionaryConfigSchema.parse(json) as DiffusionaryConfig;
+        return DiffusionaryConfigSchema.parse(json);
       case 'codebreakers':
-        return CodebreakersConfigSchema.parse(json) as CodebreakersConfig;
+        return CodebreakersConfigSchema.parse(json);
       case 'trivia_jam':
-        return TriviaJamConfigSchema.parse(json) as TriviaJamConfig;
+        return TriviaJamConfigSchema.parse(json);
       default:
         throw new Error(`couldn't prase config for ${selectedGame}`);
     }

@@ -8,11 +8,8 @@ import { Image } from '@atoms/Image';
 import { Text } from '@atoms/Text';
 import {
   abilityByRole,
-  colorByTeam,
-  nightPhaseOrder,
-  Role,
-  teamByRole,
-  imageByRole,
+  colorByTeam, imageByRole, Role,
+  teamByRole
 } from '../little-vigilante.constants';
 
 export const LittleVigilanteGameInfoScreen = () => {
