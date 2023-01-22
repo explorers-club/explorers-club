@@ -1,22 +1,16 @@
+import { CodebreakersGameInfoScreen } from '@explorers-club/codebreakers/meta/components';
+import { DiffusionaryGameInfoScreen } from '@explorers-club/diffusionary/meta/components';
+import { LittleVigilanteGameInfoScreen } from '@explorers-club/little-vigilante/meta/components';
 import {
   ClubPlayerSerialized,
   ClubStateSerialized,
+  GameId
 } from '@explorers-club/room';
 import {
-  CodebreakersConfig,
-  CodebreakersConfigSchema,
-  DiffusionaryConfig,
-  DiffusionaryConfigSchema,
-  LittleVigilanteConfig,
-  LittleVigilanteConfigSchema,
-  TriviaJamConfig,
-  TriviaJamConfigSchema,
+  CodebreakersConfigSchema, DiffusionaryConfigSchema, LittleVigilanteConfigSchema, TriviaJamConfigSchema
 } from '@explorers-club/schema';
-import { createSelector } from 'reselect';
-import { LittleVigilanteGameInfoScreen } from '@explorers-club/little-vigilante/meta/components';
-import { CodebreakersGameInfoScreen } from '@explorers-club/codebreakers/meta/components';
-import { DiffusionaryGameInfoScreen } from '@explorers-club/diffusionary/meta/components';
 import { TriviaJamGameInfoScreen } from '@explorers-club/trivia-jam/meta/components';
+import { createSelector } from 'reselect';
 
 export const selectHostUserId = (state: ClubStateSerialized) =>
   state.hostUserId;
@@ -41,7 +35,8 @@ const selectSelectedGameConfigJSON = (state: ClubStateSerialized) => {
   return {};
 };
 
-const selectSelectedGame = (state: ClubStateSerialized) => state.selectedGame;
+export const selectSelectedGame = (state: ClubStateSerialized) =>
+  state.selectedGame as GameId;
 
 export const selectGameConfig = createSelector(
   selectSelectedGameConfigJSON,

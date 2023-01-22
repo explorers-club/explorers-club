@@ -8,10 +8,15 @@ export const useSend = () => {
   return store.send;
 };
 
+export const useClubStore = () => {
+  const { store } = useContext(ClubTabContext);
+  return store;
+};
+
 export const useClubStoreSelector = <T>(
   selector: (state: ClubStateSerialized) => T
 ) => {
-  const { store } = useContext(ClubTabContext);
+  const store = useClubStore();
   return useStoreSelector(store, selector);
 };
 
