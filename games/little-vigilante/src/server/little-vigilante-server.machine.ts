@@ -16,7 +16,8 @@ export type LittleVigilanteServerEvent = LittleVigilanteCommand & {
 };
 
 export const createLittleVigilanteServerMachine = (
-  room: Room<LittleVigilanteState>
+  room: Room<LittleVigilanteState>,
+  settings: { votingTimeSeconds: number; discussionTimeSeconds: number }
 ) => {
   const triviaJamMachine = createMachine(
     {
@@ -188,7 +189,8 @@ export const createLittleVigilanteServerMachine = (
                   },
                 },
                 DiscussionPhase: {
-                  entry: ({ room }) => (room.state.timeRemaining = 25),
+                  entry: ({ room }) =>
+                    (room.state.timeRemaining = settings.discussionTimeSeconds),
                   initial: 'Idle',
                   onDone: 'Voting',
                   states: {
@@ -212,7 +214,8 @@ export const createLittleVigilanteServerMachine = (
                   },
                 },
                 Voting: {
-                  entry: ({ room }) => (room.state.timeRemaining = 10),
+                  entry: ({ room }) =>
+                    (room.state.timeRemaining = settings.votingTimeSeconds),
                   initial: 'Idle',
                   onDone: 'Reveal',
                   on: {
@@ -326,9 +329,6 @@ export const createLittleVigilanteServerMachine = (
               : 0;
             room.state.currentRoundPoints.set(userId, points);
           });
-        },
-        resetTimer: ({ room }) => {
-          room.state.timeRemaining = 15;
         },
         timerTick: ({ room }) => {
           room.state.timeRemaining -= 1;

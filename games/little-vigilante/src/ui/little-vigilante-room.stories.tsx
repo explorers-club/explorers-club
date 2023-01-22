@@ -45,23 +45,29 @@ const RoomWrapper: FC<{ roomId: string; myUserId: string }> = (props) => {
   );
 };
 
-const Template: Story<{ numPlayers: number }> = (args) => {
+const Template: Story<{
+  numPlayers: number;
+  votingTimeSeconds?: number;
+  discussionTimeSeconds?: number;
+}> = ({ numPlayers, votingTimeSeconds = 5, discussionTimeSeconds = 15 }) => {
   const [initialized, setInitialized] = useState(false);
   const [roomId] = useState(`little_vigilante-${generateRandomString()}`);
-  const [playerInfo] = useState(fullPlayerInfo.slice(0, args.numPlayers));
-  // const { roomId, playerInfo } = args;
+  const [playerInfo] = useState(fullPlayerInfo.slice(0, numPlayers));
 
   useEffect(() => {
     (async () => {
       const colyseusClient = new Colyseus.Client('ws://localhost:2567');
       let room: Room<LittleVigilanteState>;
+      const options: OnCreateOptions = {
+        roomId,
+        playerInfo,
+        votingTimeSeconds,
+        discussionTimeSeconds,
+      };
       try {
         room = await colyseusClient.create<LittleVigilanteState>(
           'little_vigilante',
-          {
-            roomId,
-            playerInfo,
-          }
+          options
         );
       } catch (ex) {
         console.error(ex);
@@ -70,7 +76,13 @@ const Template: Story<{ numPlayers: number }> = (args) => {
       await new Promise((resolve) => room.onStateChange.once(resolve));
       setInitialized(true);
     })();
-  }, [setInitialized, playerInfo, roomId]);
+  }, [
+    setInitialized,
+    playerInfo,
+    roomId,
+    votingTimeSeconds,
+    discussionTimeSeconds,
+  ]);
 
   return initialized ? (
     <Grid
@@ -157,33 +169,6 @@ export const EightPlayer = Template.bind({});
 EightPlayer.args = {
   numPlayers: 8,
 };
-
-async function play(
-  context: StoryContext<
-    ReactFramework,
-    OnCreateOptions & {
-      myUserId: string;
-    }
-  >
-) {
-  const { roomId, playerInfo } = context.args;
-
-  const colyseusClient = new Colyseus.Client('ws://localhost:2567');
-  let room: Room<LittleVigilanteState>;
-  try {
-    room = await colyseusClient.create<LittleVigilanteState>(
-      'little_vigilante',
-      {
-        roomId,
-        playerInfo,
-      }
-    );
-  } catch (ex) {
-    console.error(ex);
-    return;
-  }
-  await new Promise((resolve) => room.onStateChange.once(resolve));
-}
 
 const joinAndCreateStore = async (roomId: string, userId: string) => {
   const client = new Colyseus.Client('ws://localhost:2567');

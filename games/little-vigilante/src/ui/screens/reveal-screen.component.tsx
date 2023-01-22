@@ -44,7 +44,7 @@ export const RevealScreenComponent: FC<Props> = ({
                   <Caption>{role}</Caption>
                   {winner && (
                     <Badge
-                      css={{ position: 'absolute', top: '$1', right: '$1' }}
+                      css={{ position: 'absolute', top: '0', right: '$1' }}
                       variant="green"
                     >
                       Winner
