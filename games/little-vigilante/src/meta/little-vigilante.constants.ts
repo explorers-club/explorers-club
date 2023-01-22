@@ -27,6 +27,12 @@ export const teamByRole: Record<Role, Team> = {
   anarchist: 'anarchist',
 };
 
+export const colorByTeam = {
+  citizens: 'crimson',
+  vigilante: 'yellow',
+  anarchist: 'orange',
+} as const;
+
 const FOUR_PLAYER_ROLES = [
   'vigilante',
   'butler',

@@ -1,18 +1,23 @@
+import { Badge } from '@atoms/Badge';
+import { Box } from '@atoms/Box';
 import { Caption } from '@atoms/Caption';
 import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
+import { Image } from '@atoms/Image';
 import { Text } from '@atoms/Text';
 import {
   abilityByRole,
+  colorByTeam,
   nightPhaseOrder,
   Role,
   teamByRole,
+  imageByRole,
 } from '../little-vigilante.constants';
 
 export const LittleVigilanteGameInfoScreen = () => {
   return (
-    <Flex css={{ p: '$3' }} gap="2" direction="column">
+    <Flex gap="2" direction="column">
       <Card css={{ p: '$3' }}>
         <Flex direction="column" gap="2">
           <Caption>Little Vigilante</Caption>
@@ -31,15 +36,15 @@ export const LittleVigilanteGameInfoScreen = () => {
             2. The game is divided into two phases: night and morning. During
             the night phase, players perform their night actions as dictated by
             their role. In the morning phase, players discuss the events of the
-            previous night then vote on who they believe is the Vigilante.
+            previous night then vote on who they believe are the vigilantes.
           </Text>
           <Text>
             3. If the player with the vigilante or sidekick role receives the
-            most votes, the citizen team wins the round. If the vigilante or his
-            sidekick does not receive the most votes, the vigilante team wins
-            the round.
+            most votes, the citizen team wins the round. If the vigilante or
+            their sidekick does not receive the most votes, the vigilante team
+            wins the round.
           </Text>
-          <Text>Each round lasts about five minutes.</Text>
+          <Text>Each round lasts about seven minutes.</Text>
           <Text>
             Before the game starts, players choose how many rounds they would
             like to play for. Players earn a point each time they win a round.
@@ -49,33 +54,44 @@ export const LittleVigilanteGameInfoScreen = () => {
         </Flex>
       </Card>
       <Card css={{ p: '$3' }}>
-        <Heading size="3">Roles</Heading>
+        <Heading size="3">Teams & Roles</Heading>
         <Flex direction="column" gap="3">
           {Object.entries(abilityByRole).map(([role, ability]) => (
             <Flex direction="column" gap="2" key={role}>
-              <Heading size="2">{role}</Heading>
-              <Text>Team: {teamByRole[role as Role]}</Text>
-              <Text>Ability: {ability}</Text>
+              <Box css={{ position: 'relative' }}>
+                <Badge
+                  variant={colorByTeam[teamByRole[role as Role]]}
+                  css={{ position: 'absolute', top: '$2', right: '$2' }}
+                >
+                  {teamByRole[role as Role]}
+                </Badge>
+                <Image src={imageByRole[role as Role]} alt={role} />
+                <Box
+                  css={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    width: '100%',
+                    p: '$4',
+                    pt: '$8',
+                    background: 'linear-gradient(rgba(0,0,0,0), rgba(0,0,0,1))',
+                  }}
+                >
+                  <Heading size="2" css={{ mb: '$1' }}>
+                    {role}
+                  </Heading>
+                  <Text>Ability: {ability}</Text>
+                </Box>
+              </Box>
             </Flex>
           ))}
         </Flex>
       </Card>
       <Card css={{ p: '$3' }}>
-        <Heading size="3">Night Order</Heading>
-        <Text>During the night phase, players always go in this order:</Text>
-        <Flex direction="column" gap="3">
-          {nightPhaseOrder.map((role) => (
-            <Heading size="2" key={role}>
-              {role}
-            </Heading>
-          ))}
-        </Flex>
-      </Card>
-      <Card css={{ p: '$3' }}>
-        <Heading>Rules</Heading>
+        <Heading>Things To Remember</Heading>
         <Text>
           · If two players split the vote and one of those players is the
-          vigilante, the citizens team wins.
+          vigilante or the sidekick, the citizens team wins.
         </Text>
         <Text>
           · The anarchist can win by receiving the most votes. If the anarchist
