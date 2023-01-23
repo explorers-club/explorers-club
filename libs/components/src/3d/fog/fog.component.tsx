@@ -1,10 +1,9 @@
 import { useTexture, Cylinder } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import glsl from 'glslify';
-import { Color, DoubleSide, RepeatWrapping } from 'three';
+import { Color, DoubleSide, RepeatWrapping, Texture } from 'three';
 
 const h = 1.0;
-const r = 200;
 const d = 10 * 2;
 const o = -3.5 * 2;
 
@@ -42,79 +41,43 @@ const catmullRom = glsl`
   }
 `;
 
-export const Floor = () => {
-  return (
-    <>
-      <FogMesh />
-      <Terrain />
-      <Trees />
-    </>
-  );
-};
-
-export const Terrain = () => {
-  const hmap = useTexture('./assets/heightmap.png');
-  hmap.wrapS = RepeatWrapping;
-  hmap.wrapT = RepeatWrapping;
-  hmap.repeat.set(1 / 30, 1 / 30);
-  return (
-    <mesh position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-      <planeGeometry args={[r, r, r, 1024]} />
-      <meshStandardMaterial
-        color="#1BB364"
-        displacementScale={d}
-        displacementMap={hmap}
-        displacementBias={o}
-      />
-    </mesh>
-  );
-};
-
-function Trees() {
-  return (
-    <>
-      <mesh position={[-3, h / 2 + 0.5, 0]}>
-        <coneBufferGeometry args={[0.75, h * 2, 32]} />
-        <meshBasicMaterial color="#168051" />
-      </mesh>
-      <mesh position={[4, h / 3 + 1, 1]}>
-        <coneBufferGeometry args={[0.75, h * 2.75, 32]} />
-        <meshBasicMaterial color="#168051" />
-      </mesh>
-      <mesh position={[4, h / 3 + 1, 2.5]}>
-        <coneBufferGeometry args={[0.75, h * 2.75, 32]} />
-        <meshBasicMaterial color="#168051" />
-      </mesh>
-      <mesh position={[1, h / 3 + 1, 3]}>
-        <coneBufferGeometry args={[0.75, h * 2.75, 32]} />
-        <meshBasicMaterial color="#168051" />
-      </mesh>
-      <mesh position={[1, h / 3 + 1, -3]}>
-        <coneBufferGeometry args={[0.75, h * 2.75, 32]} />
-        <meshBasicMaterial color="#168051" />
-      </mesh>
-    </>
-  );
+type FogMeshProps = {
+  map: Texture;
+  mask: Texture;
+  displacementMap: Texture;
+  displacementScale: number;
+  displacementBias: number;
+  repeat: number;
+  strength: number;
+  layer: number; // number of fog layers used (1-3 for high performance)
+  thickness: number; // virtual thickness of the fog
+  args: [number, number, number, number]
+  smoothness: number; // smoothness of the heightmap
+  position: [number, number, number];
+  rotation: [number, number, number];
 }
 
-export const FogMesh = () => {
-  const fogTexture = useTexture('./assets/231.jpg');
-  const mask = useTexture('./assets/blur.jpg');
-  const hmap = useTexture('./assets/heightmap.png');
+export const FogMesh = ({map, mask, displacementScale, displacementBias, args, strength=2, repeat=1, layers=8, thickness=1, position, rotation, smoothness=1.1}:FogMeshProps) => {
+  
+  const displacementMap = useTexture('./assets/heightmap.png');
 
-  fogTexture.wrapS = RepeatWrapping;
-  fogTexture.wrapT = RepeatWrapping;
-  hmap.wrapS = RepeatWrapping;
-  hmap.wrapT = RepeatWrapping;
+  map.wrapS = RepeatWrapping;
+  map.wrapT = RepeatWrapping;
+  displacementMap.wrapS = RepeatWrapping;
+  displacementMap.wrapT = RepeatWrapping;
   const uniforms = {
     color: { type: 'vec3', value: new Color('grey') },
     time: { type: 'f', value: 0 },
     mask: { value: mask },
-    map: { value: fogTexture },
-    repeat: { value: 30.0 },
-    displacementMap: { value: hmap },
-    displacementScale: { value: d },
-    displacementBias: { value: o },
+    map: { value: map },
+    repeat: { value: repeat },
+    displacementMap: { value: displacementMap },
+    displacementScale: { value: displacementScale },
+    displacementBias: { value: displacementBias },
+    smoothness: { value: smoothness },
+    strength: { value: strength },
+    colorA: { type: 'vec4', value: [1,1,1,1] },
+    colorB: { type: 'vec4', value: [0,0,0,0] },
   };
 
   // update uniforms
@@ -131,6 +94,7 @@ export const FogMesh = () => {
     uniform float displacementScale;
     uniform float displacementBias;
     uniform float repeat;
+    uniform float smoothness;
 
     ${catmullRom}
 
@@ -140,14 +104,12 @@ export const FogMesh = () => {
 
       vec2 heightUv = uv / repeat;
       vec2 tHeightSize = vec2( 512.0, 512.0 );
-      float smoothness = 2.5;
       tHeightSize /= smoothness;
       vec2 texel = vec2( 1.0 / tHeightSize );
       vec2 heightUv00 = ( floor( heightUv * tHeightSize ) ) / tHeightSize;
       vec2 frac = vec2( heightUv - heightUv00 ) * tHeightSize;
 
       float h = textureBicubic( displacementMap, heightUv00, texel, frac );
-      // float h = texture2D(displacementMap, uv / 30.0).r;
 
       h = h * displacementScale + displacementBias;
       
@@ -156,9 +118,11 @@ export const FogMesh = () => {
   `;
 
   const fragmentShader = glsl`
-    uniform vec3 color;
+    uniform vec4 colorA;
+    uniform vec4 colorB;
     uniform sampler2D map;
     uniform sampler2D mask;
+    uniform float strength;
     uniform float repeat; 
     uniform float time;
     varying vec2 vUv;
@@ -170,8 +134,11 @@ export const FogMesh = () => {
       vec4 fogmap = texture2D(map, uv / repeat / 2.0);
       float depth = clamp(0.5 -pow(gl_FragCoord.z / gl_FragCoord.w, 2.0) / 200.0, 0.25, 0.5);
       float alpha = 0.5 - mask;
+      vec4 color = mix(colorA, colorB, fogmap.r);
+      color.a = (alpha - depth - fogmap.r/2.0) * strength;
 
-      gl_FragColor = vec4(1.0-fogmap.xyz , (alpha - depth - fogmap.r/2.0) / 2.0);
+      // gl_FragColor = vec4(1.0-fogmap.xyz , (alpha - depth - fogmap.r/2.0) * strength);
+      gl_FragColor = color;
     }
   `;
 
@@ -179,24 +146,30 @@ export const FogMesh = () => {
   return (
      <>
       {
-         Array.from({length:10}).map((v, i)=>(
-          <mesh
-            position={[0, 3 + h / 2 + i*0.125, 0.0]}
-            rotation={[-Math.PI / 2, 0, 0]}
-          >
-            <planeBufferGeometry args={[r, r, r * 5, r * 5]} />
-            <shaderMaterial
-              transparent
-              uniforms={uniforms}
-              vertexShader={vertexShader}
-              fragmentShader={fragmentShader}
-              side={DoubleSide}
-              map={fogTexture}
-              // wireframe
-            />
-            {/* <meshBasicMaterial color="grey" opacity={0.5} transparent map={texture} /> */}
-          </mesh>
-         ))
+         Array.from({length:layers}).map((v, i)=>{
+          const h = thickness/layers;
+          let p = [...position];
+          p[1] += i*h;
+          return (
+            (
+              <mesh
+                position={p}
+                rotation={rotation}
+              >
+                <planeBufferGeometry args={args} />
+                <shaderMaterial
+                  transparent
+                  uniforms={uniforms}
+                  vertexShader={vertexShader}
+                  fragmentShader={fragmentShader}
+                  side={DoubleSide}
+                  map={map}
+                />
+                {/* <meshBasicMaterial color="grey" opacity={0.5} transparent map={texture} /> */}
+              </mesh>
+             )
+          )
+         })
       }
      </>
   );
