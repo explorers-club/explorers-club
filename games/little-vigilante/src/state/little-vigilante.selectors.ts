@@ -22,6 +22,10 @@ export const selectPlayersWithName = (
   });
 };
 
+export const selectPlayers = (state: LittleVigilanteStateSerialized) => {
+  return Object.values(state.players);
+};
+
 export const selectPlayersWithNameAndRole = (
   state: LittleVigilanteStateSerialized
 ) => {

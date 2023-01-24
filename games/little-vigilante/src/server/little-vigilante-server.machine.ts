@@ -152,7 +152,7 @@ export const createLittleVigilanteServerMachine = (
                       },
                       after: {
                         5000: {
-                          target: 'Politician',
+                          target: 'Sidekick',
                           cond: ({ room }) =>
                             selectPoliticianIsArrested(room.state),
                         },

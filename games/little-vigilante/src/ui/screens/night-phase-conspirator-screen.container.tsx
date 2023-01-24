@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useLittleVigilanteSelector, useLittleVigilanteSend } from '../../state/little-vigilante.hooks';
-import { selectPlayersWithName } from '../../state/little-vigilante.selectors';
+import { selectPlayers } from '../../state/little-vigilante.selectors';
 import { NightPhaseConspiratorScreenComponent } from './night-phase-conspirator-screen.component';
 
 export const NightPhaseConspiratorScreen = () => {
@@ -11,7 +11,7 @@ export const NightPhaseConspiratorScreen = () => {
     },
     [send]
   );
-  const players = useLittleVigilanteSelector(selectPlayersWithName);
+  const players = useLittleVigilanteSelector(selectPlayers);
 
   return (
     <NightPhaseConspiratorScreenComponent
