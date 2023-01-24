@@ -148,6 +148,7 @@ const fullPlayerInfo = [
 export const FourPlayer = Template.bind({});
 FourPlayer.args = {
   numPlayers: 4,
+  discussionTimeSeconds: 300,
 };
 
 export const FivePlayer = Template.bind({});

@@ -5,10 +5,12 @@ import { Caption } from '@atoms/Caption';
 import { Flex } from '@atoms/Flex';
 import { CheckboxCard } from '@molecules/CheckboxCard';
 import { FC, useCallback, useRef } from 'react';
+import { Avatar } from '@atoms/Avatar';
+import { colorBySlotNumber } from '@explorers-club/styles';
 
 interface Props {
   onSelectPlayers: (players: readonly [string, string]) => void;
-  players: { userId: string; name: string }[];
+  players: { userId: string; name: string; slotNumber: number }[];
 }
 
 export const NightPhaseConspiratorScreenComponent: FC<Props> = ({
@@ -43,9 +45,12 @@ export const NightPhaseConspiratorScreenComponent: FC<Props> = ({
           <Caption>Conspirator</Caption>
           <Text>Choose two players to swap roles</Text>
           <Flex direction="column" gap="3">
-            {players.map(({ userId, name }) => (
+            {players.map(({ userId, name, slotNumber }) => (
               <CheckboxCard onCheckedChange={handleCheckChange(userId)}>
-                <Text>{name}</Text>
+                <Flex gap="2" align="center">
+                  <Avatar size="3" variant={colorBySlotNumber[slotNumber]} />
+                  <Text>{name}</Text>
+                </Flex>
               </CheckboxCard>
             ))}
           </Flex>

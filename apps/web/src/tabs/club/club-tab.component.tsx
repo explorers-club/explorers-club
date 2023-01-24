@@ -13,7 +13,7 @@ import { useCallback, useContext, useLayoutEffect } from 'react';
 import { NameForm } from '../../components/molecules/name-form';
 import { AppContext } from '../../state/app.context';
 import { AuthContext } from '../../state/auth.context';
-import { colorBySlotNumber } from './club-tab.constants';
+import { colorBySlotNumber } from '@explorers-club/styles';
 import { useClubStoreSelector } from './club-tab.hooks';
 import {
   selectGameConfig,

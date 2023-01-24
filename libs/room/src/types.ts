@@ -3,9 +3,14 @@ import {
   CollectionSchema,
   MapSchema,
   Schema,
-  SetSchema
+  SetSchema,
 } from '@colyseus/schema';
-import { CodebreakersConfig, DiffusionaryConfig, LittleVigilanteConfig, TriviaJamConfig } from '@explorers-club/schema';
+import {
+  CodebreakersConfig,
+  DiffusionaryConfig,
+  LittleVigilanteConfig,
+  TriviaJamConfig,
+} from '@explorers-club/schema';
 import { ClubPlayer } from '@explorers-club/schema-types/ClubPlayer';
 import { ClubState } from '@explorers-club/schema-types/ClubState';
 import { CodebreakersPlayer } from '@explorers-club/schema-types/CodebreakersPlayer';
@@ -143,6 +148,20 @@ export type CodebreakersStore = RoomStore<
 export type CodebreakersStateSerialized = SerializedSchema<CodebreakersState>;
 export type CodebreakersPlayerSerialized = SerializedSchema<CodebreakersPlayer>;
 
+export type LittleVigilanteCallVoteCommand = {
+  type: 'CALL_VOTE';
+};
+export type LittleVigilanteApproveVoteCommand = {
+  type: 'APPROVE_VOTE';
+};
+export type LittleVigilanteRejectVoteCommand = {
+  type: 'REJECT_VOTE';
+};
+export type LittleVigilanteTargetPlayerRoleCommand = {
+  type: 'TARGET_ROLE';
+  role: string;
+  targetedUserId: string;
+};
 export type LittleVigilanteVoteCommand = {
   type: 'VOTE';
   votedUserId: string;
@@ -160,6 +179,10 @@ export type LittleVigilanteCommand =
   | JoinCommand
   | ContinueCommand
   | LeaveCommand
+  | LittleVigilanteRejectVoteCommand
+  | LittleVigilanteApproveVoteCommand
+  | LittleVigilanteCallVoteCommand
+  | LittleVigilanteTargetPlayerRoleCommand
   | LittleVigilanteVoteCommand
   | LittleVigilanteArrestCommand
   | LittleVigilanteSwapCommand;

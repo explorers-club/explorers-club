@@ -1,25 +1,300 @@
+import { Avatar } from '@atoms/Avatar';
 import { Box } from '@atoms/Box';
+import { Button } from '@atoms/Button';
 import { Caption } from '@atoms/Caption';
 import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
-import { Text } from '@atoms/Text';
-import { FC } from 'react';
+import { Grid } from '@atoms/Grid';
+import { Heading } from '@atoms/Heading';
+import { LittleVigilanteStateSerialized } from '@explorers-club/room';
+import { colorBySlotNumber } from '@explorers-club/styles';
+import { Carousel, CarouselCell } from '@molecules/Carousel';
+import { useKeenSlider } from 'keen-slider/react';
+import { FC, memo, MutableRefObject, useCallback, useRef } from 'react';
+import { iconByRole, Role } from '../../meta/little-vigilante.constants';
+import {
+  useLittleVigilanteSelector,
+  useLittleVigilanteSend,
+  useMyUserId,
+} from '../../state/little-vigilante.hooks';
 
-interface Props {
-  timeRemaining: number;
-}
+export const DiscussionPhaseScreenComponent = () => {
+  const send = useLittleVigilanteSend();
+  const roles = useLittleVigilanteSelector((state) => state.roles as Role[]);
+  const initial = Math.floor(roles.length / 2);
+  const currentRoleRef = useRef<Role>(roles[initial]);
 
-export const DiscussionPhaseScreenComponent: FC<Props> = ({
-  timeRemaining,
-}) => {
+  const handleCallVote = useCallback(() => {
+    send({ type: 'CALL_VOTE' });
+  }, [send]);
+
   return (
-    <Box css={{ p: '$3' }}>
+    <Flex css={{ p: '$3' }} direction="column" gap="2">
       <Card css={{ p: '$3' }}>
-        <Flex direction="column" gap="3">
-          <Caption>Discussion</Caption>
-          <Text>{timeRemaining} seconds remaining</Text>;
+        <Flex direction="column" gap="2">
+          <CountdownTimer />
+          <Box css={{ textAlign: 'center' }}>
+            <Button onClick={handleCallVote}>Call Vote</Button>
+          </Box>
         </Flex>
       </Card>
+      <Card css={{ py: '$3' }}>
+        <Flex direction="column" css={{ width: '100$' }} gap="2">
+          <RoleCarousel currentRoleRef={currentRoleRef} />
+          <PlayerGrid currentRoleRef={currentRoleRef} />
+        </Flex>
+      </Card>
+    </Flex>
+  );
+};
+
+interface RoleCarouselProps {
+  currentRoleRef: MutableRefObject<Role>;
+}
+
+const RoleCarousel: FC<RoleCarouselProps> = ({ currentRoleRef }) => {
+  const roles = useLittleVigilanteSelector((state) => state.roles as Role[]);
+
+  const [sliderRef] = useKeenSlider<HTMLDivElement>({
+    initial: roles.indexOf(currentRoleRef.current),
+    mode: 'free-snap',
+    slideChanged(slider) {
+      slider.slides.forEach((slide) => slide.classList.remove('active'));
+      slider.slides[slider.track.details.rel].classList.add('active');
+      currentRoleRef.current = roles[slider.track.details.rel];
+    },
+    created(slider) {
+      slider.slides[slider.track.details.rel].classList.add('active');
+    },
+    slides: {
+      origin: 'center',
+      perView: 4,
+    },
+  });
+
+  return (
+    <Carousel sliderRef={sliderRef}>
+      {roles.map((role, index) => (
+        <RoleCell role={role} key={index} />
+      ))}
+    </Carousel>
+  );
+};
+
+const RoleCell = memo(({ role }: { role: Role }) => {
+  const myUserId = useMyUserId();
+  const roleTargetColor = useLittleVigilanteSelector((state) => {
+    const myRoleTargets = state.players[myUserId].currentRoundRoleTargets;
+    const target = Object.entries(myRoleTargets).find(
+      ([, roleTarget]) => roleTarget === role
+    );
+    if (target) {
+      const userId = target[0];
+      const { slotNumber } = state.players[userId];
+      return colorBySlotNumber[slotNumber];
+    }
+    return null;
+  });
+
+  return (
+    <CarouselCell
+      css={{
+        opacity: 0.5,
+        '&.active': {
+          opacity: 1,
+          overflow: 'visible !important',
+          [`& ${Caption}`]: {
+            opacity: 1,
+          },
+        },
+        [`& ${Caption}`]: {
+          opacity: 0,
+        },
+        transition: 'opacity 200ms ease-in-out',
+      }}
+    >
+      <Flex direction="column" justify="center" align="center" gap="2">
+        <Avatar
+          size="5"
+          src={iconByRole[role as Role]}
+          css={{
+            border: `3px ${roleTargetColor ? 'solid' : 'dashed'} $${
+              roleTargetColor ? roleTargetColor : 'neutral'
+            }9`,
+            borderRadius: '50%',
+          }}
+        />
+        <Caption variant="contrast">{role}</Caption>
+      </Flex>
+    </CarouselCell>
+  );
+});
+
+interface PlayerGridProps {
+  currentRoleRef: MutableRefObject<Role>;
+}
+
+const PlayerGrid: FC<PlayerGridProps> = ({ currentRoleRef }) => {
+  const send = useLittleVigilanteSend();
+  const players = useLittleVigilanteSelector((state) =>
+    Object.values(state.players)
+  );
+
+  const handlePressPlayer = useCallback(
+    (userId: string) => {
+      send({
+        type: 'TARGET_ROLE',
+        targetedUserId: userId,
+        role: currentRoleRef.current,
+      });
+    },
+    [send, currentRoleRef]
+  );
+
+  return (
+    <Box>
+      <Grid
+        css={{
+          width: '100%',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: '$2',
+          px: '$3',
+        }}
+      >
+        {players.map(({ userId }) => (
+          <PlayerGridItem
+            key={userId}
+            userId={userId}
+            onPress={handlePressPlayer}
+          />
+        ))}
+      </Grid>
     </Box>
   );
 };
+
+const PlayerGridItem = ({
+  userId,
+  onPress,
+}: {
+  userId: string;
+  onPress: (userId: string) => void;
+}) => {
+  const player = useLittleVigilanteSelector((state) => state.players[userId]);
+  const { name, slotNumber } = player;
+
+  const roleTargets = useLittleVigilanteSelector((state) => {
+    const roleTargets = selectRoleTargetsByUserId(state);
+    return roleTargets[player.userId] || [];
+  });
+
+  const handlePress = useCallback(() => {
+    onPress(userId);
+  }, [userId, onPress]);
+
+  return (
+    <Card
+      key={userId}
+      css={{
+        px: '$1',
+        background: '$primary3',
+        position: 'relative',
+        cursor: 'pointer',
+      }}
+      onClick={handlePress}
+    >
+      <Flex
+        direction="column"
+        wrap="wrap"
+        css={{
+          position: 'absolute',
+          zIndex: 1,
+          left: '$1',
+          top: '$1',
+          height: '100%',
+        }}
+        gap="1"
+      >
+        {roleTargets.map(({ targetingUserId, role }, index) => (
+          <PlayerRoleTarget
+            key={index}
+            targetingUserId={targetingUserId}
+            role={role}
+          />
+        ))}
+      </Flex>
+      <Flex
+        direction="column"
+        justify="center"
+        align="center"
+        css={{ aspectRatio: 1 }}
+        gap="2"
+      >
+        <Avatar size="6" variant={colorBySlotNumber[slotNumber]} />
+        <Heading>{name}</Heading>
+      </Flex>
+    </Card>
+  );
+};
+
+const PlayerRoleTarget = ({
+  targetingUserId,
+  role,
+}: {
+  targetingUserId: string;
+  role: Role;
+}) => {
+  const slotNumber = useLittleVigilanteSelector(
+    (state) => state.players[targetingUserId].slotNumber
+  );
+  const color = colorBySlotNumber[slotNumber];
+  return (
+    <Avatar
+      size="2"
+      src={iconByRole[role]}
+      css={{
+        border: `3px solid $${color}7`,
+        borderRadius: '50%',
+      }}
+    />
+  );
+};
+
+const selectRoleTargetsByUserId = (state: LittleVigilanteStateSerialized) => {
+  const players = Object.values(state.players);
+  const roleTargetsByUserId: Record<
+    string,
+    { targetingUserId: string; role: Role }[]
+  > = {};
+  Object.values(players).forEach((player) => {
+    Object.entries(player.currentRoundRoleTargets).forEach(([userId, role]) => {
+      roleTargetsByUserId[userId] ||= [];
+      roleTargetsByUserId[userId].push({
+        targetingUserId: player.userId,
+        role: role as Role,
+      });
+    });
+  });
+  return roleTargetsByUserId;
+};
+
+const CountdownTimer = () => {
+  const formattedTime = useLittleVigilanteSelector(selectFormattedTime);
+
+  return (
+    <Heading css={{ textAlign: 'center', fontFamily: '$mono' }} size="3">
+      {formattedTime}
+    </Heading>
+  );
+};
+
+const selectFormattedTime = (state: LittleVigilanteStateSerialized) =>
+  formatTime(state.timeRemaining);
+
+function formatTime(seconds: number): string {
+  const minutes = Math.floor(seconds / 60)
+    .toString()
+    .padStart(2, '0');
+  const remainingSeconds = (seconds % 60).toString().padStart(2, '0');
+  return `${minutes}:${remainingSeconds}`;
+}

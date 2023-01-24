@@ -1,8 +1,17 @@
-import { MapSchema, Schema, SetSchema, type } from '@colyseus/schema';
+import {
+  ArraySchema,
+  MapSchema,
+  Schema,
+  SetSchema,
+  type,
+} from '@colyseus/schema';
 import { ClubPlayer } from './ClubState';
 
 export class LittleVigilantePlayer extends ClubPlayer {
   @type('number') score = 0;
+
+  @type({ map: 'string' })
+  public currentRoundRoleTargets: MapSchema<string> = new MapSchema<string>();
 }
 
 export class LittleVigilanteState extends Schema {
@@ -10,6 +19,7 @@ export class LittleVigilanteState extends Schema {
 
   @type({ set: 'string' }) currentStates: SetSchema<string> = new SetSchema();
   @type({ set: 'string' }) hostUserIds: SetSchema<string> = new SetSchema();
+  @type({ set: 'string' }) roles: ArraySchema<string> = new ArraySchema();
 
   @type('number') timeRemaining!: number;
 

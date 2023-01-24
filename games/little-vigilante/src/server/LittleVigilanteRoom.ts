@@ -15,8 +15,10 @@ import {
   CONTINUE,
   LittleVigilanteArrestCommand,
   LittleVigilanteSwapCommand,
+  LittleVigilanteTargetPlayerRoleCommand,
   LittleVigilanteVoteCommand,
 } from '@explorers-club/room';
+import { rolesByPlayerCount } from '../meta/little-vigilante.constants';
 
 interface PlayerInfo {
   userId: string;
@@ -75,17 +77,21 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
     this.roomId = roomId;
     this.autoDispose = false;
 
-    playerInfo.forEach(({ userId, name }) => {
+    playerInfo.forEach(({ userId, name }, index) => {
       const player = new LittleVigilantePlayer({
         name,
         connected: false,
         score: 0,
         userId,
+        slotNumber: index + 1,
       });
       state.players.set(userId, player);
     });
 
     state.hostUserIds.add(playerInfo[0].userId);
+
+    const roles = rolesByPlayerCount[playerInfo.length];
+    roles.forEach((role) => state.roles.add(role));
 
     const room = this as Room<LittleVigilanteState>;
     const settings = { votingTimeSeconds, discussionTimeSeconds };
@@ -97,6 +103,16 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
       room.state.currentStates.clear();
       state.toStrings().forEach((state) => room.state.currentStates.add(state));
     });
+
+    this.onMessage(
+      'TARGET_ROLE',
+      (client, message: LittleVigilanteTargetPlayerRoleCommand) => {
+        this.service.send({
+          ...message,
+          userId: client.userData.userId as string,
+        });
+      }
+    );
 
     this.onMessage(
       'ARREST',

@@ -43,13 +43,13 @@ const FOUR_PLAYER_ROLES = [
   'politician',
 ] as const;
 
-const FIVE_PLAYER_ROLES = [...FOUR_PLAYER_ROLES, 'anarchist'] as const;
+const FIVE_PLAYER_ROLES = [...FOUR_PLAYER_ROLES, 'sidekick'] as const;
 
 const SIX_PLAYER_ROLES = [...FIVE_PLAYER_ROLES, 'monk'] as const;
 
-const SEVEN_PLAYER_ROLES = [...SIX_PLAYER_ROLES, 'sidekick'] as const;
+const SEVEN_PLAYER_ROLES = [...SIX_PLAYER_ROLES, 'cop'] as const;
 
-const EIGHT_PLAYER_ROLES = [...SEVEN_PLAYER_ROLES, 'cop'] as const;
+const EIGHT_PLAYER_ROLES = [...SEVEN_PLAYER_ROLES, 'anarchist'] as const;
 
 const NINE_PLAYER_ROLES = [...EIGHT_PLAYER_ROLES, 'mayor'] as const;
 
@@ -131,4 +131,27 @@ export const imageByRole: Record<Role, string> = {
     'https://media.discordapp.net/attachments/1000472333108129935/1062748642143916123/InspectorT_Polynesian_Mayor_character_chibi_NFT_funny_pose_679b10d1-530e-4a42-ab1e-7bc5f7fb42aa.png?width=1194&height=1194',
   vigilante:
     'https://media.discordapp.net/attachments/1000472333108129935/1061250880566992906/InspectorT_Polynesian_Batman_character_chibi_NFT_funny_pose_e4451ce9-58d7-46ec-b98d-7ea3e312dc94.png?width=1194&height=1194',
+};
+
+export const iconByRole: Record<Role, string> = {
+  detective:
+    'https://media.discordapp.net/attachments/1000472333108129935/1067080488453427283/InspectorT_flat_favicon_cutout_vector_svg_16x16_low_res_black_a_eefecbff-d979-40c4-9205-5b655b52dfa7.png?width=597&height=597',
+  cop: 'https://media.discordapp.net/attachments/1000472333108129935/1067081377117376613/InspectorT_flat_favicon_cutout_vector_svg_16x16_low_res_low_det_88317c51-84af-4c2a-8292-d87183d14144.png?width=597&height=597',
+  student:
+    'https://media.discordapp.net/attachments/1000472333108129935/1067081089044205618/InspectorT_flat_favicon_cutout_vector_svg_16x16_low_res_black_a_83d4eb56-c51d-4946-be7d-e34f3fe49cda.png?width=597&height=597',
+  monk: 'https://media.discordapp.net/attachments/1000472333108129935/1067078933373272187/InspectorT_flat_favicon_cutout_vector_svg_16x16_low_res_black_a_1518494e-5b42-463e-b5dc-4447a69a91c8.png?width=597&height=597',
+  conspirator:
+    'https://media.discordapp.net/attachments/1000472333108129935/1067078840280678410/InspectorT_flat_favicon_cutout_vector_svg_16x16_low_res_black_a_1a75323e-13da-4d2c-8faf-c8d7bea961a1.png?width=597&height=597',
+  anarchist:
+    'https://media.discordapp.net/attachments/1000472333108129935/1067079429265829938/InspectorT_flat_favicon_cutout_vector_svg_16x16_low_res_black_a_57507136-d8ec-42fa-92a8-265235d9a710.png?width=597&height=597',
+  sidekick:
+    'https://media.discordapp.net/attachments/1000472333108129935/1067080468484329472/InspectorT_flat_favicon_cutout_vector_svg_16x16_low_res_low_det_c57d682d-f037-4c8f-ad58-1c9e5bf99808.png?width=597&height=597',
+  politician:
+    'https://media.discordapp.net/attachments/1000472333108129935/1067080669064331386/InspectorT_flat_favicon_cutout_vector_svg_16x16_low_res_low_det_39ee4c83-8030-48d5-8caf-f212fe0c33ea.png?width=597&height=597',
+  butler:
+    'https://media.discordapp.net/attachments/1000472333108129935/1067079581116411984/InspectorT_flat_favicon_cutout_vector_svg_16x16_low_res_black_a_b772f691-ea84-458e-bbfc-46aae61847f8.png?width=597&height=597',
+  mayor:
+    'https://media.discordapp.net/attachments/1000472333108129935/1067079976471494726/InspectorT_flat_favicon_cutout_vector_svg_16x16_low_res_low_det_6d3bebcf-4420-42f4-a7a2-644cb8f4387b.png?width=597&height=597',
+  vigilante:
+    'https://media.discordapp.net/attachments/1000472333108129935/1067081275426484224/InspectorT_flat_favicon_cutout_vector_svg_16x16_low_res_black_a_bfb84ef0-1d65-4082-a93e-e0776d2bcb55.png?width=597&height=597',
 };

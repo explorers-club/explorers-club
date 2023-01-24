@@ -1,5 +1,5 @@
 import { LittleVigilanteStateSerialized } from '@explorers-club/room';
-import { Role, rolesByPlayerCount } from '../meta/little-vigilante.constants';
+import { Role } from '../meta/little-vigilante.constants';
 
 export const selectVigilantePlayerName = (
   state: LittleVigilanteStateSerialized
@@ -35,8 +35,7 @@ export const selectPlayersWithNameAndRole = (
 };
 
 export const selectUnusedRoles = (state: LittleVigilanteStateSerialized) => {
-  const playerCount = Object.keys(state.players).length;
-  const roles = Array.from(rolesByPlayerCount[playerCount]);
+  const { roles } = state;
   const usedRoles = Object.values(state.currentRoundRoles) as Role[];
   for (const role of usedRoles) {
     const index = roles.indexOf(role);

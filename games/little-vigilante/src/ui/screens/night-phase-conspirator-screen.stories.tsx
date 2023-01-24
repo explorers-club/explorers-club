@@ -19,19 +19,23 @@ Primary.args = {
   players: [
     {
       userId: '1',
-      name: 'Player 1',
+      name: 'Alice',
+      slotNumber: 1,
     },
     {
       userId: '2',
-      name: 'Player 2',
+      name: 'Bob',
+      slotNumber: 2,
     },
     {
       userId: '3',
-      name: 'Player 3',
+      name: 'Charlie',
+      slotNumber: 4,
     },
     {
       userId: '4',
-      name: 'Player 4',
+      name: 'Eve',
+      slotNumber: 5,
     },
   ],
 };

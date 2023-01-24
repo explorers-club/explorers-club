@@ -3,6 +3,9 @@ import { AssigningRolesScreenComponent } from './assigning-roles-screen.componen
 
 export default {
   component: AssigningRolesScreenComponent,
+  parameters: {
+    layout: 'fullscreen',
+  },
 };
 
 const Template: ComponentStory<typeof AssigningRolesScreenComponent> = (

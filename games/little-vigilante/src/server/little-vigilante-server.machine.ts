@@ -5,7 +5,6 @@ import { A } from '@mobily/ts-belt';
 import { Room } from 'colyseus';
 import { createSelector } from 'reselect';
 import { ActorRefFrom, createMachine } from 'xstate';
-import { rolesByPlayerCount } from '../meta/little-vigilante.constants';
 
 export interface LittleVigilanteServerContext {
   room: Room<LittleVigilanteState>;
@@ -195,6 +194,47 @@ export const createLittleVigilanteServerMachine = (
                   onDone: 'Voting',
                   states: {
                     Idle: {
+                      on: {
+                        TARGET_ROLE: {
+                          actions(context, { role, userId, targetedUserId }) {
+                            const currentRoundRoleTargets =
+                              context.room.state.players.get(
+                                userId
+                              )?.currentRoundRoleTargets;
+                            if (!currentRoundRoleTargets) {
+                              return;
+                            }
+
+                            // If same role targeted, toggle off
+                            if (
+                              currentRoundRoleTargets.get(targetedUserId) ===
+                              role
+                            ) {
+                              currentRoundRoleTargets.delete(targetedUserId);
+                              return;
+                            }
+
+                            // Otherwise make sure we don't ever have
+                            // more than one person per role
+                            const userIdsByRole: Record<string, string[]> = {};
+                            currentRoundRoleTargets.forEach(
+                              (userRole, userId) => {
+                                userIdsByRole[userRole] ||= [];
+                                userIdsByRole[userRole].push(userId);
+                              }
+                            );
+
+                            while (userIdsByRole[role]?.length) {
+                              const userId = userIdsByRole[role].pop();
+                              if (userId) {
+                                currentRoundRoleTargets.delete(userId);
+                              }
+                            }
+
+                            currentRoundRoleTargets.set(targetedUserId, role);
+                          },
+                        },
+                      },
                       after: {
                         1000: [
                           {
@@ -341,8 +381,7 @@ export const createLittleVigilanteServerMachine = (
         },
         assignRoles: ({ room }) => {
           const playerCount = room.state.players.size;
-          // room.state.players
-          const allRoles = rolesByPlayerCount[playerCount];
+          const allRoles = Array.from(room.state.roles.values());
           const withoutVig = allRoles.filter((role) => role !== 'vigilante');
           const gameRoles = shuffle([
             ...shuffle(withoutVig).slice(0, playerCount - 1),
@@ -359,6 +398,9 @@ export const createLittleVigilanteServerMachine = (
           room.state.currentRoundPoints.clear();
           room.state.currentRoundVotes.clear();
           room.state.currentRoundArrestedPlayerId = '';
+          room.state.players.forEach((player) => {
+            player.currentRoundRoleTargets.clear();
+          });
         },
       },
     }
