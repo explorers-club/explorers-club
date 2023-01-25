@@ -13,7 +13,10 @@ import { interpret } from 'xstate';
 import { LittleVigilantePlayer } from '@explorers-club/schema-types/LittleVigilantePlayer';
 import {
   CONTINUE,
+  LittleVigilanteApproveVoteCommand,
   LittleVigilanteArrestCommand,
+  LittleVigilanteCallVoteCommand,
+  LittleVigilanteRejectVoteCommand,
   LittleVigilanteSwapCommand,
   LittleVigilanteTargetPlayerRoleCommand,
   LittleVigilanteVoteCommand,
@@ -107,6 +110,36 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
     this.onMessage(
       'TARGET_ROLE',
       (client, message: LittleVigilanteTargetPlayerRoleCommand) => {
+        this.service.send({
+          ...message,
+          userId: client.userData.userId as string,
+        });
+      }
+    );
+
+    this.onMessage(
+      'CALL_VOTE',
+      (client, message: LittleVigilanteCallVoteCommand) => {
+        this.service.send({
+          ...message,
+          userId: client.userData.userId as string,
+        });
+      }
+    );
+
+    this.onMessage(
+      'APPROVE_VOTE',
+      (client, message: LittleVigilanteApproveVoteCommand) => {
+        this.service.send({
+          ...message,
+          userId: client.userData.userId as string,
+        });
+      }
+    );
+
+    this.onMessage(
+      'REJECT_VOTE',
+      (client, message: LittleVigilanteRejectVoteCommand) => {
         this.service.send({
           ...message,
           userId: client.userData.userId as string,

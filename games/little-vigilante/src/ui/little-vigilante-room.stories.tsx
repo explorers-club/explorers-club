@@ -1,22 +1,17 @@
+import { Box } from '@atoms/Box';
+import { Card } from '@atoms/Card';
+import { Grid } from '@atoms/Grid';
+import { Heading } from '@atoms/Heading';
 import { createRoomStore, LittleVigilanteStore } from '@explorers-club/room';
 import { LittleVigilanteState } from '@explorers-club/schema-types/LittleVigilanteState';
 import { generateRandomString } from '@explorers-club/utils';
-import {
-  ComponentMeta,
-  ReactFramework,
-  Story,
-  StoryContext,
-} from '@storybook/react';
+import { ComponentMeta, Story } from '@storybook/react';
 import * as Colyseus from 'colyseus.js';
 import { Room } from 'colyseus.js';
-import { FC, useState, useEffect } from 'react';
-import { Grid } from '@atoms/Grid';
-import { Card } from '@atoms/Card';
+import { FC, useEffect, useState } from 'react';
 import { OnCreateOptions } from '../server/LittleVigilanteRoom';
 import { LittleVigilanteContext } from '../state/little-vigilante.context';
 import { LittleVigilanteRoomComponent } from './little-vigilante-room.component';
-import { Box } from '@atoms/Box';
-import { Heading } from '@atoms/Heading';
 
 export default {
   component: LittleVigilanteRoomComponent,

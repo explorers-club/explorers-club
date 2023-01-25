@@ -34,25 +34,19 @@ import {
   useMyUserId,
 } from '../../state/little-vigilante.hooks';
 import { RoleCard } from '../molecules/role-card.component';
+import { CalledVote } from '../organisms/called-vote.component';
 
 export const DiscussionPhaseScreenComponent = () => {
-  const send = useLittleVigilanteSend();
   const roles = useLittleVigilanteSelector((state) => state.roles as Role[]);
   const initial = Math.floor(roles.length / 2);
   const currentRoleRef = useRef<Role>(roles[initial]);
-
-  const handleCallVote = useCallback(() => {
-    send({ type: 'CALL_VOTE' });
-  }, [send]);
 
   return (
     <Flex css={{ p: '$3' }} direction="column" gap="2">
       <Card css={{ p: '$3' }}>
         <Flex direction="column" gap="2">
           <CountdownTimer />
-          <Box css={{ textAlign: 'center' }}>
-            <Button onClick={handleCallVote}>Call Vote</Button>
-          </Box>
+          <CalledVote />
         </Flex>
       </Card>
       <Card css={{ py: '$3' }}>

@@ -32,6 +32,9 @@ export class LittleVigilanteState extends Schema {
   @type({ map: 'number' })
   public currentRoundPoints: MapSchema<number> = new MapSchema<number>();
 
+  @type({ map: 'boolean' })
+  public calledVoteResponses: MapSchema<boolean> = new MapSchema<boolean>();
+
   @type('string')
   public currentRoundArrestedPlayerId = '';
 

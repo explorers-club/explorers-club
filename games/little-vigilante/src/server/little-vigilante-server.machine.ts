@@ -195,6 +195,13 @@ export const createLittleVigilanteServerMachine = (
                   states: {
                     Idle: {
                       on: {
+                        CALL_VOTE: {
+                          target: 'VoteCalled',
+                          actions({ room }, { userId }) {
+                            room.state.calledVoteResponses.clear();
+                            room.state.calledVoteResponses.set(userId, true);
+                          },
+                        },
                         TARGET_ROLE: {
                           actions(context, { role, userId, targetedUserId }) {
                             const currentRoundRoleTargets =
@@ -246,6 +253,62 @@ export const createLittleVigilanteServerMachine = (
                             actions: 'timerTick',
                           },
                         ],
+                      },
+                    },
+                    VoteCalled: {
+                      always: [
+                        {
+                          target: 'VoteFailed',
+                          cond: ({ room }) => {
+                            const majorityNo = selectCalledVoteMajorityNo(
+                              room.state
+                            );
+                            return majorityNo;
+                          },
+                        },
+                        {
+                          target: 'Complete',
+                          cond: ({ room }) => {
+                            const majorityYes = selectCalledVoteMajorityYes(
+                              room.state
+                            );
+                            return majorityYes;
+                          },
+                        },
+                        {
+                          target: 'VoteFailed',
+                          cond: ({ room }) => {
+                            const allPlayersVoted = selectAllPlayersVoted(
+                              room.state
+                            );
+                            return allPlayersVoted;
+                          },
+                        },
+                      ],
+                      on: {
+                        APPROVE_VOTE: {
+                          target: 'VoteCalled',
+                          actions: ({ room }, event) => {
+                            room.state.calledVoteResponses.set(
+                              event.userId,
+                              true
+                            );
+                          },
+                        },
+                        REJECT_VOTE: {
+                          target: 'VoteCalled',
+                          actions: ({ room }, event) => {
+                            room.state.calledVoteResponses.set(
+                              event.userId,
+                              false
+                            );
+                          },
+                        },
+                      },
+                    },
+                    VoteFailed: {
+                      after: {
+                        5000: 'Idle',
                       },
                     },
                     Complete: {
@@ -424,6 +487,35 @@ const selectAllPlayersConnected = (state: LittleVigilanteState) => {
 
 const selectArrestedUserId = (state: LittleVigilanteState) =>
   state.currentRoundArrestedPlayerId;
+
+const selectCalledVoteMajorityYes = (state: LittleVigilanteState) => {
+  const numPlayers = state.players.size;
+
+  // If we have a majority yes or no
+  const majorityCount = Math.floor(numPlayers / 2) + 1;
+  const yesCount = Array.from(state.calledVoteResponses.values()).filter(
+    (val) => val
+  ).length;
+  return yesCount >= majorityCount;
+};
+
+const selectAllPlayersVoted = (state: LittleVigilanteState) => {
+  const numPlayers = state.players.size;
+  const numResponses = state.calledVoteResponses.size;
+
+  return numPlayers === numResponses;
+};
+
+const selectCalledVoteMajorityNo = (state: LittleVigilanteState) => {
+  const numPlayers = state.players.size;
+
+  // If we have a majority yes or no
+  const majorityCount = Math.floor(numPlayers / 2) + 1;
+  const noCount = Array.from(state.calledVoteResponses.values()).filter(
+    (val) => !val
+  ).length;
+  return noCount >= majorityCount;
+};
 
 const selectSerializedState = (state: LittleVigilanteState) => {
   return state.toJSON() as SerializedSchema<LittleVigilanteState>;
