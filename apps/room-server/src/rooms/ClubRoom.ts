@@ -8,23 +8,22 @@ import {
   CLUB_ROOM_SELECT_GAME,
   CLUB_ROOM_SET_GAME_CONFIG,
   CLUB_ROOM_START_GAME,
-  GameId,
+  GameId, GAME_LIST
 } from '@explorers-club/room';
 import { ClubMetadata } from '@explorers-club/schema';
 import { ClubPlayer } from '@explorers-club/schema-types/ClubPlayer';
 import { ClubState } from '@explorers-club/schema-types/ClubState';
-import { TriviaJamConfig } from '@explorers-club/schema-types/TriviaJamConfig';
 import { TriviaJamRoom } from '@explorers-club/trivia-jam/server';
 import { Client, matchMaker, Room, RoomListingData } from 'colyseus';
 
+const DEFAULT_GAME = GAME_LIST[0];
+
 // trivia jam defaults
-const DEFAULT_QUESTION_SET_ENTRY_ID = 'dSX6kC0PNliXTl7qHYJLH';
 const DEFAULT_MAX_PLAYERS = 8;
 
 export class ClubRoom extends Room<ClubState> {
   ROOMS_CHANNEL = '#rooms';
 
-  private config: TriviaJamConfig;
   private openSlots: number[];
 
   async onCreate(options) {
@@ -35,13 +34,12 @@ export class ClubRoom extends Room<ClubState> {
     this.autoDispose = false;
 
     // Set up config
-    const config = new TriviaJamConfig();
-    config.questionSetEntryId = DEFAULT_QUESTION_SET_ENTRY_ID;
-    config.maxPlayers = DEFAULT_MAX_PLAYERS;
-    this.config = config;
+    // const config = new TriviaJamConfig();
+    // config.questionSetEntryId = DEFAULT_QUESTION_SET_ENTRY_ID;
+    // config.maxPlayers = DEFAULT_MAX_PLAYERS;
 
     // Initialize open spots
-    this.openSlots = Array(config.maxPlayers - 1)
+    this.openSlots = Array(DEFAULT_MAX_PLAYERS - 1)
       .fill(0)
       .map((_, i) => i + 2);
     const clubName = this.roomId.replace('club-', '');
@@ -60,8 +58,7 @@ export class ClubRoom extends Room<ClubState> {
 
     const state = new ClubState();
     state.hostUserId = userId;
-    state.selectedGame = 'little_vigilante';
-    state.configDataSerialized = JSON.stringify(config.toJSON());
+    state.selectedGame = DEFAULT_GAME;
     state.players.set(userId, hostPlayer);
     this.setState(state);
 
@@ -86,16 +83,17 @@ export class ClubRoom extends Room<ClubState> {
         }
       }
     );
+
     this.onMessage(
       CLUB_ROOM_SET_GAME_CONFIG,
       async (_, command: ClubRoomSetGameConfigCommand) => {
-        this.state = this.state.assign({
-          configDataSerialized: JSON.stringify(command.config.data),
-        });
-        // todo if maxPLayers changed then might need to do something
-        // to make the game not startable, or lock lobby from being joinable.
+        state.gameConfigsSerialized.set(
+          command.config.gameId,
+          JSON.stringify(command.config)
+        );
       }
     );
+
     this.onMessage(
       CLUB_ROOM_SELECT_GAME,
       async (_, { gameId }: ClubRoomSelectGameCommand) => {

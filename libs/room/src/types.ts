@@ -1,19 +1,26 @@
 import {
+  ArraySchema,
+  CollectionSchema,
+  MapSchema,
   Schema,
   SetSchema,
-  ArraySchema,
-  MapSchema,
-  CollectionSchema,
 } from '@colyseus/schema';
+import {
+  CodebreakersConfig,
+  DiffusionaryConfig,
+  LittleVigilanteConfig,
+  TriviaJamConfig,
+} from '@explorers-club/schema';
 import { ClubPlayer } from '@explorers-club/schema-types/ClubPlayer';
 import { ClubState } from '@explorers-club/schema-types/ClubState';
-import { TriviaJamConfig } from '@explorers-club/schema-types/TriviaJamConfig';
+import { CodebreakersPlayer } from '@explorers-club/schema-types/CodebreakersPlayer';
+import { CodebreakersState } from '@explorers-club/schema-types/CodebreakersState';
+import { DiffusionaryPlayer } from '@explorers-club/schema-types/DiffusionaryPlayer';
+import { DiffusionaryState } from '@explorers-club/schema-types/DiffusionaryState';
+import { LittleVigilantePlayer } from '@explorers-club/schema-types/LittleVigilantePlayer';
+import { LittleVigilanteState } from '@explorers-club/schema-types/LittleVigilanteState';
 import { TriviaJamPlayer } from '@explorers-club/schema-types/TriviaJamPlayer';
 import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
-import { DiffusionaryState } from '@explorers-club/schema-types/DiffusionaryState';
-import { DiffusionaryPlayer } from '@explorers-club/schema-types/DiffusionaryPlayer';
-import { LittleVigilanteState } from '@explorers-club/schema-types/LittleVigilanteState';
-import { LittleVigilantePlayer } from '@explorers-club/schema-types/LittleVigilantePlayer';
 
 // From a prop in colyseus schema, return the serialized
 // version of it so that we can call toJSON() and type it.
@@ -90,7 +97,6 @@ export type TriviaJamCommand =
   | TriviaJamSubmitResponseCommand;
 export type TriviaJamStore = RoomStore<TriviaJamState, TriviaJamCommand>;
 export type TriviaJamStateSerialized = SerializedSchema<TriviaJamState>;
-export type TriviaJamConfigSerialized = SerializedSchema<TriviaJamConfig>;
 export type TriviaJamPlayerSerialized = SerializedSchema<TriviaJamPlayer>;
 
 export type DiffusionaryCommand = JoinCommand;
@@ -100,23 +106,106 @@ export type DiffusionaryStore = RoomStore<
 >;
 export type DiffusionaryPlayerSerialized = SerializedSchema<DiffusionaryPlayer>;
 
-export type LittleVigilanteCommand = JoinCommand;
+export type CodebreakersClueCommand = {
+  type: 'CLUE';
+  clue: string;
+  numWords: number;
+};
+
+export type CodebreakersGuessCommand = {
+  type: 'GUESS';
+  word: string;
+};
+
+export type CodebreakersHighlightCommand = {
+  type: 'HIGHLIGHT';
+  word: string;
+};
+
+export type CodebreakersJoinTeamCommand = {
+  type: 'JOIN_TEAM';
+  team: string;
+};
+
+export type CodebreakersBecomeClueGiverCommand = {
+  type: 'BECOME_CLUE_GIVER';
+};
+
+export type CodebreakersCommand =
+  | JoinCommand
+  | ContinueCommand
+  | LeaveCommand
+  | CodebreakersClueCommand
+  | CodebreakersHighlightCommand
+  | CodebreakersJoinTeamCommand
+  | CodebreakersBecomeClueGiverCommand
+  | CodebreakersGuessCommand;
+
+export type CodebreakersStore = RoomStore<
+  CodebreakersState,
+  CodebreakersCommand
+>;
+export type CodebreakersStateSerialized = SerializedSchema<CodebreakersState>;
+export type CodebreakersPlayerSerialized = SerializedSchema<CodebreakersPlayer>;
+
+export type LittleVigilanteCallVoteCommand = {
+  type: 'CALL_VOTE';
+};
+export type LittleVigilanteApproveVoteCommand = {
+  type: 'APPROVE_VOTE';
+};
+export type LittleVigilanteRejectVoteCommand = {
+  type: 'REJECT_VOTE';
+};
+export type LittleVigilanteTargetPlayerRoleCommand = {
+  type: 'TARGET_ROLE';
+  role: string;
+  targetedUserId: string;
+};
+export type LittleVigilanteVoteCommand = {
+  type: 'VOTE';
+  votedUserId: string;
+};
+export type LittleVigilanteArrestCommand = {
+  type: 'ARREST';
+  arrestedUserId: string;
+};
+export type LittleVigilanteSwapCommand = {
+  type: 'SWAP';
+  firstUserId: string;
+  secondUserId: string;
+};
+export type LittleVigilanteCommand =
+  | JoinCommand
+  | ContinueCommand
+  | LeaveCommand
+  | LittleVigilanteRejectVoteCommand
+  | LittleVigilanteApproveVoteCommand
+  | LittleVigilanteCallVoteCommand
+  | LittleVigilanteTargetPlayerRoleCommand
+  | LittleVigilanteVoteCommand
+  | LittleVigilanteArrestCommand
+  | LittleVigilanteSwapCommand;
 export type LittleVigilanteStore = RoomStore<
   LittleVigilanteState,
   LittleVigilanteCommand
 >;
+export type LittleVigilanteStateSerialized =
+  SerializedSchema<LittleVigilanteState>;
 export type LittleVigilantePlayerSerialized =
   SerializedSchema<LittleVigilantePlayer>;
 
+// Aggregate
 export type GameStore =
   | TriviaJamStore
   | DiffusionaryStore
   | LittleVigilanteStore;
 
-export type GameConfig = {
-  type: 'trivia_jam';
-  data: TriviaJamConfigSerialized;
-};
+export type GameConfig =
+  | TriviaJamConfig
+  | DiffusionaryConfig
+  | LittleVigilanteConfig
+  | CodebreakersConfig;
 
 // Club Room
 export const CLUB_ROOM_ENTER_NAME = 'ENTER_NAME';
@@ -124,7 +213,11 @@ export const CLUB_ROOM_SELECT_GAME = 'SELECT_GAME';
 export const CLUB_ROOM_SET_GAME_CONFIG = 'SET_GAME_CONFIG';
 export const CLUB_ROOM_START_GAME = 'START_GAME';
 
-export type GameId = 'diffusionary' | 'trivia_jam' | 'little_vigilante';
+export type GameId =
+  | 'diffusionary'
+  | 'trivia_jam'
+  | 'little_vigilante'
+  | 'codebreakers';
 
 export type ClubRoomEnterNameCommand = {
   type: typeof CLUB_ROOM_ENTER_NAME;

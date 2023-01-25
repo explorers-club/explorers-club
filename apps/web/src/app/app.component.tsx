@@ -3,17 +3,16 @@ import { SunsetSky } from '@3d/sky';
 import { Treehouse } from '@3d/treehouse';
 import { Box } from '@atoms/Box';
 import { Logo } from '@atoms/Logo';
-import { GameRoomId } from '@explorers-club/schema';
 import { darkTheme } from '@explorers-club/styles';
 import {
   NotificationsComponent,
-  notificationsMachine,
+  notificationsMachine
 } from '@organisms/notifications';
 import { createTabBarMachine, TabBar } from '@organisms/tab-bar';
 import {
   Environment,
   OrbitControls,
-  useContextBridge,
+  useContextBridge
 } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { useInterpret, useSelector } from '@xstate/react';
@@ -22,14 +21,12 @@ import {
   FC,
   ReactElement,
   Suspense,
-  useContext,
-  useEffect,
-  useState,
+  useContext, useState
 } from 'react';
 import { BottomSheet } from 'react-spring-bottom-sheet';
 import {
   defaultSnapProps,
-  SnapPointProps,
+  SnapPointProps
 } from 'react-spring-bottom-sheet/dist/types';
 import { ModalComponent, modalMachine } from '../components/organisms/modal';
 import { environment } from '../environments/environment';

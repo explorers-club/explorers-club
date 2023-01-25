@@ -1,4 +1,5 @@
-import { Context, createContext } from 'react';
+import { ContextProps } from '@explorers-club/utils';
+import { createContext } from 'react';
 import { generateUUID } from 'three/src/math/MathUtils';
 
 const getUserId = (() => {
@@ -17,7 +18,5 @@ export const AuthContext = createContext({
   userId: getUserId() as string,
   isAnon: true,
 });
-
-type ContextProps<T> = T extends Context<infer U> ? U : T;
 
 export type AuthContextProps = ContextProps<typeof AuthContext>;

@@ -1,6 +1,8 @@
 import * as Checkbox from '@radix-ui/react-checkbox';
 import { CheckIcon } from '@radix-ui/react-icons';
 import React from 'react';
+import { Box } from '../atoms';
+import { Flex } from '../atoms/Flex';
 import { CSS, styled } from '../stitches.config';
 
 // export const ToggleCardGroup = styled(ToggleGroupPrimitive.Root, {
@@ -27,6 +29,12 @@ const StyledToggleIndicator = styled('div', {
   transform: 'scale(0)',
 });
 
+const CheckboxContainer = styled(Flex, {
+  width: '$5',
+  height: '$5',
+  borderRadius: '$1',
+});
+
 const StyledCheckboxRoot = styled(Checkbox.Root, {
   all: 'unset',
   boxSizing: 'border-box',
@@ -45,6 +53,10 @@ const StyledCheckboxRoot = styled(Checkbox.Root, {
   '@hover': {
     '&:hover': {
       boxShadow: 'inset 0 0 0 1px $colors$slate8',
+
+      [`& ${CheckboxContainer}`]: {
+        border: '1px solid $slate8',
+      },
     },
   },
   '&[data-state="checked"]': {
@@ -53,6 +65,14 @@ const StyledCheckboxRoot = styled(Checkbox.Root, {
     [`& ${StyledToggleIndicator}`]: {
       transform: 'scale(1)',
     },
+
+    [`& ${CheckboxContainer}`]: {
+      border: '1px solid $blue8',
+      color: 'white',
+    },
+  },
+  [`& ${CheckboxContainer}`]: {
+    border: '1px solid $slate7',
   },
 });
 
@@ -64,13 +84,13 @@ export const CheckboxCard = React.forwardRef<
   CheckboxCardProps
 >((props, forwardedRef) => (
   <StyledCheckboxRoot {...props} ref={forwardedRef}>
-    <Checkbox.Indicator className="CheckboxIndicator">
-      <CheckIcon />
-    </Checkbox.Indicator>
-    {props.children}
-    {/* <StyledToggleButton>
-      <StyledToggleIndicator />
-    </StyledToggleButton>
-    {props.children} */}
+    <Flex align="center" css={{ width: '100%' }} justify="between">
+      {props.children}
+      <CheckboxContainer justify="center" align="center">
+        <Checkbox.Indicator className="CheckboxIndicator">
+          <CheckIcon />
+        </Checkbox.Indicator>
+      </CheckboxContainer>
+    </Flex>
   </StyledCheckboxRoot>
 ));

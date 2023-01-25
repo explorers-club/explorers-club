@@ -135,6 +135,14 @@ const StyledAvatar = styled(AvatarPrimitive.Root, {
       orange: {
         backgroundColor: '$orange5',
       },
+      white: {
+        backgroundColor: 'white',
+        color: 'black',
+      },
+      black: {
+        backgroundColor: 'black',
+        color: 'white',
+      },
     },
     shape: {
       square: {

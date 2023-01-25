@@ -1,6 +1,6 @@
 {
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "libs/little-vigilante/src",
+  "sourceRoot": "games/little-vigilante/src",
   "projectType": "library",
   "tags": [],
   "targets": {
@@ -8,14 +8,14 @@
       "executor": "@nrwl/linter:eslint",
       "outputs": ["{options.outputFile}"],
       "options": {
-        "lintFilePatterns": ["libs/little-vigilante/**/*.{ts,tsx,js,jsx}"]
+        "lintFilePatterns": ["games/little-vigilante/**/*.{ts,tsx,js,jsx}"]
       }
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/libs/little-vigilante"],
+      "outputs": ["coverage/games/little-vigilante"],
       "options": {
-        "jestConfig": "libs/little-vigilante/jest.config.ts",
+        "jestConfig": "games/little-vigilante/jest.config.ts",
         "passWithNoTests": true
       }
     },

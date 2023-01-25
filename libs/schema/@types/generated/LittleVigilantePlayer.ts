@@ -10,4 +10,5 @@ import { ClubPlayer } from './ClubPlayer'
 
 export class LittleVigilantePlayer extends ClubPlayer {
     @type("number") public score!: number;
+    @type({ map: "string" }) public currentRoundRoleTargets: MapSchema<string> = new MapSchema<string>();
 }

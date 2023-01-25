@@ -1,44 +1,59 @@
 import { Box } from '@atoms/Box';
-import { GameId } from '@explorers-club/room';
-import { useSelector } from '@xstate/react';
-import 'glider-js/glider.min.css';
-import { useCallback, useContext, useRef } from 'react';
-import Glider from 'react-glider';
-import { GliderMethods } from 'react-glider/dist/types';
-import { AppContext } from '../../../state/app.context';
+import { GAME_LIST } from '@explorers-club/room';
+import { Carousel, CarouselCell } from '@molecules/Carousel';
+import 'keen-slider/keen-slider.min.css';
+import { useKeenSlider } from 'keen-slider/react';
+import { useState } from 'react';
+import { useClubStore, useIsHost, useSend } from '../club-tab.hooks';
+import { selectSelectedGame } from '../club-tab.selectors';
 import { GameCard } from './game-card.container';
 
-const GAME_LIST: GameId[] = ['little_vigilante', 'trivia_jam', 'diffusionary'];
-
 export const GameCarousel = () => {
-  const { clubTabActor } = useContext(AppContext);
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const store = useSelector(clubTabActor, (state) => state.context.store!);
+  const store = useClubStore();
+  const [initial] = useState(() => {
+    const selectedGameId = selectSelectedGame(store.getSnapshot());
+    return GAME_LIST.indexOf(selectedGameId);
+  });
+  const isHost = useIsHost();
+  const send = useSend();
 
-  const handleSlideVisible = useCallback(
-    (event: CustomEvent<{ slide: number }>) => {
-      const { slide } = event.detail;
-      const gameId = GAME_LIST[slide];
-      store.send({ type: 'SELECT_GAME', gameId });
+  const [sliderRef, instanceRef] = useKeenSlider<HTMLDivElement>({
+    initial,
+    slideChanged(slider) {
+      const index = slider.track.details.rel;
+      const gameId = GAME_LIST[index];
+      if (isHost) {
+        send({ type: 'SELECT_GAME', gameId });
+      }
     },
-    [store]
-  );
+    created(slider) {
+      store.subscribe((state) => {
+        const selectedGame = selectSelectedGame(state);
+        const currentIndex = slider.track.details.rel;
+        const newIndex = GAME_LIST.indexOf(selectedGame);
+        if (currentIndex !== newIndex) {
+          instanceRef.current?.moveToIdx(newIndex);
+        }
+      });
+    },
+    loop: true,
+    mode: 'free-snap',
+    slides: {
+      origin: 'center',
+      perView: 1.25,
+      spacing: 8,
+    },
+  });
 
   return (
     <Box css={{ position: 'relative' }}>
-      <Glider
-        hasDots
-        draggable
-        scrollLock
-        onSlideVisible={handleSlideVisible}
-        hasArrows
-        // iconLeft={<ChevronLeftIcon />}
-        // iconRight={<ChevronRightIcon />}
-      >
-        <GameCard gameId="little_vigilante" />
-        <GameCard gameId="trivia_jam" />
-        <GameCard gameId="diffusionary" />
-      </Glider>
+      <Carousel css={{ pt: '$3' }} sliderRef={sliderRef}>
+        {GAME_LIST.map((gameId) => (
+          <CarouselCell key={gameId}>
+            <GameCard key={gameId} gameId={gameId} />
+          </CarouselCell>
+        ))}
+      </Carousel>
     </Box>
   );
 };

@@ -42,6 +42,7 @@ export const Caption = React.forwardRef<
 
   return (
     <Text
+      className="caption"
       as={DEFAULT_TAG}
       {...textProps}
       variant={variant}
@@ -50,3 +51,6 @@ export const Caption = React.forwardRef<
     />
   );
 });
+
+// So we can target this from parents
+Caption.toString = () => '.caption';

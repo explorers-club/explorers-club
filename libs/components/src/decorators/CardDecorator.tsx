@@ -5,10 +5,18 @@ import { ReactFramework } from '@storybook/react';
 import { Card } from '../atoms/Card';
 
 export const withCardDecorator: DecoratorFunction<ReactFramework, Args> = (
-  Story
+  Story,
+  context
 ) => {
+  const css = context.parameters['cardCSS'];
   return (
-    <Card>
+    <Card
+      css={{
+        maxWidth: '360px',
+        p: '$3',
+        ...css,
+      }}
+    >
       <Story />
     </Card>
   );

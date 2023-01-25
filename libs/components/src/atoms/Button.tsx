@@ -1,3 +1,4 @@
+import { GetComponentProps } from '@explorers-club/utils';
 import { styled } from '../stitches.config';
 
 export const Button = styled('button', {
@@ -482,3 +483,5 @@ info
 warning
 success
  */
+
+export type ButtonProps = GetComponentProps<typeof Button>;

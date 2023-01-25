@@ -8,6 +8,7 @@ import { ClubRoom } from './rooms/ClubRoom';
 import { DiffusionaryRoom } from '@explorers-club/diffusionary/server';
 import { TriviaJamRoom } from '@explorers-club/trivia-jam/server';
 import { LittleVigilanteRoom } from '@explorers-club/little-vigilante/server';
+import { CodebreakersRoom } from '@explorers-club/codebreakers/server';
 import { monitor } from '@colyseus/monitor';
 
 const app = express();
@@ -26,6 +27,7 @@ gameServer.define('lobby', LobbyRoom);
 gameServer.define('club', ClubRoom).enableRealtimeListing();
 gameServer.define('trivia_jam', TriviaJamRoom).enableRealtimeListing();
 gameServer.define('diffusionary', DiffusionaryRoom).enableRealtimeListing();
+gameServer.define('codebreakers', CodebreakersRoom).enableRealtimeListing();
 gameServer
   .define('little_vigilante', LittleVigilanteRoom)
   .enableRealtimeListing();

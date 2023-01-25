@@ -693,3 +693,28 @@ export const darkTheme = createTheme('dark-theme', {
     shadowDark: 'hsl(206 22% 7% / 20%)',
   },
 });
+
+type PlayerColor =
+  | 'yellow'
+  | 'purple'
+  | 'green'
+  | 'blue'
+  | 'orange'
+  | 'red'
+  | 'pink'
+  | 'brown'
+  | 'black'
+  | 'white';
+
+export const colorBySlotNumber: Record<number, PlayerColor> = {
+  1: 'yellow',
+  2: 'purple',
+  3: 'green',
+  4: 'blue',
+  5: 'orange',
+  6: 'red',
+  7: 'pink',
+  8: 'brown',
+  9: 'black',
+  10: 'white',
+};

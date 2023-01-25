@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
+  "engines": {
+    "node": "16.19.0"
+  },
   "scripts": {
     "build": "nx run room-server:build:production"
   },
@@ -12,6 +15,7 @@
     "@mapbox/martini": "github:mapbox/martini#f0d6dcaeb656b4d256c0da5bfe53de9262c4a8f1",
     "@mapbox/tile-cover": "^3.0.2",
     "@mapbox/tilebelt": "^1.0.2",
+    "@mobily/ts-belt": "^3.13.1",
     "@nestjs/common": "^9.0.0",
     "@nestjs/core": "^9.0.0",
     "@nestjs/platform-express": "^9.0.0",
@@ -53,6 +57,7 @@
     "globe.gl": "^2.26.11",
     "h3-js": "^4.0.1",
     "honeycomb-grid": "^4.0.0",
+    "keen-slider": "^6.8.5",
     "leva": "^0.9.30",
     "lodash.merge": "^4.6.2",
     "lottie-react": "^2.3.1",
@@ -83,6 +88,7 @@
     "three-stdlib": "^2.14.3",
     "tiny-invariant": "^1.2.0",
     "tslib": "^2.3.0",
+    "use-long-press": "^2.0.3",
     "use-sync-external-store": "^1.2.0",
     "usehooks-ts": "^2.9.1",
     "utility-types": "^3.10.0",
@@ -165,6 +171,7 @@
     "react-test-renderer": "18.2.0",
     "storybook-xstate-addon": "^2.3.6",
     "ts-jest": "27.1.4",
+    "ts-mockito": "^2.6.1",
     "ts-node": "10.9.1",
     "typescript": "~4.7.2",
     "url-loader": "^3.0.0"

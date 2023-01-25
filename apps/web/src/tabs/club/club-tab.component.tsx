@@ -6,41 +6,33 @@ import { Caption } from '@atoms/Caption';
 import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
-import { IconButton } from '@atoms/IconButton';
 import { Text } from '@atoms/Text';
-import {
-  ClubStore,
-  TriviaJamConfigSerialized,
-  useStoreSelector,
-} from '@explorers-club/room';
-import { TriviaJamConfigurationScreen } from '@explorers-club/trivia-jam/configuration';
-import { GearIcon } from '@radix-ui/react-icons';
+import { useStoreSelector } from '@explorers-club/room';
 import { useSelector } from '@xstate/react';
-import { FC, useCallback, useContext, useLayoutEffect } from 'react';
+import { useCallback, useContext, useLayoutEffect } from 'react';
 import { NameForm } from '../../components/molecules/name-form';
 import { AppContext } from '../../state/app.context';
 import { AuthContext } from '../../state/auth.context';
-import { colorBySlotNumber } from './club-tab.constants';
+import { colorBySlotNumber } from '@explorers-club/styles';
+import { useClubStoreSelector } from './club-tab.hooks';
 import {
   selectGameConfig,
-  selectPlayerBySlotNumber,
+  selectPlayerBySlotNumber
 } from './club-tab.selectors';
 import { GameCarousel } from './components/game-carousel.component';
 
-interface Props {
-  store: ClubStore;
-}
-
-export const ClubTabComponent: FC<Props> = ({ store }) => {
+export const ClubTabComponent = () => {
   const { modalActor, clubTabActor } = useContext(AppContext);
-  const gameRoomId = useStoreSelector(store, (store) => store.gameRoomId);
-  const hostUserId = useStoreSelector(store, (store) => store.hostUserId);
-  const playersBySlotNumber = useStoreSelector(store, selectPlayerBySlotNumber);
-  const gameConfig = useStoreSelector(store, selectGameConfig);
-  const { maxPlayers } = gameConfig.data;
+  const gameRoomId = useClubStoreSelector((state) => state.gameRoomId);
+  const hostUserId = useClubStoreSelector((state) => state.hostUserId);
+  const playersBySlotNumber = useClubStoreSelector(selectPlayerBySlotNumber);
+  const gameConfig = useClubStoreSelector(selectGameConfig);
+  const maxPlayers = gameConfig.maxPlayers;
+
   const needsNameInput = useSelector(clubTabActor, (state) =>
     state.matches('Room.Connected.EnteringName')
   );
+
   const { userId } = useContext(AuthContext);
   const isHost = hostUserId === userId;
 
@@ -61,32 +53,6 @@ export const ClubTabComponent: FC<Props> = ({ store }) => {
     }
   }, [modalActor, onSubmitName, needsNameInput]);
 
-  const handleSubmitConfig = useCallback(
-    (data: TriviaJamConfigSerialized) => {
-      store.send({
-        type: 'SET_GAME_CONFIG',
-        config: {
-          type: 'trivia_jam',
-          data,
-        },
-      });
-      modalActor.send('CLOSE');
-    },
-    [store, modalActor]
-  );
-
-  const handlePressConfigure = useCallback(() => {
-    modalActor.send({
-      type: 'SHOW',
-      component: (
-        <TriviaJamConfigurationScreen
-          initialConfig={gameConfig.data}
-          onSubmitConfig={handleSubmitConfig}
-        />
-      ),
-    });
-  }, [handleSubmitConfig, gameConfig, modalActor]);
-
   const handlePressStart = useCallback(() => {
     clubTabActor.send('START_GAME');
   }, [clubTabActor]);
@@ -106,9 +72,6 @@ export const ClubTabComponent: FC<Props> = ({ store }) => {
               >
                 Start
               </Button>
-              <IconButton size="3" onClick={handlePressConfigure}>
-                <GearIcon />
-              </IconButton>
             </Flex>
           )}
         </Box>
