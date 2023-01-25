@@ -1,8 +1,10 @@
 import { ComponentStory } from '@storybook/react';
+import { withCardDecorator } from '@storybook-decorators/CardDecorator';
 import { AssigningRolesScreenComponent } from './assigning-roles-screen.component';
 
 export default {
   component: AssigningRolesScreenComponent,
+  decorators: [withCardDecorator],
   parameters: {
     layout: 'fullscreen',
   },

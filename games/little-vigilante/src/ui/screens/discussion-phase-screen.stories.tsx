@@ -89,5 +89,6 @@ Primary.args = {
     timeRemaining: 57,
     roles: Array.from(rolesByPlayerCount[Object.values(players).length]),
     players,
+    currentStates: ['Playing.Round.DiscussionPhase.Idle'],
   },
 };
