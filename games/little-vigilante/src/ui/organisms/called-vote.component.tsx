@@ -1,10 +1,18 @@
 import { Box } from '@atoms/Box';
-import { Button } from '@atoms/Button';
+import { Button, ButtonProps } from '@atoms/Button';
 import { Caption } from '@atoms/Caption';
 import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
 import { Text } from '@atoms/Text';
-import { useCallback, useState } from 'react';
+import { GetComponentProps } from '@explorers-club/utils';
+import {
+  FC,
+  MouseEventHandler,
+  ReactElement,
+  ReactNode,
+  useCallback,
+  useState,
+} from 'react';
 import {
   useLittleVigilanteSelector,
   useLittleVigilanteSend,
@@ -40,9 +48,30 @@ export const CalledVote = () => {
       ) : isVoteFailed ? (
         <VoteFailed />
       ) : (
-        <Button onClick={handleCallVote}>Call Vote</Button>
+        <SelfDisablingButton onClick={handleCallVote}>
+          Call Vote
+        </SelfDisablingButton>
       )}
     </Box>
+  );
+};
+
+const SelfDisablingButton: FC<ButtonProps & { children: ReactNode }> = (
+  { onClick, children },
+  ...props
+) => {
+  const [disabled, setDisabled] = useState('disabled' in props);
+  const handleOnClick: MouseEventHandler<HTMLButtonElement> = useCallback(
+    (event) => {
+      onClick && onClick(event);
+      setDisabled(true);
+    },
+    [setDisabled, onClick]
+  );
+  return (
+    <Button {...props} onClick={handleOnClick} disabled={disabled}>
+      {children}
+    </Button>
   );
 };
 
