@@ -68,7 +68,7 @@ export const LittleVigilanteConfigSchema = z.object({
   gameId: z.literal('little_vigilante').default('little_vigilante'),
   maxPlayers: z.number().max(10).default(10),
   discussionTimeSeconds: z.number().default(300),
-  votingTimeSeconds: z.number().default(50),
+  votingTimeSeconds: z.number().default(10),
 });
 
 export type LittleVigilanteConfig = z.infer<typeof LittleVigilanteConfigSchema>;

@@ -54,9 +54,10 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
       return { userId, name: player.name.valueOf() };
     });
 
-    const json = clubRoom.state.gameConfigsSerialized.get('little_vigilante');
+    const json =
+      clubRoom.state.gameConfigsSerialized.get('little_vigilante') || '{}';
     const { votingTimeSeconds, discussionTimeSeconds } =
-      LittleVigilanteConfigSchema.parse(json);
+      LittleVigilanteConfigSchema.parse(JSON.parse(json));
 
     const options = {
       roomId,
