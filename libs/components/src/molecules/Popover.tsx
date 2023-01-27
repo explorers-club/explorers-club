@@ -2,16 +2,15 @@ import React from 'react';
 import { styled, CSS } from '../stitches.config';
 import * as PopoverPrimitive from '@radix-ui/react-popover';
 import { Box } from '../atoms/Box';
-import { panelStyles } from '../atoms/Panel';
 
 const Popover = PopoverPrimitive.Root;
 const PopoverTrigger = PopoverPrimitive.Trigger;
 
-const StyledContent = styled(PopoverPrimitive.Content, panelStyles, {
+const StyledContent = styled(PopoverPrimitive.Content, {
   zIndex: 200, // TODO figure out right z-index, this is arbitrary
   minWidth: 200,
   minHeight: '$6',
-  maxWidth: 265,
+  maxWidth: 300,
   '&:focus': {
     outline: 'none',
   },
