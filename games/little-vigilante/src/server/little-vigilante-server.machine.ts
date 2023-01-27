@@ -1,7 +1,7 @@
-import { LittleVigilanteCommand, SerializedSchema } from '@explorers-club/room';
+import { LittleVigilanteCommand } from '@explorers-club/room';
 import { LittleVigilanteState } from '@explorers-club/schema-types/LittleVigilanteState';
 import { assertEventType, shuffle } from '@explorers-club/utils';
-import { A } from '@mobily/ts-belt';
+import { A, pipe } from '@mobily/ts-belt';
 import { Room } from 'colyseus';
 import { createSelector } from 'reselect';
 import { ActorRefFrom, createMachine } from 'xstate';
@@ -517,43 +517,27 @@ const selectCalledVoteMajorityNo = (state: LittleVigilanteState) => {
   return noCount >= majorityCount;
 };
 
-const selectSerializedState = (state: LittleVigilanteState) => {
-  return state.toJSON() as SerializedSchema<LittleVigilanteState>;
-};
+const createPlayersInRoleSelector =
+  (role: string) => (state: LittleVigilanteState) => {
+    return Array.from(state.currentRoundRoles.entries())
+      .filter(([_, playerRole]) => {
+        console.log([_, playerRole, role]);
+        return playerRole === role;
+      })
+      .map(([userId]) => userId);
+  };
 
-const selectCurrentRoundRoles = createSelector(
-  selectSerializedState,
-  (state) => state.currentRoundRoles
-);
+const createPlayerInRoleSelector =
+  (role: string) => (state: LittleVigilanteState) =>
+    pipe(state, createPlayersInRoleSelector(role), A.head);
 
-const createPlayersInRoleSelector = (role: string) =>
-  createSelector(selectCurrentRoundRoles, (currentRoles) =>
-    Object.entries(currentRoles)
-      .filter(([_, playerRole]) => playerRole === role)
-      .map(([userId]) => userId)
-  );
+const selectCopPlayer = createPlayerInRoleSelector('cop');
 
-const selectCopPlayer = createSelector(
-  createPlayersInRoleSelector('cop'),
-  A.head
-);
-
-const selectVigilantePlayer = createSelector(
-  createPlayersInRoleSelector('vigilante'),
-  A.head
-);
-
-const selectButlerPlayer = createSelector(
-  createPlayersInRoleSelector('butler'),
-  A.head
-);
+const selectButlerPlayer = createPlayerInRoleSelector('butler');
 
 const selectStudentPlayers = createPlayersInRoleSelector('student');
 
-const selectDetectivePlayer = createSelector(
-  createPlayersInRoleSelector('detective'),
-  A.head
-);
+const selectDetectivePlayer = createPlayerInRoleSelector('detective');
 
 const selectDetectiveIsArrested = createSelector(
   selectDetectivePlayer,
@@ -561,10 +545,7 @@ const selectDetectiveIsArrested = createSelector(
   (userId, arrestedId) => userId === arrestedId
 );
 
-const selectConspiratorPlayer = createSelector(
-  createPlayersInRoleSelector('conspirator'),
-  A.head
-);
+const selectConspiratorPlayer = createPlayerInRoleSelector('conspirator');
 
 const selectConspiratorIsArrested = createSelector(
   selectConspiratorPlayer,
@@ -572,10 +553,7 @@ const selectConspiratorIsArrested = createSelector(
   (userId, arrestedId) => userId === arrestedId
 );
 
-const selectPoliticianPlayer = createSelector(
-  createPlayersInRoleSelector('politician'),
-  A.head
-);
+const selectPoliticianPlayer = createPlayerInRoleSelector('politician');
 
 const selectPoliticianIsArrested = createSelector(
   selectPoliticianPlayer,
@@ -583,24 +561,8 @@ const selectPoliticianIsArrested = createSelector(
   (userId, arrestedId) => userId === arrestedId
 );
 
-const selectSidekickPlayer = createSelector(
-  createPlayersInRoleSelector('sidekick'),
-  A.head
-);
+const selectSidekickPlayer = createPlayerInRoleSelector('sidekick');
 
-const selectMonkPlayer = createSelector(
-  createPlayersInRoleSelector('monk'),
-  A.head
-);
-
-const selectMayorPlayer = createSelector(
-  createPlayersInRoleSelector('mayor'),
-  A.head
-);
-
-const selectAnarachistPlayer = createSelector(
-  createPlayersInRoleSelector('anarchist'),
-  A.head
-);
+const selectMonkPlayer = createPlayerInRoleSelector('monk');
 
 const VIGILANTE_TEAM = ['vigilante', 'sidekick', 'butler'];

@@ -44,7 +44,7 @@ const Template: Story<{
   numPlayers: number;
   votingTimeSeconds?: number;
   discussionTimeSeconds?: number;
-}> = ({ numPlayers, votingTimeSeconds = 15, discussionTimeSeconds = 60 }) => {
+}> = ({ numPlayers, votingTimeSeconds = 5, discussionTimeSeconds = 15 }) => {
   const [initialized, setInitialized] = useState(false);
   const [roomId] = useState(`little_vigilante-${generateRandomString()}`);
   const [playerInfo] = useState(fullPlayerInfo.slice(0, numPlayers));
@@ -143,7 +143,6 @@ const fullPlayerInfo = [
 export const FourPlayer = Template.bind({});
 FourPlayer.args = {
   numPlayers: 4,
-  discussionTimeSeconds: 300,
 };
 
 export const FivePlayer = Template.bind({});
