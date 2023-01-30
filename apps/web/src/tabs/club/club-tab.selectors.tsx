@@ -4,10 +4,13 @@ import { LittleVigilanteGameInfoScreen } from '@explorers-club/little-vigilante/
 import {
   ClubPlayerSerialized,
   ClubStateSerialized,
-  GameId
+  GameId,
 } from '@explorers-club/room';
 import {
-  CodebreakersConfigSchema, DiffusionaryConfigSchema, LittleVigilanteConfigSchema, TriviaJamConfigSchema
+  CodebreakersConfigSchema,
+  DiffusionaryConfigSchema,
+  LittleVigilanteConfigSchema,
+  TriviaJamConfigSchema,
 } from '@explorers-club/schema';
 import { TriviaJamGameInfoScreen } from '@explorers-club/trivia-jam/meta/components';
 import { createSelector } from 'reselect';
@@ -16,7 +19,7 @@ export const selectHostUserId = (state: ClubStateSerialized) =>
   state.hostUserId;
 
 export const selectGameRoomId = (state: ClubStateSerialized) =>
-  state.gameRoomId;
+  state.gameRoomIds[0];
 
 export const selectPlayerBySlotNumber = (state: ClubStateSerialized) => {
   const result: Record<number, ClubPlayerSerialized> = {};

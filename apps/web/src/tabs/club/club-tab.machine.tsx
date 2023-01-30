@@ -193,10 +193,7 @@ export const createClubTabMachine = (
                   if (!sessionId) {
                     throw new Error('couldnt find session id for reconnect');
                   }
-                  await colyseusClient.reconnect(
-                    clubRoomId,
-                    sessionId
-                  );
+                  await colyseusClient.reconnect(clubRoomId, sessionId);
                 },
                 onDone: 'Connected',
                 onError: 'Error',
@@ -240,9 +237,14 @@ export const createClubTabMachine = (
     {
       guards: {
         isMissingName: ({ store }) => {
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          const { players } = store!.getSnapshot();
-          return !players[userId];
+          const players = store?.getSnapshot().players;
+          if (!players) {
+            throw new Error('expected to have players');
+          }
+
+          const player = players[userId];
+          console.log('imns', players);
+          return !player?.name || player.name === '';
         },
       },
       services: {

@@ -9,9 +9,11 @@ import { Schema, type, ArraySchema, MapSchema, SetSchema, DataChange } from '@co
 import { ClubPlayer } from './ClubPlayer'
 
 export class ClubState extends Schema {
+    @type({ set: "string" }) public currentStates: SetSchema<string> = new SetSchema<string>();
+    @type({ set: "string" }) public gameRoomIds: SetSchema<string> = new SetSchema<string>();
+    @type("string") public clubName!: string;
     @type("string") public hostUserId!: string;
     @type("string") public selectedGame!: string;
-    @type("string") public gameRoomId!: string;
     @type({ map: ClubPlayer }) public players: MapSchema<ClubPlayer> = new MapSchema<ClubPlayer>();
     @type({ map: "string" }) public gameConfigsSerialized: MapSchema<string> = new MapSchema<string>();
 }

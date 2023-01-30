@@ -27,6 +27,14 @@
         }
       }
     },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/apps/room-server"],
+      "options": {
+        "jestConfig": "apps/room-server/jest.config.ts",
+        "passWithNoTests": true
+      }
+    },
     "serve": {
       "executor": "@nrwl/node:node",
       "options": {

@@ -35,6 +35,7 @@ export const TriviaJamConfigurationScreenComponent: FC<Props> = ({
       onSubmitConfig({
         gameId: 'trivia_jam' as const,
         questionSetEntryId,
+        minPlayers: 3,
         maxPlayers: parseInt(maxPlayers),
       });
     }

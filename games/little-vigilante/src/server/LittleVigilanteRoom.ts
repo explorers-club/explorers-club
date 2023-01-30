@@ -1,27 +1,18 @@
-import { Room, Client, matchMaker } from 'colyseus';
-import { ClubState } from '@explorers-club/schema-types/ClubState';
+import { LittleVigilanteCommand } from '@explorers-club/room';
 import {
   LittleVigilanteConfigSchema,
   LittleVigilanteRoomId,
 } from '@explorers-club/schema';
+import { ClubState } from '@explorers-club/schema-types/ClubState';
+import { LittleVigilantePlayer } from '@explorers-club/schema-types/LittleVigilantePlayer';
+import { LittleVigilanteState } from '@explorers-club/schema-types/LittleVigilanteState';
+import { Client, matchMaker, Room } from 'colyseus';
+import { interpret } from 'xstate';
+import { rolesByPlayerCount } from '../meta/little-vigilante.constants';
 import {
   createLittleVigilanteServerMachine,
   LittleVigilanteServerService,
 } from './little-vigilante-server.machine';
-import { LittleVigilanteState } from '@explorers-club/schema-types/LittleVigilanteState';
-import { interpret } from 'xstate';
-import { LittleVigilantePlayer } from '@explorers-club/schema-types/LittleVigilantePlayer';
-import {
-  CONTINUE,
-  LittleVigilanteApproveVoteCommand,
-  LittleVigilanteArrestCommand,
-  LittleVigilanteCallVoteCommand,
-  LittleVigilanteRejectVoteCommand,
-  LittleVigilanteSwapCommand,
-  LittleVigilanteTargetPlayerRoleCommand,
-  LittleVigilanteVoteCommand,
-} from '@explorers-club/room';
-import { rolesByPlayerCount } from '../meta/little-vigilante.constants';
 
 interface PlayerInfo {
   userId: string;
@@ -108,73 +99,9 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
       state.toStrings().forEach((state) => room.state.currentStates.add(state));
     });
 
-    this.onMessage(
-      'TARGET_ROLE',
-      (client, message: LittleVigilanteTargetPlayerRoleCommand) => {
-        this.service.send({
-          ...message,
-          userId: client.userData.userId as string,
-        });
-      }
-    );
-
-    this.onMessage(
-      'CALL_VOTE',
-      (client, message: LittleVigilanteCallVoteCommand) => {
-        this.service.send({
-          ...message,
-          userId: client.userData.userId as string,
-        });
-      }
-    );
-
-    this.onMessage(
-      'APPROVE_VOTE',
-      (client, message: LittleVigilanteApproveVoteCommand) => {
-        this.service.send({
-          ...message,
-          userId: client.userData.userId as string,
-        });
-      }
-    );
-
-    this.onMessage(
-      'REJECT_VOTE',
-      (client, message: LittleVigilanteRejectVoteCommand) => {
-        this.service.send({
-          ...message,
-          userId: client.userData.userId as string,
-        });
-      }
-    );
-
-    this.onMessage(
-      'ARREST',
-      (client, message: LittleVigilanteArrestCommand) => {
-        this.service.send({
-          ...message,
-          userId: client.userData.userId as string,
-        });
-      }
-    );
-
-    this.onMessage('SWAP', (client, message: LittleVigilanteSwapCommand) => {
+    this.onMessage('*', (client, _, message: LittleVigilanteCommand) => {
       this.service.send({
         ...message,
-        userId: client.userData.userId as string,
-      });
-    });
-
-    this.onMessage('VOTE', (client, message: LittleVigilanteVoteCommand) => {
-      this.service.send({
-        ...message,
-        userId: client.userData.userId as string,
-      });
-    });
-
-    this.onMessage(CONTINUE, (client) => {
-      this.service.send({
-        type: CONTINUE,
         userId: client.userData.userId as string,
       });
     });
@@ -182,7 +109,6 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
 
   override onJoin(client: Client, options: OnJoinOptions) {
     const userId = options.userId;
-
     const player = this.state.players.get(userId);
     if (player) {
       player.connected = true;
