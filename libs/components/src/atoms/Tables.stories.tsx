@@ -1,7 +1,6 @@
 import { CheckIcon } from '@radix-ui/react-icons';
-import { Box } from '@atoms/Box';
+import { Box } from './Box';
 import { Caption } from './Caption';
-import { Card } from './Card';
 import { Flex } from './Flex';
 import { Heading } from './Heading';
 import { Text } from './Text';
