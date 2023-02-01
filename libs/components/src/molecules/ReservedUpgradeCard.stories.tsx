@@ -1,3 +1,4 @@
+import { ComponentStory } from '@storybook/react';
 import { ReservedUpgradeCard } from './ReservedUpgradeCard';
 
 export default {
@@ -9,6 +10,10 @@ export default {
   },
 };
 
-export const Default = () => {
-  return <ReservedUpgradeCard playerName="Jambalaya22" />;
+export const Default: ComponentStory<typeof ReservedUpgradeCard> = (args) => {
+  return <ReservedUpgradeCard {...args} />;
+};
+
+Default.args = {
+  playerName: 'Jambalaya22',
 };
