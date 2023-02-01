@@ -36,7 +36,7 @@ export const ReservedUpgradeCard: FC<Props> = ({ playerName }) => {
             p: '$3',
             background: 'linear-gradient(rgba(0,0,0,0), rgba(23,8,7,1))',
           }}
-	  gap="1"
+          gap="1"
         >
           <Heading size="3">Become Reserved</Heading>
           <Caption>$10 off in 2023</Caption>
@@ -55,9 +55,9 @@ export const ReservedUpgradeCard: FC<Props> = ({ playerName }) => {
               <ChevronRightIcon color="white" />
             </Box>
             <Text css={{ lineHeight: '125%' }}>
-              explorers.club/<strong>{playerName}</strong>
-              <br />
-              reserved for you.
+              <Text css={{ fontFamily: '$mono', fontSize: '14px' }}>
+                explorers.club/<strong>{playerName}</strong>
+              </Text>
             </Text>
           </Flex>
           <Flex gap="2">
@@ -65,8 +65,7 @@ export const ReservedUpgradeCard: FC<Props> = ({ playerName }) => {
               <ChevronRightIcon color="white" />
             </Box>
             <Text css={{ lineHeight: '125%' }}>
-              <strong>{playerName}</strong> reserved for you in all Explorers
-              Club games.
+              <strong>{playerName}</strong> player name reserved.
             </Text>
           </Flex>
           <Flex gap="2">
@@ -74,7 +73,8 @@ export const ReservedUpgradeCard: FC<Props> = ({ playerName }) => {
               <ChevronRightIcon color="white" />
             </Box>
             <Text css={{ lineHeight: '125%' }}>
-              <strong>Save scores</strong> across you and your friends.
+              <strong>Unlimited score saving</strong> across you and your friends in all
+              games you host.
             </Text>
           </Flex>
         </Flex>
