@@ -73,8 +73,17 @@ export const ReservedUpgradeCard: FC<Props> = ({ playerName }) => {
               <ChevronRightIcon color="white" />
             </Box>
             <Text css={{ lineHeight: '125%' }}>
-              <strong>Unlimited score saving</strong> across you and your friends in all
-              games you host.
+              <strong>Unlimited score saving</strong> across you and your
+              friends in all games you host.
+            </Text>
+          </Flex>
+          <Flex gap="2">
+            <Box css={{ flexBasis: '$3' }}>
+              <ChevronRightIcon color="white" />
+            </Box>
+            <Text css={{ lineHeight: '125%' }}>
+              <strong>DVR playback</strong>. Automatically save and rewatch your favorite
+              game moments
             </Text>
           </Flex>
         </Flex>
