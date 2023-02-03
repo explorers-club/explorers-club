@@ -2,7 +2,8 @@ export type Role =
   | 'detective'
   | 'cop'
   | 'vigilante'
-  | 'student'
+  | 'twin_girl'
+  | 'twin_boy'
   | 'butler'
   | 'conspirator'
   | 'politician'
@@ -18,7 +19,8 @@ export const teamByRole: Record<Role, Team> = {
   butler: 'vigilante',
   sidekick: 'vigilante',
   cop: 'citizens',
-  student: 'citizens',
+  twin_girl: 'citizens',
+  twin_boy: 'citizens',
   detective: 'citizens',
   conspirator: 'citizens',
   politician: 'citizens',
@@ -33,11 +35,41 @@ export const colorByTeam = {
   anarchist: 'orange',
 } as const;
 
+export const primaryColorByRole = {
+  vigilante: 'indigo',
+  butler: 'black',
+  sidekick: 'red',
+  cop: 'blue',
+  twin_girl: 'green',
+  twin_boy: 'green',
+  detective: 'orange',
+  conspirator: 'yellow',
+  politician: 'green',
+  monk: 'brown',
+  mayor: 'silver',
+  anarchist: 'white',
+} as const;
+
+export const secondaryColorByRole = {
+  vigilante: 'yellow',
+  butler: 'silver',
+  sidekick: 'yellow',
+  cop: 'black',
+  twin_girl: 'red',
+  twin_boy: 'red',
+  detective: 'brown',
+  conspirator: 'orange',
+  politician: 'brown',
+  monk: 'tan',
+  mayor: 'green',
+  anarchist: 'green',
+} as const;
+
 const FOUR_PLAYER_ROLES = [
   'vigilante',
   'butler',
-  'student',
-  'student',
+  'twin_girl',
+  'twin_boy',
   'detective',
   'conspirator',
   'politician',
@@ -53,8 +85,6 @@ const EIGHT_PLAYER_ROLES = [...SEVEN_PLAYER_ROLES, 'anarchist'] as const;
 
 const NINE_PLAYER_ROLES = [...EIGHT_PLAYER_ROLES, 'mayor'] as const;
 
-const TEN_PLAYER_ROLES = [...NINE_PLAYER_ROLES, 'student'] as const;
-
 export const rolesByPlayerCount: Record<number, readonly Role[]> = {
   4: FOUR_PLAYER_ROLES,
   5: FIVE_PLAYER_ROLES,
@@ -62,26 +92,44 @@ export const rolesByPlayerCount: Record<number, readonly Role[]> = {
   7: SEVEN_PLAYER_ROLES,
   8: EIGHT_PLAYER_ROLES,
   9: NINE_PLAYER_ROLES,
-  10: TEN_PLAYER_ROLES,
 };
 
 export const nightPhaseOrder = [
   'cop',
   'vigilante',
-  'student',
   'butler',
+  'twin_girl',
+  'twin_boy',
   'detective',
   'conspirator',
   'politician',
   'sidekick',
   'monk',
+  'mayor',
+  'anarchist',
 ] as const;
+
+export const displayNameByRole: Record<Role, string> = {
+  cop: 'Cop',
+  vigilante: 'Vigilante',
+  twin_girl: 'Twin (girl)',
+  twin_boy: 'Twin (boy)',
+  butler: 'Butler',
+  detective: 'Detective',
+  conspirator: 'Conspirator',
+  politician: 'Politician',
+  sidekick: 'Sidekick',
+  monk: 'Monk',
+  mayor: 'Mayor',
+  anarchist: 'Anarchist',
+};
 
 export const abilityByRole: Record<Role, string> = {
   cop: 'Has the ability to arrest one player, preventing them from using their ability.',
   vigilante:
     'Has the ability to see one role that is not in use by another player.',
-  student: 'Has the ability to see which player is the other student.',
+  twin_girl: 'Has the ability to see which player is the other twin.',
+  twin_boy: 'Has the ability to see which player is the other twin.',
   butler: 'Has the ability to see which player is the vigilante.',
   detective:
     'Has the ability to investigate one player to find out their role.',
@@ -98,7 +146,8 @@ const CITIZENS_OBJECTIVE =
 
 export const objectiveByRole: Record<Role, string> = {
   cop: CITIZENS_OBJECTIVE,
-  student: CITIZENS_OBJECTIVE,
+  twin_boy: CITIZENS_OBJECTIVE,
+  twin_girl: CITIZENS_OBJECTIVE,
   detective: CITIZENS_OBJECTIVE,
   conspirator: CITIZENS_OBJECTIVE,
   politician: CITIZENS_OBJECTIVE,
@@ -114,7 +163,9 @@ export const imageByRole: Record<Role, string> = {
   detective:
     'https://media.discordapp.net/attachments/1000472333108129935/1062750832010997852/InspectorT_Polynesian_detective_character_chibi_NFT_funny_pose_23f7fe1f-4b9d-43ff-a385-e9373673815d.png?width=1194&height=1194',
   cop: 'https://media.discordapp.net/attachments/1000472333108129935/1062915115034366023/InspectorT_Polynesian_police_officer_character_cute_chibi_NFT_f_d92982a8-ad3a-45cb-8420-7c5a861798ae.png?width=1194&height=1194',
-  student:
+  twin_girl:
+    'https://media.discordapp.net/attachments/1000472333108129935/1063133925469343754/InspectorT_Polynesian_student_character_cute_chibi_NFT_funny_po_4329e6f7-eb52-441f-b4fc-66d2f5045eb9.png?width=1194&height=1194',
+  twin_boy:
     'https://media.discordapp.net/attachments/1000472333108129935/1063133925469343754/InspectorT_Polynesian_student_character_cute_chibi_NFT_funny_po_4329e6f7-eb52-441f-b4fc-66d2f5045eb9.png?width=1194&height=1194',
   monk: 'https://media.discordapp.net/attachments/1000472333108129935/1063134258253811753/InspectorT_Polynesian_monk_character_cute_chibi_NFT_funny_pose_be91669d-679b-4a7a-b274-05c4fac11213.png?width=1194&height=1194',
   conspirator:
@@ -137,7 +188,9 @@ export const iconByRole: Record<Role, string> = {
   detective:
     'https://media.discordapp.net/attachments/1000472333108129935/1067080488453427283/InspectorT_flat_favicon_cutout_vector_svg_16x16_low_res_black_a_eefecbff-d979-40c4-9205-5b655b52dfa7.png?width=597&height=597',
   cop: 'https://media.discordapp.net/attachments/1000472333108129935/1067081377117376613/InspectorT_flat_favicon_cutout_vector_svg_16x16_low_res_low_det_88317c51-84af-4c2a-8292-d87183d14144.png?width=597&height=597',
-  student:
+  twin_boy:
+    'https://media.discordapp.net/attachments/1000472333108129935/1067081089044205618/InspectorT_flat_favicon_cutout_vector_svg_16x16_low_res_black_a_83d4eb56-c51d-4946-be7d-e34f3fe49cda.png?width=597&height=597',
+  twin_girl:
     'https://media.discordapp.net/attachments/1000472333108129935/1067081089044205618/InspectorT_flat_favicon_cutout_vector_svg_16x16_low_res_black_a_83d4eb56-c51d-4946-be7d-e34f3fe49cda.png?width=597&height=597',
   monk: 'https://media.discordapp.net/attachments/1000472333108129935/1067078933373272187/InspectorT_flat_favicon_cutout_vector_svg_16x16_low_res_black_a_1518494e-5b42-463e-b5dc-4447a69a91c8.png?width=597&height=597',
   conspirator:

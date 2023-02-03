@@ -29,7 +29,7 @@ export const VotingPhaseScreenComponent: FC<Props> = ({
           <Flex justify="between">
             <Flex direction="column" gap="1">
               <Caption>{timeRemaining} seconds left</Caption>
-              <Heading size="2">Who is a vigilante?</Heading>
+              <Heading size="2">Identify a vigilante</Heading>
             </Flex>
             <Popover>
               <PopoverTrigger asChild>

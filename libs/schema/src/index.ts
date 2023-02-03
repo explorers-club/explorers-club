@@ -75,8 +75,9 @@ export const LittleVigilanteConfigSchema = z
     gameId: z.literal('little_vigilante').default('little_vigilante'),
     minPlayers: z.literal(4).default(4),
     maxPlayers: z.number().int().min(4).max(10).default(10),
-    discussionTimeSeconds: z.number().int().min(10).max(600).default(300),
-    votingTimeSeconds: z.number().int().default(10),
+    discussionTimeSeconds: z.number().int().min(10).max(600).default(180),
+    roundsToPlay: z.number().int().min(1).max(999).default(7),
+    votingTimeSeconds: z.number().int().default(25),
   })
   .required();
 

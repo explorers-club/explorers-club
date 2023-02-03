@@ -21,5 +21,6 @@ Primary.args = {
     maxPlayers: 10,
     discussionTimeSeconds: 60,
     votingTimeSeconds: 60,
+    roundsToPlay: 5,
   },
 };

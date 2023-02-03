@@ -16,7 +16,9 @@ export const createRoomStore = <
   };
   room.onStateChange(handleOnStateChange);
 
-  const subscribe = (onStoreChange: (state: SerializedSchema<TSchema>) => void) => {
+  const subscribe = (
+    onStoreChange: (state: SerializedSchema<TSchema>) => void
+  ) => {
     const handleOnStateChange = () => {
       onStoreChange(state);
     };

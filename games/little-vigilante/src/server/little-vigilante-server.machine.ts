@@ -16,7 +16,11 @@ export type LittleVigilanteServerEvent = LittleVigilanteCommand & {
 
 export const createLittleVigilanteServerMachine = (
   room: Room<LittleVigilanteState>,
-  settings: { votingTimeSeconds: number; discussionTimeSeconds: number }
+  settings: {
+    votingTimeSeconds: number;
+    discussionTimeSeconds: number;
+    roundsToPlay: number;
+  }
 ) => {
   const triviaJamMachine = createMachine(
     {
@@ -60,7 +64,16 @@ export const createLittleVigilanteServerMachine = (
             },
             Round: {
               initial: 'AssigningRoles',
-              onDone: 'AwaitingNext',
+              onDone: [
+                {
+                  target: 'AwaitingNext',
+                  cond: 'hasMoreRounds',
+                  actions: ({ room }) => (room.state.currentRound += 1),
+                },
+                {
+                  target: 'NoMoreRounds',
+                },
+              ],
               states: {
                 AssigningRoles: {
                   entry: 'assignRoles',
@@ -75,7 +88,14 @@ export const createLittleVigilanteServerMachine = (
                     Cop: {
                       always: {
                         target: 'Vigilante',
-                        cond: ({ room }) => !selectCopPlayer(room.state),
+                        cond: ({ room }) => !room.state.roles.includes('cop'),
+                      },
+                      after: {
+                        5000: {
+                          target: 'Vigilante',
+                          cond: ({ room }) =>
+                            !selectInitialCopPlayer(room.state),
+                        },
                       },
                       on: {
                         ARREST: {
@@ -86,23 +106,25 @@ export const createLittleVigilanteServerMachine = (
                     },
                     Vigilante: {
                       after: {
-                        5000: 'Student',
-                      },
-                    },
-                    Student: {
-                      always: {
-                        target: 'Butler',
-                        cond: ({ room }) =>
-                          !selectStudentPlayers(room.state).length,
-                      },
-                      after: {
                         5000: 'Butler',
                       },
                     },
                     Butler: {
                       always: {
+                        target: 'Twins',
+                        cond: ({ room }) =>
+                          !room.state.roles.includes('butler'),
+                      },
+                      after: {
+                        5000: 'Twins',
+                      },
+                    },
+                    Twins: {
+                      always: {
                         target: 'Detective',
-                        cond: ({ room }) => !selectButlerPlayer(room.state),
+                        cond: ({ room }) =>
+                          !room.state.roles.includes('twin_boy') &&
+                          !room.state.roles.includes('twin_girl'),
                       },
                       after: {
                         5000: 'Detective',
@@ -111,14 +133,16 @@ export const createLittleVigilanteServerMachine = (
                     Detective: {
                       always: {
                         target: 'Conspirator',
-                        cond: ({ room }) => !selectDetectivePlayer(room.state),
+                        cond: ({ room }) =>
+                          !room.state.roles.includes('detective'),
                       },
                       after: {
-                        20000: 'Conspirator',
+                        10000: 'Conspirator',
                         5000: {
                           target: 'Conspirator',
                           cond: ({ room }) =>
-                            selectDetectiveIsArrested(room.state),
+                            selectDetectiveIsArrested(room.state) ||
+                            !selectInitialDetectivePlayer(room.state),
                         },
                       },
                       on: {
@@ -129,13 +153,14 @@ export const createLittleVigilanteServerMachine = (
                       always: {
                         target: 'Politician',
                         cond: ({ room }) =>
-                          !selectConspiratorPlayer(room.state),
+                          !room.state.roles.includes('conspirator'),
                       },
                       after: {
                         5000: {
                           target: 'Politician',
                           cond: ({ room }) =>
-                            selectConspiratorIsArrested(room.state),
+                            selectConspiratorIsArrested(room.state) ||
+                            !selectInitialConspiratorPlayer(room.state),
                         },
                       },
                       on: {
@@ -148,13 +173,15 @@ export const createLittleVigilanteServerMachine = (
                     Politician: {
                       always: {
                         target: 'Sidekick',
-                        cond: ({ room }) => !selectPoliticianPlayer(room.state),
+                        cond: ({ room }) =>
+                          !room.state.roles.includes('politician'),
                       },
                       after: {
                         5000: {
                           target: 'Sidekick',
                           cond: ({ room }) =>
-                            selectPoliticianIsArrested(room.state),
+                            selectPoliticianIsArrested(room.state) ||
+                            !selectInitialPoliticianPlayer(room.state),
                         },
                       },
                       on: {
@@ -167,7 +194,8 @@ export const createLittleVigilanteServerMachine = (
                     Sidekick: {
                       always: {
                         target: 'Monk',
-                        cond: ({ room }) => !selectSidekickPlayer(room.state),
+                        cond: ({ room }) =>
+                          !room.state.roles.includes('sidekick'),
                       },
                       after: {
                         5000: 'Monk',
@@ -176,7 +204,7 @@ export const createLittleVigilanteServerMachine = (
                     Monk: {
                       always: {
                         target: 'Complete',
-                        cond: ({ room }) => !selectMonkPlayer(room.state),
+                        cond: ({ room }) => !room.state.roles.includes('monk'),
                       },
                       after: {
                         5000: 'Complete',
@@ -364,14 +392,23 @@ export const createLittleVigilanteServerMachine = (
                 },
               },
             },
+            NoMoreRounds: {
+              type: 'final' as const,
+            },
           },
         },
-        GameOver: {},
+        GameOver: {
+          entry: ({ room }) => {
+            room.disconnect();
+          },
+        },
       },
       predictableActionArguments: true,
     },
     {
       guards: {
+        hasMoreRounds: ({ room }) =>
+          room.state.currentRound + 1 <= settings.roundsToPlay,
         timesUp: ({ room }) => room.state.timeRemaining <= 0,
         allPlayersConnected: ({ room }, event) =>
           selectAllPlayersConnected(room.state),
@@ -453,7 +490,9 @@ export const createLittleVigilanteServerMachine = (
 
           room.state.players.forEach((player) => {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            room.state.currentRoundRoles.set(player.userId, gameRoles.pop()!);
+            const role = gameRoles.pop()!;
+            room.state.currentRoundRoles.set(player.userId, role);
+            room.state.initialCurrentRoundRoles.set(player.userId, role);
           });
         },
         clearRoundState: ({ room }) => {
@@ -517,52 +556,52 @@ const selectCalledVoteMajorityNo = (state: LittleVigilanteState) => {
   return noCount >= majorityCount;
 };
 
-const createPlayersInRoleSelector =
+const createInitialPlayersInRoleSelector =
   (role: string) => (state: LittleVigilanteState) => {
-    return Array.from(state.currentRoundRoles.entries())
+    return Array.from(state.initialCurrentRoundRoles.entries())
       .filter(([_, playerRole]) => {
-        console.log([_, playerRole, role]);
         return playerRole === role;
       })
       .map(([userId]) => userId);
   };
 
-const createPlayerInRoleSelector =
+const createInitialPlayerInRoleSelector =
   (role: string) => (state: LittleVigilanteState) =>
-    pipe(state, createPlayersInRoleSelector(role), A.head);
+    pipe(state, createInitialPlayersInRoleSelector(role), A.head);
 
-const selectCopPlayer = createPlayerInRoleSelector('cop');
+const selectInitialCopPlayer = createInitialPlayerInRoleSelector('cop');
 
-const selectButlerPlayer = createPlayerInRoleSelector('butler');
+const selectInitialButlerPlayer = createInitialPlayerInRoleSelector('butler');
 
-const selectStudentPlayers = createPlayersInRoleSelector('student');
-
-const selectDetectivePlayer = createPlayerInRoleSelector('detective');
+const selectInitialDetectivePlayer =
+  createInitialPlayerInRoleSelector('detective');
 
 const selectDetectiveIsArrested = createSelector(
-  selectDetectivePlayer,
+  selectInitialDetectivePlayer,
   selectArrestedUserId,
   (userId, arrestedId) => userId === arrestedId
 );
 
-const selectConspiratorPlayer = createPlayerInRoleSelector('conspirator');
+const selectInitialConspiratorPlayer =
+  createInitialPlayerInRoleSelector('conspirator');
 
 const selectConspiratorIsArrested = createSelector(
-  selectConspiratorPlayer,
+  selectInitialConspiratorPlayer,
   selectArrestedUserId,
   (userId, arrestedId) => userId === arrestedId
 );
 
-const selectPoliticianPlayer = createPlayerInRoleSelector('politician');
+const selectInitialPoliticianPlayer =
+  createInitialPlayerInRoleSelector('politician');
 
 const selectPoliticianIsArrested = createSelector(
-  selectPoliticianPlayer,
+  selectInitialPoliticianPlayer,
   selectArrestedUserId,
   (userId, arrestedId) => userId === arrestedId
 );
 
-const selectSidekickPlayer = createPlayerInRoleSelector('sidekick');
+const selectSidekickPlayer = createInitialPlayerInRoleSelector('sidekick');
 
-const selectMonkPlayer = createPlayerInRoleSelector('monk');
+const selectMonkPlayer = createInitialPlayerInRoleSelector('monk');
 
 const VIGILANTE_TEAM = ['vigilante', 'sidekick', 'butler'];

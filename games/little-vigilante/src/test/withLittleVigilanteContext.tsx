@@ -8,12 +8,15 @@ import { LittleVigilanteContext } from '../state/little-vigilante.context';
 
 // todo hoist out to common
 function createMockStore<TState, TCommand>({ state }: { state: TState }) {
+  console.log(state);
   return {
     id: 'mockStore',
     send: (command: TCommand) => {
       console.log('mock send', command);
     },
-    getSnapshot: () => state,
+    getSnapshot: () => {
+      return state;
+    },
     subscribe: (onStoreChange: (state: TState) => void) => {
       // no-op
       return () => {
@@ -31,6 +34,7 @@ export const withLittleVigilanteContext: DecoratorFunction<
     myUserId: string;
     state: LittleVigilanteStateSerialized;
   };
+  console.log(state.roles);
 
   const store = createMockStore<
     LittleVigilanteStateSerialized,

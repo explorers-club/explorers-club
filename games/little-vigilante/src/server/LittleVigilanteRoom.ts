@@ -23,6 +23,7 @@ export interface OnCreateOptions {
   roomId: string;
   playerInfo: PlayerInfo[];
   votingTimeSeconds: number;
+  roundsToPlay: number;
   discussionTimeSeconds: number;
 }
 
@@ -37,6 +38,7 @@ interface CreateProps {
 
 export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
   private service!: LittleVigilanteServerService;
+  private heartbeatInterval: NodeJS.Timer;
 
   static async create({ roomId, clubRoom }: CreateProps) {
     const playerInfo: PlayerInfo[] = Array.from(
@@ -47,7 +49,7 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
 
     const json =
       clubRoom.state.gameConfigsSerialized.get('little_vigilante') || '{}';
-    const { votingTimeSeconds, discussionTimeSeconds } =
+    const { votingTimeSeconds, discussionTimeSeconds, roundsToPlay } =
       LittleVigilanteConfigSchema.parse(JSON.parse(json));
 
     const options = {
@@ -55,6 +57,7 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
       playerInfo,
       votingTimeSeconds,
       discussionTimeSeconds,
+      roundsToPlay,
     } as OnCreateOptions;
 
     // todo
@@ -62,11 +65,17 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
   }
 
   override async onCreate(options: OnCreateOptions) {
-    const { roomId, playerInfo, votingTimeSeconds, discussionTimeSeconds } =
-      options;
+    const {
+      roomId,
+      playerInfo,
+      votingTimeSeconds,
+      discussionTimeSeconds,
+      roundsToPlay,
+    } = options;
 
     // initialize empty room state
     const state = new LittleVigilanteState();
+    state.currentRound = 1;
     this.setState(state);
 
     this.roomId = roomId;
@@ -86,10 +95,11 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
     state.hostUserIds.add(playerInfo[0].userId);
 
     const roles = rolesByPlayerCount[playerInfo.length];
-    roles.forEach((role) => state.roles.add(role));
+
+    roles.forEach((role) => state.roles.push(role));
 
     const room = this as Room<LittleVigilanteState>;
-    const settings = { votingTimeSeconds, discussionTimeSeconds };
+    const settings = { votingTimeSeconds, discussionTimeSeconds, roundsToPlay };
     this.service = interpret(
       createLittleVigilanteServerMachine(room, settings)
     ).start();
@@ -105,6 +115,10 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
         userId: client.userData.userId as string,
       });
     });
+
+    this.heartbeatInterval = setInterval(async () => {
+      await this.presence.setex(this.roomId, 'running', 30);
+    }, 10000);
   }
 
   override onJoin(client: Client, options: OnJoinOptions) {
@@ -118,11 +132,19 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
   }
 
   override onLeave(client: Client) {
-    const { userId } = client.userData;
-    const player = this.state.players.get(userId);
-    if (player) {
-      player.connected = false;
+    if (client.userData) {
+      const { userId } = client.userData;
+      const player = this.state.players.get(userId);
+      if (player) {
+        player.connected = false;
+      }
+      this.service.send({ type: 'LEAVE', userId });
     }
-    this.service.send({ type: 'LEAVE', userId });
+  }
+
+  override onDispose() {
+    console.log('dispose, todo update redis');
+    clearInterval(this.heartbeatInterval);
+    this.presence.del(this.roomId);
   }
 }

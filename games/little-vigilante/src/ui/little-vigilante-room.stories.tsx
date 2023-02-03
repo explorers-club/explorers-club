@@ -58,6 +58,7 @@ const Template: Story<{
         playerInfo,
         votingTimeSeconds,
         discussionTimeSeconds,
+        roundsToPlay: 3,
       };
       try {
         room = await colyseusClient.create<LittleVigilanteState>(
