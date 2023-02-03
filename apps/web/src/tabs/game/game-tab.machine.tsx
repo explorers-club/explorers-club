@@ -24,7 +24,7 @@ import {
 } from 'xstate';
 
 export type GameTabContext = {
-  roomId: GameRoomId;
+  roomId?: GameRoomId;
   gameId?: GameId;
   store?: GameStore;
 };
@@ -60,7 +60,7 @@ export const createGameTabMachine = (colyseusClient: Client, userId: string) =>
               invoke: {
                 src: async ({ roomId }) => {
                   const room = await colyseusClient.joinById<TriviaJamState>(
-                    roomId,
+                    roomId!,
                     {
                       userId,
                     }
@@ -85,7 +85,10 @@ export const createGameTabMachine = (colyseusClient: Client, userId: string) =>
             },
             Connected: {
               on: {
-                LEAVE: 'Uninitialized',
+                LEAVE: {
+                  target: 'Uninitialized',
+                  actions: 'clearGame',
+                },
               },
             },
             Error: {},
@@ -125,6 +128,10 @@ export const createGameTabMachine = (colyseusClient: Client, userId: string) =>
     },
     {
       actions: {
+        clearGame: assign<GameTabContext, GameTabEvent>({
+          roomId: () => undefined,
+          gameId: () => undefined,
+        }),
         setRoomId: assign<GameTabContext, GameTabEvent>({
           roomId: (_, event) => {
             assertEventType(event, 'CONNECT');
