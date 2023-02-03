@@ -11,6 +11,7 @@ import {
   TriviaJamRoomIdSchema,
 } from '@explorers-club/schema';
 import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
+import { assertEventType } from '@explorers-club/utils';
 import { TabMetadata } from '@organisms/tab-bar';
 import { RocketIcon } from '@radix-ui/react-icons';
 import { Client } from 'colyseus.js';
@@ -28,7 +29,7 @@ export type GameTabContext = {
   store?: GameStore;
 };
 
-type GameTabEvent = { type: 'CONNECT'; roomId: GameRoomId };
+type GameTabEvent = { type: 'CONNECT'; roomId: GameRoomId } | { type: 'LEAVE' };
 
 export const createGameTabMachine = (colyseusClient: Client, userId: string) =>
   createMachine(
@@ -82,7 +83,11 @@ export const createGameTabMachine = (colyseusClient: Client, userId: string) =>
                 onError: 'Error',
               },
             },
-            Connected: {},
+            Connected: {
+              on: {
+                LEAVE: 'Uninitialized',
+              },
+            },
             Error: {},
           },
         },
@@ -109,7 +114,11 @@ export const createGameTabMachine = (colyseusClient: Client, userId: string) =>
                 CONNECT: 'Visible',
               },
             },
-            Visible: {},
+            Visible: {
+              on: {
+                LEAVE: 'Hidden',
+              },
+            },
           },
         },
       },
@@ -117,8 +126,13 @@ export const createGameTabMachine = (colyseusClient: Client, userId: string) =>
     {
       actions: {
         setRoomId: assign<GameTabContext, GameTabEvent>({
-          roomId: (_, { roomId }) => roomId,
-          gameId: (_, { roomId }) => {
+          roomId: (_, event) => {
+            assertEventType(event, 'CONNECT');
+            return event.roomId;
+          },
+          gameId: (_, event) => {
+            assertEventType(event, 'CONNECT');
+            const { roomId } = event;
             if (TriviaJamRoomIdSchema.safeParse(roomId).success) {
               return 'trivia_jam';
             } else if (DiffusionaryRoomIdSchema.safeParse(roomId).success) {

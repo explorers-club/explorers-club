@@ -9,14 +9,22 @@ export const NavigationHelper = () => {
 
   useEffect(() => {
     clubTabActor.subscribe(({ context }) => {
-      let currentGameRoomId: string;
+      let currentGameRoomId: string | null;
+
       context.store?.subscribe(({ gameRoomIds }) => {
-        if (gameRoomIds.length && !currentGameRoomId) {
-          const gameRoomId = gameRoomIds[0];
-          currentGameRoomId = gameRoomId;
+        // If the game room was removed, disconnect the game
+        if (currentGameRoomId && !gameRoomIds.includes(currentGameRoomId)) {
+          tabBarActor.send({ type: 'NAVIGATE', tab: 'Club' });
+          gameTabActor.send({
+            type: 'LEAVE',
+          });
+          currentGameRoomId = null;
+        } else if (gameRoomIds[0] && !currentGameRoomId) {
+          const roomId = gameRoomIds[0] as GameRoomId;
+          currentGameRoomId = roomId;
           gameTabActor.send({
             type: 'CONNECT',
-            roomId: gameRoomId as GameRoomId,
+            roomId,
           });
           tabBarActor.send({ type: 'NAVIGATE', tab: 'Game' });
         }

@@ -154,6 +154,14 @@ export const createClubServerMachine = (room: Room<ClubState>) => {
           const gameRoom = await createRoom(gameConfig, roomName, room);
 
           room.state.gameRoomIds.add(gameRoom.roomId);
+          await room.presence.publish(gameRoom.roomId, 'running');
+          room.presence.subscribe(gameRoom.roomId, (data) => {
+            if (data !== 'running') {
+              room.state.gameRoomIds.delete(gameRoom.roomId);
+              room.presence.del(gameRoom.roomId);
+            }
+          });
+          // await room.presence.publish(gameRoom.roomId, 'running1');
 
           //   await new Promise((resolve) => {
           //     const onChangeGameRooms = async () => {

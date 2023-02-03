@@ -38,7 +38,6 @@ interface CreateProps {
 
 export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
   private service!: LittleVigilanteServerService;
-  private heartbeatInterval: NodeJS.Timer;
 
   static async create({ roomId, clubRoom }: CreateProps) {
     const playerInfo: PlayerInfo[] = Array.from(
@@ -115,10 +114,6 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
         userId: client.userData.userId as string,
       });
     });
-
-    this.heartbeatInterval = setInterval(async () => {
-      await this.presence.setex(this.roomId, 'running', 30);
-    }, 10000);
   }
 
   override onJoin(client: Client, options: OnJoinOptions) {
@@ -143,8 +138,7 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
   }
 
   override onDispose() {
-    console.log('dispose, todo update redis');
-    clearInterval(this.heartbeatInterval);
-    this.presence.del(this.roomId);
+    // clearInterval(this.heartbeatInterval);
+    this.presence.publish(this.roomId, 'stopping');
   }
 }
