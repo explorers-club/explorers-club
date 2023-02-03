@@ -2,6 +2,11 @@ import { LittleVigilanteScoreboardCard } from './little-vigilante-scoreboard-car
 
 export default {
   component: LittleVigilanteScoreboardCard,
+  parameters: {
+    viewport: {
+      defaultViewport: 'mobile1',
+    },
+  },
 };
 
 export const Default = () => <LittleVigilanteScoreboardCard />;

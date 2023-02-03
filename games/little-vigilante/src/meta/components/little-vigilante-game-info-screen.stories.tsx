@@ -2,6 +2,11 @@ import { LittleVigilanteGameInfoScreen } from './/little-vigilante-game-info-scr
 
 export default {
   component: LittleVigilanteGameInfoScreen,
+  parameters: {
+    viewport: {
+      defaultViewport: 'mobile1',
+    },
+  },
 };
 
 export const Default = () => <LittleVigilanteGameInfoScreen />;

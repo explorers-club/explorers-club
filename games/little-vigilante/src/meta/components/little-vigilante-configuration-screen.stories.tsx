@@ -4,6 +4,11 @@ import { LittleVigilanteConfigurationScreenComponent } from './little-vigilante-
 
 export default {
   component: LittleVigilanteConfigurationScreenComponent,
+  parameters: {
+    viewport: {
+      defaultViewport: 'mobile1',
+    },
+  },
   actionTypes: {
     onSubmitConfig: { type: 'action' },
   },
@@ -18,6 +23,7 @@ export const Primary: ComponentStory<
 Primary.args = {
   initialConfig: {
     gameId: 'little_vigilante',
+    minPlayers: 4,
     maxPlayers: 10,
     discussionTimeSeconds: 60,
     votingTimeSeconds: 60,

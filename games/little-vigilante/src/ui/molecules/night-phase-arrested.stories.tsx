@@ -1,14 +1,12 @@
 import { ComponentStory, Meta } from '@storybook/react';
 import { withCardDecorator } from '@storybook-decorators/CardDecorator';
-import { NightPhaseArrestedComponent } from './night-phase-arrested.component';
+import { NightPhaseArrested } from './night-phase-arrested.component';
 
 export default {
-  component: NightPhaseArrestedComponent,
+  component: NightPhaseArrested,
   decorators: [withCardDecorator],
 } as Meta;
 
-export const Primary: ComponentStory<typeof NightPhaseArrestedComponent> = (
-  args
-) => {
-  return <NightPhaseArrestedComponent />;
+export const Primary: ComponentStory<typeof NightPhaseArrested> = (args) => {
+  return <NightPhaseArrested />;
 };
