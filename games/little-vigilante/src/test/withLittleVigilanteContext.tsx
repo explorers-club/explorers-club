@@ -34,7 +34,6 @@ export const withLittleVigilanteContext: DecoratorFunction<
     myUserId: string;
     state: LittleVigilanteStateSerialized;
   };
-  console.log(state.roles);
 
   const store = createMockStore<
     LittleVigilanteStateSerialized,

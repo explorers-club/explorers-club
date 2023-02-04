@@ -8,7 +8,10 @@ import { LittleVigilantePlayer } from '@explorers-club/schema-types/LittleVigila
 import { LittleVigilanteState } from '@explorers-club/schema-types/LittleVigilanteState';
 import { Client, matchMaker, Room } from 'colyseus';
 import { interpret } from 'xstate';
-import { rolesByPlayerCount } from '../meta/little-vigilante.constants';
+import {
+  rolesByPlayerCount,
+  ROLE_LIST,
+} from '../meta/little-vigilante.constants';
 import {
   createLittleVigilanteServerMachine,
   LittleVigilanteServerService,
@@ -25,6 +28,7 @@ export interface OnCreateOptions {
   votingTimeSeconds: number;
   roundsToPlay: number;
   discussionTimeSeconds: number;
+  rolesToExclude: string[];
 }
 
 interface OnJoinOptions {
@@ -48,8 +52,12 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
 
     const json =
       clubRoom.state.gameConfigsSerialized.get('little_vigilante') || '{}';
-    const { votingTimeSeconds, discussionTimeSeconds, roundsToPlay } =
-      LittleVigilanteConfigSchema.parse(JSON.parse(json));
+    const {
+      votingTimeSeconds,
+      discussionTimeSeconds,
+      roundsToPlay,
+      rolesToExclude,
+    } = LittleVigilanteConfigSchema.parse(JSON.parse(json));
 
     const options = {
       roomId,
@@ -57,6 +65,7 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
       votingTimeSeconds,
       discussionTimeSeconds,
       roundsToPlay,
+      rolesToExclude,
     } as OnCreateOptions;
 
     // todo
@@ -70,6 +79,7 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
       votingTimeSeconds,
       discussionTimeSeconds,
       roundsToPlay,
+      rolesToExclude,
     } = options;
 
     // initialize empty room state
@@ -93,7 +103,9 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
 
     state.hostUserIds.add(playerInfo[0].userId);
 
-    const roles = rolesByPlayerCount[playerInfo.length];
+    const roles = ROLE_LIST.filter(
+      (role) => !rolesToExclude.includes(role)
+    ).slice(0, playerInfo.length + 3);
 
     roles.forEach((role) => state.roles.push(role));
 

@@ -65,6 +65,21 @@ export const secondaryColorByRole = {
   anarchist: 'green',
 } as const;
 
+export const ROLE_LIST = [
+  'vigilante',
+  'butler',
+  'twin_girl',
+  'twin_boy',
+  'detective',
+  'conspirator',
+  'politician',
+  'sidekick',
+  'monk',
+  'cop',
+  'anarchist',
+  'mayor',
+] as Role[];
+
 const FOUR_PLAYER_ROLES = [
   'vigilante',
   'butler',

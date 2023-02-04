@@ -78,6 +78,7 @@ export const LittleVigilanteConfigSchema = z
     discussionTimeSeconds: z.number().int().min(10).max(600).default(180),
     roundsToPlay: z.number().int().min(1).max(999).default(5),
     votingTimeSeconds: z.number().int().default(20),
+    rolesToExclude: z.array(z.string()),
   })
   .required();
 

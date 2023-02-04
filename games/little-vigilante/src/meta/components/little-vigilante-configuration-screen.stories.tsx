@@ -8,11 +8,12 @@ export default {
     viewport: {
       defaultViewport: 'mobile1',
     },
+    actins: {},
   },
-  actionTypes: {
-    onSubmitConfig: { type: 'action' },
+  argTypes: {
+    onSubmitConfig: { action: 'submit' },
   },
-} as Meta;
+};
 
 export const Primary: ComponentStory<
   typeof LittleVigilanteConfigurationScreenComponent
@@ -28,5 +29,6 @@ Primary.args = {
     discussionTimeSeconds: 60,
     votingTimeSeconds: 60,
     roundsToPlay: 5,
+    rolesToExclude: ['mayor'],
   },
 };

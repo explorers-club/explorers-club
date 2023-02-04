@@ -59,6 +59,7 @@ const Template: Story<{
         votingTimeSeconds,
         discussionTimeSeconds,
         roundsToPlay: 3,
+        rolesToExclude: ['politician'],
       };
       try {
         room = await colyseusClient.create<LittleVigilanteState>(
