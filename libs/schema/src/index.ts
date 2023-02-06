@@ -49,33 +49,47 @@ export type ClubMetadata = {
   clubName: string;
 };
 
-export const TriviaJamConfigSchema = z.object({
-  gameId: z.literal('trivia_jam').default('trivia_jam'),
-  maxPlayers: z.number().max(20).default(20),
-  questionSetEntryId: z.string().default('dSX6kC0PNliXTl7qHYJLH'),
-});
+export const TriviaJamConfigSchema = z
+  .object({
+    gameId: z.literal('trivia_jam').default('trivia_jam'),
+    minPlayers: z.literal(3).default(3),
+    maxPlayers: z.number().max(250).default(250),
+    questionSetEntryId: z.string().default('dSX6kC0PNliXTl7qHYJLH'),
+  })
+  .required();
 
 export type TriviaJamConfig = z.infer<typeof TriviaJamConfigSchema>;
 
-export const DiffusionaryConfigSchema = z.object({
-  gameId: z.literal('diffusionary').default('diffusionary'),
-  maxPlayers: z.number().max(10).default(10),
-});
+export const DiffusionaryConfigSchema = z
+  .object({
+    gameId: z.literal('diffusionary').default('diffusionary'),
+    minPlayers: z.literal(4).default(4),
+    maxPlayers: z.number().int().min(4).max(10).default(10),
+  })
+  .required();
 
 export type DiffusionaryConfig = z.infer<typeof DiffusionaryConfigSchema>;
 
-export const LittleVigilanteConfigSchema = z.object({
-  gameId: z.literal('little_vigilante').default('little_vigilante'),
-  maxPlayers: z.number().max(10).default(10),
-  discussionTimeSeconds: z.number().default(300),
-  votingTimeSeconds: z.number().default(50),
-});
+export const LittleVigilanteConfigSchema = z
+  .object({
+    gameId: z.literal('little_vigilante').default('little_vigilante'),
+    minPlayers: z.literal(4).default(4),
+    maxPlayers: z.number().int().min(4).max(10).default(10),
+    discussionTimeSeconds: z.number().int().min(10).max(600).default(180),
+    roundsToPlay: z.number().int().min(1).max(999).default(5),
+    votingTimeSeconds: z.number().int().default(20),
+    rolesToExclude: z.array(z.string()).default([]),
+  })
+  .required();
 
 export type LittleVigilanteConfig = z.infer<typeof LittleVigilanteConfigSchema>;
 
-export const CodebreakersConfigSchema = z.object({
-  gameId: z.literal('codebreakers').default('codebreakers'),
-  maxPlayers: z.number().int().max(10).default(10),
-});
+export const CodebreakersConfigSchema = z
+  .object({
+    gameId: z.literal('codebreakers').default('codebreakers'),
+    minPlayers: z.literal(4).default(4),
+    maxPlayers: z.number().int().min(4).max(10).default(10),
+  })
+  .required();
 
 export type CodebreakersConfig = z.infer<typeof CodebreakersConfigSchema>;

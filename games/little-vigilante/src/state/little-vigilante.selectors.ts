@@ -11,6 +11,26 @@ export const selectVigilantePlayerName = (
   return state.players[userId]?.name;
 };
 
+export const selectTwinBoyPlayerName = (
+  state: LittleVigilanteStateSerialized
+) => {
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const result = Object.entries(state.initialCurrentRoundRoles).find(
+    ([, role]) => role === 'twin_boy'
+  );
+  return result && state.players[result[0]]?.name;
+};
+
+export const selectTwinGirlPlayerName = (
+  state: LittleVigilanteStateSerialized
+) => {
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const result = Object.entries(state.initialCurrentRoundRoles).find(
+    ([, role]) => role === 'twin_girl'
+  );
+  return result && state.players[result[0]]?.name;
+};
+
 export const selectPlayersWithName = (
   state: LittleVigilanteStateSerialized
 ) => {
@@ -39,7 +59,7 @@ export const selectPlayersWithNameAndRole = (
 };
 
 export const selectUnusedRoles = (state: LittleVigilanteStateSerialized) => {
-  const { roles } = state;
+  const roles = Array.from(state.roles);
   const usedRoles = Object.values(state.currentRoundRoles) as Role[];
   for (const role of usedRoles) {
     const index = roles.indexOf(role);

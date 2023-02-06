@@ -17,13 +17,13 @@ import { colorBySlotNumber } from '@explorers-club/styles';
 import { useClubStoreSelector } from './club-tab.hooks';
 import {
   selectGameConfig,
-  selectPlayerBySlotNumber
+  selectPlayerBySlotNumber,
 } from './club-tab.selectors';
 import { GameCarousel } from './components/game-carousel.component';
 
 export const ClubTabComponent = () => {
   const { modalActor, clubTabActor } = useContext(AppContext);
-  const gameRoomId = useClubStoreSelector((state) => state.gameRoomId);
+  const gameRoomId = useClubStoreSelector((state) => state.gameRoomIds[0]);
   const hostUserId = useClubStoreSelector((state) => state.hostUserId);
   const playersBySlotNumber = useClubStoreSelector(selectPlayerBySlotNumber);
   const gameConfig = useClubStoreSelector(selectGameConfig);
@@ -32,6 +32,9 @@ export const ClubTabComponent = () => {
   const needsNameInput = useSelector(clubTabActor, (state) =>
     state.matches('Room.Connected.EnteringName')
   );
+  const state = useClubStoreSelector((state) => state);
+  const actorState = useSelector(clubTabActor, (state) => state);
+  console.log({ state, actorState });
 
   const { userId } = useContext(AuthContext);
   const isHost = hostUserId === userId;

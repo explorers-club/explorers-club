@@ -17,10 +17,14 @@ export const ScoreboardScreen = () => {
   const onPressNext = useCallback(() => {
     send({ type: CONTINUE });
   }, [send]);
+  const currentRound = useLittleVigilanteSelector(
+    (state) => state.currentRound
+  );
 
   return (
     <ScoreboardScreenComponent
       onPressNext={isHost ? onPressNext : undefined}
+      currentRound={currentRound}
       players={players}
     />
   );

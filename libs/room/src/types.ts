@@ -66,8 +66,10 @@ export type RoomStore<T extends Schema, TCommand> = {
 
 // Common
 export const JOIN = 'JOIN';
+export const DISCONNECt = 'DISCONNECT';
 export const LEAVE = 'LEAVE';
 export const CONTINUE = 'CONTINUE';
+export const RECONNECT = 'RECONNECT';
 
 export type LeaveCommand = {
   type: typeof LEAVE;
@@ -81,6 +83,16 @@ export type JoinCommand = {
 
 export type ContinueCommand = {
   type: typeof CONTINUE;
+};
+
+export type ReconnectCommand = {
+  type: typeof RECONNECT;
+  userId: string;
+};
+
+export type DisconnectCommand = {
+  type: typeof DISCONNECt;
+  userId: string;
 };
 
 // Trivia Jam
@@ -186,6 +198,9 @@ export type LittleVigilanteCommand =
   | LittleVigilanteVoteCommand
   | LittleVigilanteArrestCommand
   | LittleVigilanteSwapCommand;
+
+export type LittleVigilanteCommandType = LittleVigilanteCommand['type'];
+
 export type LittleVigilanteStore = RoomStore<
   LittleVigilanteState,
   LittleVigilanteCommand
@@ -239,10 +254,16 @@ export type ClubRoomStartGameCommand = {
 };
 
 export type ClubRoomCommand =
+  | JoinCommand
+  | DisconnectCommand
+  | ReconnectCommand
+  | LeaveCommand
   | ClubRoomEnterNameCommand
   | ClubRoomSelectGameCommand
   | ClubRoomSetGameConfigCommand
   | ClubRoomStartGameCommand;
+
+export type ClubRoomCommandType = ClubRoomCommand['type'];
 
 export type ClubStore = RoomStore<ClubState, ClubRoomCommand>;
 export type ClubStateSerialized = SerializedSchema<ClubState>;

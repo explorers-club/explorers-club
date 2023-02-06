@@ -11,6 +11,7 @@ import {
   TriviaJamRoomIdSchema,
 } from '@explorers-club/schema';
 import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
+import { assertEventType } from '@explorers-club/utils';
 import { TabMetadata } from '@organisms/tab-bar';
 import { RocketIcon } from '@radix-ui/react-icons';
 import { Client } from 'colyseus.js';
@@ -23,12 +24,12 @@ import {
 } from 'xstate';
 
 export type GameTabContext = {
-  roomId: GameRoomId;
+  roomId?: GameRoomId;
   gameId?: GameId;
   store?: GameStore;
 };
 
-type GameTabEvent = { type: 'CONNECT'; roomId: GameRoomId };
+type GameTabEvent = { type: 'CONNECT'; roomId: GameRoomId } | { type: 'LEAVE' };
 
 export const createGameTabMachine = (colyseusClient: Client, userId: string) =>
   createMachine(
@@ -59,7 +60,7 @@ export const createGameTabMachine = (colyseusClient: Client, userId: string) =>
               invoke: {
                 src: async ({ roomId }) => {
                   const room = await colyseusClient.joinById<TriviaJamState>(
-                    roomId,
+                    roomId!,
                     {
                       userId,
                     }
@@ -82,7 +83,14 @@ export const createGameTabMachine = (colyseusClient: Client, userId: string) =>
                 onError: 'Error',
               },
             },
-            Connected: {},
+            Connected: {
+              on: {
+                LEAVE: {
+                  target: 'Uninitialized',
+                  actions: 'clearGame',
+                },
+              },
+            },
             Error: {},
           },
         },
@@ -109,16 +117,29 @@ export const createGameTabMachine = (colyseusClient: Client, userId: string) =>
                 CONNECT: 'Visible',
               },
             },
-            Visible: {},
+            Visible: {
+              on: {
+                LEAVE: 'Hidden',
+              },
+            },
           },
         },
       },
     },
     {
       actions: {
+        clearGame: assign<GameTabContext, GameTabEvent>({
+          roomId: () => undefined,
+          gameId: () => undefined,
+        }),
         setRoomId: assign<GameTabContext, GameTabEvent>({
-          roomId: (_, { roomId }) => roomId,
-          gameId: (_, { roomId }) => {
+          roomId: (_, event) => {
+            assertEventType(event, 'CONNECT');
+            return event.roomId;
+          },
+          gameId: (_, event) => {
+            assertEventType(event, 'CONNECT');
+            const { roomId } = event;
             if (TriviaJamRoomIdSchema.safeParse(roomId).success) {
               return 'trivia_jam';
             } else if (DiffusionaryRoomIdSchema.safeParse(roomId).success) {

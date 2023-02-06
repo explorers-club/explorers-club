@@ -8,6 +8,7 @@ import { CSS } from '@explorers-club/styles';
 import { FC } from 'react';
 import {
   abilityByRole,
+  displayNameByRole,
   iconByRole,
   imageByRole,
   objectiveByRole,
@@ -20,10 +21,7 @@ interface Props {
   role: Role;
 }
 
-export const RoleCard: FC<Props> = ({
-  css,
-  role,
-}) => {
+export const RoleCard: FC<Props> = ({ css, role }) => {
   const imageSrc = imageByRole[role];
   const iconSrc = iconByRole[role];
   const ability = abilityByRole[role];
@@ -53,11 +51,11 @@ export const RoleCard: FC<Props> = ({
             }}
             size="2"
           >
-            {role}
+            {displayNameByRole[role]}
           </Heading>
-              <Caption>Ability</Caption>
-              <Text>{ability}</Text>
-              <Caption>Objective</Caption>
+          <Caption>Ability</Caption>
+          <Text>{ability}</Text>
+          <Caption>Objective</Caption>
           <Text>{objective}</Text>
         </Flex>
         <Avatar size="3" src={iconSrc} />

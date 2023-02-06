@@ -16,6 +16,7 @@
         "polyfills": "apps/web/src/polyfills.ts",
         "tsConfig": "apps/web/tsconfig.app.json",
         "assets": [
+          { "glob": "**/*", "input": "static", "output": "assets" },
           "apps/web/src/favicon.ico",
           "apps/web/src/assets",
           "apps/web/src/_redirects"

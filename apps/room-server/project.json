@@ -27,6 +27,14 @@
         }
       }
     },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/apps/room-server"],
+      "options": {
+        "jestConfig": "apps/room-server/jest.config.ts",
+        "passWithNoTests": true
+      }
+    },
     "serve": {
       "executor": "@nrwl/node:node",
       "options": {
@@ -53,6 +61,7 @@
         "commands": [
           "cp apps/room-server/Procfile ./dist/apps/room-server/Procfile",
           "cp apps/room-server/fly.staging.toml ./dist/apps/room-server/fly.toml",
+          "rm dist/apps/room-server/package-lock.json",
           "flyctl deploy ./dist/apps/room-server --remote-only"
         ]
       }
@@ -65,6 +74,7 @@
         "commands": [
           "cp apps/room-server/Procfile ./dist/apps/room-server/Procfile",
           "cp apps/room-server/fly.production.toml ./dist/apps/room-server/fly.toml",
+          "rm dist/apps/room-server/package-lock.json",
           "flyctl deploy ./dist/apps/room-server --remote-only"
         ]
       }

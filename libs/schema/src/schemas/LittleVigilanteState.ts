@@ -19,12 +19,15 @@ export class LittleVigilanteState extends Schema {
 
   @type({ set: 'string' }) currentStates: SetSchema<string> = new SetSchema();
   @type({ set: 'string' }) hostUserIds: SetSchema<string> = new SetSchema();
-  @type({ set: 'string' }) roles: ArraySchema<string> = new ArraySchema();
+  @type({ array: 'string' }) roles: ArraySchema<string> = new ArraySchema();
 
   @type('number') timeRemaining!: number;
 
   @type({ map: 'string' })
   public currentRoundRoles: MapSchema<string> = new MapSchema<string>();
+
+  @type({ map: 'string' })
+  public initialCurrentRoundRoles: MapSchema<string> = new MapSchema<string>();
 
   @type({ map: 'string' })
   public currentRoundVotes: MapSchema<string> = new MapSchema<string>();

@@ -42,20 +42,17 @@ export const RevealScreenComponent: FC<Props> = ({
                 >
                   <Heading>{playerName}</Heading>
                   <Caption>{role}</Caption>
-                  {winner && (
-                    <Badge
-                      css={{ position: 'absolute', top: '0', right: '$1' }}
-                      variant="green"
-                    >
-                      Winner
-                    </Badge>
-                  )}
                 </Box>
+                {winner && (
+                  <Badge
+                    css={{ position: 'absolute', top: '$2', left: '$2' }}
+                    size="2"
+                    variant="green"
+                  >
+                    Winner
+                  </Badge>
+                )}
               </Card>
-              // <Flex key={playerName} justify="between">
-              //   <Heading size="2">{playerName}</Heading>
-              //   <Heading size="2">{role}</Heading>
-              // </Flex>
             ))}
           </Grid>
           {onPressNext && (

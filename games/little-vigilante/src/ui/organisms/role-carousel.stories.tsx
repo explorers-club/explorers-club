@@ -1,0 +1,65 @@
+import { withCardDecorator } from '@storybook-decorators/CardDecorator';
+import { nightPhaseOrder } from '../../meta/little-vigilante.constants';
+import { withLittleVigilanteContext } from '../../test/withLittleVigilanteContext';
+import { RoleCarousel } from './role-carousel.component';
+
+export default {
+  component: RoleCarousel,
+  decorators: [withCardDecorator, withLittleVigilanteContext],
+  parameters: {
+    cardCSS: {
+      p: '$0',
+    },
+  },
+};
+
+export const Default = () => {
+  return <RoleCarousel />;
+};
+
+const players = {
+  alice123: {
+    name: 'Alice',
+    slotNumber: 1,
+    currentRoundRoleTargets: {
+      bob123: 'twin_boy',
+      dave123: 'mayor',
+    },
+  },
+  bob123: {
+    name: 'Bob',
+    slotNumber: 2,
+    currentRoundRoleTargets: {},
+  },
+  charlie123: {
+    name: 'Charlie',
+    slotNumber: 3,
+    currentRoundRoleTargets: {},
+  },
+  dave123: {
+    name: 'Dave',
+    slotNumber: 4,
+    currentRoundRoleTargets: {},
+  },
+};
+
+Default.args = {
+  myUserId: 'alice123',
+  state: {
+    roles: nightPhaseOrder,
+    players,
+    currentStates: ['Playing.Round.NightPhase.Vigilante'],
+    initialCurrentRoundRoles: {
+      alice123: 'monk',
+      bob123: 'twin_boy',
+      charlie123: 'sidekick',
+      dave123: 'mayor',
+    },
+    currentRoundRoles: {
+      alice123: 'monk',
+      bob123: 'twin_boy',
+      charlie123: 'sidekick',
+      dave123: 'mayor',
+    },
+  },
+};
