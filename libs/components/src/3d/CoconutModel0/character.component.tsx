@@ -110,10 +110,7 @@ export function Character({ gltf, group }: Props) {
     setfeetColor(`#${materials.Coconut_Foot.color.getHexString()}`);
   }, []);
 
-  const normalMap = useLoader(
-    THREE.TextureLoader,
-    './assets/Coconut_Normal.png'
-  );
+  const map = useLoader(THREE.TextureLoader, './assets/Coconut_MaskB.png');
 
   return (
     <group ref={group} dispose={null}>

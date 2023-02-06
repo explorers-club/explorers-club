@@ -89,6 +89,7 @@ export function Character({ gltf, group }: Props) {
   } = useCharacterCustomization() as customizationStateTypes;
 
   useEffect(() => {
+    console.log(animations);
     // console.log(
     //   nodes.Mesh.morphTargetDictionary,
     //   nodes.Mesh.morphTargetInfluences
@@ -97,7 +98,7 @@ export function Character({ gltf, group }: Props) {
     //   Object.keys(nodes.Mesh.morphTargetDictionary as any)
     // );
     // setMorphTargetInfluences(nodes.Mesh.morphTargetInfluences);
-    console.log(materials.Coconut_Eyes.color);
+
     setHeadColor(`#${materials.Coconut.color.getHexString()}`);
     setEyesColor(`#${materials.Coconut_Eyes.color.getHexString()}`);
   }, []);
@@ -141,9 +142,9 @@ export function Character({ gltf, group }: Props) {
               morphTargetInfluences={morphTargetInfluences}
             >
               <meshStandardMaterial
-                normalMap={materials.Coconut.normalMap}
-                roughness={materials.Coconut.roughness}
-                color={eyesColor}
+                normalMap={materials.Coconut_Eyes.normalMap}
+                roughness={materials.Coconut_Eyes.roughness}
+                map={materials.Coconut_Eyes.map}
               />
             </skinnedMesh>
           </group>
