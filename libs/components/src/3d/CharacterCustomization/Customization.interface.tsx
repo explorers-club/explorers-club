@@ -14,7 +14,6 @@ import { Label } from '@atoms/Label';
 import { Text } from '@atoms/Text';
 import { Heading } from '@atoms/Heading';
 import { ControlGroup } from '@atoms/ControlGroup';
-import { HeadConfigurator } from './Customization-Head.component';
 
 export const Interface = () => {
   const {
