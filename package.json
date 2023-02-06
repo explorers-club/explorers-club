@@ -12,6 +12,8 @@
   "dependencies": {
     "@colyseus/arena": "^0.14.24",
     "@colyseus/monitor": "^0.14.22",
+    "@dicebear/collection": "^5.3.0",
+    "@dicebear/core": "^5.3.0",
     "@mapbox/martini": "github:mapbox/martini#f0d6dcaeb656b4d256c0da5bfe53de9262c4a8f1",
     "@mapbox/tile-cover": "^3.0.2",
     "@mapbox/tilebelt": "^1.0.2",
