@@ -2,8 +2,7 @@ import {
   LittleVigilanteStateSerialized,
   useStoreSelector,
 } from '@explorers-club/room';
-import { useContext, useMemo, useSyncExternalStore } from 'react';
-import { Observable, from } from 'rxjs';
+import { useContext } from 'react';
 import { LittleVigilanteContext } from './little-vigilante.context';
 
 export const useMyUserId = () => {
@@ -24,6 +23,11 @@ export const useIsHost = () => {
 //     from(store);
 //   }, [store]);
 // };
+
+export const useLittleVigilanteEvent$ = () => {
+  const { event$ } = useContext(LittleVigilanteContext);
+  return event$;
+};
 
 export const useLittleVigilanteSend = () => {
   const { store } = useContext(LittleVigilanteContext);

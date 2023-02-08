@@ -15,11 +15,15 @@ export class LittleVigilantePlayer extends ClubPlayer {
 }
 
 export class LittleVigilanteState extends Schema {
+  @type('string') conversationId!: string;
   @type('number') currentRound = 1;
 
   @type({ set: 'string' }) currentStates: SetSchema<string> = new SetSchema();
   @type({ set: 'string' }) hostUserIds: SetSchema<string> = new SetSchema();
   @type({ array: 'string' }) roles: ArraySchema<string> = new ArraySchema();
+
+  @type({ array: 'string' }) chatMessagesSerialized: ArraySchema<string> =
+    new ArraySchema();
 
   @type('number') timeRemaining!: number;
 

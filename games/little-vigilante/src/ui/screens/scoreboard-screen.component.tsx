@@ -1,38 +1,21 @@
-import { Box } from '@atoms/Box';
-import { Button } from '@atoms/Button';
-import { Caption } from '@atoms/Caption';
 import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
-import { Scoreboard } from '@molecules/Scoreboard';
-import { FC } from 'react';
-import { LittleVigilantePlayerSerialized } from '@explorers-club/room';
-import { Heading } from '@atoms/Heading';
+import { Chat } from '../organisms/chat.component';
+import { HostControls } from '../organisms/host-controls.component';
+import { Scoreboard } from '../organisms/scoreboard.component';
 
-interface Props {
-  players: LittleVigilantePlayerSerialized[];
-  currentRound: number;
-  onPressNext?: () => void;
-}
-
-export const ScoreboardScreenComponent: FC<Props> = ({
-  players,
-  currentRound,
-  onPressNext,
-}) => {
+export const ScoreboardScreen = () => {
   return (
-    <Box css={{ p: '$3' }}>
+    <Flex css={{ p: '$3' }} direction="column" gap="2">
       <Card>
-        <Flex direction="column" css={{ p: '$3' }}>
-          <Caption>Scores</Caption>
-          <Heading>Round {currentRound}</Heading>
-          <Scoreboard players={players} />
-          {onPressNext && (
-            <Button size="3" color="primary" fullWidth onClick={onPressNext}>
-              Next
-            </Button>
-          )}
-        </Flex>
+        <HostControls />
       </Card>
-    </Box>
+      <Card>
+        <Scoreboard />
+      </Card>
+      <Card css={{ flexGrow: 1 }}>
+        <Chat />
+      </Card>
+    </Flex>
   );
 };

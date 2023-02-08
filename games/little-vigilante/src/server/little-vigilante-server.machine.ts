@@ -1,4 +1,4 @@
-import { LittleVigilanteCommand } from '@explorers-club/room';
+import { LittleVigilanteServerEvent } from '@explorers-club/room';
 import { LittleVigilanteState } from '@explorers-club/schema-types/LittleVigilanteState';
 import { assertEventType, shuffle } from '@explorers-club/utils';
 import { A, pipe } from '@mobily/ts-belt';
@@ -10,10 +10,6 @@ export interface LittleVigilanteServerContext {
   room: Room<LittleVigilanteState>;
 }
 
-export type LittleVigilanteServerEvent = LittleVigilanteCommand & {
-  userId: string;
-};
-
 export const createLittleVigilanteServerMachine = (
   room: Room<LittleVigilanteState>,
   settings: {
@@ -22,7 +18,7 @@ export const createLittleVigilanteServerMachine = (
     roundsToPlay: number;
   }
 ) => {
-  const triviaJamMachine = createMachine(
+  const littleVigilanteMachine = createMachine(
     {
       id: 'LittleVigilanteServerMachine',
       initial: 'Initializing',
@@ -441,7 +437,8 @@ export const createLittleVigilanteServerMachine = (
             acc.set(votedRole, votes + 1);
             return acc;
           }, new Map<string, number>());
-          const majority = Math.floor(Math.floor(room.state.players.size) / 2) + 1;
+          const majority =
+            Math.floor(Math.floor(room.state.players.size) / 2) + 1;
 
           const vigilanteVotes = votesByRole.get('vigilante') || 0;
           const sidekickVotes = votesByRole.get('sidekick') || 0;
@@ -506,7 +503,7 @@ export const createLittleVigilanteServerMachine = (
       },
     }
   );
-  return triviaJamMachine;
+  return littleVigilanteMachine;
 };
 
 type LittleVigilanteServerMachine = ReturnType<

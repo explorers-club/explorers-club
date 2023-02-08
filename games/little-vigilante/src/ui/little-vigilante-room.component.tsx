@@ -5,6 +5,8 @@ import { SummaryScreen } from './screens/summary-screen.container';
 export const LittleVigilanteRoomComponent = () => {
   const states = useLittleVigilanteSelector((state) => state.currentStates);
 
+  // TODO here define card list by state
+
   switch (true) {
     case states.includes('Playing'):
       return <PlayScreen />;

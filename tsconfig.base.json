@@ -20,6 +20,7 @@
       "@atoms/*": ["libs/components/src/atoms/*"],
       "@explorers-club/api": ["libs/api/src/index.ts"],
       "@explorers-club/api-client": ["libs/api/src/client"],
+      "@explorers-club/chat": ["libs/chat/src/index.ts"],
       "@explorers-club/codebreakers/meta/*": ["games/codebreakers/src/meta/*"],
       "@explorers-club/codebreakers/scene": [
         "games/codebreakers/src/scene/index.ts"

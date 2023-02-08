@@ -30,9 +30,22 @@ export const teamByRole: Record<Role, Team> = {
 };
 
 export const colorByTeam = {
-  citizens: 'crimson',
-  vigilante: 'yellow',
-  anarchist: 'orange',
+  citizens: 'magenta',
+  vigilante: 'cyan',
+  anarchist: 'gold',
+} as const;
+
+export const colorNameToPrimaryColor = {
+  yellow: 'F5D90A',
+  white: 'FFFFFF',
+  red: 'E5484D',
+  green: '30A46C',
+  blue: '0091FF',
+  purple: '8E4EC6',
+  pink: 'D6409F',
+  orange: 'F76808',
+  brown: 'AD7F58',
+  black: '000000',
 } as const;
 
 export const primaryColorByRole = {
@@ -172,6 +185,10 @@ export const objectiveByRole: Record<Role, string> = {
   sidekick: "Win if you or the vigilante don't receive the most votes.",
   vigilante: "Win if you or the sidekick don't receive the most votes.",
   anarchist: 'Win if you receive the most votes.',
+};
+
+export const getAvatarImageByRole = (role: Role) => {
+  return `/assets/little-vigilante/images/${role}_avatar.png`;
 };
 
 export const imageByRole: Record<Role, string> = {

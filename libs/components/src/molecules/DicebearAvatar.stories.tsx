@@ -1,8 +1,7 @@
-import { DicebarAvatar } from './DicebearAvatar';
-import { Grid } from '../atoms/Grid';
 import { thumbs } from '@dicebear/collection';
-import { Flex } from '../atoms/Flex';
 import { FC } from 'react';
+import { Flex } from '../atoms/Flex';
+import { DicebearAvatar } from './DicebearAvatar';
 
 const colorNameToBackgroundColor = {
   yellow: 'F5D90A',
@@ -18,7 +17,7 @@ const colorNameToBackgroundColor = {
 } as const;
 
 export default {
-  component: DicebarAvatar,
+  component: DicebearAvatar,
 };
 
 interface Props {
@@ -44,7 +43,7 @@ const Row: FC<Props> = ({ seed }) => {
         gap: '$1',
       }}
     >
-      <DicebarAvatar
+      <DicebearAvatar
         size="6"
         thumbStyle={thumbs}
         options={{
@@ -53,7 +52,7 @@ const Row: FC<Props> = ({ seed }) => {
           backgroundType: ['gradientLinear'],
         }}
       />
-      <DicebarAvatar
+      <DicebearAvatar
         size="6"
         thumbStyle={thumbs}
         options={{
@@ -62,7 +61,7 @@ const Row: FC<Props> = ({ seed }) => {
           backgroundType: ['gradientLinear'],
         }}
       />
-      <DicebarAvatar
+      <DicebearAvatar
         size="6"
         thumbStyle={thumbs}
         options={{
@@ -72,7 +71,7 @@ const Row: FC<Props> = ({ seed }) => {
           scale: 50,
         }}
       />
-      <DicebarAvatar
+      <DicebearAvatar
         size="6"
         thumbStyle={thumbs}
         options={{
@@ -80,7 +79,7 @@ const Row: FC<Props> = ({ seed }) => {
           backgroundColor: [colorNameToBackgroundColor.blue],
         }}
       />
-      <DicebarAvatar
+      <DicebearAvatar
         size="6"
         thumbStyle={thumbs}
         options={{
@@ -88,7 +87,7 @@ const Row: FC<Props> = ({ seed }) => {
           backgroundColor: [colorNameToBackgroundColor.green],
         }}
       />
-      <DicebarAvatar
+      <DicebearAvatar
         size="6"
         thumbStyle={thumbs}
         options={{
@@ -96,7 +95,7 @@ const Row: FC<Props> = ({ seed }) => {
           backgroundColor: [colorNameToBackgroundColor.red],
         }}
       />
-      <DicebarAvatar
+      <DicebearAvatar
         size="6"
         thumbStyle={thumbs}
         options={{
@@ -104,7 +103,7 @@ const Row: FC<Props> = ({ seed }) => {
           backgroundColor: [colorNameToBackgroundColor.brown],
         }}
       />
-      <DicebarAvatar
+      <DicebearAvatar
         size="6"
         thumbStyle={thumbs}
         options={{
@@ -112,7 +111,7 @@ const Row: FC<Props> = ({ seed }) => {
           backgroundColor: [colorNameToBackgroundColor.pink],
         }}
       />
-      <DicebarAvatar
+      <DicebearAvatar
         size="6"
         thumbStyle={thumbs}
         options={{
@@ -120,7 +119,7 @@ const Row: FC<Props> = ({ seed }) => {
           backgroundColor: [colorNameToBackgroundColor.white],
         }}
       />
-      <DicebarAvatar
+      <DicebearAvatar
         size="6"
         thumbStyle={thumbs}
         options={{

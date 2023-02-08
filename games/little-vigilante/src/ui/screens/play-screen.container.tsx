@@ -4,7 +4,7 @@ import { AssigningRolesScreen } from './assigning-roles-screen.container';
 import { DiscussionPhaseScreen } from './discussion-phase-screen.container';
 import { NightPhaseScreen } from './night-phase-screen.container';
 import { RevealScreen } from './reveal-screen.container';
-import { ScoreboardScreen } from './scoreboard-screen.constainer';
+import { ScoreboardScreen } from './scoreboard-screen.component';
 import { VotingPhaseScreen } from './voting-phase-screen.container';
 
 export const PlayScreen = () => {

@@ -74,6 +74,13 @@ export const Badge = styled('span', {
             'inset 0 0 0 1px $colors$crimson8, 0 0 0 1px $colors$crimson8',
         },
       },
+      brown: {
+        backgroundColor: '$brown',
+        color: '$brown11',
+        '&:focus': {
+          boxShadow: 'inset 0 0 0 1px $colors$brown8, 0 0 0 1px $colors$brown8',
+        },
+      },
       pink: {
         backgroundColor: '$pink3',
         color: '$pink11',
@@ -161,6 +168,14 @@ export const Badge = styled('span', {
         color: '$gold11',
         '&:focus': {
           boxShadow: 'inset 0 0 0 1px $colors$gold8, 0 0 0 1px $colors$gold8',
+        },
+      },
+      magenta: {
+        backgroundColor: '$crimson3',
+        color: '$crimson',
+        '&:focus': {
+          boxShadow:
+            'inset 0 0 0 1px $colors$crimson, 0 0 0 1px $colors$crimson',
         },
       },
       bronze: {

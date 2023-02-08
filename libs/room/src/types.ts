@@ -66,6 +66,8 @@ export type RoomStore<T extends Schema, TCommand> = {
 
 // Common
 export const JOIN = 'JOIN';
+export const TYPING = 'TYPING';
+export const MESSAGE = 'MESSAGE';
 export const DISCONNECt = 'DISCONNECT';
 export const LEAVE = 'LEAVE';
 export const CONTINUE = 'CONTINUE';
@@ -79,6 +81,15 @@ export type LeaveCommand = {
 export type JoinCommand = {
   type: typeof JOIN;
   userId: string;
+};
+
+export type TypingCommand = {
+  type: typeof TYPING;
+};
+
+export type MessageCommand = {
+  type: typeof MESSAGE;
+  text: string;
 };
 
 export type ContinueCommand = {
@@ -191,6 +202,8 @@ export type LittleVigilanteCommand =
   | JoinCommand
   | ContinueCommand
   | LeaveCommand
+  | MessageCommand
+  | TypingCommand
   | LittleVigilanteRejectVoteCommand
   | LittleVigilanteApproveVoteCommand
   | LittleVigilanteCallVoteCommand
@@ -262,6 +275,47 @@ export type ClubRoomCommand =
   | ClubRoomSelectGameCommand
   | ClubRoomSetGameConfigCommand
   | ClubRoomStartGameCommand;
+
+interface ServerEventProps {
+  userId: string;
+  ts: number;
+}
+
+export type ServerEvent<T> = T & ServerEventProps;
+
+export type ChatServerEvent = ServerEvent<MessageCommand | TypingCommand>;
+
+export type LittleVigilanteServerEvent = ServerEvent<LittleVigilanteCommand>;
+
+// tood use zod schema for events, use to write type guards for rxjs
+// https://dev.to/sachitsac/typescript-type-guards-with-zod-1m12
+export function isChatEvent(obj: any): obj is ChatServerEvent {
+  if (obj && obj.type === 'MESSAGE') {
+    return true;
+  }
+  return false;
+}
+
+export function isLittleVigilanteEvent(
+  obj: any
+): obj is ServerEvent<LittleVigilanteCommand> {
+  // its okay to not actually filter this, it just means xstate
+  // is processing more events that it needs to. in future use zod.safeParse here
+  return true;
+}
+
+export type ClubRoomServerEvent =
+  | (ClubRoomCommand & ServerEventProps)
+  | ChatServerEvent;
+
+export type GameCommand =
+  | LittleVigilanteCommand
+  | CodebreakersCommand
+  | DiffusionaryCommand
+  | TriviaJamCommand;
+export type GameServerEvent = GameCommand & ServerEventProps;
+
+export type RoomServerEvent = ClubRoomServerEvent | GameServerEvent;
 
 export type ClubRoomCommandType = ClubRoomCommand['type'];
 

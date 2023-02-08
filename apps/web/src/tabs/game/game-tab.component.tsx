@@ -1,4 +1,9 @@
-import { DiffusionaryStore, LittleVigilanteStore, TriviaJamStore } from '@explorers-club/room';
+import {
+  DiffusionaryStore,
+  isLittleVigilanteEvent,
+  LittleVigilanteStore,
+  TriviaJamStore,
+} from '@explorers-club/room';
 import { TriviaJamRoom } from '@explorers-club/trivia-jam/ui';
 import { LittleVigilanteRoom } from '@explorers-club/little-vigilante/ui';
 import { useSelector } from '@xstate/react';
@@ -6,19 +11,21 @@ import { FC, useContext } from 'react';
 import { AuthContext } from '../../state/auth.context';
 import { GameTabActor } from './game-tab.machine';
 import { DiffusionaryRoom } from '@explorers-club/diffusionary/ui';
+import { filter } from 'rxjs';
 
 interface Props {
   actor: GameTabActor;
 }
 
 export const GameTabComponent: FC<Props> = ({ actor }) => {
-  const [gameId, store] = useSelector(actor, ({ context }) => [
+  const [gameId, store, event$] = useSelector(actor, ({ context }) => [
     context.gameId,
     context.store,
+    context.event$,
   ]);
   const { userId } = useContext(AuthContext);
 
-  if (!gameId || !store) {
+  if (!gameId || !store || !event$) {
     return null; // todo loader
   }
 
@@ -32,6 +39,7 @@ export const GameTabComponent: FC<Props> = ({ actor }) => {
         <LittleVigilanteRoom
           store={store as LittleVigilanteStore}
           myUserId={userId}
+          event$={event$.pipe(filter(isLittleVigilanteEvent))}
         />
       );
     case 'diffusionary':
