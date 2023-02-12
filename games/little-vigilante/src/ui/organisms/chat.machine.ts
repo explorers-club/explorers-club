@@ -8,6 +8,7 @@ import {
   PauseCommand,
   ResumeCommand,
   ServerEvent,
+  LittleVigilanteTargetPlayerRoleCommand,
 } from '@explorers-club/room';
 import { assign } from '@xstate/immer';
 import { ComponentProps } from 'react';
@@ -17,23 +18,23 @@ import { GameAvatar } from '../molecules/game-avatar.component';
 import { PlayerAvatar } from '../molecules/player-avatar.component';
 import { RoleAvatar } from '../molecules/role-avatar.component';
 
-type RoleAvatarProps = {
-  type: 'role';
-} & ComponentProps<typeof RoleAvatar>;
+// type RoleAvatarProps = {
+//   type: 'role';
+// } & ComponentProps<typeof RoleAvatar>;
 
-type GameAvatarProps = {
-  type: 'game';
-} & ComponentProps<typeof GameAvatar>;
+// type GameAvatarProps = {
+//   type: 'game';
+// } & ComponentProps<typeof GameAvatar>;
 
-type PlayerAvatarProps = {
-  type: 'game';
-} & ComponentProps<typeof PlayerAvatar>;
+// type PlayerAvatarProps = {
+//   type: 'game';
+// } & ComponentProps<typeof PlayerAvatar>;
 
-type AvatarProps = RoleAvatarProps | GameAvatarProps | PlayerAvatarProps;
+// type AvatarProps = RoleAvatarProps | GameAvatarProps | PlayerAvatarProps;
 
-type WithAvatar<T> = T & {
-  avatar: AvatarProps;
-};
+// type WithAvatar<T> = T & {
+//   avatar: AvatarProps;
+// };
 
 export interface ChatContext {
   events: LittleVigilanteServerEvent[];
@@ -60,6 +61,13 @@ export const createChatMachine = (
           src: (context, event) => event$,
         },
         on: {
+          TARGET_ROLE: {
+            actions: assign<ChatContext, ServerEvent<LittleVigilanteTargetPlayerRoleCommand>>(
+              (context, event) => {
+                context.events.push(event);
+              }
+            ),
+          },
           LEAVE: {
             actions: assign<ChatContext, ServerEvent<LeaveCommand>>(
               (context, event) => {

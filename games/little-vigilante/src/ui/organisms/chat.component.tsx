@@ -9,6 +9,7 @@ import {
   JoinCommand,
   LittleVigilanteServerEvent,
   LittleVigilanteStateSerialized,
+  LittleVigilanteTargetPlayerRoleCommand,
   MessageCommand,
   PauseCommand,
   ResumeCommand,
@@ -28,6 +29,12 @@ import {
   useRef,
   useState,
 } from 'react';
+import {
+  colorByTeam,
+  displayNameByRole,
+  Role,
+  teamByRole,
+} from '../../meta/little-vigilante.constants';
 import {
   useLittleVigilanteEvent$,
   useLittleVigilanteSelector,
@@ -277,6 +284,8 @@ const ChatEvent: FC<{ event: LittleVigilanteServerEvent }> = ({ event }) => {
       return <PauseMessage event={event} />;
     case 'DISCONNECT':
       return <DisconnectMessage event={event} />;
+    case 'TARGET_ROLE':
+      return <PlayerTargetRoleMessage event={event} />;
     default:
       console.warn('missing component for message type: ' + event.type);
       return null;
@@ -354,6 +363,56 @@ const DisconnectMessage: FC<{ event: ServerEvent<DisconnectCommand> }> = ({
           {name}
         </Text>{' '}
         disconnected.
+      </Text>
+    </Flex>
+  );
+};
+
+const PlayerTargetRoleMessage: FC<{
+  event: ServerEvent<LittleVigilanteTargetPlayerRoleCommand>;
+}> = ({ event }) => {
+  const { userId, targetedUserId } = event;
+  const role = event.role as Role;
+  const [name, targetedName, slotNumber, targetedSlotNumber] =
+    useLittleVigilanteSelector((state) => [
+      state.players[userId]?.name,
+      state.players[targetedUserId]?.name,
+      state.players[userId]?.slotNumber,
+      state.players[targetedUserId]?.slotNumber,
+    ]);
+  const color = colorBySlotNumber[slotNumber];
+  const targetedColor = colorBySlotNumber[targetedSlotNumber];
+  const team = teamByRole[role];
+  const teamColorMap = {
+    magenta: 'crimson',
+    cyan: 'cyan',
+    gold: 'gold',
+  } as const;
+  const teamColor = teamColorMap[colorByTeam[team]];
+
+  return (
+    <Flex align="center" gap="1">
+      <PlayerAvatar userId={userId} color={color} />
+      <Text></Text>
+      <Text>
+        <Text variant={color} css={{ fontWeight: 'bold', display: 'inline' }}>
+          {name}
+        </Text>{' '}
+        marked{' '}
+        <Text
+          variant={targetedColor}
+          css={{ fontWeight: 'bold', display: 'inline' }}
+        >
+          {targetedName}
+        </Text>{' '}
+        as the{' '}
+        <Text
+          variant={teamColor}
+          css={{ fontWeight: 'bold', display: 'inline' }}
+        >
+          {displayNameByRole[role]}
+        </Text>
+        .
       </Text>
     </Flex>
   );

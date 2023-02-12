@@ -13,11 +13,10 @@ import {
 } from '../../state/little-vigilante.selectors';
 import { RoleAvatar } from '../molecules/role-avatar.component';
 
-export const RoleCarousel = () => {
+export const AbilityGroupCarousel = () => {
   const { store, event$ } = useContext(LittleVigilanteContext);
   const abilityGroups = useLittleVigilanteSelector(selectAbilityGroups);
   const abilityGroup = useLittleVigilanteSelector(selectAbilityGroup);
-  console.log({ abilityGroups, abilityGroup });
 
   const [sliderRef, instanceRef] = useKeenSlider<HTMLDivElement>({
     initial: abilityGroup
