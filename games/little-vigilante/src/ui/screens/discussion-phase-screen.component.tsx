@@ -6,6 +6,7 @@ import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
 import { Grid } from '@atoms/Grid';
 import { Heading } from '@atoms/Heading';
+import { IconButton } from '@atoms/IconButton';
 import { LittleVigilanteStateSerialized } from '@explorers-club/room';
 import { colorBySlotNumber, styled } from '@explorers-club/styles';
 import { Carousel, CarouselCell } from '@molecules/Carousel';
@@ -17,24 +18,29 @@ import {
   memo,
   MutableRefObject,
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
+import { filter } from 'rxjs';
 import {
   colorByTeam,
-  iconByRole,
+  getAvatarImageByRole,
   Role,
   teamByRole,
 } from '../../meta/little-vigilante.constants';
+import { LittleVigilanteContext } from '../../state/little-vigilante.context';
 import {
   useLittleVigilanteSelector,
   useLittleVigilanteSend,
   useMyUserId,
 } from '../../state/little-vigilante.hooks';
+import { PlayerAvatar } from '../molecules/player-avatar.component';
 import { RoleCard } from '../molecules/role-card.component';
 import { CalledVote } from '../organisms/called-vote.component';
+import { Chat } from '../organisms/chat.component';
 
 export const DiscussionPhaseScreenComponent = () => {
   const roles = useLittleVigilanteSelector((state) => state.roles as Role[]);
@@ -54,6 +60,9 @@ export const DiscussionPhaseScreenComponent = () => {
           <RoleCarousel currentRoleRef={currentRoleRef} />
           <PlayerGrid currentRoleRef={currentRoleRef} />
         </Flex>
+      </Card>
+      <Card css={{ flexGrow: 1, display: 'flex' }}>
+        <Chat />
       </Card>
     </Flex>
   );
@@ -234,7 +243,9 @@ const RoleCell = memo(
     index: number;
     onPress: (role: Role, index: number) => void;
   }) => {
+    const { event$ } = useContext(LittleVigilanteContext);
     const myUserId = useMyUserId();
+
     const handleOnPress = useCallback(() => {
       onPress(role, index);
     }, [onPress, role, index]);
@@ -277,7 +288,7 @@ const RoleCell = memo(
         >
           <Avatar
             size="5"
-            src={iconByRole[role as Role]}
+            src={getAvatarImageByRole(role as Role)}
             css={{
               border: `3px ${roleTargetColor ? 'solid' : 'dashed'} $${
                 roleTargetColor ? roleTargetColor : 'neutral'
@@ -392,17 +403,12 @@ const PlayerGridItem = ({
         css={{ aspectRatio: 1 }}
         gap="2"
       >
-        <Avatar
-          css={{
-            boxShadow: `0px 3px 6px $colors$${colorBySlotNumber[slotNumber]}9,
-                        0px 2px 1px $colors$${colorBySlotNumber[slotNumber]}11`,
-            borderRadius: '50%',
-            border: `3px solid $${colorBySlotNumber[slotNumber]}8`,
-          }}
+        <PlayerAvatar
           size="6"
-          variant={colorBySlotNumber[slotNumber]}
+          userId={userId}
+          color={colorBySlotNumber[slotNumber]}
         />
-        <Heading>{name}</Heading>
+        <Heading variant={colorBySlotNumber[slotNumber]}>{name}</Heading>
       </Flex>
     </Card>
   );
@@ -422,7 +428,7 @@ const PlayerRoleTarget = ({
   return (
     <Avatar
       size="2"
-      src={iconByRole[role]}
+      src={getAvatarImageByRole(role)}
       css={{
         border: `3px solid $${color}7`,
         borderRadius: '50%',

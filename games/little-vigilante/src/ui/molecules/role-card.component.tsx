@@ -1,20 +1,16 @@
+import { Caption } from '@atoms/Caption';
 import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
 import { Image } from '@atoms/Image';
 import { Text } from '@atoms/Text';
-import { Avatar } from '@atoms/Avatar';
 import { CSS } from '@explorers-club/styles';
 import { FC } from 'react';
 import {
   abilityByRole,
-  displayNameByRole,
-  iconByRole,
-  imageByRole,
-  objectiveByRole,
-  Role,
+  displayNameByRole, getFullImageByRole, objectiveByRole, Role
 } from '../../meta/little-vigilante.constants';
-import { Caption } from '@atoms/Caption';
+import { RoleAvatar } from './role-avatar.component';
 
 interface Props {
   css?: CSS;
@@ -22,8 +18,7 @@ interface Props {
 }
 
 export const RoleCard: FC<Props> = ({ css, role }) => {
-  const imageSrc = imageByRole[role];
-  const iconSrc = iconByRole[role];
+  const imageSrc = getFullImageByRole(role);
   const ability = abilityByRole[role];
   const objective = objectiveByRole[role];
 
@@ -58,7 +53,7 @@ export const RoleCard: FC<Props> = ({ css, role }) => {
           <Caption>Objective</Caption>
           <Text>{objective}</Text>
         </Flex>
-        <Avatar size="3" src={iconSrc} />
+        <RoleAvatar roleType={role} />
       </Flex>
       <Image src={imageSrc} alt={role} />
     </Card>

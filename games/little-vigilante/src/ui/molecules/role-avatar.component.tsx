@@ -1,14 +1,11 @@
 import { Avatar } from '@atoms/Avatar';
 import { Box } from '@atoms/Box';
-import { botttsNeutral, identicon, loreleiNeutral } from '@dicebear/collection';
-import { createAvatar } from '@dicebear/core';
-import { ComponentProps, ElementRef, forwardRef, useMemo } from 'react';
+import { ComponentProps, ElementRef, forwardRef } from 'react';
 import {
   colorByTeam,
   getAvatarImageByRole,
-  imageByRole,
   Role,
-  teamByRole,
+  teamByRole
 } from '../../meta/little-vigilante.constants';
 
 const colorByTeamColor = {
@@ -27,7 +24,6 @@ export const RoleAvatar = forwardRef<
 >(({ roleType, ...props }, ref) => {
   const team = teamByRole[roleType];
   const teamColor = colorByTeam[team];
-  console.log({ roleType, team, teamColor });
   // const avatar = useMemo(() => {
   //   return createAvatar(loreleiNeutral, {
   //     seed: roleType,

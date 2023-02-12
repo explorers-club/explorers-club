@@ -5,54 +5,51 @@ import { Flex } from '@atoms/Flex';
 import { Text } from '@atoms/Text';
 import { TextField } from '@atoms/TextField';
 import {
+  DisconnectCommand,
   JoinCommand,
   LittleVigilanteServerEvent,
+  LittleVigilanteStateSerialized,
   MessageCommand,
+  PauseCommand,
+  ResumeCommand,
   ServerEvent,
 } from '@explorers-club/room';
 import { colorBySlotNumber } from '@explorers-club/styles';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
-import { useInterpret, useSelector } from '@xstate/react';
-import { declareComponentKeys } from 'i18nifty';
+import { useSelector } from '@xstate/react';
+// import { declareComponentKeys } from '../../i18n';
 import { useSubscription } from 'observable-hooks';
 import {
   FC,
   FormEventHandler,
   useCallback,
   useContext,
+  useEffect,
   useRef,
   useState,
 } from 'react';
-import { colorNameToPrimaryColor } from '../../meta/little-vigilante.constants';
 import {
   useLittleVigilanteEvent$,
   useLittleVigilanteSelector,
   useLittleVigilanteSend,
 } from '../../state/little-vigilante.hooks';
+import { GameAvatar } from '../molecules/game-avatar.component';
 import { PlayerAvatar } from '../molecules/player-avatar.component';
 import { ChatServiceContext } from './chat.context';
-import { ChatState, createChatMachine } from './chat.machine';
+import { ChatState } from './chat.machine';
 
-export const Chat = () => {
-  const events$ = useLittleVigilanteEvent$();
-  const [machine] = useState(createChatMachine(events$));
-  const service = useInterpret(machine);
+interface Props {
+  disabled?: boolean;
+}
 
+export const Chat: FC<Props> = ({ disabled = false }) => {
   return (
-    <Flex direction="column">
-      <Box>
-        <Flex
-          gap="2"
-          direction="column"
-          css={{ background: '$primary1', pt: '$3' }}
-        >
-          <Box css={{ px: '$3' }}>
-            <Caption>Chat</Caption>
-          </Box>
-          <ChatMessageList />
-        </Flex>
+    <Flex direction="column" css={{ width: '100%', minHeight: '100%' }}>
+      <Box css={{ p: '$3' }}>
+        <Caption>Chat</Caption>
       </Box>
-      <ChatInput />
+      <ChatMessageList />
+      <ChatInput disabled={!!disabled} />
     </Flex>
   );
 };
@@ -121,9 +118,60 @@ const selectEventsWithJoinedMessages = (state: ChatState) => {
 };
 
 const ChatMessageList = () => {
+  const scrollViewRef = useRef<HTMLDivElement | null>(null);
   const service = useContext(ChatServiceContext);
+  // TODO consider a different way of joining events maybe so
+  // server events dont stack their avatars
   const events = useSelector(service, selectEventsWithJoinedMessages);
-  console.log(events);
+
+  useEffect(() => {
+    let isScrolled = false;
+    const scrollView = scrollViewRef.current;
+    if (!scrollView) {
+      return;
+    }
+
+    const handleScroll = (e: Event) => {
+      if (!scrollView) {
+        return;
+      }
+
+      const { clientHeight, scrollTop, scrollHeight } = scrollView;
+
+      if (clientHeight + scrollTop === scrollHeight) {
+        isScrolled = false;
+      } else {
+        isScrolled = true;
+      }
+    };
+
+    // Track if we are scrolled up or not
+    // and only jump back to jump if we press
+    scrollView.addEventListener('scroll', handleScroll);
+
+    const sub = service.subscribe(() => {
+      if (isScrolled) {
+        return;
+      }
+
+      if (!scrollView) {
+        return;
+      }
+
+      const { scrollHeight } = scrollView;
+
+      if (!isScrolled) {
+        setTimeout(() => {
+          scrollView.scrollTo(0, scrollHeight);
+        }, 0);
+      }
+    });
+
+    return () => {
+      sub.unsubscribe();
+      scrollView?.removeEventListener('scroll', handleScroll);
+    };
+  }, [scrollViewRef, service]);
 
   return (
     <Flex
@@ -133,21 +181,35 @@ const ChatMessageList = () => {
       css={{
         px: '$3',
         py: '$2',
+        // minHeight: '100%',
+        minHeight: '250px',
         background: '$primary3',
-        flexBasis: '300px',
-        overflowX: 'none',
-        overflow: 'auto',
-        '*': {
-          overflowAnchor: 'none',
-        },
+        flexGrow: 1,
+        position: 'relative',
       }}
     >
-      {events.map((event) => (
-        <ChatEvent key={event.ts} event={event} />
-      ))}
-      <TypingIndicator />
-      {/* Anchor from https://css-tricks.com/books/greatest-css-tricks/pin-scrolling-to-bottom/ */}
-      <Box css={{ overflowAnchor: 'auto', height: '1px' }} />
+      <Flex
+        ref={scrollViewRef}
+        direction="column"
+        gap="1"
+        css={{
+          position: 'absolute',
+          p: '$3',
+          top: 0,
+          bottom: 0,
+          left: 0,
+          right: 0,
+          overflowX: 'none',
+          overflowY: 'auto',
+        }}
+      >
+        {events.map((event) => (
+          <ChatEvent key={event.ts} event={event} />
+        ))}
+        <TypingIndicator />
+        {/* Anchor from https://css-tricks.com/books/greatest-css-tricks/pin-scrolling-to-bottom/ */}
+        <Box css={{ overflowAnchor: 'auto !important', height: '1px' }} />
+      </Flex>
     </Flex>
   );
 };
@@ -209,6 +271,12 @@ const ChatEvent: FC<{ event: LittleVigilanteServerEvent }> = ({ event }) => {
       return <Message event={event} />;
     case 'JOIN':
       return <JoinMessage event={event} />;
+    case 'RESUME':
+      return <ResumeMessage event={event} />;
+    case 'PAUSE':
+      return <PauseMessage event={event} />;
+    case 'DISCONNECT':
+      return <DisconnectMessage event={event} />;
     default:
       console.warn('missing component for message type: ' + event.type);
       return null;
@@ -229,12 +297,80 @@ const Message: FC<{ event: ServerEvent<MessageCommand> }> = ({
   // const isContinued = useSelector(service, (state) => state.context.events)
 
   return (
-    <Flex align="center" gap="1" css={{ mb: '$1' }}>
+    <Flex align="start" gap="1" css={{ mb: '$1' }}>
       <PlayerAvatar userId={userId} color={color} />
       <Flex direction="column" gap="1">
         <Caption variant={color}>{name}</Caption>
         <Text css={{ whiteSpace: 'pre-wrap', lineHeight: '135%' }}>{text}</Text>
       </Flex>
+    </Flex>
+  );
+};
+
+const PauseMessage: FC<{ event: ServerEvent<PauseCommand> }> = ({ event }) => {
+  const userId = event.userId;
+  const name = useLittleVigilanteSelector(
+    (state) => state.players[userId]?.name
+  );
+  const slotNumber = useLittleVigilanteSelector(
+    (state) => state.players[userId]?.slotNumber
+  );
+  const color = colorBySlotNumber[slotNumber];
+
+  return (
+    <Flex align="center" gap="1">
+      <GameAvatar />
+      <Text>
+        <Text variant={color} css={{ fontWeight: 'bold', display: 'inline' }}>
+          {name}
+        </Text>{' '}
+        went idle. Game{' '}
+        <Text variant="warning" css={{ display: 'inline', fontWeight: 'bold' }}>
+          paused
+        </Text>{' '}
+        until all players are here.
+      </Text>
+    </Flex>
+  );
+};
+
+const DisconnectMessage: FC<{ event: ServerEvent<DisconnectCommand> }> = ({
+  event,
+}) => {
+  const userId = event.userId;
+  const name = useLittleVigilanteSelector(
+    (state) => state.players[userId]?.name
+  );
+  const slotNumber = useLittleVigilanteSelector(
+    (state) => state.players[userId]?.slotNumber
+  );
+  const color = colorBySlotNumber[slotNumber];
+
+  return (
+    <Flex align="center" gap="1">
+      <PlayerAvatar userId={userId} color={color} />
+      <Text variant="low_contrast">
+        <Text variant={color} css={{ fontWeight: 'bold', display: 'inline' }}>
+          {name}
+        </Text>{' '}
+        disconnected.
+      </Text>
+    </Flex>
+  );
+};
+
+const ResumeMessage: FC<{ event: ServerEvent<ResumeCommand> }> = ({
+  event,
+}) => {
+  return (
+    <Flex align="center" gap="1">
+      <GameAvatar />
+      <Text>
+        <Text variant="lime" css={{ display: 'inline', fontWeight: 'bold' }}>
+          Resuming
+        </Text>{' '}
+        All players back.
+      </Text>
     </Flex>
   );
 };
@@ -268,29 +404,37 @@ const JoinMessage: FC<{ event: ServerEvent<JoinCommand> }> = ({ event }) => {
   );
 };
 
-const ChatInput = () => {
+const selectSendingMessagesDisabled = (
+  state: LittleVigilanteStateSerialized
+) => {
+  return state.currentStates.includes('Playing.Round.NightPhase');
+};
+
+const ChatInput: FC<{ disabled: boolean }> = ({ disabled }) => {
   const textRef = useRef<HTMLInputElement | null>(null);
   const send = useLittleVigilanteSend();
-  const handleSubmit: FormEventHandler = useCallback((e) => {
-    const text = textRef.current?.value || '';
-    e.preventDefault();
-    if (text !== '') {
-      console.log('sending', text);
-      send({ type: 'MESSAGE', text });
+  const handleSubmit: FormEventHandler = useCallback(
+    (e) => {
+      const text = textRef.current?.value || '';
+      e.preventDefault();
+      if (text !== '') {
+        send({ type: 'MESSAGE', text });
 
-      // clear input
-      if (textRef.current) {
-        textRef.current.value = '';
+        // clear input
+        if (textRef.current) {
+          textRef.current.value = '';
+        }
       }
-    }
-  }, []);
+    },
+    [textRef, send]
+  );
 
   const handleChange = useCallback(() => {
     send({ type: 'TYPING' });
   }, [send]);
 
   const handleFocus = useCallback(() => {
-    console.log('hi');
+    // console.log('hi');
   }, []);
 
   return (
@@ -298,9 +442,10 @@ const ChatInput = () => {
       {/* <ChatSuggestionsSlider /> */}
       <form onSubmit={handleSubmit}>
         <TextField
+          disabled={disabled}
           ref={textRef}
           name="text"
-          placeholder="Enter message"
+          placeholder={!disabled ? 'Enter message' : 'Messages disabled'}
           onChange={handleChange}
           onFocus={handleFocus}
         />
@@ -325,7 +470,3 @@ const ChatSuggestionsSlider = () => {
     </Flex>
   );
 };
-
-export const { i18n } = declareComponentKeys<{
-  K: 'greating';
-}>()({ Chat });

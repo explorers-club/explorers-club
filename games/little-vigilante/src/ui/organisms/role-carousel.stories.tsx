@@ -1,5 +1,5 @@
 import { withCardDecorator } from '@storybook-decorators/CardDecorator';
-import { nightPhaseOrder } from '../../meta/little-vigilante.constants';
+import { rolesByPlayerCount } from '../../meta/little-vigilante.constants';
 import { withLittleVigilanteContext } from '../../test/withLittleVigilanteContext';
 import { RoleCarousel } from './role-carousel.component';
 
@@ -46,20 +46,20 @@ const players = {
 Default.args = {
   myUserId: 'alice123',
   state: {
-    roles: nightPhaseOrder,
+    roles: rolesByPlayerCount['4'],
     players,
-    currentStates: ['Playing.Round.NightPhase.Vigilante'],
+    currentStates: ['Playing.Round.NightPhase.Role.Vigilante'],
     initialCurrentRoundRoles: {
       alice123: 'monk',
       bob123: 'twin_boy',
       charlie123: 'sidekick',
-      dave123: 'mayor',
+      dave123: 'vigilante',
     },
     currentRoundRoles: {
       alice123: 'monk',
       bob123: 'twin_boy',
       charlie123: 'sidekick',
-      dave123: 'mayor',
+      dave123: 'vigilante',
     },
   },
 };

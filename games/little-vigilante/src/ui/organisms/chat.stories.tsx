@@ -8,10 +8,16 @@ export default {
   parameters: {
     cardCSS: {
       p: '$0',
+      height: '400px',
     },
   },
 };
 
 export const Default = () => {
   return <Chat />;
+};
+
+Default.args = {
+  myUserId: 'alice123',
+  state: {},
 };

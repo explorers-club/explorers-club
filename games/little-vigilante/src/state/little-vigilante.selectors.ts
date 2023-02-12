@@ -1,5 +1,10 @@
 import { LittleVigilanteStateSerialized } from '@explorers-club/room';
-import { Role } from '../meta/little-vigilante.constants';
+import {
+  AbilityGroup,
+  abilityGroups,
+  AbilityGroupSchema,
+  Role,
+} from '../meta/little-vigilante.constants';
 
 export const selectVigilantePlayerName = (
   state: LittleVigilanteStateSerialized
@@ -9,6 +14,18 @@ export const selectVigilantePlayerName = (
     ([, role]) => role === 'vigilante'
   )!;
   return state.players[userId]?.name;
+};
+
+export const selectSidekickPlayerName = (
+  state: LittleVigilanteStateSerialized
+) => {
+  const tuple = Object.entries(state.currentRoundRoles).find(
+    ([, role]) => role === 'sidekick'
+  );
+  if (!tuple) {
+    return;
+  }
+  return state.players[tuple[0]]?.name;
 };
 
 export const selectTwinBoyPlayerName = (
@@ -31,6 +48,12 @@ export const selectTwinGirlPlayerName = (
   return result && state.players[result[0]]?.name;
 };
 
+export const selectPlayers = (
+  state: LittleVigilanteStateSerialized
+) => {
+  return Object.values(state.players)
+};
+
 export const selectPlayersWithName = (
   state: LittleVigilanteStateSerialized
 ) => {
@@ -42,17 +65,14 @@ export const selectPlayersWithName = (
   });
 };
 
-export const selectPlayers = (state: LittleVigilanteStateSerialized) => {
-  return Object.values(state.players);
-};
-
 export const selectPlayersWithNameAndRole = (
   state: LittleVigilanteStateSerialized
 ) => {
-  return Object.entries(state.players).map(([_, { userId, name }]) => {
+  return Object.entries(state.players).map(([_, { userId, name, slotNumber }]) => {
     return {
       userId: userId,
       name: name,
+      slotNumber: slotNumber,
       role: state.currentRoundRoles[userId],
     };
   });
@@ -69,3 +89,33 @@ export const selectUnusedRoles = (state: LittleVigilanteStateSerialized) => {
   }
   return roles;
 };
+
+export const selectAbilityGroups = (state: LittleVigilanteStateSerialized) => {
+  const result: Partial<Record<AbilityGroup, Role[]>> = {};
+
+  Object.entries(abilityGroups).forEach(([group, roles]) => {
+    if (roles.some((role) => state.roles.includes(role))) {
+      result[group as AbilityGroup] = roles.filter((role) =>
+        state.roles.includes(role)
+      );
+    }
+  });
+
+  return result;
+};
+
+export const selectAbilityGroup = (state: LittleVigilanteStateSerialized) =>
+  Array.from(state.currentStates.values())
+    .map((state) => {
+      const tokens = state.split(
+        'Playing.Round.NightPhase.AbilityGroup.Running.'
+      );
+      if (tokens.length === 2) {
+        const parse = AbilityGroupSchema.safeParse(tokens[1]);
+        if (parse.success) {
+          return parse.data;
+        }
+      }
+      return null;
+    })
+    .find((val) => val);

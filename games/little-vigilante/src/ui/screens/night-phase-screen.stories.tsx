@@ -1,8 +1,7 @@
+import { Box } from '@atoms/Box';
+import { A } from '@mobily/ts-belt';
 import { Meta, Story } from '@storybook/react';
-import {
-  nightPhaseOrder,
-  rolesByPlayerCount,
-} from '../../meta/little-vigilante.constants';
+import { abilityGroups } from '../../meta/little-vigilante.constants';
 import {
   LittleVigilanteMockState,
   withLittleVigilanteContext,
@@ -21,7 +20,11 @@ export default {
 } as Meta;
 
 const Template: Story<LittleVigilanteMockState> = (args) => {
-  return <NightPhaseScreenComponent />;
+  return (
+    <Box css={{ height: '100vh' }}>
+      <NightPhaseScreenComponent />
+    </Box>
+  );
 };
 
 const players = {
@@ -99,7 +102,7 @@ const players = {
   },
 };
 
-const roles = Array.from(nightPhaseOrder);
+const roles = Array.from(A.flat(Object.values(abilityGroups)));
 
 const currentRoundRoles = {
   alice123: roles[0],
@@ -112,13 +115,18 @@ const currentRoundRoles = {
 
 const myUserId = 'alice123';
 
-export const Cop = Template.bind({});
+export const CopActive = Template.bind({});
 
-Cop.args = {
+CopActive.args = {
   myUserId,
   state: {
     roles,
     players,
+    currentTick: 100,
+    lastDownState: {
+      [myUserId]: 0,
+    },
+    currentDownState: {},
     currentRoundRoles: {
       ...currentRoundRoles,
       alice123: 'cop',
@@ -127,19 +135,48 @@ Cop.args = {
       ...currentRoundRoles,
       alice123: 'cop',
     },
-    currentStates: ['Playing.Round.NightPhase.Cop'],
+    currentStates: ['Playing.Round.NightPhase.AbilityGroup.Running.Cop'],
   },
 };
 
-export const Vigilante = Template.bind({});
+export const CopPrev = Template.bind({});
 
-Vigilante.args = {
+CopPrev.args = {
+  myUserId,
+  state: {
+    roles,
+    players,
+    currentTick: 100,
+    lastDownState: {
+      [myUserId]: 0,
+    },
+    currentDownState: {},
+    currentRoundRoles: {
+      ...currentRoundRoles,
+      alice123: 'cop',
+    },
+    initialCurrentRoundRoles: {
+      ...currentRoundRoles,
+      alice123: 'cop',
+    },
+    currentStates: ['Playing.Round.NightPhase.AbilityGroup.Running.Vigilantes'],
+  },
+};
+
+export const VigilanteActive = Template.bind({});
+
+VigilanteActive.args = {
   myUserId,
   state: {
     timeRemaining: 57,
     roles,
     players,
-    currentStates: ['Playing.Round.NightPhase.Vigilante'],
+    currentStates: ['Playing.Round.NightPhase.AbilityGroup.Running.Vigilantes'],
+    currentTick: 100,
+    lastDownState: {
+      [myUserId]: 0,
+    },
+    currentDownState: {},
     currentRoundRoles: {
       ...currentRoundRoles,
       alice123: 'vigilante',
@@ -159,7 +196,12 @@ TwinGirl.args = {
     timeRemaining: 57,
     roles,
     players,
-    currentStates: ['Playing.Round.NightPhase.Twins'],
+    currentStates: ['Playing.Round.NightPhase.AbilityGroup.Running.Twins'],
+    currentTick: 100,
+    lastDownState: {
+      [myUserId]: 0,
+    },
+    currentDownState: {},
     currentRoundRoles: {
       ...currentRoundRoles,
       alice123: 'twin_girl',
@@ -179,7 +221,12 @@ TwinBoy.args = {
     timeRemaining: 57,
     roles,
     players,
-    currentStates: ['Playing.Round.NightPhase.Twins'],
+    currentStates: ['Playing.Round.NightPhase.AbilityGroup.Running.Twins'],
+    currentTick: 100,
+    lastDownState: {
+      [myUserId]: 0,
+    },
+    currentDownState: {},
     currentRoundRoles: {
       ...currentRoundRoles,
       alice123: 'twin_boy',
@@ -199,7 +246,12 @@ Butler.args = {
     timeRemaining: 57,
     roles: [...roles],
     players,
-    currentStates: ['Playing.Round.NightPhase.Butler'],
+    currentStates: ['Playing.Round.NightPhase.AbilityGroup.Running.Butler'],
+    currentTick: 100,
+    lastDownState: {
+      [myUserId]: 0,
+    },
+    currentDownState: {},
     initialCurrentRoundRoles: {
       ...currentRoundRoles,
       alice123: 'butler',
@@ -219,7 +271,12 @@ Detective.args = {
     timeRemaining: 57,
     roles: [...roles],
     players,
-    currentStates: ['Playing.Round.NightPhase.Detective'],
+    currentStates: ['Playing.Round.NightPhase.AbilityGroup.Running.Detective'],
+    currentTick: 100,
+    lastDownState: {
+      [myUserId]: 0,
+    },
+    currentDownState: {},
     initialCurrentRoundRoles: {
       ...currentRoundRoles,
       alice123: 'detective',
@@ -231,38 +288,49 @@ Detective.args = {
   },
 };
 
-export const Conspirator = Template.bind({});
+export const Snitch = Template.bind({});
 
-Conspirator.args = {
+Snitch.args = {
   myUserId,
   state: {
     timeRemaining: 57,
     roles: [...roles],
     players,
-    currentStates: ['Playing.Round.NightPhase.Conspirator'],
+    currentStates: ['Playing.Round.NightPhase.AbilityGroup.Running.Snitch'],
+    currentTick: 100,
+    lastDownState: {
+      [myUserId]: 0,
+    },
+    currentDownState: {},
     initialCurrentRoundRoles: {
       ...currentRoundRoles,
-      alice123: 'conspirator',
+      alice123: 'snitch',
     },
     currentRoundRoles: {
       ...currentRoundRoles,
-      alice123: 'conspirator',
+      alice123: 'snitch',
     },
   },
 };
 
-export const Politician = Template.bind({});
+export const ConArtist = Template.bind({});
 
-Politician.args = {
+ConArtist.args = {
   myUserId,
   state: {
     timeRemaining: 57,
     roles,
     players,
-    currentStates: ['Playing.Round.NightPhase.Politician'],
+    currentStates: ['Playing.Round.NightPhase.AbilityGroup.Running.ConArtist'],
+    currentTick: 100,
+    initialCurrentRoundRoles: {},
+    lastDownState: {
+      [myUserId]: 0,
+    },
+    currentDownState: {},
     currentRoundRoles: {
       ...currentRoundRoles,
-      alice123: 'politician',
+      alice123: 'con_artist',
     },
   },
 };
@@ -275,7 +343,12 @@ Sidekick.args = {
     timeRemaining: 57,
     roles,
     players,
-    currentStates: ['Playing.Round.NightPhase.Sidekick'],
+    currentStates: ['Playing.Round.NightPhase.AbilityGroup.Running.Vigilantes'],
+    currentDownState: {},
+    currentTick: 100,
+    lastDownState: {
+      [myUserId]: 0,
+    },
     initialCurrentRoundRoles: {
       ...currentRoundRoles,
       alice123: 'sidekick',
@@ -295,7 +368,12 @@ Monk.args = {
     timeRemaining: 57,
     roles,
     players,
-    currentStates: ['Playing.Round.NightPhase.Monk'],
+    currentStates: ['Playing.Round.NightPhase.AbilityGroup.Running.Monk'],
+    currentDownState: {},
+    currentTick: 100,
+    lastDownState: {
+      [myUserId]: 0,
+    },
     initialCurrentRoundRoles: {
       ...currentRoundRoles,
       alice123: 'monk',
@@ -315,7 +393,13 @@ Anarchist.args = {
     timeRemaining: 57,
     roles,
     players,
-    currentStates: ['Playing.Round.NightPhase.Anarchist'],
+    currentTick: 100,
+    lastDownState: {
+      [myUserId]: 0,
+    },
+    currentStates: ['Playing.Round.NightPhase.AbilityGroup.Running.NoAbility'],
+    currentDownState: {},
+    initialCurrentRoundRoles: {},
     currentRoundRoles: {
       ...currentRoundRoles,
       alice123: 'anarchist',
@@ -331,7 +415,12 @@ Mayor.args = {
     timeRemaining: 57,
     roles,
     players,
-    currentStates: ['Playing.Round.NightPhase.Mayor'],
+    currentStates: ['Playing.Round.NightPhase.AbilityGroup.Running.NoAbility'],
+    currentTick: 100,
+    lastDownState: {
+      [myUserId]: 0,
+    },
+    currentDownState: {},
     initialCurrentRoundRoles: {
       ...currentRoundRoles,
       alice123: 'mayor',

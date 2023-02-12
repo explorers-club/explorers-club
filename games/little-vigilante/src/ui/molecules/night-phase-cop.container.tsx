@@ -2,9 +2,9 @@ import { useCallback } from 'react';
 import {
   useLittleVigilanteSelector,
   useLittleVigilanteSend,
-  useMyUserId,
+  useMyUserId
 } from '../../state/little-vigilante.hooks';
-import { selectPlayersWithName } from '../../state/little-vigilante.selectors';
+import { selectPlayers } from '../../state/little-vigilante.selectors';
 import { NightPhaseCopComponent } from './night-phase-cop.component';
 
 export const NightPhaseCop = () => {
@@ -17,7 +17,7 @@ export const NightPhaseCop = () => {
     [send]
   );
 
-  const players = useLittleVigilanteSelector(selectPlayersWithName).filter(
+  const players = useLittleVigilanteSelector(selectPlayers).filter(
     (player) => player.userId !== myUserId
   );
 

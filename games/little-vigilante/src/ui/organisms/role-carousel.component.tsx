@@ -29,8 +29,8 @@ import {
   abilityByRole,
   colorByTeam,
   displayNameByRole,
-  iconByRole,
-  imageByRole,
+  getFullImageByRole,
+  getAvatarImageByRole,
   objectiveByRole,
   primaryColorByRole,
   Role,
@@ -45,15 +45,16 @@ import {
 import { NightPhaseAnarchist } from '../molecules/night-phase-anarchist.container';
 import { NightPhaseArrested } from '../molecules/night-phase-arrested.component';
 import { NightPhaseButler } from '../molecules/night-phase-butler.container';
-import { NightPhaseConspirator } from '../molecules/night-phase-conspirator.container';
+import { NightPhaseSnitch } from '../molecules/night-phase-snitch.container';
 import { NightPhaseCop } from '../molecules/night-phase-cop.container';
 import { NightPhaseDetective } from '../molecules/night-phase-detective.container';
 import { NightPhaseMonk } from '../molecules/night-phase-monk.container';
-import { NightPhasePolitician } from '../molecules/night-phase-politician.container';
+import { NightPhaseConArtist } from '../molecules/night-phase-con-artist.container';
 import { NightPhaseSidekick } from '../molecules/night-phase-sidekick.container';
 import { NightPhaseTwinBoy } from '../molecules/night-phase-twin-boy.container';
 import { NightPhaseTwinGirl } from '../molecules/night-phase-twin-girl.container';
 import { NightPhaseVigilante } from '../molecules/night-phase-vigilante.container';
+import { RoleAvatar } from '../molecules/role-avatar.component';
 
 export const RoleCarousel = () => {
   const roles = useLittleVigilanteSelector((state) => state.roles as Role[]);
@@ -188,8 +189,7 @@ const DetailedRoleCell: FC<{ role: Role; index: number }> = ({
   role,
   index,
 }) => {
-  const imageSrc = imageByRole[role];
-  const iconSrc = iconByRole[role];
+  const imageSrc = getFullImageByRole(role);
   const ability = abilityByRole[role];
   const objective = objectiveByRole[role];
   const myUserId = useMyUserId();
@@ -239,7 +239,7 @@ const DetailedRoleCell: FC<{ role: Role; index: number }> = ({
             aspectRatio: 1,
             width: '100%',
             my: NightPhaseComponent ? '-35%' : 0,
-            transition: "margin 200ms ease-out"
+            transition: 'margin 200ms ease-out',
           }}
           src={imageSrc}
           alt={role}
@@ -269,7 +269,7 @@ const DetailedRoleCell: FC<{ role: Role; index: number }> = ({
                   borderRadius: '2px',
                 }}
               >
-                <Avatar size="3" src={iconSrc} />
+                <RoleAvatar size="3" roleType={'detective'} />
               </Box>
             </Flex>
             <Badge variant={teamColor}>{team}</Badge>
@@ -350,16 +350,7 @@ const RoleCell = memo(
           >
             Starting As
           </Caption>
-          <Avatar
-            size="5"
-            src={iconByRole[role as Role]}
-            css={{
-              border: `3px ${roleTargetColor ? 'solid' : 'dashed'} $${
-                roleTargetColor ? roleTargetColor : 'neutral'
-              }9`,
-              borderRadius: '50%',
-            }}
-          />
+          <RoleAvatar roleType={role as Role} />
           <Caption variant="contrast">{displayNameByRole[role]}</Caption>
         </Flex>
       </CarouselCell>
@@ -370,11 +361,11 @@ const RoleCell = memo(
 const nightPhaseComponentsByRole: Partial<Record<Role, ReactNode>> = {
   anarchist: <NightPhaseAnarchist />,
   butler: <NightPhaseButler />,
-  conspirator: <NightPhaseConspirator />,
+  snitch: <NightPhaseSnitch />,
   cop: <NightPhaseCop />,
   detective: <NightPhaseDetective />,
   monk: <NightPhaseMonk />,
-  politician: <NightPhasePolitician />,
+  con_artist: <NightPhaseConArtist />,
   sidekick: <NightPhaseSidekick />,
   twin_boy: <NightPhaseTwinBoy />,
   twin_girl: <NightPhaseTwinGirl />,
@@ -400,27 +391,35 @@ function fromStore(store: LittleVigilanteStore) {
 
 const selectRolesInFocus = (state: LittleVigilanteStateSerialized) => {
   switch (true) {
-    case state.currentStates.includes('Playing.Round.NightPhase.Cop'):
+    case state.currentStates.includes('Playing.Round.NightPhase.Role.Cop'):
       return ['cop'];
-    case state.currentStates.includes('Playing.Round.NightPhase.Vigilante'):
+    case state.currentStates.includes(
+      'Playing.Round.NightPhase.Role.Vigilante'
+    ):
       return ['vigilante'];
-    case state.currentStates.includes('Playing.Round.NightPhase.Twins'):
+    case state.currentStates.includes('Playing.Round.NightPhase.Role.Twins'):
       return ['twin_boy', 'twin_girl'];
-    case state.currentStates.includes('Playing.Round.NightPhase.Butler'):
+    case state.currentStates.includes('Playing.Round.NightPhase.Role.Butler'):
       return ['butler'];
-    case state.currentStates.includes('Playing.Round.NightPhase.Detective'):
+    case state.currentStates.includes(
+      'Playing.Round.NightPhase.Role.Detective'
+    ):
       return ['detective'];
-    case state.currentStates.includes('Playing.Round.NightPhase.Conspirator'):
-      return ['conspirator'];
-    case state.currentStates.includes('Playing.Round.NightPhase.Politician'):
-      return ['politician'];
-    case state.currentStates.includes('Playing.Round.NightPhase.Sidekick'):
+    case state.currentStates.includes('Playing.Round.NightPhase.Role.Snitch'):
+      return ['snitch'];
+    case state.currentStates.includes(
+      'Playing.Round.NightPhase.Role.ConArtist'
+    ):
+      return ['con_artist'];
+    case state.currentStates.includes('Playing.Round.NightPhase.Role.Sidekick'):
       return ['sidekick'];
-    case state.currentStates.includes('Playing.Round.NightPhase.Mayor'):
+    case state.currentStates.includes('Playing.Round.NightPhase.Role.Mayor'):
       return ['mayor'];
-    case state.currentStates.includes('Playing.Round.NightPhase.Anarchist'):
+    case state.currentStates.includes(
+      'Playing.Round.NightPhase.Role.Anarchist'
+    ):
       return ['anarchist'];
-    case state.currentStates.includes('Playing.Round.NightPhase.Monk'):
+    case state.currentStates.includes('Playing.Round.NightPhase.Role.Monk'):
       return ['monk'];
     default:
       return [];

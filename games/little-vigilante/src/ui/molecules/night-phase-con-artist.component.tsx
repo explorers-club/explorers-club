@@ -11,23 +11,21 @@ interface Props {
   players: { userId: string; name: string; slotNumber: number }[];
 }
 
-export const NightPhaseCopComponent: FC<Props> = ({
+export const NightPhaseConArtistComponent: FC<Props> = ({
   onSelectPlayer,
   players,
 }) => {
   const handleChange = useCallback(
-    (value: string) => {
-      onSelectPlayer(value);
+    (userId: string) => {
+      onSelectPlayer(userId);
     },
     [onSelectPlayer]
   );
 
   return (
     <Flex direction="column" gap="3">
-      <Caption>Cop</Caption>
-      <Text>
-        Choose a player to arrest. They will not be able to use their ability.
-      </Text>
+      <Caption>Politician</Caption>
+      <Text>Choose a player to swap your role with</Text>
       <RadioCardGroup onValueChange={handleChange}>
         <Flex direction="column" gap="3">
           {players.map(({ userId, name, slotNumber }) => (

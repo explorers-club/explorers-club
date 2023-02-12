@@ -4,9 +4,10 @@ import {
   LittleVigilanteStateSerialized,
 } from '@explorers-club/room';
 import { Args, DecoratorFunction } from '@storybook/csf';
-import { ReactFramework } from '@storybook/react';
+import { ReactFramework, Story } from '@storybook/react';
 import { Subject } from 'rxjs';
 import { LittleVigilanteContext } from '../state/little-vigilante.context';
+import { ChatServiceProvider } from '../ui/organisms/chat.context';
 
 // todo hoist out to common
 function createMockStore<TState, TCommand>({ state }: { state: TState }) {
@@ -47,7 +48,9 @@ export const withLittleVigilanteContext: DecoratorFunction<
 
   return (
     <LittleVigilanteContext.Provider value={{ store, myUserId, event$ }}>
-      <Story />
+      <ChatServiceProvider>
+        <Story />
+      </ChatServiceProvider>
     </LittleVigilanteContext.Provider>
   );
 };
@@ -56,3 +59,5 @@ export type LittleVigilanteMockState = {
   myUserId: string;
   state: Partial<LittleVigilanteStateSerialized>;
 };
+
+export type LittleVigilanteStory = Story<LittleVigilanteMockState>;

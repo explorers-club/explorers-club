@@ -68,7 +68,9 @@ export type RoomStore<T extends Schema, TCommand> = {
 export const JOIN = 'JOIN';
 export const TYPING = 'TYPING';
 export const MESSAGE = 'MESSAGE';
-export const DISCONNECt = 'DISCONNECT';
+export const DISCONNECT = 'DISCONNECT';
+export const PRESS_DOWN = 'PRESS_DOWN';
+export const PRESS_UP = 'PRESS_UP';
 export const LEAVE = 'LEAVE';
 export const CONTINUE = 'CONTINUE';
 export const RECONNECT = 'RECONNECT';
@@ -83,6 +85,29 @@ export type JoinCommand = {
   userId: string;
 };
 
+export type PauseCommand = {
+  type: 'PAUSE';
+};
+
+export type ResumeCommand = {
+  type: 'RESUME';
+};
+
+export type PressDownCommand = {
+  type: typeof PRESS_DOWN;
+};
+
+export type PressUpCommand = {
+  type: typeof PRESS_UP;
+};
+
+// export type LogAbilityCommand = {
+//   type: 'LOG_ABILITY';
+//   text: string;
+//   abilityGroup: AbilityGroup;
+//   role: Role;
+// };
+
 export type TypingCommand = {
   type: typeof TYPING;
 };
@@ -91,6 +116,26 @@ export type MessageCommand = {
   type: typeof MESSAGE;
   text: string;
 };
+
+export type LittleVigilanteLogCommand =
+  | {
+      type: 'LOG';
+      key: 'starting_role';
+      parameters: {
+        role: string;
+      };
+    }
+  | {
+      type: 'LOG';
+      key: 'arrested';
+    }
+  | {
+      type: 'LOG';
+      key: 'vote_called';
+      parameters: {
+        calledByUserId: string;
+      };
+    };
 
 export type ContinueCommand = {
   type: typeof CONTINUE;
@@ -102,7 +147,7 @@ export type ReconnectCommand = {
 };
 
 export type DisconnectCommand = {
-  type: typeof DISCONNECt;
+  type: typeof DISCONNECT;
   userId: string;
 };
 
@@ -198,12 +243,20 @@ export type LittleVigilanteSwapCommand = {
   firstUserId: string;
   secondUserId: string;
 };
+
 export type LittleVigilanteCommand =
   | JoinCommand
   | ContinueCommand
   | LeaveCommand
+  | DisconnectCommand
+  | ReconnectCommand
   | MessageCommand
   | TypingCommand
+  | PressDownCommand
+  | PauseCommand
+  | ResumeCommand
+  | PressUpCommand
+  | LittleVigilanteLogCommand
   | LittleVigilanteRejectVoteCommand
   | LittleVigilanteApproveVoteCommand
   | LittleVigilanteCallVoteCommand

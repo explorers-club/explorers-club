@@ -7,6 +7,14 @@ export default {
   decorators: [withCardDecorator],
 } as Meta;
 
-export const Primary: ComponentStory<typeof NightPhaseButlerComponent> = (args) => {
+export const Primary: ComponentStory<typeof NightPhaseButlerComponent> = (
+  args
+) => {
   return <NightPhaseButlerComponent vigilante="Jambalaya22" />;
+};
+
+export const WithSidekick: ComponentStory<typeof NightPhaseButlerComponent> = (
+  args
+) => {
+  return <NightPhaseButlerComponent vigilante="Jambalaya22" sidekick="Bob" />;
 };

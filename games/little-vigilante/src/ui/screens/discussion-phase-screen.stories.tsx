@@ -2,6 +2,7 @@ import { Meta, Story } from '@storybook/react';
 import { rolesByPlayerCount } from '../../meta/little-vigilante.constants';
 import {
   LittleVigilanteMockState,
+  LittleVigilanteStory,
   withLittleVigilanteContext,
 } from '../../test/withLittleVigilanteContext';
 import { DiscussionPhaseScreenComponent } from './discussion-phase-screen.component';
@@ -11,10 +12,13 @@ export default {
   decorators: [withLittleVigilanteContext],
   parameters: {
     layout: 'fullscreen',
+    viewport: {
+      defaultViewport: "mobile1"
+    }
   },
 } as Meta;
 
-export const Primary: Story<LittleVigilanteMockState> = () => {
+export const Primary: LittleVigilanteStory = () => {
   return <DiscussionPhaseScreenComponent />;
 };
 

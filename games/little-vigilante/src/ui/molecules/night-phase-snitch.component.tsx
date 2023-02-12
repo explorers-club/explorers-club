@@ -5,13 +5,14 @@ import { Text } from '@atoms/Text';
 import { colorBySlotNumber } from '@explorers-club/styles';
 import { CheckboxCard } from '@molecules/CheckboxCard';
 import { FC, useCallback, useRef } from 'react';
+import { PlayerAvatar } from './player-avatar.component';
 
 interface Props {
   onSelectPlayers: (players: readonly [string, string]) => void;
   players: { userId: string; name: string; slotNumber: number }[];
 }
 
-export const NightPhaseConspiratorComponent: FC<Props> = ({
+export const NightPhaseSnitchComponent: FC<Props> = ({
   onSelectPlayers,
   players,
 }) => {
@@ -38,14 +39,23 @@ export const NightPhaseConspiratorComponent: FC<Props> = ({
 
   return (
     <Flex direction="column" gap="3">
-      <Caption>Conspirator</Caption>
+      <Caption>Snitch</Caption>
       <Text>Choose two players to swap roles</Text>
       <Flex direction="column" gap="3">
         {players.map(({ userId, name, slotNumber }) => (
           <CheckboxCard onCheckedChange={handleCheckChange(userId)}>
             <Flex gap="2" align="center">
-              <Avatar size="3" variant={colorBySlotNumber[slotNumber]} />
-              <Text>{name}</Text>
+              <PlayerAvatar
+                size="3"
+                color={colorBySlotNumber[slotNumber]}
+                userId={userId}
+              />
+              <Text
+                css={{ fontWeight: 'bold' }}
+                variant={colorBySlotNumber[slotNumber]}
+              >
+                {name}
+              </Text>
             </Flex>
           </CheckboxCard>
         ))}

@@ -2,6 +2,7 @@ import {
   LittleVigilanteCommand,
   LittleVigilanteServerEvent,
 } from '@explorers-club/room';
+import { MapSchema } from '@colyseus/schema';
 import {
   LittleVigilanteConfigSchema,
   LittleVigilanteRoomId,
@@ -48,7 +49,6 @@ interface CreateProps {
 
 export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
   private service!: LittleVigilanteServerService;
-  private tick = 0;
   private messageQueue: LittleVigilanteServerEvent[] = [];
 
   static async create({ roomId, clubRoom }: CreateProps) {
@@ -93,6 +93,8 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
     // initialize empty room state
     const state = new LittleVigilanteState();
     state.currentRound = 1;
+    state.currentTick = 0;
+    state.lastDownState = new MapSchema<number>();
     this.setState(state);
 
     this.roomId = roomId;
@@ -142,12 +144,12 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
       this.messageQueue.forEach((message) => {
         this.service.send(message);
       });
-      this.tick = this.tick + 1;
+      room.state.currentTick = room.state.currentTick + 1;
       this.messageQueue.length = 0;
     }, 1000 / 60);
 
     this.onMessage('*', (client, _, message: LittleVigilanteCommand) => {
-      const ts = this.tick + (this.messageQueue.length + 1) / 1000;
+      const ts = room.state.currentTick + (this.messageQueue.length + 1) / 1000;
       this.messageQueue.push({
         ...message,
         ts,
@@ -161,7 +163,7 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
     const player = this.state.players.get(userId);
     if (player) {
       player.connected = true;
-      const ts = this.tick + (this.messageQueue.length + 1) / 1000;
+      const ts = this.state.currentTick + (this.messageQueue.length + 1) / 1000;
       this.messageQueue.push({
         type: 'JOIN',
         ts,
@@ -171,19 +173,27 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
     }
   }
 
-  override onLeave(client: Client) {
+  override async onLeave(client: Client) {
     if (client.userData) {
       const { userId } = client.userData;
       const player = this.state.players.get(userId);
       if (player) {
         player.connected = false;
       }
-      const ts = this.tick + (this.messageQueue.length + 1) / 1000;
+      const ts = this.state.currentTick + (this.messageQueue.length + 1) / 1000;
       this.messageQueue.push({
-        type: 'LEAVE',
+        type: 'DISCONNECT',
         ts,
         userId,
       });
+      try {
+        await this.allowReconnection(client, 10000);
+        const ts =
+          this.state.currentTick + (this.messageQueue.length + 1) / 1000;
+        this.service.send({ type: 'RECONNECT', ts, userId });
+      } catch (ex) {
+        console.warn('player hasnt returned after 10000 seconds, do something');
+      }
     }
   }
 

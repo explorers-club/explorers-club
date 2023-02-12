@@ -22,8 +22,8 @@ export const Default = () => {
       <Row role="twin_girl" />
       <Row role="twin_boy" />
       <Row role="detective" />
-      <Row role="conspirator" />
-      <Row role="politician" />
+      <Row role="snitch" />
+      <Row role="con_artist" />
       <Row role="monk" />
       <Row role="mayor" />
       <Row role="anarchist" />

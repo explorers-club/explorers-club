@@ -1,7 +1,10 @@
 import { Box } from '@atoms/Box';
+import { Card } from '@atoms/Card';
+import { Flex } from '@atoms/Flex';
 import { FC } from 'react';
 import { Role } from '../../meta/little-vigilante.constants';
 import { RoleCard } from '../molecules/role-card.component';
+import { Chat } from '../organisms/chat.component';
 
 interface Props {
   role: Role;
@@ -9,8 +12,11 @@ interface Props {
 
 export const AssigningRolesScreenComponent: FC<Props> = ({ role }) => {
   return (
-    <Box css={{ p: '$2' }}>
+    <Flex gap="2" direction="column">
       <RoleCard role={role} />
-    </Box>
+      <Card css={{ flexGrow: 1, display: 'flex' }}>
+        <Chat disabled />
+      </Card>
+    </Flex>
   );
 };

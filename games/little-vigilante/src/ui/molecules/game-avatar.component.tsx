@@ -14,5 +14,12 @@ export const GameAvatar = forwardRef<
       backgroundColor: ['6F6E77'],
     }).toDataUriSync();
   }, []);
-  return <Avatar {...props} ref={ref} src={avatar} />;
+  return (
+    <Avatar
+      {...props}
+      css={{ border: '2px solid $lime7', borderRadius: "50%" }}
+      ref={ref}
+      src={avatar}
+    />
+  );
 });

@@ -6,7 +6,7 @@ import { Scoreboard } from '../organisms/scoreboard.component';
 
 export const ScoreboardScreen = () => {
   return (
-    <Flex css={{ p: '$3' }} direction="column" gap="2">
+    <Flex css={{ p: '$3', flex: 1 }} direction="column" gap="2">
       <Card>
         <HostControls />
       </Card>

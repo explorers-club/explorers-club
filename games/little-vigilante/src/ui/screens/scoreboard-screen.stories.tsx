@@ -4,6 +4,7 @@ import { players } from './__stories/players';
 import { LittleVigilanteServerEvent } from '@explorers-club/room';
 import {
   LittleVigilanteMockState,
+  LittleVigilanteStory,
   withLittleVigilanteContext,
 } from '../../test/withLittleVigilanteContext';
 import { ScoreboardScreen } from './scoreboard-screen.component';
@@ -19,7 +20,7 @@ export default {
   },
 };
 
-export const Primary: Story<LittleVigilanteMockState> = () => {
+export const Primary: LittleVigilanteStory = () => {
   return <ScoreboardScreen />;
 };
 

@@ -3,6 +3,12 @@ import { RevealScreenComponent } from './reveal-screen.component';
 
 export default {
   component: RevealScreenComponent,
+  parameters: {
+    layout: 'fullscreen',
+    viewport: {
+      defaultViewport: 'mobile1',
+    },
+  },
 };
 
 export const Default: ComponentStory<typeof RevealScreenComponent> = (args) => {

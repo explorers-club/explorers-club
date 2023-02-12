@@ -1,13 +1,39 @@
 import {
   JoinCommand,
+  DisconnectCommand,
+  ReconnectCommand,
   LeaveCommand,
   LittleVigilanteServerEvent,
   MessageCommand,
+  PauseCommand,
+  ResumeCommand,
   ServerEvent,
 } from '@explorers-club/room';
 import { assign } from '@xstate/immer';
+import { ComponentProps } from 'react';
 import { Observable } from 'rxjs';
 import { ActorRefFrom, createMachine, StateFrom } from 'xstate';
+import { GameAvatar } from '../molecules/game-avatar.component';
+import { PlayerAvatar } from '../molecules/player-avatar.component';
+import { RoleAvatar } from '../molecules/role-avatar.component';
+
+type RoleAvatarProps = {
+  type: 'role';
+} & ComponentProps<typeof RoleAvatar>;
+
+type GameAvatarProps = {
+  type: 'game';
+} & ComponentProps<typeof GameAvatar>;
+
+type PlayerAvatarProps = {
+  type: 'game';
+} & ComponentProps<typeof PlayerAvatar>;
+
+type AvatarProps = RoleAvatarProps | GameAvatarProps | PlayerAvatarProps;
+
+type WithAvatar<T> = T & {
+  avatar: AvatarProps;
+};
 
 export interface ChatContext {
   events: LittleVigilanteServerEvent[];
@@ -20,6 +46,7 @@ export const createChatMachine = (
   return createMachine({
     id: 'ChatMachine',
     initial: 'Running',
+    type: "parallel",
     schema: {
       context: {} as ChatContext,
       events: {} as LittleVigilanteServerEvent,
@@ -40,6 +67,20 @@ export const createChatMachine = (
               }
             ),
           },
+          RECONNECT: {
+            actions: assign<ChatContext, ServerEvent<ReconnectCommand>>(
+              (context, event) => {
+                context.events.push(event);
+              }
+            ),
+          },
+          DISCONNECT: {
+            actions: assign<ChatContext, ServerEvent<DisconnectCommand>>(
+              (context, event) => {
+                context.events.push(event);
+              }
+            ),
+          },
           JOIN: {
             actions: assign<ChatContext, ServerEvent<JoinCommand>>(
               (context, event) => {
@@ -49,6 +90,20 @@ export const createChatMachine = (
           },
           MESSAGE: {
             actions: assign<ChatContext, ServerEvent<MessageCommand>>(
+              (context, event) => {
+                context.events.push(event);
+              }
+            ),
+          },
+          RESUME: {
+            actions: assign<ChatContext, ServerEvent<ResumeCommand>>(
+              (context, event) => {
+                context.events.push(event);
+              }
+            ),
+          },
+          PAUSE: {
+            actions: assign<ChatContext, ServerEvent<PauseCommand>>(
               (context, event) => {
                 context.events.push(event);
               }
