@@ -9,7 +9,10 @@ import { Heading } from '@atoms/Heading';
 import { Image } from '@atoms/Image';
 import { Text } from '@atoms/Text';
 import { FC } from 'react';
-import { imageByRole, Role } from '../../meta/little-vigilante.constants';
+import {
+  getFullImageByRole,
+  Role,
+} from '../../meta/little-vigilante.constants';
 
 interface Props {
   playerOutcomes: { playerName: string; role: Role; winner: boolean }[];
@@ -28,7 +31,7 @@ export const RevealScreenComponent: FC<Props> = ({
           <Grid gap="2" css={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
             {playerOutcomes.map(({ playerName, role, winner }) => (
               <Card>
-                <Image src={imageByRole[role]} alt={role} />
+                <Image src={getFullImageByRole(role)} alt={role} />
                 <Box
                   css={{
                     position: 'absolute',
@@ -40,8 +43,10 @@ export const RevealScreenComponent: FC<Props> = ({
                     background: 'linear-gradient(rgba(0,0,0,0), rgba(0,0,0,1))',
                   }}
                 >
-                  <Heading>{playerName}</Heading>
-                  <Caption>{role}</Caption>
+                  <Box>
+                    <Heading>{playerName}</Heading>
+                    <Caption>{role}</Caption>
+                  </Box>
                 </Box>
                 {winner && (
                   <Badge

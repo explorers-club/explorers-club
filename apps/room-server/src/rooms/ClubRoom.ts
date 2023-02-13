@@ -1,12 +1,13 @@
 import { ClubRoomCommand, GAME_LIST } from '@explorers-club/room';
 import { ClubMetadata } from '@explorers-club/schema';
 import { ClubPlayer } from '@explorers-club/schema-types/ClubPlayer';
+import { ClubRoomServerEvent } from '@explorers-club/room';
 import { ClubState } from '@explorers-club/schema-types/ClubState';
 import { Client, Room } from 'colyseus';
 import { interpret } from 'xstate';
 import {
   ClubServerService,
-  createClubServerMachine
+  createClubServerMachine,
 } from './club-room-server.machine';
 
 const DEFAULT_GAME = GAME_LIST[0];
@@ -49,9 +50,21 @@ export class ClubRoom extends Room<ClubState> {
       state.toStrings().forEach((state) => room.state.currentStates.add(state));
     });
 
+    let tick = 0;
+    const messageQueue: ClubRoomServerEvent[] = [];
+    setInterval(() => {
+      messageQueue.forEach((message) => {
+        this.service.send(message);
+      });
+      tick = tick + 1;
+      messageQueue.length = 0;
+    }, 1000 / 60);
+
     this.onMessage('*', (client, _, message: ClubRoomCommand) => {
-      this.service.send({
+      const ts = tick + (messageQueue.length + 1) / 1000;
+      messageQueue.push({
         ...message,
+        ts,
         userId: client.userData.userId as string,
       });
     });
@@ -71,18 +84,18 @@ export class ClubRoom extends Room<ClubState> {
   onJoin(client: Client, options) {
     const userId = options.userId;
     client.userData = { userId };
-    this.service.send({ type: 'JOIN', userId });
+    this.service.send({ type: 'JOIN', ts: 0, userId });
   }
 
   async onLeave(client: Client) {
     const { userId } = client.userData;
-    this.service.send({ type: 'DISCONNECT', userId });
+    this.service.send({ type: 'DISCONNECT', ts: 0, userId });
 
     try {
       await this.allowReconnection(client, 30);
-      this.service.send({ type: 'RECONNECT', userId });
+      this.service.send({ type: 'RECONNECT', ts: 0, userId });
     } catch (ex) {
-      this.service.send({ type: 'LEAVE', userId });
+      this.service.send({ type: 'LEAVE', ts: 0, userId });
     }
   }
 

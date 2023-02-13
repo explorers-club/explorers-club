@@ -18,8 +18,8 @@ export const Scoreboard: FC<Props> = ({ players }) => {
         .sort((a, b) => b.score - a.score)
         .map(({ name, score }) => (
           <Flex justify="between" key={name}>
-            <Heading size="3">{name}</Heading>
-            <Heading size="3">{score}</Heading>
+            <Heading>{name}</Heading>
+            <Heading>{score}</Heading>
           </Flex>
         ))}
     </Flex>

@@ -4,10 +4,9 @@ import {
   useLittleVigilanteSend,
   useMyUserId,
 } from '../../state/little-vigilante.hooks';
-import { selectPlayersWithNameAndRole } from '../../state/little-vigilante.selectors';
-import { NightPhasePoliticianComponent } from './night-phase-politician.component';
+import { NightPhaseConArtistComponent } from './night-phase-con-artist.component';
 
-export const NightPhasePolitician = () => {
+export const NightPhaseConArtist = () => {
   const send = useLittleVigilanteSend();
   const myUserId = useMyUserId();
 
@@ -18,12 +17,12 @@ export const NightPhasePolitician = () => {
     [send, myUserId]
   );
 
-  const players = useLittleVigilanteSelector(
-    selectPlayersWithNameAndRole
+  const players = useLittleVigilanteSelector((state) =>
+    Object.values(state.players)
   ).filter((player) => player.userId !== myUserId);
 
   return (
-    <NightPhasePoliticianComponent
+    <NightPhaseConArtistComponent
       onSelectPlayer={handleSelectPlayer}
       players={players}
     />

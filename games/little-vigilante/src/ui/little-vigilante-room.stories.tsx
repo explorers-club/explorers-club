@@ -2,16 +2,23 @@ import { Box } from '@atoms/Box';
 import { Card } from '@atoms/Card';
 import { Grid } from '@atoms/Grid';
 import { Heading } from '@atoms/Heading';
-import { createRoomStore, LittleVigilanteStore } from '@explorers-club/room';
+import {
+  createRoomStore,
+  LittleVigilanteServerEvent,
+  LittleVigilanteStore,
+} from '@explorers-club/room';
 import { LittleVigilanteState } from '@explorers-club/schema-types/LittleVigilanteState';
 import { generateRandomString } from '@explorers-club/utils';
 import { ComponentMeta, Story } from '@storybook/react';
 import * as Colyseus from 'colyseus.js';
 import { Room } from 'colyseus.js';
 import { FC, useEffect, useState } from 'react';
+import { Subject } from 'rxjs';
+import { Flex } from '../../../../libs/components/src/atoms/Flex';
 import { OnCreateOptions } from '../server/LittleVigilanteRoom';
 import { LittleVigilanteContext } from '../state/little-vigilante.context';
 import { LittleVigilanteRoomComponent } from './little-vigilante-room.component';
+import { ChatServiceProvider } from './organisms/chat.context';
 
 export default {
   component: LittleVigilanteRoomComponent,
@@ -23,10 +30,13 @@ export default {
 const RoomWrapper: FC<{ roomId: string; myUserId: string }> = (props) => {
   const { roomId, myUserId } = props;
   const [store, setStore] = useState<LittleVigilanteStore | null>(null);
+  const [event$] = useState<Subject<LittleVigilanteServerEvent>>(new Subject());
 
   useEffect(() => {
-    joinAndCreateStore(roomId, myUserId).then(setStore).catch(console.error);
-  }, [roomId, myUserId, setStore]);
+    joinAndCreateStore(roomId, myUserId, event$)
+      .then(setStore)
+      .catch(console.error);
+  }, [roomId, myUserId, setStore, event$]);
 
   if (!store) {
     // eslint-disable-next-line react/jsx-no-useless-fragment
@@ -34,8 +44,12 @@ const RoomWrapper: FC<{ roomId: string; myUserId: string }> = (props) => {
   }
 
   return (
-    <LittleVigilanteContext.Provider value={{ store, myUserId }}>
-      <LittleVigilanteRoomComponent />
+    <LittleVigilanteContext.Provider value={{ store, myUserId, event$ }}>
+      <ChatServiceProvider>
+        <Flex direction="column" css={{ width: '100%', minHeight: '100%' }}>
+          <LittleVigilanteRoomComponent />
+        </Flex>
+      </ChatServiceProvider>
     </LittleVigilanteContext.Provider>
   );
 };
@@ -59,13 +73,16 @@ const Template: Story<{
         votingTimeSeconds,
         discussionTimeSeconds,
         roundsToPlay: 3,
-        rolesToExclude: ['politician'],
+        rolesToExclude: ['butler'],
       };
       try {
         room = await colyseusClient.create<LittleVigilanteState>(
           'little_vigilante',
           options
         );
+        room.onMessage('*', (event: LittleVigilanteServerEvent) => {
+          // just a no-op so we don't get warnings logs
+        });
       } catch (ex) {
         console.error(ex);
         return;
@@ -84,20 +101,24 @@ const Template: Story<{
   return initialized ? (
     <Grid
       css={{
-        height: '100vh',
+        // height: '100vh',
         gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-        gridAutoRows: 'minmax(0, 1fr)',
-        overflow: 'auto',
+        gridAutoRows: '800px',
       }}
     >
       {playerInfo.map(({ userId, name }, index) => (
-        <Box
+        <Flex
           key={userId}
-          css={{ background: '$neutral1', width: '100%', overflowY: 'scroll' }}
+          direction="column"
+          css={{
+            background: '$neutral1',
+            width: '100%',
+            // overflow: 'auto',
+          }}
         >
-          <Heading css={{ mt: '$2', textAlign: 'center' }}>{name}</Heading>
+          {/* <Heading css={{ mt: '$2', textAlign: 'center' }}>{name}</Heading> */}
           <RoomWrapper roomId={roomId} myUserId={userId} />
-        </Box>
+        </Flex>
       ))}
     </Grid>
   ) : (
@@ -167,10 +188,17 @@ EightPlayer.args = {
   numPlayers: 8,
 };
 
-const joinAndCreateStore = async (roomId: string, userId: string) => {
+const joinAndCreateStore = async (
+  roomId: string,
+  userId: string,
+  eventSubject$: Subject<LittleVigilanteServerEvent>
+) => {
   const client = new Colyseus.Client('ws://localhost:2567');
   const room = await client.joinById<LittleVigilanteState>(roomId, {
     userId,
+  });
+  room.onMessage('*', (type, event: LittleVigilanteServerEvent) => {
+    eventSubject$.next(event);
   });
   await new Promise((resolve) => {
     room.onStateChange.once(resolve);

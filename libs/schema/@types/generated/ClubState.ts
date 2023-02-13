@@ -11,6 +11,7 @@ import { ClubPlayer } from './ClubPlayer'
 export class ClubState extends Schema {
     @type({ set: "string" }) public currentStates: SetSchema<string> = new SetSchema<string>();
     @type({ set: "string" }) public gameRoomIds: SetSchema<string> = new SetSchema<string>();
+    @type("string") public conversationId!: string;
     @type("string") public clubName!: string;
     @type("string") public hostUserId!: string;
     @type("string") public selectedGame!: string;

@@ -8,8 +8,10 @@ import { Image } from '@atoms/Image';
 import { Text } from '@atoms/Text';
 import {
   abilityByRole,
-  colorByTeam, imageByRole, Role,
-  teamByRole
+  colorByTeam,
+  getFullImageByRole,
+  Role,
+  teamByRole,
 } from '../little-vigilante.constants';
 
 export const LittleVigilanteGameInfoScreen = () => {
@@ -62,7 +64,7 @@ export const LittleVigilanteGameInfoScreen = () => {
                 >
                   {teamByRole[role as Role]}
                 </Badge>
-                <Image src={imageByRole[role as Role]} alt={role} />
+                <Image src={getFullImageByRole(role as Role)} alt={role} />
                 <Box
                   css={{
                     position: 'absolute',

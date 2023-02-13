@@ -5,9 +5,9 @@ import {
   useMyUserId
 } from '../../state/little-vigilante.hooks';
 import { selectPlayers } from '../../state/little-vigilante.selectors';
-import { NightPhaseConspiratorComponent } from './night-phase-conspirator.component';
+import { NightPhaseSnitchComponent } from './night-phase-snitch.component';
 
-export const NightPhaseConspirator = () => {
+export const NightPhaseSnitch = () => {
   const send = useLittleVigilanteSend();
   const myUserId = useMyUserId();
   const handleSelectPlayers = useCallback(
@@ -21,7 +21,7 @@ export const NightPhaseConspirator = () => {
   );
 
   return (
-    <NightPhaseConspiratorComponent
+    <NightPhaseSnitchComponent
       onSelectPlayers={handleSelectPlayers}
       players={players}
     />

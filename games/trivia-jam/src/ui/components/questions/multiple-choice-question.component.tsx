@@ -1,7 +1,7 @@
 import { Flex } from '@atoms/Flex';
 import { Text } from '@atoms/Text';
 import { Heading } from '@atoms/Heading';
-import { RadioCardGroup, RadioCard } from '@molecules/RadioCard';
+import { RadioCardGroup, ListRadioCard } from '@molecules/RadioCard';
 import { FC, useCallback, useMemo } from 'react';
 import { IMultipleChoiceFields } from '@explorers-club/contentful-types';
 import { Caption } from '@atoms/Caption';
@@ -35,7 +35,7 @@ export const MultipleChoiceQuestionComponent: FC<Props> = ({
       <RadioCardGroup onValueChange={handleChange}>
         {[
           answers.map((answer, index) => (
-            <RadioCard
+            <ListRadioCard
               key={index}
               value={answer}
               css={{ mb: '$2', width: '100%' }}
@@ -48,7 +48,7 @@ export const MultipleChoiceQuestionComponent: FC<Props> = ({
                   {answer}
                 </Text>
               </Flex>
-            </RadioCard>
+            </ListRadioCard>
           )),
         ]}
       </RadioCardGroup>

@@ -4,6 +4,7 @@
   "projects": {
     "api": "libs/api",
     "api-server": "apps/api-server",
+    "chat": "libs/chat",
     "codebreakers": "games/codebreakers",
     "components": "libs/components",
     "contentful": "libs/contentful",

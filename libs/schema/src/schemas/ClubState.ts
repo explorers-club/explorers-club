@@ -9,6 +9,7 @@ export class ClubPlayer extends Schema {
 export class ClubState extends Schema {
   @type({ set: 'string' }) currentStates: SetSchema<string> = new SetSchema();
   @type({ set: 'string' }) gameRoomIds: SetSchema<string> = new SetSchema();
+  @type('string') conversationId!: string;
   @type('string') clubName!: string;
   @type('string') hostUserId!: string;
   @type('string') selectedGame!:

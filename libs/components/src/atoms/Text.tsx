@@ -47,6 +47,15 @@ export const Text = styled('span', {
       },
     },
     variant: {
+      primary: {
+        color: '$primary9',
+      },
+      secondary: {
+        color: '$secondary9',
+      },
+      warning: {
+        color: '$warning9',
+      },
       contrast: {
         color: '$neutral12',
       },
@@ -94,6 +103,12 @@ export const Text = styled('span', {
       },
       orange: {
         color: '$orange9',
+      },
+      brown: {
+        color: '$brown9',
+      },
+      amber: {
+        color: '$amber9',
       },
       gold: {
         color: '$gold9',

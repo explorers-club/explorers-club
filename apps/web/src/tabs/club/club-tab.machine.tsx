@@ -1,5 +1,6 @@
 import {
   ClubRoomCommand,
+  ClubRoomServerEvent,
   createRoomStore,
   RoomStore,
 } from '@explorers-club/room';
@@ -10,6 +11,7 @@ import { NotificationsActor } from '@organisms/notifications';
 import { TabMetadata } from '@organisms/tab-bar';
 import { HomeIcon } from '@radix-ui/react-icons';
 import { Client, Room } from 'colyseus.js';
+import { Observable } from 'rxjs';
 import {
   ActorRefFrom,
   assign,
@@ -24,6 +26,7 @@ export interface ClubTabContext {
   store?: ClubRoomStore;
   clubName?: string;
   room?: Room<ClubState>;
+  event$?: Observable<ClubRoomServerEvent>;
 }
 
 type ClubTabEvent =
@@ -111,6 +114,7 @@ export const createClubTabMachine = (
                     });
                   }
 
+                  // todo make generic
                   room.onMessage(
                     'RESERVED_GAME_SEAT',
                     ({ room, sessionId }) => {
@@ -126,16 +130,32 @@ export const createClubTabMachine = (
                     room.onStateChange.once(resolve)
                   );
 
-                  return [store, room];
+                  const event$ = new Observable<ClubRoomServerEvent>(function (
+                    observer
+                  ) {
+                    // todo cleanup/remove this listener
+                    room.onMessage('*', (message: ClubRoomServerEvent) => {
+                      observer.next(message);
+                    });
+                  });
+
+                  return [store, room, event$];
                 },
                 onDone: {
                   target: 'Connected',
                   actions: assign<
                     ClubTabContext,
-                    DoneInvokeEvent<[ClubRoomStore, Room<ClubState>]>
+                    DoneInvokeEvent<
+                      [
+                        ClubRoomStore,
+                        Room<ClubState>,
+                        Observable<ClubRoomServerEvent>
+                      ]
+                    >
                   >({
                     store: (_, { data }) => data[0],
                     room: (_, { data }) => data[1],
+                    event$: (_, { data }) => data[2],
                   }),
                 },
                 onError: 'Error',

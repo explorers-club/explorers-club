@@ -1,17 +1,17 @@
 import { ComponentStory, Meta } from '@storybook/react';
 import { withCardDecorator } from '@storybook-decorators/CardDecorator';
-import { NightPhaseConspiratorComponent } from './night-phase-conspirator.component';
+import { NightPhaseSnitchComponent } from './night-phase-snitch.component';
 
 export default {
-  component: NightPhaseConspiratorComponent,
+  component: NightPhaseSnitchComponent,
   decorators: [withCardDecorator],
   argTypes: {
     onSelectPlayers: { action: 'select' },
   },
 } as Meta;
 
-export const Primary: ComponentStory<typeof NightPhaseConspiratorComponent> = (args) => {
-  return <NightPhaseConspiratorComponent {...args} />;
+export const Primary: ComponentStory<typeof NightPhaseSnitchComponent> = (args) => {
+  return <NightPhaseSnitchComponent {...args} />;
 };
 
 Primary.args = {

@@ -9,7 +9,7 @@ interface Props {
   sliderRef: (node: HTMLDivElement | null) => void;
 }
 
-export const Carousel: FC<Props> = ({ css, children, sliderRef }) => {
+export const Slider: FC<Props> = ({ css, children, sliderRef }) => {
   return (
     <Box css={css} className="keen-slider" ref={sliderRef}>
       {children}
@@ -22,7 +22,7 @@ interface CellProps {
   css?: CSS;
 }
 
-export const CarouselCell = forwardRef<HTMLDivElement, CellProps>(
+export const SliderCell = forwardRef<HTMLDivElement, CellProps>(
   ({ css, children }, ref) => (
     <Box css={css} ref={ref} className="keen-slider__slide">
       {children}

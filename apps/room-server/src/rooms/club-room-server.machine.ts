@@ -1,7 +1,7 @@
 /* eslint-disable no-case-declarations */
 import { DiffusionaryRoom } from '@explorers-club/diffusionary/server';
 import { LittleVigilanteRoom } from '@explorers-club/little-vigilante/server';
-import { ClubRoomCommand, ClubStateSerialized } from '@explorers-club/room';
+import { ClubRoomServerEvent, ClubStateSerialized } from '@explorers-club/room';
 import { ClubPlayer } from '@explorers-club/schema-types/ClubPlayer';
 import { ClubState } from '@explorers-club/schema-types/ClubState';
 import { TriviaJamRoom } from '@explorers-club/trivia-jam/server';
@@ -14,10 +14,6 @@ type GameConfig = ReturnType<typeof selectGameConfig>;
 export interface ClubRoomServerContext {
   room: Room<ClubState>;
 }
-
-export type ClubRoomServerEvent = ClubRoomCommand & {
-  userId: string;
-};
 
 export const createClubServerMachine = (room: Room<ClubState>) => {
   const gameConfig = selectGameConfig(getSnapshot(room.state));
@@ -51,6 +47,12 @@ export const createClubServerMachine = (room: Room<ClubState>) => {
               room.state.players.set(event.userId, player);
             }
             player.connected = true;
+          },
+        },
+        MESSAGE: {
+          actions: (context, event) => {
+            // Rebroadcast any sent messgae
+            context.room.broadcast(event.type, event);
           },
         },
         RECONNECT: {

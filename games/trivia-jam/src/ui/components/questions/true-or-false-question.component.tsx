@@ -1,7 +1,7 @@
 import { Text } from '@atoms/Text';
 import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
-import { RadioCardGroup, RadioCard } from '@molecules/RadioCard';
+import { RadioCardGroup, ListRadioCard } from '@molecules/RadioCard';
 import { FC, useCallback } from 'react';
 import { ITrueOrFalseFields } from '@explorers-club/contentful-types';
 import { Caption } from '@atoms/Caption';
@@ -33,22 +33,22 @@ export const TrueOrFalseQuestionComponent: FC<Props> = ({
       <Caption>Fact.</Caption>
       <Heading size="2">{prompt}</Heading>
       <RadioCardGroup onValueChange={handleChange}>
-        <RadioCard value="true" css={{ mb: '$2', width: '100%' }}>
+        <ListRadioCard value="true" css={{ mb: '$2', width: '100%' }}>
           <Text
             size="5"
             css={{ fontWeight: '500', lineHeight: '25px', mr: '$6' }}
           >
             True
           </Text>
-        </RadioCard>
-        <RadioCard value="false" css={{ mb: '$2', width: '100%' }}>
+        </ListRadioCard>
+        <ListRadioCard value="false" css={{ mb: '$2', width: '100%' }}>
           <Text
             size="5"
             css={{ fontWeight: '500', lineHeight: '25px', mr: '$6' }}
           >
             False
           </Text>
-        </RadioCard>
+        </ListRadioCard>
       </RadioCardGroup>
     </Flex>
   );

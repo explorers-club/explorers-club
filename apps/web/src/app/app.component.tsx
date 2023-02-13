@@ -6,27 +6,22 @@ import { Logo } from '@atoms/Logo';
 import { darkTheme } from '@explorers-club/styles';
 import {
   NotificationsComponent,
-  notificationsMachine
+  notificationsMachine,
 } from '@organisms/notifications';
 import { createTabBarMachine, TabBar } from '@organisms/tab-bar';
 import {
   Environment,
   OrbitControls,
-  useContextBridge
+  useContextBridge,
 } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { useInterpret, useSelector } from '@xstate/react';
 import * as Colyseus from 'colyseus.js';
-import {
-  FC,
-  ReactElement,
-  Suspense,
-  useContext, useState
-} from 'react';
+import { FC, ReactElement, Suspense, useContext, useState } from 'react';
 import { BottomSheet } from 'react-spring-bottom-sheet';
 import {
   defaultSnapProps,
-  SnapPointProps
+  SnapPointProps,
 } from 'react-spring-bottom-sheet/dist/types';
 import { ModalComponent, modalMachine } from '../components/organisms/modal';
 import { environment } from '../environments/environment';
@@ -56,6 +51,8 @@ export const AppComponent = () => {
 
   const [lobbyTabMachine] = useState(createLobbyTabMachine(colyseusClient));
   const lobbyTabActor = useInterpret(lobbyTabMachine);
+
+  // const chatActor = useInterpret(chatMachine);
 
   const modalActor = useInterpret(modalMachine);
   const notificationsActor = useInterpret(notificationsMachine);

@@ -15,11 +15,16 @@ export class LittleVigilantePlayer extends ClubPlayer {
 }
 
 export class LittleVigilanteState extends Schema {
+  @type('number') currentTick = 0;
+  @type('string') conversationId!: string;
   @type('number') currentRound = 1;
 
   @type({ set: 'string' }) currentStates: SetSchema<string> = new SetSchema();
   @type({ set: 'string' }) hostUserIds: SetSchema<string> = new SetSchema();
   @type({ array: 'string' }) roles: ArraySchema<string> = new ArraySchema();
+
+  @type({ array: 'string' }) chatMessagesSerialized: ArraySchema<string> =
+    new ArraySchema();
 
   @type('number') timeRemaining!: number;
 
@@ -34,6 +39,12 @@ export class LittleVigilanteState extends Schema {
 
   @type({ map: 'number' })
   public currentRoundPoints: MapSchema<number> = new MapSchema<number>();
+
+  @type({ map: 'boolean' })
+  public currentDownState: MapSchema<boolean> = new MapSchema<boolean>();
+
+  @type({ map: 'number' })
+  public lastDownState: MapSchema<number> = new MapSchema<number>();
 
   @type({ map: 'boolean' })
   public calledVoteResponses: MapSchema<boolean> = new MapSchema<boolean>();

@@ -694,7 +694,9 @@ export const darkTheme = createTheme('dark-theme', {
   },
 });
 
-type PlayerColor =
+export type TeamColor = 'magenta' | 'cyan' | 'gold';
+
+export type PlayerColor =
   | 'yellow'
   | 'purple'
   | 'green'
@@ -702,9 +704,7 @@ type PlayerColor =
   | 'orange'
   | 'red'
   | 'pink'
-  | 'brown'
-  | 'black'
-  | 'white';
+  | 'brown';
 
 export const colorBySlotNumber: Record<number, PlayerColor> = {
   1: 'yellow',
@@ -715,6 +715,4 @@ export const colorBySlotNumber: Record<number, PlayerColor> = {
   6: 'red',
   7: 'pink',
   8: 'brown',
-  9: 'black',
-  10: 'white',
 };

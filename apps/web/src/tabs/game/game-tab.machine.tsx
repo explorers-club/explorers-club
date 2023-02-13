@@ -1,6 +1,7 @@
 import {
   createRoomStore,
   GameId,
+  GameServerEvent,
   GameStore,
   TriviaJamStore,
 } from '@explorers-club/room';
@@ -10,11 +11,12 @@ import {
   LittleVigilanteRoomIdSchema,
   TriviaJamRoomIdSchema,
 } from '@explorers-club/schema';
-import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
+import { LittleVigilanteState } from '@explorers-club/schema-types/LittleVigilanteState';
 import { assertEventType } from '@explorers-club/utils';
 import { TabMetadata } from '@organisms/tab-bar';
 import { RocketIcon } from '@radix-ui/react-icons';
 import { Client } from 'colyseus.js';
+import { Observable } from 'rxjs';
 import {
   ActorRefFrom,
   assign,
@@ -24,6 +26,7 @@ import {
 } from 'xstate';
 
 export type GameTabContext = {
+  event$?: Observable<GameServerEvent>;
   roomId?: GameRoomId;
   gameId?: GameId;
   store?: GameStore;
@@ -59,25 +62,40 @@ export const createGameTabMachine = (colyseusClient: Client, userId: string) =>
             Connecting: {
               invoke: {
                 src: async ({ roomId }) => {
-                  const room = await colyseusClient.joinById<TriviaJamState>(
-                    roomId!,
-                    {
-                      userId,
-                    }
-                  );
+                  // Todo make this generic type
+                  const room =
+                    await colyseusClient.joinById<LittleVigilanteState>(
+                      roomId!,
+                      {
+                        userId,
+                      }
+                    );
                   await new Promise((resolve) =>
                     room.onStateChange.once(resolve)
                   );
 
-                  return createRoomStore(room);
+                  const event$ = new Observable<GameServerEvent>(function (
+                    observer
+                  ) {
+                    // todo cleanup/remove this listener
+                    room.onMessage('*', (_, message) => {
+                      // console.log('GSE', message);
+                      observer.next(message);
+                    });
+                  });
+
+                  return [createRoomStore(room), event$];
                 },
                 onDone: {
                   target: 'Connected',
                   actions: assign<
                     GameTabContext,
-                    DoneInvokeEvent<TriviaJamStore>
+                    DoneInvokeEvent<
+                      [TriviaJamStore, Observable<GameServerEvent>]
+                    >
                   >({
-                    store: (_, { data }) => data,
+                    store: (_, { data }) => data[0],
+                    event$: (_, { data }) => data[1],
                   }),
                 },
                 onError: 'Error',

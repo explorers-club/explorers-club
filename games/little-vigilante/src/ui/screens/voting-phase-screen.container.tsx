@@ -31,6 +31,7 @@ export const VotingPhaseScreen = () => {
         userId,
         name: player.name,
         count: countsByPlayerId[userId] || 0,
+        slotNumber: player.slotNumber,
       };
     });
   });
