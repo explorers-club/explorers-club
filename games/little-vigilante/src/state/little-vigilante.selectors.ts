@@ -48,10 +48,8 @@ export const selectTwinGirlPlayerName = (
   return result && state.players[result[0]]?.name;
 };
 
-export const selectPlayers = (
-  state: LittleVigilanteStateSerialized
-) => {
-  return Object.values(state.players)
+export const selectPlayers = (state: LittleVigilanteStateSerialized) => {
+  return Object.values(state.players);
 };
 
 export const selectPlayersWithName = (
@@ -68,14 +66,20 @@ export const selectPlayersWithName = (
 export const selectPlayersWithNameAndRole = (
   state: LittleVigilanteStateSerialized
 ) => {
-  return Object.entries(state.players).map(([_, { userId, name, slotNumber }]) => {
-    return {
-      userId: userId,
-      name: name,
-      slotNumber: slotNumber,
-      role: state.currentRoundRoles[userId],
-    };
-  });
+  return Object.entries(state.players).map(
+    ([_, { userId, name, slotNumber }]) => {
+      return {
+        userId: userId,
+        name: name,
+        slotNumber: slotNumber,
+        role: state.currentRoundRoles[userId],
+      };
+    }
+  );
+};
+
+export const selectRoles = (state: LittleVigilanteStateSerialized) => {
+  return state.roles as Role[];
 };
 
 export const selectUnusedRoles = (state: LittleVigilanteStateSerialized) => {
