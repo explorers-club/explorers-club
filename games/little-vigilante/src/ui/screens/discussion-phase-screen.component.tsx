@@ -1,15 +1,13 @@
 import { Avatar } from '@atoms/Avatar';
 import { Box } from '@atoms/Box';
-import { Button } from '@atoms/Button';
 import { Caption } from '@atoms/Caption';
 import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
 import { Grid } from '@atoms/Grid';
 import { Heading } from '@atoms/Heading';
-import { IconButton } from '@atoms/IconButton';
 import { LittleVigilanteStateSerialized } from '@explorers-club/room';
 import { colorBySlotNumber, styled } from '@explorers-club/styles';
-import { Carousel, CarouselCell } from '@molecules/Carousel';
+import { Slider, SliderCell } from '@molecules/Slider';
 import { Cross2Icon } from '@radix-ui/react-icons';
 import * as Popover from '@radix-ui/react-popover';
 import { KeenSliderInstance, useKeenSlider } from 'keen-slider/react';
@@ -22,20 +20,19 @@ import {
   useEffect,
   useMemo,
   useRef,
-  useState,
+  useState
 } from 'react';
-import { filter } from 'rxjs';
 import {
   colorByTeam,
   getAvatarImageByRole,
   Role,
-  teamByRole,
+  teamByRole
 } from '../../meta/little-vigilante.constants';
 import { LittleVigilanteContext } from '../../state/little-vigilante.context';
 import {
   useLittleVigilanteSelector,
   useLittleVigilanteSend,
-  useMyUserId,
+  useMyUserId
 } from '../../state/little-vigilante.hooks';
 import { PlayerAvatar } from '../molecules/player-avatar.component';
 import { RoleCard } from '../molecules/role-card.component';
@@ -125,7 +122,7 @@ const RoleCarousel: FC<RoleCarouselProps> = ({ currentRoleRef }) => {
             <RoleCardContainer roleRef={roleRef} />
           </RolePopoverContent>
         </Popover.Portal>
-        <Carousel sliderRef={sliderRef}>
+        <Slider sliderRef={sliderRef}>
           {roles.map((role, index) => (
             <RoleCell
               role={role}
@@ -134,7 +131,7 @@ const RoleCarousel: FC<RoleCarouselProps> = ({ currentRoleRef }) => {
               onPress={handleOnPress}
             />
           ))}
-        </Carousel>
+        </Slider>
       </Popover.Root>
     </Box>
   );
@@ -263,7 +260,7 @@ const RoleCell = memo(
     });
 
     return (
-      <CarouselCell
+      <SliderCell
         css={{
           opacity: 0.5,
           '&.active': {
@@ -298,7 +295,7 @@ const RoleCell = memo(
           />
           <Caption variant="contrast">{role}</Caption>
         </Flex>
-      </CarouselCell>
+      </SliderCell>
     );
   }
 );

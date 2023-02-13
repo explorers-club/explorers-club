@@ -2,17 +2,11 @@ import { Avatar } from '@atoms/Avatar';
 import { Box } from '@atoms/Box';
 import { ComponentProps, ElementRef, forwardRef } from 'react';
 import {
-  colorByTeam,
   getAvatarImageByRole,
+  getTeamThemeColor,
   Role,
-  teamByRole
+  teamByRole,
 } from '../../meta/little-vigilante.constants';
-
-const colorByTeamColor = {
-  cyan: '05A2C2',
-  magenta: 'E93D82',
-  gold: 'FFB224',
-} as const;
 
 interface Props {
   roleType: Role;
@@ -23,7 +17,8 @@ export const RoleAvatar = forwardRef<
   Props & ComponentProps<typeof Avatar>
 >(({ roleType, ...props }, ref) => {
   const team = teamByRole[roleType];
-  const teamColor = colorByTeam[team];
+  const themeColor = getTeamThemeColor(team);
+
   // const avatar = useMemo(() => {
   //   return createAvatar(loreleiNeutral, {
   //     seed: roleType,
@@ -38,7 +33,8 @@ export const RoleAvatar = forwardRef<
         height: 'fit-content',
         width: 'fit-content',
         borderRadius: '50%',
-        filter: 'drop-shadow(-1px 6px 3px rgba(50, 50, 0, 0.5))',
+        border: `2px solid $colors$${themeColor}7`,
+        filter: `drop-shadow(0px 3px 6px $colors$${themeColor}9)`,
       }}
     >
       <Avatar {...props} ref={ref} src={src} />

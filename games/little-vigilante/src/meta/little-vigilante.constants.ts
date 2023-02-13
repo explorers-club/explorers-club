@@ -73,6 +73,16 @@ export const colorByTeam = {
   anarchist: 'gold',
 } as const;
 
+export const getTeamThemeColor = (team: Team) => {
+  const color = colorByTeam[team];
+  const colorToTheme = {
+    magenta: 'crimson',
+    cyan: 'cyan',
+    gold: 'amber',
+  } as const;
+  return colorToTheme[color];
+};
+
 export const colorNameToPrimaryColor = {
   yellow: 'F5D90A',
   white: 'FFFFFF',
@@ -160,6 +170,7 @@ export const rolesByPlayerCount: Record<number, readonly Role[]> = {
   9: NINE_PLAYER_ROLES,
 };
 
+// todo move this in to i18n
 export const displayNameByRole: Record<Role, string> = {
   cop: 'Cop',
   vigilante: 'Vigilante',

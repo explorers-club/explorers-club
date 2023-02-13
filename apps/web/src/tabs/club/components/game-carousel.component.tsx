@@ -1,6 +1,6 @@
 import { Box } from '@atoms/Box';
 import { GAME_LIST } from '@explorers-club/room';
-import { Carousel, CarouselCell } from '@molecules/Carousel';
+import { Slider, SliderCell } from '@molecules/Slider';
 import 'keen-slider/keen-slider.min.css';
 import { useKeenSlider } from 'keen-slider/react';
 import { useState } from 'react';
@@ -47,13 +47,13 @@ export const GameCarousel = () => {
 
   return (
     <Box css={{ position: 'relative' }}>
-      <Carousel css={{ pt: '$3' }} sliderRef={sliderRef}>
+      <Slider css={{ pt: '$3' }} sliderRef={sliderRef}>
         {GAME_LIST.map((gameId) => (
-          <CarouselCell key={gameId}>
+          <SliderCell key={gameId}>
             <GameCard key={gameId} gameId={gameId} />
-          </CarouselCell>
+          </SliderCell>
         ))}
-      </Carousel>
+      </Slider>
     </Box>
   );
 };

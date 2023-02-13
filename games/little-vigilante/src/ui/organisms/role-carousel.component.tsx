@@ -1,10 +1,14 @@
 import { Caption } from '@atoms/Caption';
 import { Flex } from '@atoms/Flex';
-import { Carousel, CarouselCell } from '@molecules/Carousel';
+import { Slider, SliderCell } from '@molecules/Slider';
 import { useKeenSlider } from 'keen-slider/react';
 import { useContext } from 'react';
 import { distinctUntilChanged, map } from 'rxjs';
-import { colorByTeam, teamByRole } from '../../meta/little-vigilante.constants';
+import {
+  colorByTeam,
+  getTeamThemeColor,
+  teamByRole,
+} from '../../meta/little-vigilante.constants';
 import { LittleVigilanteContext } from '../../state/little-vigilante.context';
 import { useLittleVigilanteSelector } from '../../state/little-vigilante.hooks';
 import {
@@ -17,7 +21,6 @@ export const RoleCarousel = () => {
   const { store, event$ } = useContext(LittleVigilanteContext);
   const abilityGroups = useLittleVigilanteSelector(selectAbilityGroups);
   const abilityGroup = useLittleVigilanteSelector(selectAbilityGroup);
-  console.log({ abilityGroups, abilityGroup });
 
   const [sliderRef, instanceRef] = useKeenSlider<HTMLDivElement>({
     initial: abilityGroup
@@ -47,10 +50,10 @@ export const RoleCarousel = () => {
     },
   });
   return (
-    <Carousel sliderRef={sliderRef}>
+    <Slider sliderRef={sliderRef}>
       {Object.entries(abilityGroups).map(([ability, roles]) => {
         return (
-          <CarouselCell key={ability}>
+          <SliderCell key={ability}>
             <Flex
               direction="column"
               align="center"
@@ -65,13 +68,7 @@ export const RoleCarousel = () => {
               <Flex gap="1">
                 {roles.map((role) => {
                   const team = teamByRole[role];
-                  const color = colorByTeam[team];
-                  const colorToTheme = {
-                    magenta: 'crimson',
-                    cyan: 'cyan',
-                    gold: 'amber',
-                  };
-                  const themeColor = `$${colorToTheme[color]}`;
+                  const themeColor = getTeamThemeColor(team);
                   return (
                     <RoleAvatar
                       css={{
@@ -87,9 +84,9 @@ export const RoleCarousel = () => {
               </Flex>
               <Caption>{ability}</Caption>
             </Flex>
-          </CarouselCell>
+          </SliderCell>
         );
       })}
-    </Carousel>
+    </Slider>
   );
 };

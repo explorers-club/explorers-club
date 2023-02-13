@@ -37,6 +37,7 @@ export const Badge = styled('span', {
   color: '$slate11',
   whiteSpace: 'nowrap',
   fontVariantNumeric: 'tabular-nums',
+  fontWeight: "bold",
 
   variants: {
     size: {
@@ -172,10 +173,10 @@ export const Badge = styled('span', {
       },
       magenta: {
         backgroundColor: '$crimson3',
-        color: '$crimson',
+        color: '$crimson9',
         '&:focus': {
           boxShadow:
-            'inset 0 0 0 1px $colors$crimson, 0 0 0 1px $colors$crimson',
+            'inset 0 0 0 1px $colors$crimson8, 0 0 0 1px $colors$crimson8',
         },
       },
       bronze: {

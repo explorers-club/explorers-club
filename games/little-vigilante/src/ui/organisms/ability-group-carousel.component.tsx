@@ -1,6 +1,6 @@
 import { Caption } from '@atoms/Caption';
 import { Flex } from '@atoms/Flex';
-import { Carousel, CarouselCell } from '@molecules/Carousel';
+import { Slider, SliderCell } from '@molecules/Slider';
 import { useKeenSlider } from 'keen-slider/react';
 import { useContext } from 'react';
 import { distinctUntilChanged, map } from 'rxjs';
@@ -46,10 +46,10 @@ export const AbilityGroupCarousel = () => {
     },
   });
   return (
-    <Carousel sliderRef={sliderRef}>
+    <Slider sliderRef={sliderRef}>
       {Object.entries(abilityGroups).map(([ability, roles]) => {
         return (
-          <CarouselCell key={ability}>
+          <SliderCell key={ability}>
             <Flex
               direction="column"
               align="center"
@@ -86,9 +86,9 @@ export const AbilityGroupCarousel = () => {
               </Flex>
               <Caption>{ability}</Caption>
             </Flex>
-          </CarouselCell>
+          </SliderCell>
         );
       })}
-    </Carousel>
+    </Slider>
   );
 };

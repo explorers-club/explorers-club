@@ -107,6 +107,9 @@ export const Text = styled('span', {
       brown: {
         color: '$brown9',
       },
+      amber: {
+        color: '$amber9',
+      },
       gold: {
         color: '$gold9',
       },
