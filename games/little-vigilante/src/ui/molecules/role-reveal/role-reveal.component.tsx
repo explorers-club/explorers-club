@@ -84,13 +84,7 @@ export const RoleRevealComponent: FC<Props> = ({
       <Flex direction="column" gap="2">
         <Box css={{ px: '$3' }}>
           <Flex direction="column" align="start" gap="1">
-            <Heading
-              size="3"
-              css={{ textTransform: 'capitalize', textAlign: 'center' }}
-            >
-              {myWinState ? 'You Win!' : 'You Lost'}
-            </Heading>
-            <Text>
+            <Text size={1}>
               <Text
                 variant={colorBySlotNumber[vigilante.slotNumber]}
                 css={{ fontWeight: 'bold', display: 'inline' }}
@@ -116,9 +110,23 @@ export const RoleRevealComponent: FC<Props> = ({
                   .
                 </>
               ) : (
-                `is the vigilante.`
+                <>
+                  is the{' '}
+                  <Text
+                    variant="crimson"
+                    css={{ fontWeight: 'bold', display: 'inline' }}
+                  >
+                    Vigilante
+                  </Text>
+                </>
               )}
             </Text>
+            <Heading
+              size="3"
+              css={{ textTransform: 'capitalize', textAlign: 'center' }}
+            >
+              {myWinState ? 'You Win!' : 'You Lost'}
+            </Heading>
           </Flex>
           {/* <Flex direction="column" gap="1">
             <Badge css={{ textTransform: 'capitalize' }} variant={color}>

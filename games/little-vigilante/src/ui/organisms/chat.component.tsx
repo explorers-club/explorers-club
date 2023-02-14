@@ -395,9 +395,13 @@ const RoleAssignmentMessage: FC<{ event: RoleAssignmentEvent }> = ({
   return (
     <Flex align="center" gap="1">
       <PlayerAvatar userId={userId} color={color} />
-      <Text>
-        You are the <strong>{displayNameByRole[event.role]}</strong>.
-      </Text>
+
+      <Flex direction="column" gap={1}>
+        <Caption>Private</Caption>
+        <Text>
+          You are the <strong>{displayNameByRole[event.role]}</strong>.
+        </Text>
+      </Flex>
     </Flex>
   );
 };
