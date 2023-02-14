@@ -21,6 +21,7 @@ import { LittleVigilantePlayer } from '@explorers-club/schema-types/LittleVigila
 import { LittleVigilanteState } from '@explorers-club/schema-types/LittleVigilanteState';
 import { TriviaJamPlayer } from '@explorers-club/schema-types/TriviaJamPlayer';
 import { TriviaJamState } from '@explorers-club/schema-types/TriviaJamState';
+import { z } from 'zod';
 
 // From a prop in colyseus schema, return the serialized
 // version of it so that we can call toJSON() and type it.
@@ -87,6 +88,7 @@ export type JoinCommand = {
 
 export type PauseCommand = {
   type: 'PAUSE';
+  userId: string;
 };
 
 export type ResumeCommand = {
@@ -329,8 +331,33 @@ export type ClubRoomCommand =
   | ClubRoomSetGameConfigCommand
   | ClubRoomStartGameCommand;
 
+export const UserSenderSchema = z
+  .object({
+    type: z.literal('user'),
+    userId: z.string(),
+  })
+  .required();
+
+export const ServerSenderSchema = z
+  .object({
+    type: z.literal('server'),
+  })
+  .required();
+
+type UserSender = z.infer<typeof UserSenderSchema>;
+type ServerSender = z.infer<typeof ServerSenderSchema>;
+
+type Sender = UserSender | ServerSender;
+
+interface ClientEventProps {
+  sender: Sender;
+  ts: number;
+}
+
+export type ClientEvent<T> = T & ClientEventProps;
+
 interface ServerEventProps {
-  userId: string;
+  sender: Sender;
   ts: number;
 }
 

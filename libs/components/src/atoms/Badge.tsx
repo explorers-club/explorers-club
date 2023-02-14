@@ -165,10 +165,10 @@ export const Badge = styled('span', {
         },
       },
       gold: {
-        backgroundColor: '$gold3',
-        color: '$gold11',
+        backgroundColor: '$amber3',
+        color: '$amber11',
         '&:focus': {
-          boxShadow: 'inset 0 0 0 1px $colors$gold8, 0 0 0 1px $colors$gold8',
+          boxShadow: 'inset 0 0 0 1px $colors$amber8, 0 0 0 1px $colors$amber8',
         },
       },
       magenta: {

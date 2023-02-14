@@ -1,7 +1,7 @@
-import { Meta, Story } from '@storybook/react';
+import { Box } from '@atoms/Box';
+import { Meta } from '@storybook/react';
 import { rolesByPlayerCount } from '../../meta/little-vigilante.constants';
 import {
-  LittleVigilanteMockState,
   LittleVigilanteStory,
   withLittleVigilanteContext,
 } from '../../test/withLittleVigilanteContext';
@@ -13,13 +13,17 @@ export default {
   parameters: {
     layout: 'fullscreen',
     viewport: {
-      defaultViewport: "mobile1"
-    }
+      defaultViewport: 'mobile1',
+    },
   },
 } as Meta;
 
 export const Primary: LittleVigilanteStory = () => {
-  return <DiscussionPhaseScreenComponent />;
+  return (
+    <Box css={{ height: '100vh' }}>
+      <DiscussionPhaseScreenComponent />
+    </Box>
+  );
 };
 
 const players = {
@@ -30,8 +34,8 @@ const players = {
     connected: true,
     slotNumber: 1,
     currentRoundRoleTargets: {
-      bob123: 'politician',
-      eve123: 'conspirator',
+      bob123: 'snitch',
+      eve123: 'con_artist',
     },
   },
   bob123: {
@@ -50,7 +54,7 @@ const players = {
     slotNumber: 3,
     currentRoundRoleTargets: {
       dave123: 'vigilante',
-      bob123: 'politician',
+      bob123: 'snitch',
     },
   },
   dave123: {
@@ -60,8 +64,8 @@ const players = {
     connected: true,
     slotNumber: 4,
     currentRoundRoleTargets: {
-      alice123: 'student',
-      bob123: 'politician',
+      alice123: 'twin_girl',
+      bob123: 'con_artist',
     },
   },
   eve123: {
@@ -72,7 +76,7 @@ const players = {
     slotNumber: 5,
     currentRoundRoleTargets: {
       dave123: 'vigilante',
-      bob123: 'politician',
+      bob123: 'con_artist',
     },
   },
   frank123: {
@@ -82,7 +86,7 @@ const players = {
     connected: true,
     slotNumber: 6,
     currentRoundRoleTargets: {
-      bob123: 'politician',
+      bob123: 'monk',
     },
   },
 };

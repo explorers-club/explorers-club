@@ -28,14 +28,15 @@ export const PlayerAvatar = forwardRef<
         height: 'fit-content',
         width: 'fit-content',
         borderRadius: '50%',
-        filter: 'drop-shadow(-1px 6px 3px rgba(50, 50, 0, 0.5))',
+        // filter: 'drop-shadow(-1px 6px 3px rgba(50, 50, 0, 0.5))',
+        filter: `drop-shadow(0px 3px 2px $colors$${color}8)`,
       }}
     >
       <Avatar
         {...props}
         css={{
           ...props.css,
-          border: `3px solid $${color}8`,
+          border: `3px solid $${color}9`,
           borderRadius: '50%',
         }}
         ref={ref}

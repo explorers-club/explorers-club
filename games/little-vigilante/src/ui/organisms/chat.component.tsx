@@ -7,13 +7,13 @@ import { TextField } from '@atoms/TextField';
 import {
   DisconnectCommand,
   JoinCommand,
-  LittleVigilanteServerEvent,
   LittleVigilanteStateSerialized,
   LittleVigilanteTargetPlayerRoleCommand,
   MessageCommand,
   PauseCommand,
   ResumeCommand,
   ServerEvent,
+  UserSenderSchema,
 } from '@explorers-club/room';
 import { colorBySlotNumber } from '@explorers-club/styles';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
@@ -39,11 +39,16 @@ import {
   useLittleVigilanteEvent$,
   useLittleVigilanteSelector,
   useLittleVigilanteSend,
+  useMyUserId,
 } from '../../state/little-vigilante.hooks';
 import { GameAvatar } from '../molecules/game-avatar.component';
 import { PlayerAvatar } from '../molecules/player-avatar.component';
 import { ChatServiceContext } from './chat.context';
-import { ChatState } from './chat.machine';
+import {
+  ChatState,
+  LittleVigilanteChatEvent,
+  RoleAssignmentEvent,
+} from './chat.machine';
 
 interface Props {
   disabled?: boolean;
@@ -52,14 +57,39 @@ interface Props {
 export const Chat: FC<Props> = ({ disabled = false }) => {
   return (
     <Flex direction="column" css={{ width: '100%', minHeight: '100%' }}>
-      <Box css={{ p: '$3' }}>
-        <Caption>Chat</Caption>
-      </Box>
+      <Flex css={{ p: '$3' }} justify="between">
+        <Caption css={{ flexGrow: 1 }}>Chat</Caption>
+        <CountdownTimer />
+      </Flex>
       <ChatMessageList />
       <ChatInput disabled={!!disabled} />
     </Flex>
   );
 };
+
+const CountdownTimer = () => {
+  const timeRemaining = useLittleVigilanteSelector(
+    (state) => state.timeRemaining
+  );
+  const formattedTime = useLittleVigilanteSelector(selectFormattedTime);
+
+  return timeRemaining ? (
+    <Caption css={{ textAlign: 'center', color: 'white', fontFamily: '$mono' }}>
+      {formattedTime}
+    </Caption>
+  ) : null;
+};
+
+const selectFormattedTime = (state: LittleVigilanteStateSerialized) =>
+  formatTime(state.timeRemaining);
+
+function formatTime(seconds: number): string {
+  const minutes = Math.floor(seconds / 60)
+    .toString()
+    .padStart(2, '0');
+  const remainingSeconds = (seconds % 60).toString().padStart(2, '0');
+  return `${minutes}:${remainingSeconds}`;
+}
 
 /**
  * Selects the list of events and joins any messages that were successively sent from the same user.
@@ -70,13 +100,18 @@ const selectEventsWithJoinedMessages = (state: ChatState) => {
   let runningText: string | undefined;
 
   const events = state.context.events;
-  const result: LittleVigilanteServerEvent[] = [];
+  const result: LittleVigilanteChatEvent[] = [];
 
   for (let i = events.length - 1; i >= 0; i--) {
     const event = events[i];
     if (event.type === 'MESSAGE') {
-      const { userId, text } = event;
-      const prevUserId = events[i - 1]?.userId;
+      const { sender, text } = event;
+      const { userId } = UserSenderSchema.parse(sender);
+
+      const prevEvent = events[i - 1];
+      const prevUserId = prevEvent
+        ? UserSenderSchema.parse(prevEvent.sender).userId
+        : undefined;
       const hasPreviousMessage = prevUserId === userId;
 
       if (hasPreviousMessage) {
@@ -189,7 +224,7 @@ const ChatMessageList = () => {
         px: '$3',
         py: '$2',
         // minHeight: '100%',
-        minHeight: '250px',
+        // minHeight: '250px',
         background: '$primary3',
         flexGrow: 1,
         position: 'relative',
@@ -228,7 +263,8 @@ const TypingIndicator = () => {
 
   const event$ = useLittleVigilanteEvent$();
 
-  useSubscription(event$, ({ userId, ts, type }) => {
+  useSubscription(event$, ({ sender, ts, type }) => {
+    const { userId } = UserSenderSchema.parse(sender);
     if (type === 'MESSAGE') {
       delete typingUserRef.current[userId];
       setCurrentlyTyping(Object.keys(typingUserRef.current));
@@ -272,7 +308,7 @@ const TypingIndicator = () => {
   );
 };
 
-const ChatEvent: FC<{ event: LittleVigilanteServerEvent }> = ({ event }) => {
+const ChatEvent: FC<{ event: LittleVigilanteChatEvent }> = ({ event }) => {
   switch (event.type) {
     case 'MESSAGE':
       return <Message event={event} />;
@@ -284,6 +320,8 @@ const ChatEvent: FC<{ event: LittleVigilanteServerEvent }> = ({ event }) => {
       return <PauseMessage event={event} />;
     case 'DISCONNECT':
       return <DisconnectMessage event={event} />;
+    case 'ROLE_ASSIGNMENT':
+      return <RoleAssignmentMessage event={event} />;
     case 'TARGET_ROLE':
       return <PlayerTargetRoleMessage event={event} />;
     default:
@@ -293,8 +331,9 @@ const ChatEvent: FC<{ event: LittleVigilanteServerEvent }> = ({ event }) => {
 };
 
 const Message: FC<{ event: ServerEvent<MessageCommand> }> = ({
-  event: { text, userId },
+  event: { text, sender },
 }) => {
+  const { userId } = UserSenderSchema.parse(sender);
   const name = useLittleVigilanteSelector(
     (state) => state.players[userId]?.name
   );
@@ -317,7 +356,7 @@ const Message: FC<{ event: ServerEvent<MessageCommand> }> = ({
 };
 
 const PauseMessage: FC<{ event: ServerEvent<PauseCommand> }> = ({ event }) => {
-  const userId = event.userId;
+  const { userId } = event;
   const name = useLittleVigilanteSelector(
     (state) => state.players[userId]?.name
   );
@@ -338,6 +377,26 @@ const PauseMessage: FC<{ event: ServerEvent<PauseCommand> }> = ({ event }) => {
           paused
         </Text>{' '}
         until all players are here.
+      </Text>
+    </Flex>
+  );
+};
+
+const RoleAssignmentMessage: FC<{ event: RoleAssignmentEvent }> = ({
+  event,
+}) => {
+  const userId = useMyUserId();
+  // const { userId } = UserSenderSchema.parse(event.sender);
+  const slotNumber = useLittleVigilanteSelector(
+    (state) => state.players[userId]?.slotNumber
+  );
+  const color = colorBySlotNumber[slotNumber];
+
+  return (
+    <Flex align="center" gap="1">
+      <PlayerAvatar userId={userId} color={color} />
+      <Text>
+        You are the <strong>{displayNameByRole[event.role]}</strong>.
       </Text>
     </Flex>
   );
@@ -371,7 +430,8 @@ const DisconnectMessage: FC<{ event: ServerEvent<DisconnectCommand> }> = ({
 const PlayerTargetRoleMessage: FC<{
   event: ServerEvent<LittleVigilanteTargetPlayerRoleCommand>;
 }> = ({ event }) => {
-  const { userId, targetedUserId } = event;
+  const { sender, targetedUserId } = event;
+  const { userId } = UserSenderSchema.parse(sender);
   const role = event.role as Role;
   const [name, targetedName, slotNumber, targetedSlotNumber] =
     useLittleVigilanteSelector((state) => [
@@ -463,11 +523,11 @@ const JoinMessage: FC<{ event: ServerEvent<JoinCommand> }> = ({ event }) => {
   );
 };
 
-const selectSendingMessagesDisabled = (
-  state: LittleVigilanteStateSerialized
-) => {
-  return state.currentStates.includes('Playing.Round.NightPhase');
-};
+// const selectSendingMessagesDisabled = (
+//   state: LittleVigilanteStateSerialized
+// ) => {
+//   return state.currentStates.includes('Playing.Round.NightPhase');
+// };
 
 const ChatInput: FC<{ disabled: boolean }> = ({ disabled }) => {
   const textRef = useRef<HTMLInputElement | null>(null);

@@ -1,14 +1,18 @@
 import { Avatar } from '@atoms/Avatar';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { Box } from '@atoms/Box';
 import { Caption } from '@atoms/Caption';
 import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
-import { Grid } from '@atoms/Grid';
 import { Heading } from '@atoms/Heading';
 import { LittleVigilanteStateSerialized } from '@explorers-club/room';
 import { colorBySlotNumber, styled } from '@explorers-club/styles';
 import { Slider, SliderCell } from '@molecules/Slider';
-import { Cross2Icon } from '@radix-ui/react-icons';
+import {
+  Cross2Icon,
+  DotsHorizontalIcon,
+  DotsVerticalIcon,
+} from '@radix-ui/react-icons';
 import * as Popover from '@radix-ui/react-popover';
 import { KeenSliderInstance, useKeenSlider } from 'keen-slider/react';
 import {
@@ -20,24 +24,25 @@ import {
   useEffect,
   useMemo,
   useRef,
-  useState
+  useState,
 } from 'react';
 import {
   colorByTeam,
   getAvatarImageByRole,
   Role,
-  teamByRole
+  teamByRole,
 } from '../../meta/little-vigilante.constants';
 import { LittleVigilanteContext } from '../../state/little-vigilante.context';
 import {
   useLittleVigilanteSelector,
   useLittleVigilanteSend,
-  useMyUserId
+  useMyUserId,
 } from '../../state/little-vigilante.hooks';
 import { PlayerAvatar } from '../molecules/player-avatar.component';
+import { RoleAvatar } from '../molecules/role-avatar.component';
 import { RoleCard } from '../molecules/role-card.component';
-import { CalledVote } from '../organisms/called-vote.component';
 import { Chat } from '../organisms/chat.component';
+import { IconButton } from '@atoms/IconButton';
 
 export const DiscussionPhaseScreenComponent = () => {
   const roles = useLittleVigilanteSelector((state) => state.roles as Role[]);
@@ -45,15 +50,15 @@ export const DiscussionPhaseScreenComponent = () => {
   const currentRoleRef = useRef<Role>(roles[initial]);
 
   return (
-    <Flex css={{ p: '$3' }} direction="column" gap="2">
-      <Card css={{ p: '$3' }}>
+    <Flex direction="column" gap="1" css={{ minHeight: '100%' }}>
+      {/* <Card css={{ p: '$3' }}>
         <Flex direction="column" gap="2">
           <CountdownTimer />
           <CalledVote />
         </Flex>
-      </Card>
+      </Card> */}
       <Card css={{ py: '$3' }}>
-        <Flex direction="column" css={{ width: '100$' }} gap="2">
+        <Flex direction="column" gap="2">
           <RoleCarousel currentRoleRef={currentRoleRef} />
           <PlayerGrid currentRoleRef={currentRoleRef} />
         </Flex>
@@ -322,13 +327,37 @@ const PlayerGrid: FC<PlayerGridProps> = ({ currentRoleRef }) => {
   );
 
   return (
-    <Box>
-      <Grid
+    <Box
+      css={{
+        width: '100%',
+        overflowX: 'auto',
+        p: '$3',
+        background: '$primary6',
+      }}
+    >
+      <Flex
         css={{
-          width: '100%',
-          gridTemplateColumns: 'repeat(3, 1fr)',
+          flexFlow: 'column wrap',
           gap: '$2',
-          px: '$3',
+          width:
+            players.length >= 8
+              ? '150%'
+              : players.length >= 6
+              ? '125%'
+              : '100%',
+          height: '200px',
+          'nth-child(4n + 1)': {
+            order: 1,
+          },
+          ':nth-child(4n + 2)': {
+            order: 2,
+          },
+          ':nth-child(4n + 3)': {
+            order: 3,
+          },
+          ':nth-child(4n)': {
+            order: 4,
+          },
         }}
       >
         {players.map(({ userId }) => (
@@ -336,9 +365,10 @@ const PlayerGrid: FC<PlayerGridProps> = ({ currentRoleRef }) => {
             key={userId}
             userId={userId}
             onPress={handlePressPlayer}
+            currentRoleRef={currentRoleRef}
           />
         ))}
-      </Grid>
+      </Flex>
     </Box>
   );
 };
@@ -346,10 +376,17 @@ const PlayerGrid: FC<PlayerGridProps> = ({ currentRoleRef }) => {
 const PlayerGridItem = ({
   userId,
   onPress,
+  currentRoleRef,
 }: {
   userId: string;
   onPress: (userId: string) => void;
+  currentRoleRef: MutableRefObject<Role>;
 }) => {
+  const currentRole = useMemo(() => {
+    return currentRoleRef.current;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentRoleRef.current]);
+
   const player = useLittleVigilanteSelector((state) => state.players[userId]);
   const { name, slotNumber } = player;
 
@@ -366,9 +403,13 @@ const PlayerGridItem = ({
     <Card
       key={userId}
       css={{
+        flex: 'auto',
         px: '$1',
         background: '$primary3',
         position: 'relative',
+        aspectRatio: '1',
+        height: '90px',
+        minWidth: '60px',
         cursor: 'pointer',
       }}
       onClick={handlePress}
@@ -380,7 +421,7 @@ const PlayerGridItem = ({
           position: 'absolute',
           zIndex: 1,
           left: '$1',
-          top: '$1',
+          top: '$4',
           height: '100%',
         }}
         gap="1"
@@ -393,20 +434,36 @@ const PlayerGridItem = ({
           />
         ))}
       </Flex>
-      <Flex
-        direction="column"
-        justify="center"
-        align="center"
-        css={{ aspectRatio: 1 }}
-        gap="2"
-      >
-        <PlayerAvatar
-          size="6"
-          userId={userId}
-          color={colorBySlotNumber[slotNumber]}
-        />
-        <Heading variant={colorBySlotNumber[slotNumber]}>{name}</Heading>
-      </Flex>
+      <Box css={{ p: '$1' }}>
+        <Flex justify={'between'}>
+          <Heading
+            css={{ fontSize: '$2' }}
+            variant={colorBySlotNumber[slotNumber]}
+          >
+            {name}
+          </Heading>
+          <DropdownMenu.Root>
+            <DropdownMenu.Trigger asChild>
+              <IconButton>
+                <DotsHorizontalIcon />
+              </IconButton>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Portal>
+              <DropdownMenu.Content>
+                <DropdownMenu.Item>{currentRole} set </DropdownMenu.Item>
+                <DropdownMenu.Item>Kick Player</DropdownMenu.Item>
+              </DropdownMenu.Content>
+            </DropdownMenu.Portal>
+          </DropdownMenu.Root>
+        </Flex>
+        <Box css={{ position: 'absolute', bottom: 0, right: 0 }}>
+          <PlayerAvatar
+            size="4"
+            userId={userId}
+            color={colorBySlotNumber[slotNumber]}
+          />
+        </Box>
+      </Box>
     </Card>
   );
 };
@@ -421,17 +478,7 @@ const PlayerRoleTarget = ({
   const slotNumber = useLittleVigilanteSelector(
     (state) => state.players[targetingUserId].slotNumber
   );
-  const color = colorBySlotNumber[slotNumber];
-  return (
-    <Avatar
-      size="2"
-      src={getAvatarImageByRole(role)}
-      css={{
-        border: `3px solid $${color}7`,
-        borderRadius: '50%',
-      }}
-    />
-  );
+  return <RoleAvatar size="2" roleType={role} />;
 };
 
 const selectRoleTargetsByUserId = (state: LittleVigilanteStateSerialized) => {
@@ -451,24 +498,3 @@ const selectRoleTargetsByUserId = (state: LittleVigilanteStateSerialized) => {
   });
   return roleTargetsByUserId;
 };
-
-const CountdownTimer = () => {
-  const formattedTime = useLittleVigilanteSelector(selectFormattedTime);
-
-  return (
-    <Heading css={{ textAlign: 'center', fontFamily: '$mono' }} size="3">
-      {formattedTime}
-    </Heading>
-  );
-};
-
-const selectFormattedTime = (state: LittleVigilanteStateSerialized) =>
-  formatTime(state.timeRemaining);
-
-function formatTime(seconds: number): string {
-  const minutes = Math.floor(seconds / 60)
-    .toString()
-    .padStart(2, '0');
-  const remainingSeconds = (seconds % 60).toString().padStart(2, '0');
-  return `${minutes}:${remainingSeconds}`;
-}

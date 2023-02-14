@@ -1,7 +1,11 @@
 /* eslint-disable no-case-declarations */
 import { DiffusionaryRoom } from '@explorers-club/diffusionary/server';
 import { LittleVigilanteRoom } from '@explorers-club/little-vigilante/server';
-import { ClubRoomServerEvent, ClubStateSerialized } from '@explorers-club/room';
+import {
+  ClubRoomServerEvent,
+  ClubStateSerialized,
+  UserSenderSchema,
+} from '@explorers-club/room';
 import { ClubPlayer } from '@explorers-club/schema-types/ClubPlayer';
 import { ClubState } from '@explorers-club/schema-types/ClubState';
 import { TriviaJamRoom } from '@explorers-club/trivia-jam/server';
@@ -82,8 +86,9 @@ export const createClubServerMachine = (room: Room<ClubState>) => {
         },
         ENTER_NAME: {
           actions: ({ room }, event) => {
-            const { userId, playerName } = event;
+            const { sender, playerName } = event;
 
+            const { userId } = UserSenderSchema.parse(sender);
             const player = room.state.players.get(userId);
             if (!player) {
               console.warn(

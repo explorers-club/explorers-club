@@ -1,43 +1,34 @@
 import {
-  JoinCommand,
+  ClientEvent,
   DisconnectCommand,
-  ReconnectCommand,
+  JoinCommand,
   LeaveCommand,
   LittleVigilanteServerEvent,
+  LittleVigilanteTargetPlayerRoleCommand,
   MessageCommand,
   PauseCommand,
+  ReconnectCommand,
   ResumeCommand,
   ServerEvent,
-  LittleVigilanteTargetPlayerRoleCommand,
 } from '@explorers-club/room';
 import { assign } from '@xstate/immer';
-import { ComponentProps } from 'react';
 import { Observable } from 'rxjs';
 import { ActorRefFrom, createMachine, StateFrom } from 'xstate';
-import { GameAvatar } from '../molecules/game-avatar.component';
-import { PlayerAvatar } from '../molecules/player-avatar.component';
-import { RoleAvatar } from '../molecules/role-avatar.component';
+import { Role } from '../../meta/little-vigilante.constants';
 
-// type RoleAvatarProps = {
-//   type: 'role';
-// } & ComponentProps<typeof RoleAvatar>;
+export type RoleAssignmentEvent = ClientEvent<{
+  type: 'ROLE_ASSIGNMENT';
+  role: Role;
+}>;
 
-// type GameAvatarProps = {
-//   type: 'game';
-// } & ComponentProps<typeof GameAvatar>;
+type LittleVigilanteClientChatEvent = RoleAssignmentEvent;
 
-// type PlayerAvatarProps = {
-//   type: 'game';
-// } & ComponentProps<typeof PlayerAvatar>;
-
-// type AvatarProps = RoleAvatarProps | GameAvatarProps | PlayerAvatarProps;
-
-// type WithAvatar<T> = T & {
-//   avatar: AvatarProps;
-// };
+export type LittleVigilanteChatEvent =
+  | LittleVigilanteClientChatEvent
+  | LittleVigilanteServerEvent;
 
 export interface ChatContext {
-  events: LittleVigilanteServerEvent[];
+  events: LittleVigilanteChatEvent[];
   cursor?: string;
 }
 
@@ -47,13 +38,13 @@ export const createChatMachine = (
   return createMachine({
     id: 'ChatMachine',
     initial: 'Running',
-    type: "parallel",
+    type: 'parallel',
     schema: {
       context: {} as ChatContext,
-      events: {} as LittleVigilanteServerEvent,
+      events: {} as LittleVigilanteChatEvent,
     },
     context: {
-      events: [] as LittleVigilanteServerEvent[],
+      events: [] as LittleVigilanteChatEvent[],
     },
     states: {
       Running: {
@@ -61,12 +52,20 @@ export const createChatMachine = (
           src: (context, event) => event$,
         },
         on: {
-          TARGET_ROLE: {
-            actions: assign<ChatContext, ServerEvent<LittleVigilanteTargetPlayerRoleCommand>>(
+          ROLE_ASSIGNMENT: {
+            actions: assign<ChatContext, LittleVigilanteClientChatEvent>(
               (context, event) => {
                 context.events.push(event);
               }
             ),
+          },
+          TARGET_ROLE: {
+            actions: assign<
+              ChatContext,
+              ServerEvent<LittleVigilanteTargetPlayerRoleCommand>
+            >((context, event) => {
+              context.events.push(event);
+            }),
           },
           LEAVE: {
             actions: assign<ChatContext, ServerEvent<LeaveCommand>>(
@@ -126,3 +125,23 @@ export const createChatMachine = (
 export type ChatMachine = ReturnType<typeof createChatMachine>;
 export type ChatState = StateFrom<ChatMachine>;
 export type ChatActor = ActorRefFrom<ChatMachine>;
+
+// type RoleAvatarProps = {
+//   type: 'role';
+// } & ComponentProps<typeof RoleAvatar>;
+
+// type GameAvatarProps = {
+//   type: 'game';
+// } & ComponentProps<typeof GameAvatar>;
+
+// type PlayerAvatarProps = {
+//   type: 'game';
+// } & ComponentProps<typeof PlayerAvatar>;
+
+// type AvatarProps = RoleAvatarProps | GameAvatarProps | PlayerAvatarProps;
+
+// type WithAvatar<T> = T & {
+//   avatar: AvatarProps;
+// };
+
+// chat: LittleVigilanteServerEvent[];

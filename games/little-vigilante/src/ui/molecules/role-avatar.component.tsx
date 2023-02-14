@@ -33,8 +33,8 @@ export const RoleAvatar = forwardRef<
         height: 'fit-content',
         width: 'fit-content',
         borderRadius: '50%',
-        border: `2px solid $colors$${themeColor}7`,
-        filter: `drop-shadow(0px 3px 6px $colors$${themeColor}9)`,
+        border: `2px solid $colors$${themeColor}9`,
+        filter: `drop-shadow(0px 3px 2px $colors$${themeColor}8)`,
       }}
     >
       <Avatar {...props} ref={ref} src={src} />

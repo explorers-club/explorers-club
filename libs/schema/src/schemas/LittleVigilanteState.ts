@@ -6,6 +6,7 @@ import {
   type,
 } from '@colyseus/schema';
 import { ClubPlayer } from './ClubState';
+import { ChatState } from './ChatState';
 
 export class LittleVigilantePlayer extends ClubPlayer {
   @type('number') score = 0;
@@ -54,4 +55,7 @@ export class LittleVigilanteState extends Schema {
 
   @type({ map: LittleVigilantePlayer })
   public players: MapSchema<LittleVigilantePlayer> = new MapSchema<LittleVigilantePlayer>();
+
+  @type(ChatState)
+  public chat: ChatState = new ChatState();
 }

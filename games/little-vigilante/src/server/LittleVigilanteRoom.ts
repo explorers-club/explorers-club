@@ -23,6 +23,7 @@ import {
   createLittleVigilanteServerMachine,
   LittleVigilanteServerService,
 } from './little-vigilante-server.machine';
+import { ChatState } from '@explorers-club/schema-types/ChatState';
 
 interface PlayerInfo {
   userId: string;
@@ -95,6 +96,7 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
     state.currentRound = 1;
     state.currentTick = 0;
     state.lastDownState = new MapSchema<number>();
+    state.chat = new ChatState();
     this.setState(state);
 
     this.roomId = roomId;
@@ -123,14 +125,15 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
     const eventSubject$ = new Subject<LittleVigilanteServerEvent>();
     const settings = { votingTimeSeconds, discussionTimeSeconds, roundsToPlay };
 
+    interpret(
+      createLittleVigilanteChatServerMachine(room, eventSubject$)
+    ).start();
+
     this.service = interpret(
       createLittleVigilanteServerMachine(room, settings)
     ).start();
 
     // todo remove or garbabe collect this?
-    // interpret(
-    //   createLittleVigilanteChatServerMachine(room, eventSubject$)
-    // ).start();
 
     this.service.subscribe((state) => {
       eventSubject$.next(state.event);
@@ -153,13 +156,16 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
       this.messageQueue.push({
         ...message,
         ts,
-        userId: client.userData.userId as string,
+        sender: {
+          type: 'user' as const,
+          userId: client.userData.userId as string,
+        },
       });
     });
   }
 
   override onJoin(client: Client, options: OnJoinOptions) {
-    const userId = options.userId;
+    const userId = options.userId as string;
     const player = this.state.players.get(userId);
     if (player) {
       player.connected = true;
@@ -168,6 +174,11 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
         type: 'JOIN',
         ts,
         userId,
+        sender: {
+          // todo change this to be server since this is a server sent event
+          type: 'user' as const,
+          userId,
+        },
       });
       client.userData = { userId };
     }
@@ -185,12 +196,24 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
         type: 'DISCONNECT',
         ts,
         userId,
+        sender: {
+          userId,
+          type: 'user' as const,
+        },
       });
       try {
         await this.allowReconnection(client, 10000);
         const ts =
           this.state.currentTick + (this.messageQueue.length + 1) / 1000;
-        this.service.send({ type: 'RECONNECT', ts, userId });
+        this.service.send({
+          type: 'RECONNECT',
+          ts,
+          userId,
+          sender: {
+            userId,
+            type: 'user' as const,
+          },
+        });
       } catch (ex) {
         console.warn('player hasnt returned after 10000 seconds, do something');
       }
