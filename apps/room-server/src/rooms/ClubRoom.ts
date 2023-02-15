@@ -62,10 +62,14 @@ export class ClubRoom extends Room<ClubState> {
 
     this.onMessage('*', (client, _, message: ClubRoomCommand) => {
       const ts = tick + (messageQueue.length + 1) / 1000;
+      const userId = client.userData.userId as string;
       messageQueue.push({
         ...message,
         ts,
-        userId: client.userData.userId as string,
+        sender: {
+          userId,
+          type: 'user',
+        },
       });
     });
 
@@ -84,18 +88,50 @@ export class ClubRoom extends Room<ClubState> {
   onJoin(client: Client, options) {
     const userId = options.userId;
     client.userData = { userId };
-    this.service.send({ type: 'JOIN', ts: 0, userId });
+    this.service.send({
+      type: 'JOIN',
+      ts: 0,
+      userId,
+      sender: {
+        userId,
+        type: 'user',
+      },
+    });
   }
 
   async onLeave(client: Client) {
     const { userId } = client.userData;
-    this.service.send({ type: 'DISCONNECT', ts: 0, userId });
+    this.service.send({
+      type: 'DISCONNECT',
+      ts: 0,
+      userId,
+      sender: {
+        userId,
+        type: 'user',
+      },
+    });
 
     try {
       await this.allowReconnection(client, 30);
-      this.service.send({ type: 'RECONNECT', ts: 0, userId });
+      this.service.send({
+        type: 'RECONNECT',
+        ts: 0,
+        userId,
+        sender: {
+          userId,
+          type: 'user',
+        },
+      });
     } catch (ex) {
-      this.service.send({ type: 'LEAVE', ts: 0, userId });
+      this.service.send({
+        type: 'LEAVE',
+        ts: 0,
+        userId,
+        sender: {
+          userId,
+          type: 'user',
+        },
+      });
     }
   }
 

@@ -1,15 +1,24 @@
+import { RoleAssignMessage } from '@explorers-club/chat';
 import {
+  LittleVigilanteMessageCommand,
   LittleVigilanteServerEvent,
+  LittleVigilanteStateSerialized,
+  MessageCommand,
+  PauseCommand,
   PressDownCommand,
+  ResumeCommand,
   ServerEvent,
+  UserSenderSchema,
 } from '@explorers-club/room';
 import { LittleVigilanteState } from '@explorers-club/schema-types/LittleVigilanteState';
 import { assertEventType, shuffle } from '@explorers-club/utils';
 import { A, pipe } from '@mobily/ts-belt';
-import { Room } from 'colyseus';
+import { Client, Room } from 'colyseus';
 import { createSelector } from 'reselect';
 import { ActorRefFrom, createMachine, send } from 'xstate';
 import { Role, rolesByTeam } from '../meta/little-vigilante.constants';
+import { selectPlayerOutcomes } from '../state/little-vigilante.selectors';
+import { RoleAssignmentEvent } from '../ui/organisms/chat.machine';
 // import { getTranslation } from '../i18n';
 
 export interface LittleVigilanteServerContext {
@@ -25,22 +34,32 @@ type Guard = (
 const sendResume = send<
   LittleVigilanteServerContext,
   ServerEvent<PressDownCommand>
->((context, event) => ({
-  type: 'RESUME',
-  ts: event.ts,
-}));
+>(
+  (_, event) =>
+    ({
+      type: 'RESUME',
+      ts: event.ts,
+      sender: {
+        type: 'server',
+      },
+    } as ServerEvent<ResumeCommand>)
+);
 
 const sendPause = send<
   LittleVigilanteServerContext,
   LittleVigilanteServerEvent
 >((context, event) => {
   const idlePlayers = selectIdlePlayers(context.room.state);
+  const userId = idlePlayers[0]?.userId;
   // todo sort this
   return {
     type: 'PAUSE',
     ts: context.room.state.currentTick,
-    userId: idlePlayers[0]?.userId,
-  };
+    userId,
+    sender: {
+      type: 'server',
+    },
+  } as ServerEvent<PauseCommand>;
 });
 
 // const abilityGroupLogSend = (abilityGroup: AbilityGroup) =>
@@ -167,6 +186,7 @@ export const createLittleVigilanteServerMachine = (
                 NightPhase: {
                   onDone: 'DiscussionPhase',
                   type: 'parallel',
+                  entry: 'sendNightPhaseMessage',
                   states: {
                     Timer: {
                       initial: 'Initializing',
@@ -384,8 +404,12 @@ export const createLittleVigilanteServerMachine = (
                   },
                 },
                 DiscussionPhase: {
-                  entry: ({ room }) =>
-                    (room.state.timeRemaining = settings.discussionTimeSeconds),
+                  entry: [
+                    ({ room }) =>
+                      (room.state.timeRemaining =
+                        settings.discussionTimeSeconds),
+                    'sendDiscussionPhaseMessage',
+                  ],
                   initial: 'Idle',
                   onDone: 'Voting',
                   states: {
@@ -393,13 +417,15 @@ export const createLittleVigilanteServerMachine = (
                       on: {
                         CALL_VOTE: {
                           target: 'VoteCalled',
-                          actions({ room }, { userId }) {
+                          actions({ room }, { sender }) {
+                            const { userId } = UserSenderSchema.parse(sender);
                             room.state.calledVoteResponses.clear();
                             room.state.calledVoteResponses.set(userId, true);
                           },
                         },
                         TARGET_ROLE: {
-                          actions(context, { role, userId, targetedUserId }) {
+                          actions(context, { role, sender, targetedUserId }) {
+                            const { userId } = UserSenderSchema.parse(sender);
                             const currentRoundRoleTargets =
                               context.room.state.players.get(
                                 userId
@@ -446,7 +472,7 @@ export const createLittleVigilanteServerMachine = (
                           },
                           {
                             target: 'Idle',
-                            actions: 'timerTick',
+                            actions: 'discussionTimerTick',
                           },
                         ],
                       },
@@ -485,19 +511,19 @@ export const createLittleVigilanteServerMachine = (
                         APPROVE_VOTE: {
                           target: 'VoteCalled',
                           actions: ({ room }, event) => {
-                            room.state.calledVoteResponses.set(
-                              event.userId,
-                              true
+                            const { userId } = UserSenderSchema.parse(
+                              event.sender
                             );
+                            room.state.calledVoteResponses.set(userId, true);
                           },
                         },
                         REJECT_VOTE: {
                           target: 'VoteCalled',
                           actions: ({ room }, event) => {
-                            room.state.calledVoteResponses.set(
-                              event.userId,
-                              false
+                            const { userId } = UserSenderSchema.parse(
+                              event.sender
                             );
+                            room.state.calledVoteResponses.set(userId, false);
                           },
                         },
                       },
@@ -513,15 +539,19 @@ export const createLittleVigilanteServerMachine = (
                   },
                 },
                 Voting: {
-                  entry: ({ room }) =>
-                    (room.state.timeRemaining = settings.votingTimeSeconds),
+                  entry: [
+                    ({ room }) =>
+                      (room.state.timeRemaining = settings.votingTimeSeconds),
+                    'sendVotePhaseMessage',
+                  ],
                   initial: 'Idle',
                   onDone: 'Reveal',
                   on: {
                     VOTE: {
                       actions: ({ room }, event) => {
+                        const { userId } = UserSenderSchema.parse(event.sender);
                         room.state.currentRoundVotes.set(
-                          event.userId,
+                          userId,
                           event.votedUserId
                         );
                       },
@@ -537,7 +567,7 @@ export const createLittleVigilanteServerMachine = (
                           },
                           {
                             target: 'Idle',
-                            actions: 'timerTick',
+                            actions: 'votingTimerTick',
                           },
                         ],
                       },
@@ -548,7 +578,7 @@ export const createLittleVigilanteServerMachine = (
                   },
                 },
                 Reveal: {
-                  entry: 'calcCurrentRoundPoints',
+                  entry: ['calcCurrentRoundPoints', 'sendRevealPhaseMessage'],
                   on: {
                     CONTINUE: 'Complete',
                   },
@@ -579,7 +609,8 @@ export const createLittleVigilanteServerMachine = (
           const idlePlayers = selectIdlePlayers(room.state);
           const idleUserIds = idlePlayers.map((player) => player.userId);
           if (event.type === 'PRESS_DOWN') {
-            return idleUserIds.length === 1 && idleUserIds[0] === event.userId;
+            const { userId } = UserSenderSchema.parse(event.sender);
+            return idleUserIds.length === 1 && idleUserIds[0] === userId;
           } else {
             return idleUserIds.length === 0;
           }
@@ -603,11 +634,13 @@ export const createLittleVigilanteServerMachine = (
           });
         },
         setPress: ({ room }, event) => {
-          room.state.currentDownState.set(event.userId, true);
+          const { userId } = UserSenderSchema.parse(event.sender);
+          room.state.currentDownState.set(userId, true);
         },
         unsetPress: ({ room }, event) => {
-          room.state.currentDownState.delete(event.userId);
-          room.state.lastDownState.set(event.userId, event.ts);
+          const { userId } = UserSenderSchema.parse(event.sender);
+          room.state.currentDownState.delete(userId);
+          room.state.lastDownState.set(userId, event.ts);
         },
         swapPlayers: ({ room }, event) => {
           assertEventType(event, 'SWAP');
@@ -662,8 +695,58 @@ export const createLittleVigilanteServerMachine = (
             room.state.currentRoundPoints.set(userId, points);
           });
         },
-        timerTick: ({ room }) => {
-          room.state.timeRemaining -= 1;
+        discussionTimerTick: ({ room }) => {
+          const timeRemaining = room.state.timeRemaining - 1;
+          room.state.timeRemaining = timeRemaining;
+          let event: ServerEvent<LittleVigilanteMessageCommand> | undefined;
+          if (timeRemaining > 0 && timeRemaining <= 5) {
+            event = {
+              type: 'MESSAGE',
+              ts: room.state.currentTick,
+              message: {
+                text: timeRemaining > 1 ? `${timeRemaining}...` : '1',
+              },
+              sender: {
+                type: 'server',
+              },
+            };
+          } else if (timeRemaining === 30) {
+            event = {
+              type: 'MESSAGE',
+              ts: room.state.currentTick,
+              message: {
+                text: '30 seconds left',
+              },
+              sender: {
+                type: 'server',
+              },
+            };
+          }
+
+          if (event) {
+            room.broadcast(event.type, event);
+          }
+        },
+        votingTimerTick: ({ room }) => {
+          const timeRemaining = room.state.timeRemaining - 1;
+          room.state.timeRemaining = timeRemaining;
+          let event: ServerEvent<LittleVigilanteMessageCommand> | undefined;
+          if (timeRemaining > 0 && timeRemaining <= 3) {
+            event = {
+              type: 'MESSAGE',
+              ts: room.state.currentTick,
+              message: {
+                text: timeRemaining > 1 ? `${timeRemaining}...` : '1',
+              },
+              sender: {
+                type: 'server',
+              },
+            };
+          }
+
+          if (event) {
+            room.broadcast(event.type, event);
+          }
         },
         updateScores: () => {
           room.state.currentRoundPoints.forEach((points, userId) => {
@@ -679,13 +762,103 @@ export const createLittleVigilanteServerMachine = (
             ...shuffle(withoutVig).slice(0, playerCount - 1),
             'vigilante',
           ]);
+          const clientsByUserId = room.clients.reduce((result, client) => {
+            if (client.userData) {
+              const userId = client.userData['userId'];
+              result[userId] = client;
+            }
+            return result;
+          }, {} as Record<string, Client>);
 
-          room.state.players.forEach((player) => {
+          room.state.players.forEach(({ userId }) => {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const role = gameRoles.pop()!;
-            room.state.currentRoundRoles.set(player.userId, role);
-            room.state.initialCurrentRoundRoles.set(player.userId, role);
+            const role = gameRoles.pop()! as Role;
+            room.state.currentRoundRoles.set(userId, role);
+            room.state.initialCurrentRoundRoles.set(userId, role);
+
+            const event: ServerEvent<LittleVigilanteMessageCommand> = {
+              type: 'MESSAGE',
+              ts: room.state.currentTick,
+              message: {
+                K: 'role_assign',
+                P: { role },
+              },
+              sender: {
+                type: 'server',
+                isPrivate: true,
+              },
+            };
+
+            clientsByUserId[userId].send(event.type, event);
           });
+        },
+        sendDiscussionPhaseMessage: ({ room }) => {
+          const event: ServerEvent<LittleVigilanteMessageCommand> = {
+            type: 'MESSAGE',
+            ts: room.state.currentTick,
+            message: {
+              text: 'Discuss!',
+            },
+            sender: {
+              type: 'server',
+              isPrivate: false,
+            },
+          };
+          room.broadcast(event.type, event);
+        },
+        sendVotePhaseMessage: ({ room }) => {
+          const event: ServerEvent<LittleVigilanteMessageCommand> = {
+            type: 'MESSAGE',
+            ts: room.state.currentTick,
+            message: {
+              text: 'Vote now!',
+            },
+            sender: {
+              type: 'server',
+            },
+          };
+          room.broadcast(event.type, event);
+        },
+        sendRevealPhaseMessage: ({ room }) => {
+          const playerOutcomes = selectPlayerOutcomes(getSnapshot(room.state));
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const vigilante = playerOutcomes.find(
+            (player) => player.role === 'vigilante'
+          )!;
+          const sidekick = playerOutcomes.find(
+            (player) => player.role === 'sidekick'
+          );
+
+          const event: ServerEvent<LittleVigilanteMessageCommand> = {
+            type: 'MESSAGE',
+            ts: room.state.currentTick,
+            message: {
+              K: 'winners',
+              P: {
+                vigilantePlayerName: vigilante.playerName,
+                vigilanteSlotNumber: vigilante.slotNumber,
+                sidekickPlayerName: sidekick?.playerName,
+                sidekickSlotNumber: sidekick?.slotNumber,
+              },
+            },
+            sender: {
+              type: 'server',
+            },
+          };
+          room.broadcast(event.type, event);
+        },
+        sendNightPhaseMessage: ({ room }) => {
+          const event: ServerEvent<LittleVigilanteMessageCommand> = {
+            type: 'MESSAGE',
+            ts: room.state.currentTick,
+            message: {
+              text: 'Night phase begins.',
+            },
+            sender: {
+              type: 'server',
+            },
+          };
+          room.broadcast(event.type, event);
         },
         clearRoundState: ({ room }) => {
           room.state.currentRoundRoles.clear();
@@ -805,3 +978,7 @@ const selectIdlePlayers = (state: LittleVigilanteState) =>
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         state.lastDownState.get(playerB.userId)!
     );
+
+const getSnapshot = (state: LittleVigilanteState) => {
+  return state.toJSON() as LittleVigilanteStateSerialized;
+};

@@ -123,3 +123,13 @@ export const selectAbilityGroup = (state: LittleVigilanteStateSerialized) =>
       return null;
     })
     .find((val) => val);
+
+export const selectPlayerOutcomes = (state: LittleVigilanteStateSerialized) => {
+  return Object.entries(state.currentRoundRoles).map(([userId, role]) => ({
+    playerName: state.players[userId].name,
+    role: role as Role,
+    winner: state.currentRoundPoints[userId] === 1,
+    slotNumber: state.players[userId].slotNumber,
+    userId,
+  }));
+};

@@ -32,11 +32,11 @@ export const createChannelMachine = (
         },
         on: {
           MESSAGE: {
-            actions: assign<ChannelContext, ServerEvent<MessageCommand>>({
-              messages: (context, event) => {
-                return [...context.messages, event];
-              },
-            }),
+            // actions: assign<ChannelContext, ServerEvent<MessageCommand>>({
+            //   messages: (context, event) => {
+            //     return [...context.messages, event];
+            //   },
+            // }),
           },
         },
       },

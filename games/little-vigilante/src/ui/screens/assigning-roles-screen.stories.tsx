@@ -19,7 +19,7 @@ export default {
 };
 
 export const Butler: LittleVigilanteStory = (args) => {
-  return <AssigningRolesScreenComponent role={'butler'} />;
+  return <AssigningRolesScreenComponent />;
 };
 
 const players = {
@@ -92,6 +92,9 @@ Butler.args = {
   state: {
     roles: Array.from(rolesByPlayerCount[Object.values(players).length]),
     players,
+    currentRoundRoles: {
+      alice123: 'butler',
+    },
   },
 };
 

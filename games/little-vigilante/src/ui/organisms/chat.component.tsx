@@ -1,23 +1,35 @@
 import { Badge } from '@atoms/Badge';
 import { Box } from '@atoms/Box';
+import { declareComponentKeys } from 'i18nifty';
 import { Caption } from '@atoms/Caption';
 import { Flex } from '@atoms/Flex';
 import { Text } from '@atoms/Text';
 import { TextField } from '@atoms/TextField';
 import {
   DisconnectCommand,
+  isDiscussMessage,
+  isNightPhaseBeginsMessage,
+  isRoleAssignMessage,
+  isTextMessage,
+  isVoteMessage,
+  isWinnersMessage,
   JoinCommand,
-  LittleVigilanteServerEvent,
+  LittleVigilanteMessage,
+  LittleVigilanteMessageCommand,
   LittleVigilanteStateSerialized,
   LittleVigilanteTargetPlayerRoleCommand,
   MessageCommand,
   PauseCommand,
   ResumeCommand,
   ServerEvent,
+  ServerSenderSchema,
+  TextMessageSchema,
+  UserSenderSchema,
 } from '@explorers-club/room';
 import { colorBySlotNumber } from '@explorers-club/styles';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { useSelector } from '@xstate/react';
+import { deepEqual } from '@explorers-club/utils';
 // import { declareComponentKeys } from '../../i18n';
 import { useSubscription } from 'observable-hooks';
 import {
@@ -39,11 +51,24 @@ import {
   useLittleVigilanteEvent$,
   useLittleVigilanteSelector,
   useLittleVigilanteSend,
+  useMyUserId,
 } from '../../state/little-vigilante.hooks';
 import { GameAvatar } from '../molecules/game-avatar.component';
 import { PlayerAvatar } from '../molecules/player-avatar.component';
 import { ChatServiceContext } from './chat.context';
-import { ChatState } from './chat.machine';
+import {
+  ChatState,
+  LittleVigilanteChatEvent,
+  RoleAssignmentEvent,
+} from './chat.machine';
+import {
+  DiscussMessage,
+  NightPhaseBeginsMessage,
+  RoleAssignMessage,
+  VoteMessage,
+  WinnersMessage,
+} from '@explorers-club/chat';
+import { useTranslation } from '../../i18n';
 
 interface Props {
   disabled?: boolean;
@@ -52,84 +77,46 @@ interface Props {
 export const Chat: FC<Props> = ({ disabled = false }) => {
   return (
     <Flex direction="column" css={{ width: '100%', minHeight: '100%' }}>
-      <Box css={{ p: '$3' }}>
-        <Caption>Chat</Caption>
-      </Box>
+      <Flex css={{ p: '$3' }} justify="between">
+        <Caption css={{ flexGrow: 1 }}>Chat</Caption>
+        <CountdownTimer />
+      </Flex>
       <ChatMessageList />
       <ChatInput disabled={!!disabled} />
     </Flex>
   );
 };
 
-/**
- * Selects the list of events and joins any messages that were successively sent from the same user.
- * @param state
- * @returns
- */
-const selectEventsWithJoinedMessages = (state: ChatState) => {
-  let runningText: string | undefined;
+const CountdownTimer = () => {
+  const timeRemaining = useLittleVigilanteSelector(
+    (state) => state.timeRemaining
+  );
+  const formattedTime = useLittleVigilanteSelector(selectFormattedTime);
 
-  const events = state.context.events;
-  const result: LittleVigilanteServerEvent[] = [];
-
-  for (let i = events.length - 1; i >= 0; i--) {
-    const event = events[i];
-    if (event.type === 'MESSAGE') {
-      const { userId, text } = event;
-      const prevUserId = events[i - 1]?.userId;
-      const hasPreviousMessage = prevUserId === userId;
-
-      if (hasPreviousMessage) {
-        if (runningText) {
-          runningText = runningText + '\n' + text;
-        } else {
-          runningText = text;
-        }
-      } else if (!runningText) {
-        result.push(event);
-      } else {
-        result.push({
-          ...event,
-          text: event.text + '\n' + runningText,
-        });
-        runningText = undefined;
-      }
-    } else {
-      result.push(event);
-    }
-  }
-
-  return result.reverse();
-
-  // return state.context.events.reduce((acc, event) => {
-  //   if (event.type === 'MESSAGE') {
-  //     if (lastUserId === event.userId) {
-  //       runningText = (runningText || '') + event.text + '\n';
-  //     } else {
-  //       if (runningText) {
-  //         acc.push({
-  //           type: 'MESSAGE',
-  //           userId: event.userId,
-  //           text: runningText,
-  //           ts: event.ts,
-  //         });
-  //       }
-  //       lastUserId = event.userId;
-  //       runningText = event.text + '\n';
-  //     }
-  //   } else {
-  //     acc.push(event);
-  //   }
-  //   return acc;
-  // }, [] as LittleVigilanteServerEvent[]);
+  return timeRemaining ? (
+    <Caption css={{ textAlign: 'center', color: 'white', fontFamily: '$mono' }}>
+      {formattedTime}
+    </Caption>
+  ) : null;
 };
+
+const selectFormattedTime = (state: LittleVigilanteStateSerialized) =>
+  formatTime(state.timeRemaining);
+
+function formatTime(seconds: number): string {
+  const minutes = Math.floor(seconds / 60)
+    .toString()
+    .padStart(2, '0');
+  const remainingSeconds = (seconds % 60).toString().padStart(2, '0');
+  return `${minutes}:${remainingSeconds}`;
+}
 
 const ChatMessageList = () => {
   const scrollViewRef = useRef<HTMLDivElement | null>(null);
   const service = useContext(ChatServiceContext);
   // TODO consider a different way of joining events maybe so
   // server events dont stack their avatars
-  const events = useSelector(service, selectEventsWithJoinedMessages);
+  const events = useSelector(service, (state) => state.context.events);
 
   useEffect(() => {
     let isScrolled = false;
@@ -189,7 +176,7 @@ const ChatMessageList = () => {
         px: '$3',
         py: '$2',
         // minHeight: '100%',
-        minHeight: '250px',
+        // minHeight: '250px',
         background: '$primary3',
         flexGrow: 1,
         position: 'relative',
@@ -210,8 +197,8 @@ const ChatMessageList = () => {
           overflowY: 'auto',
         }}
       >
-        {events.map((event) => (
-          <ChatEvent key={event.ts} event={event} />
+        {events.map((event, index) => (
+          <ChatEvent key={event.ts} index={index} event={event} />
         ))}
         <TypingIndicator />
         {/* Anchor from https://css-tricks.com/books/greatest-css-tricks/pin-scrolling-to-bottom/ */}
@@ -228,7 +215,12 @@ const TypingIndicator = () => {
 
   const event$ = useLittleVigilanteEvent$();
 
-  useSubscription(event$, ({ userId, ts, type }) => {
+  useSubscription(event$, ({ sender, ts, type }) => {
+    const result = UserSenderSchema.safeParse(sender);
+    if (!result.success) {
+      return;
+    }
+    const { userId } = result.data;
     if (type === 'MESSAGE') {
       delete typingUserRef.current[userId];
       setCurrentlyTyping(Object.keys(typingUserRef.current));
@@ -272,10 +264,13 @@ const TypingIndicator = () => {
   );
 };
 
-const ChatEvent: FC<{ event: LittleVigilanteServerEvent }> = ({ event }) => {
+const ChatEvent: FC<{ event: LittleVigilanteChatEvent; index: number }> = ({
+  event,
+  index,
+}) => {
   switch (event.type) {
     case 'MESSAGE':
-      return <Message event={event} />;
+      return <Message event={event} index={index} />;
     case 'JOIN':
       return <JoinMessage event={event} />;
     case 'RESUME':
@@ -284,6 +279,8 @@ const ChatEvent: FC<{ event: LittleVigilanteServerEvent }> = ({ event }) => {
       return <PauseMessage event={event} />;
     case 'DISCONNECT':
       return <DisconnectMessage event={event} />;
+    case 'ROLE_ASSIGNMENT':
+      return <RoleAssignmentMessage event={event} />;
     case 'TARGET_ROLE':
       return <PlayerTargetRoleMessage event={event} />;
     default:
@@ -292,32 +289,87 @@ const ChatEvent: FC<{ event: LittleVigilanteServerEvent }> = ({ event }) => {
   }
 };
 
-const Message: FC<{ event: ServerEvent<MessageCommand> }> = ({
-  event: { text, userId },
-}) => {
-  const name = useLittleVigilanteSelector(
-    (state) => state.players[userId]?.name
-  );
-  const slotNumber = useLittleVigilanteSelector(
-    (state) => state.players[userId]?.slotNumber
-  );
-  const color = colorBySlotNumber[slotNumber];
-  // const service = useContext(ChatServiceContext);
-  // const isContinued = useSelector(service, (state) => state.context.events)
+const Message: FC<{
+  event: ServerEvent<LittleVigilanteMessageCommand>;
+  index: number;
+}> = ({ event: { message, sender }, index }) => {
+  const userId = UserSenderSchema.safeParse(sender).success
+    ? UserSenderSchema.parse(sender).userId
+    : null;
+  const isPrivate = ServerSenderSchema.safeParse(sender).success
+    ? ServerSenderSchema.parse(sender).isPrivate
+    : null;
+  const players = useLittleVigilanteSelector((state) => state.players);
+
+  const service = useContext(ChatServiceContext);
+  const events = useSelector(service, (state) => state.context.events);
+  const prevEvent = events[index - 1];
+  const isContinued = prevEvent && deepEqual(prevEvent.sender, sender);
 
   return (
     <Flex align="start" gap="1" css={{ mb: '$1' }}>
-      <PlayerAvatar userId={userId} color={color} />
+      <Box css={isContinued ? { height: '1px', opacity: 0 } : {}}>
+        {userId ? (
+          <PlayerAvatar
+            userId={userId}
+            color={colorBySlotNumber[players[userId].slotNumber]}
+          />
+        ) : (
+          <GameAvatar />
+        )}
+      </Box>
       <Flex direction="column" gap="1">
-        <Caption variant={color}>{name}</Caption>
-        <Text css={{ whiteSpace: 'pre-wrap', lineHeight: '135%' }}>{text}</Text>
+        {!isContinued &&
+          (userId ? (
+            <Caption variant={colorBySlotNumber[players[userId].slotNumber]}>
+              {players[userId].name}
+            </Caption>
+          ) : (
+            <Caption>Game{isPrivate && ' • private'}</Caption>
+          ))}
+        <Text css={{ whiteSpace: 'pre-wrap', lineHeight: '135%' }}>
+          <MessageComponent message={message} />
+        </Text>
       </Flex>
     </Flex>
   );
 };
 
+const MessageComponent: FC<{ message: LittleVigilanteMessage }> = ({
+  message,
+}) => {
+  const { t } = useTranslation({ MessageComponent });
+
+  if (isTextMessage(message)) {
+    return <Text>{message.text}</Text>;
+  } else if (isVoteMessage(message)) {
+    return <>{t(message)}</>;
+  } else if (isNightPhaseBeginsMessage(message)) {
+    return <>{t(message)}</>;
+  } else if (isRoleAssignMessage(message)) {
+    return <>{t(message.K, message.P)}</>;
+  } else if (isDiscussMessage(message)) {
+    return <>{t(message)}</>;
+  } else if (isWinnersMessage(message)) {
+    return <>{t(message.K, message.P)}</>;
+  }
+
+  console.warn("couldn't find translation for message", message);
+  return null;
+};
+
+export const { i18n } = declareComponentKeys<
+  | NightPhaseBeginsMessage
+  | VoteMessage
+  | RoleAssignMessage
+  | DiscussMessage
+  | (WinnersMessage & { R: JSX.Element } )
+>()({
+  MessageComponent,
+});
+
 const PauseMessage: FC<{ event: ServerEvent<PauseCommand> }> = ({ event }) => {
-  const userId = event.userId;
+  const { userId } = event;
   const name = useLittleVigilanteSelector(
     (state) => state.players[userId]?.name
   );
@@ -339,6 +391,30 @@ const PauseMessage: FC<{ event: ServerEvent<PauseCommand> }> = ({ event }) => {
         </Text>{' '}
         until all players are here.
       </Text>
+    </Flex>
+  );
+};
+
+const RoleAssignmentMessage: FC<{ event: RoleAssignmentEvent }> = ({
+  event,
+}) => {
+  const userId = useMyUserId();
+  // const { userId } = UserSenderSchema.parse(event.sender);
+  const slotNumber = useLittleVigilanteSelector(
+    (state) => state.players[userId]?.slotNumber
+  );
+  const color = colorBySlotNumber[slotNumber];
+
+  return (
+    <Flex align="center" gap="1">
+      <PlayerAvatar userId={userId} color={color} />
+
+      <Flex direction="column" gap={1}>
+        <Caption>Private</Caption>
+        <Text>
+          You are the <strong>{displayNameByRole[event.role]}</strong>.
+        </Text>
+      </Flex>
     </Flex>
   );
 };
@@ -371,7 +447,8 @@ const DisconnectMessage: FC<{ event: ServerEvent<DisconnectCommand> }> = ({
 const PlayerTargetRoleMessage: FC<{
   event: ServerEvent<LittleVigilanteTargetPlayerRoleCommand>;
 }> = ({ event }) => {
-  const { userId, targetedUserId } = event;
+  const { sender, targetedUserId } = event;
+  const { userId } = UserSenderSchema.parse(sender);
   const role = event.role as Role;
   const [name, targetedName, slotNumber, targetedSlotNumber] =
     useLittleVigilanteSelector((state) => [
@@ -463,11 +540,11 @@ const JoinMessage: FC<{ event: ServerEvent<JoinCommand> }> = ({ event }) => {
   );
 };
 
-const selectSendingMessagesDisabled = (
-  state: LittleVigilanteStateSerialized
-) => {
-  return state.currentStates.includes('Playing.Round.NightPhase');
-};
+// const selectSendingMessagesDisabled = (
+//   state: LittleVigilanteStateSerialized
+// ) => {
+//   return state.currentStates.includes('Playing.Round.NightPhase');
+// };
 
 const ChatInput: FC<{ disabled: boolean }> = ({ disabled }) => {
   const textRef = useRef<HTMLInputElement | null>(null);
@@ -477,7 +554,7 @@ const ChatInput: FC<{ disabled: boolean }> = ({ disabled }) => {
       const text = textRef.current?.value || '';
       e.preventDefault();
       if (text !== '') {
-        send({ type: 'MESSAGE', text });
+        send({ type: 'MESSAGE', message: { text } });
 
         // clear input
         if (textRef.current) {

@@ -1,19 +1,21 @@
-import { A, O } from '@mobily/ts-belt';
 import { z } from 'zod';
 
-export type Role =
-  | 'detective'
-  | 'cop'
-  | 'vigilante'
-  | 'twin_girl'
-  | 'twin_boy'
-  | 'butler'
-  | 'con_artist'
-  | 'snitch'
-  | 'sidekick'
-  | 'monk'
-  | 'mayor'
-  | 'anarchist';
+export const RoleSchema = z.enum([
+  'detective',
+  'cop',
+  'vigilante',
+  'twin_girl',
+  'twin_boy',
+  'butler',
+  'con_artist',
+  'snitch',
+  'sidekick',
+  'monk',
+  'mayor',
+  'anarchist'
+]);
+
+export type Role = z.infer<typeof RoleSchema>;
 
 export type Team = 'vigilante' | 'citizens' | 'anarchist';
 

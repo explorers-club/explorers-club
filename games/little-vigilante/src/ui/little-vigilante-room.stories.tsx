@@ -58,7 +58,7 @@ const Template: Story<{
   numPlayers: number;
   votingTimeSeconds?: number;
   discussionTimeSeconds?: number;
-}> = ({ numPlayers, votingTimeSeconds = 5, discussionTimeSeconds = 15 }) => {
+}> = ({ numPlayers, votingTimeSeconds = 5, discussionTimeSeconds = 45 }) => {
   const [initialized, setInitialized] = useState(false);
   const [roomId] = useState(`little_vigilante-${generateRandomString()}`);
   const [playerInfo] = useState(fullPlayerInfo.slice(0, numPlayers));
@@ -103,7 +103,7 @@ const Template: Story<{
       css={{
         // height: '100vh',
         gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-        gridAutoRows: '800px',
+        gridAutoRows: '700px',
       }}
     >
       {playerInfo.map(({ userId, name }, index) => (

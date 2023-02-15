@@ -7,6 +7,7 @@
 
 import { Schema, type, ArraySchema, MapSchema, SetSchema, DataChange } from '@colyseus/schema';
 import { LittleVigilantePlayer } from './LittleVigilantePlayer'
+import { ChatState } from './ChatState'
 
 export class LittleVigilanteState extends Schema {
     @type("number") public currentTick!: number;
@@ -26,4 +27,5 @@ export class LittleVigilanteState extends Schema {
     @type({ map: "boolean" }) public calledVoteResponses: MapSchema<boolean> = new MapSchema<boolean>();
     @type("string") public currentRoundArrestedPlayerId!: string;
     @type({ map: LittleVigilantePlayer }) public players: MapSchema<LittleVigilantePlayer> = new MapSchema<LittleVigilantePlayer>();
+    @type(ChatState) public chat: ChatState = new ChatState();
 }
