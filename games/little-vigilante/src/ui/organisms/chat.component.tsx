@@ -1,23 +1,35 @@
 import { Badge } from '@atoms/Badge';
 import { Box } from '@atoms/Box';
+import { declareComponentKeys } from 'i18nifty';
 import { Caption } from '@atoms/Caption';
 import { Flex } from '@atoms/Flex';
 import { Text } from '@atoms/Text';
 import { TextField } from '@atoms/TextField';
 import {
   DisconnectCommand,
+  isDiscussMessage,
+  isNightPhaseBeginsMessage,
+  isRoleAssignMessage,
+  isTextMessage,
+  isVoteMessage,
+  isWinnersMessage,
   JoinCommand,
+  LittleVigilanteMessage,
+  LittleVigilanteMessageCommand,
   LittleVigilanteStateSerialized,
   LittleVigilanteTargetPlayerRoleCommand,
   MessageCommand,
   PauseCommand,
   ResumeCommand,
   ServerEvent,
+  ServerSenderSchema,
+  TextMessageSchema,
   UserSenderSchema,
 } from '@explorers-club/room';
 import { colorBySlotNumber } from '@explorers-club/styles';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { useSelector } from '@xstate/react';
+import { deepEqual } from '@explorers-club/utils';
 // import { declareComponentKeys } from '../../i18n';
 import { useSubscription } from 'observable-hooks';
 import {
@@ -49,6 +61,14 @@ import {
   LittleVigilanteChatEvent,
   RoleAssignmentEvent,
 } from './chat.machine';
+import {
+  DiscussMessage,
+  NightPhaseBeginsMessage,
+  RoleAssignMessage,
+  VoteMessage,
+  WinnersMessage,
+} from '@explorers-club/chat';
+import { useTranslation } from '../../i18n';
 
 interface Props {
   disabled?: boolean;
@@ -91,80 +111,12 @@ function formatTime(seconds: number): string {
   return `${minutes}:${remainingSeconds}`;
 }
 
-/**
- * Selects the list of events and joins any messages that were successively sent from the same user.
- * @param state
- * @returns
- */
-const selectEventsWithJoinedMessages = (state: ChatState) => {
-  let runningText: string | undefined;
-
-  const events = state.context.events;
-  const result: LittleVigilanteChatEvent[] = [];
-
-  for (let i = events.length - 1; i >= 0; i--) {
-    const event = events[i];
-    if (event.type === 'MESSAGE') {
-      const { sender, text } = event;
-      const { userId } = UserSenderSchema.parse(sender);
-
-      const prevEvent = events[i - 1];
-      const prevUserId = prevEvent
-        ? UserSenderSchema.parse(prevEvent.sender).userId
-        : undefined;
-      const hasPreviousMessage = prevUserId === userId;
-
-      if (hasPreviousMessage) {
-        if (runningText) {
-          runningText = runningText + '\n' + text;
-        } else {
-          runningText = text;
-        }
-      } else if (!runningText) {
-        result.push(event);
-      } else {
-        result.push({
-          ...event,
-          text: event.text + '\n' + runningText,
-        });
-        runningText = undefined;
-      }
-    } else {
-      result.push(event);
-    }
-  }
-
-  return result.reverse();
-
-  // return state.context.events.reduce((acc, event) => {
-  //   if (event.type === 'MESSAGE') {
-  //     if (lastUserId === event.userId) {
-  //       runningText = (runningText || '') + event.text + '\n';
-  //     } else {
-  //       if (runningText) {
-  //         acc.push({
-  //           type: 'MESSAGE',
-  //           userId: event.userId,
-  //           text: runningText,
-  //           ts: event.ts,
-  //         });
-  //       }
-  //       lastUserId = event.userId;
-  //       runningText = event.text + '\n';
-  //     }
-  //   } else {
-  //     acc.push(event);
-  //   }
-  //   return acc;
-  // }, [] as LittleVigilanteServerEvent[]);
-};
-
 const ChatMessageList = () => {
   const scrollViewRef = useRef<HTMLDivElement | null>(null);
   const service = useContext(ChatServiceContext);
   // TODO consider a different way of joining events maybe so
   // server events dont stack their avatars
-  const events = useSelector(service, selectEventsWithJoinedMessages);
+  const events = useSelector(service, (state) => state.context.events);
 
   useEffect(() => {
     let isScrolled = false;
@@ -245,8 +197,8 @@ const ChatMessageList = () => {
           overflowY: 'auto',
         }}
       >
-        {events.map((event) => (
-          <ChatEvent key={event.ts} event={event} />
+        {events.map((event, index) => (
+          <ChatEvent key={event.ts} index={index} event={event} />
         ))}
         <TypingIndicator />
         {/* Anchor from https://css-tricks.com/books/greatest-css-tricks/pin-scrolling-to-bottom/ */}
@@ -264,7 +216,11 @@ const TypingIndicator = () => {
   const event$ = useLittleVigilanteEvent$();
 
   useSubscription(event$, ({ sender, ts, type }) => {
-    const { userId } = UserSenderSchema.parse(sender);
+    const result = UserSenderSchema.safeParse(sender);
+    if (!result.success) {
+      return;
+    }
+    const { userId } = result.data;
     if (type === 'MESSAGE') {
       delete typingUserRef.current[userId];
       setCurrentlyTyping(Object.keys(typingUserRef.current));
@@ -308,10 +264,13 @@ const TypingIndicator = () => {
   );
 };
 
-const ChatEvent: FC<{ event: LittleVigilanteChatEvent }> = ({ event }) => {
+const ChatEvent: FC<{ event: LittleVigilanteChatEvent; index: number }> = ({
+  event,
+  index,
+}) => {
   switch (event.type) {
     case 'MESSAGE':
-      return <Message event={event} />;
+      return <Message event={event} index={index} />;
     case 'JOIN':
       return <JoinMessage event={event} />;
     case 'RESUME':
@@ -330,30 +289,84 @@ const ChatEvent: FC<{ event: LittleVigilanteChatEvent }> = ({ event }) => {
   }
 };
 
-const Message: FC<{ event: ServerEvent<MessageCommand> }> = ({
-  event: { text, sender },
-}) => {
-  const { userId } = UserSenderSchema.parse(sender);
-  const name = useLittleVigilanteSelector(
-    (state) => state.players[userId]?.name
-  );
-  const slotNumber = useLittleVigilanteSelector(
-    (state) => state.players[userId]?.slotNumber
-  );
-  const color = colorBySlotNumber[slotNumber];
-  // const service = useContext(ChatServiceContext);
-  // const isContinued = useSelector(service, (state) => state.context.events)
+const Message: FC<{
+  event: ServerEvent<LittleVigilanteMessageCommand>;
+  index: number;
+}> = ({ event: { message, sender }, index }) => {
+  const userId = UserSenderSchema.safeParse(sender).success
+    ? UserSenderSchema.parse(sender).userId
+    : null;
+  const isPrivate = ServerSenderSchema.safeParse(sender).success
+    ? ServerSenderSchema.parse(sender).isPrivate
+    : null;
+  const players = useLittleVigilanteSelector((state) => state.players);
+
+  const service = useContext(ChatServiceContext);
+  const events = useSelector(service, (state) => state.context.events);
+  const prevEvent = events[index - 1];
+  const isContinued = prevEvent && deepEqual(prevEvent.sender, sender);
 
   return (
     <Flex align="start" gap="1" css={{ mb: '$1' }}>
-      <PlayerAvatar userId={userId} color={color} />
+      <Box css={isContinued ? { height: '1px', opacity: 0 } : {}}>
+        {userId ? (
+          <PlayerAvatar
+            userId={userId}
+            color={colorBySlotNumber[players[userId].slotNumber]}
+          />
+        ) : (
+          <GameAvatar />
+        )}
+      </Box>
       <Flex direction="column" gap="1">
-        <Caption variant={color}>{name}</Caption>
-        <Text css={{ whiteSpace: 'pre-wrap', lineHeight: '135%' }}>{text}</Text>
+        {!isContinued &&
+          (userId ? (
+            <Caption variant={colorBySlotNumber[players[userId].slotNumber]}>
+              {players[userId].name}
+            </Caption>
+          ) : (
+            <Caption>Game{isPrivate && ' • private'}</Caption>
+          ))}
+        <Text css={{ whiteSpace: 'pre-wrap', lineHeight: '135%' }}>
+          <MessageComponent message={message} />
+        </Text>
       </Flex>
     </Flex>
   );
 };
+
+const MessageComponent: FC<{ message: LittleVigilanteMessage }> = ({
+  message,
+}) => {
+  const { t } = useTranslation({ MessageComponent });
+
+  if (isTextMessage(message)) {
+    return <Text>{message.text}</Text>;
+  } else if (isVoteMessage(message)) {
+    return <>{t(message)}</>;
+  } else if (isNightPhaseBeginsMessage(message)) {
+    return <>{t(message)}</>;
+  } else if (isRoleAssignMessage(message)) {
+    return <>{t(message.K, message.P)}</>;
+  } else if (isDiscussMessage(message)) {
+    return <>{t(message)}</>;
+  } else if (isWinnersMessage(message)) {
+    return <>{t(message.K, message.P)}</>;
+  }
+
+  console.warn("couldn't find translation for message", message);
+  return null;
+};
+
+export const { i18n } = declareComponentKeys<
+  | NightPhaseBeginsMessage
+  | VoteMessage
+  | RoleAssignMessage
+  | DiscussMessage
+  | (WinnersMessage & { R: JSX.Element } )
+>()({
+  MessageComponent,
+});
 
 const PauseMessage: FC<{ event: ServerEvent<PauseCommand> }> = ({ event }) => {
   const { userId } = event;
@@ -541,7 +554,7 @@ const ChatInput: FC<{ disabled: boolean }> = ({ disabled }) => {
       const text = textRef.current?.value || '';
       e.preventDefault();
       if (text !== '') {
-        send({ type: 'MESSAGE', text });
+        send({ type: 'MESSAGE', message: { text } });
 
         // clear input
         if (textRef.current) {

@@ -5,6 +5,19 @@ import {
   Schema,
   SetSchema,
 } from '@colyseus/schema';
+// eslint-disable-next-line @nrwl/nx/enforce-module-boundaries
+import {
+  DiscussMessage,
+  DiscussMessageSchema,
+  NightPhaseBeginMessageSchema,
+  NightPhaseBeginsMessage,
+  RoleAssignMessage,
+  RoleAssignMessageSchema,
+  VoteMessage,
+  VoteMessageSchema,
+  WinnersMessage,
+  WinnersMessageSchema,
+} from '@explorers-club/chat';
 import {
   CodebreakersConfig,
   DiffusionaryConfig,
@@ -116,7 +129,9 @@ export type TypingCommand = {
 
 export type MessageCommand = {
   type: typeof MESSAGE;
-  text: string;
+  message: {
+    text: string;
+  };
 };
 
 export type LittleVigilanteLogCommand =
@@ -246,19 +261,58 @@ export type LittleVigilanteSwapCommand = {
   secondUserId: string;
 };
 
+export const TextMessageSchema = z
+  .object({
+    text: z.string(),
+  })
+  .required();
+export type TextMessage = z.infer<typeof TextMessageSchema>;
+export const isTextMessage = (obj: any): obj is TextMessage =>
+  TextMessageSchema.safeParse(obj).success;
+
+export type LittleVigilanteMessage =
+  | TextMessage
+  | RoleAssignMessage
+  | NightPhaseBeginsMessage
+  | DiscussMessage
+  | WinnersMessage
+  | VoteMessage;
+
+export const isNightPhaseBeginsMessage = (
+  obj: any
+): obj is NightPhaseBeginsMessage =>
+  NightPhaseBeginMessageSchema.safeParse(obj).success;
+
+export const isRoleAssignMessage = (obj: any): obj is RoleAssignMessage =>
+  RoleAssignMessageSchema.safeParse(obj).success;
+
+export const isDiscussMessage = (obj: any): obj is DiscussMessage =>
+  DiscussMessageSchema.safeParse(obj).success;
+
+export const isWinnersMessage = (obj: any): obj is WinnersMessage =>
+  WinnersMessageSchema.safeParse(obj).success;
+
+export const isVoteMessage = (obj: any): obj is VoteMessage =>
+  VoteMessageSchema.safeParse(obj).success;
+
+export type LittleVigilanteMessageCommand = {
+  type: typeof MESSAGE;
+  message: LittleVigilanteMessage;
+};
+
 export type LittleVigilanteCommand =
   | JoinCommand
   | ContinueCommand
   | LeaveCommand
   | DisconnectCommand
   | ReconnectCommand
-  | MessageCommand
   | TypingCommand
   | PressDownCommand
   | PauseCommand
   | ResumeCommand
   | PressUpCommand
   | LittleVigilanteLogCommand
+  | LittleVigilanteMessageCommand
   | LittleVigilanteRejectVoteCommand
   | LittleVigilanteApproveVoteCommand
   | LittleVigilanteCallVoteCommand
@@ -338,11 +392,10 @@ export const UserSenderSchema = z
   })
   .required();
 
-export const ServerSenderSchema = z
-  .object({
-    type: z.literal('server'),
-  })
-  .required();
+export const ServerSenderSchema = z.object({
+  type: z.literal('server'),
+  isPrivate: z.boolean().default(false).optional(),
+});
 
 type UserSender = z.infer<typeof UserSenderSchema>;
 type ServerSender = z.infer<typeof ServerSenderSchema>;

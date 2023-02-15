@@ -478,7 +478,29 @@ const PlayerRoleTarget = ({
   const slotNumber = useLittleVigilanteSelector(
     (state) => state.players[targetingUserId].slotNumber
   );
-  return <RoleAvatar size="2" roleType={role} />;
+  return (
+    <Box
+      css={{
+        width: 'fit-content',
+        height: 'fit-content',
+        position: 'relative',
+      }}
+    >
+      <RoleAvatar size="2" roleType={role} />
+      <Box
+        css={{
+          width: '$2',
+          height: '$2',
+          bottom: 0,
+          right: 0,
+          position: 'absolute',
+          borderRadius: '$2',
+          zIndex: 5,
+          background: `$${colorBySlotNumber[slotNumber]}9`,
+        }}
+      />
+    </Box>
+  );
 };
 
 const selectRoleTargetsByUserId = (state: LittleVigilanteStateSerialized) => {

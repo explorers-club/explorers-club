@@ -60,6 +60,7 @@
     "globe.gl": "^2.26.11",
     "h3-js": "^4.0.1",
     "honeycomb-grid": "^4.0.0",
+    "i18nifty": "^1.4.0",
     "keen-slider": "^6.8.5",
     "leva": "^0.9.30",
     "lodash.merge": "^4.6.2",

@@ -3,7 +3,6 @@ import { Box } from '@atoms/Box';
 import { Button } from '@atoms/Button';
 import { Caption } from '@atoms/Caption';
 import { Flex } from '@atoms/Flex';
-import { Text } from '@atoms/Text';
 import { Heading } from '@atoms/Heading';
 import { colorBySlotNumber } from '@explorers-club/styles';
 import { Slider, SliderCell } from '@molecules/Slider';
@@ -11,7 +10,6 @@ import { useKeenSlider } from 'keen-slider/react';
 import { FC } from 'react';
 import {
   colorByTeam,
-  getTeamThemeColor,
   Role,
   teamByRole,
 } from '../../../meta/little-vigilante.constants';
@@ -45,10 +43,6 @@ export const RoleRevealComponent: FC<Props> = ({
   );
   const winningColor = colorByTeam[winningTeam];
 
-  const vigilante = playerOutcomes.find(
-    (player) => player.role === 'vigilante'
-  )!;
-  const sidekick = playerOutcomes.find((player) => player.role === 'sidekick');
   // const team = teamByRole[winningRole];
 
   const [winnerSliderRef] = useKeenSlider<HTMLDivElement>({
@@ -84,43 +78,6 @@ export const RoleRevealComponent: FC<Props> = ({
       <Flex direction="column" gap="2">
         <Box css={{ px: '$3' }}>
           <Flex direction="column" align="start" gap="1">
-            <Text size={1}>
-              <Text
-                variant={colorBySlotNumber[vigilante.slotNumber]}
-                css={{ fontWeight: 'bold', display: 'inline' }}
-              >
-                {vigilante.playerName}
-              </Text>{' '}
-              {sidekick ? (
-                <>
-                  and{' '}
-                  <Text
-                    variant={colorBySlotNumber[sidekick.slotNumber]}
-                    css={{ fontWeight: 'bold', display: 'inline' }}
-                  >
-                    {sidekick.playerName}
-                  </Text>{' '}
-                  are the{' '}
-                  <Text
-                    variant="crimson"
-                    css={{ fontWeight: 'bold', display: 'inline' }}
-                  >
-                    Vigilantes
-                  </Text>
-                  .
-                </>
-              ) : (
-                <>
-                  is the{' '}
-                  <Text
-                    variant="crimson"
-                    css={{ fontWeight: 'bold', display: 'inline' }}
-                  >
-                    Vigilante
-                  </Text>
-                </>
-              )}
-            </Text>
             <Heading
               size="3"
               css={{ textTransform: 'capitalize', textAlign: 'center' }}

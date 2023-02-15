@@ -7,6 +7,7 @@ import {
   useLittleVigilanteSend,
   useMyUserId,
 } from '../../../state/little-vigilante.hooks';
+import { selectPlayerOutcomes } from '../../../state/little-vigilante.selectors';
 import { RoleRevealComponent } from './role-reveal.component';
 
 export const RoleReveal = () => {
@@ -30,14 +31,4 @@ export const RoleReveal = () => {
       playerOutcomes={playerOutcomes}
     />
   );
-};
-
-const selectPlayerOutcomes = (state: LittleVigilanteStateSerialized) => {
-  return Object.entries(state.currentRoundRoles).map(([userId, role]) => ({
-    playerName: state.players[userId].name,
-    role: role as Role,
-    winner: state.currentRoundPoints[userId] === 1,
-    slotNumber: state.players[userId].slotNumber,
-    userId,
-  }));
 };

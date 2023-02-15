@@ -3,9 +3,9 @@ import {
   DisconnectCommand,
   JoinCommand,
   LeaveCommand,
+  LittleVigilanteMessageCommand,
   LittleVigilanteServerEvent,
   LittleVigilanteTargetPlayerRoleCommand,
-  MessageCommand,
   PauseCommand,
   ReconnectCommand,
   ResumeCommand,
@@ -52,13 +52,13 @@ export const createChatMachine = (
           src: (context, event) => event$,
         },
         on: {
-          ROLE_ASSIGNMENT: {
-            actions: assign<ChatContext, LittleVigilanteClientChatEvent>(
-              (context, event) => {
-                context.events.push(event);
-              }
-            ),
-          },
+          // ROLE_ASSIGNMENT: {
+          //   actions: assign<ChatContext, LittleVigilanteClientChatEvent>(
+          //     (context, event) => {
+          //       context.events.push(event);
+          //     }
+          //   ),
+          // },
           TARGET_ROLE: {
             actions: assign<
               ChatContext,
@@ -96,11 +96,12 @@ export const createChatMachine = (
             ),
           },
           MESSAGE: {
-            actions: assign<ChatContext, ServerEvent<MessageCommand>>(
-              (context, event) => {
-                context.events.push(event);
-              }
-            ),
+            actions: assign<
+              ChatContext,
+              ServerEvent<LittleVigilanteMessageCommand>
+            >((context, event) => {
+              context.events.push(event);
+            }),
           },
           RESUME: {
             actions: assign<ChatContext, ServerEvent<ResumeCommand>>(
