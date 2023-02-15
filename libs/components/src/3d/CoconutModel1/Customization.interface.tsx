@@ -19,26 +19,28 @@ export const Interface = () => {
   const {
     setCameraMode,
     cameraMode,
-    hairColor,
-    setHairColor,
+    headColor,
+    setHeadColor,
+    faceColor,
+    setFaceColor,
     eyesColor,
     setEyesColor,
-    mouthColor,
-    setMouthColor,
-    glassesColor,
-    setGlassesColor,
-    skinColor,
-    setSkinColor,
-    shirtColor,
-    setShirtColor,
-    pantsColor,
-    setPantsColor,
-    shoesColor,
-    setShoesColor,
-    lacesColor,
-    setLacesColor,
-    soleColor,
-    setSoleColor,
+    eyeLidColor,
+    setEyeLidColor,
+    eyebrowColor,
+    setEyebrowColor,
+    armColor,
+    setArmColor,
+    armbandColor,
+    setArmbandColor,
+    handColor,
+    sethandColor,
+    legsColor,
+    setLegsColor,
+    legbandColor,
+    setLegbandColor,
+    feetColor,
+    setfeetColor,
     morphTargetDictionary,
     morphTargetInfluences,
     setMorphTargetInfluences,
@@ -74,13 +76,13 @@ export const Interface = () => {
               <Box>
                 <Heading color="$primary1">Face Customization</Heading>
                 <Fieldset>
-                  <Label css={{ color: '$primary1' }}>Hair</Label>
+                  <Label css={{ color: '$primary1' }}>Head</Label>
                   {/* <Input type="range" min="0" max="11" /> */}
                   <Input
                     type="color"
                     css={{ width: '30px' }}
-                    value={hairColor}
-                    onChange={(e) => setHairColor(e.target.value)}
+                    value={headColor}
+                    onChange={(e) => setHeadColor(e.target.value)}
                   />
                 </Fieldset>
                 <Fieldset>
@@ -93,36 +95,36 @@ export const Interface = () => {
                     onChange={(e) => setEyesColor(e.target.value)}
                   />
                 </Fieldset>
-                <Fieldset>
-                  <Label css={{ color: '$primary1' }}>Mouth</Label>
+                {/* <Fieldset>
+                  <Label css={{ color: '$primary1' }}>Eyelid</Label>
 
                   <Input
                     type="color"
                     css={{ width: '30px' }}
-                    value={mouthColor}
-                    onChange={(e) => setMouthColor(e.target.value)}
+                    value={eyeLidColor}
+                    onChange={(e) => setEyeLidColor(e.target.value)}
                   />
                 </Fieldset>
                 <Fieldset>
-                  <Label css={{ color: '$primary1' }}>Glasses</Label>
+                  <Label css={{ color: '$primary1' }}>Eyebrows</Label>
 
                   <Input
                     type="color"
                     css={{ width: '30px' }}
-                    value={glassesColor}
-                    onChange={(e) => setGlassesColor(e.target.value)}
+                    value={eyebrowColor}
+                    onChange={(e) => setEyebrowColor(e.target.value)}
                   />
                 </Fieldset>
                 <Fieldset>
-                  <Label css={{ color: '$primary1' }}>Skin</Label>
+                  <Label css={{ color: '$primary1' }}>Face</Label>
 
                   <Input
                     type="color"
                     css={{ width: '30px' }}
-                    value={skinColor}
-                    onChange={(e) => setSkinColor(e.target.value)}
+                    value={faceColor}
+                    onChange={(e) => setFaceColor(e.target.value)}
                   />
-                </Fieldset>
+                </Fieldset> */}
                 <Heading color="$primary1" css={{ mt: '$2' }}>
                   Facial Expression
                 </Heading>
@@ -152,60 +154,70 @@ export const Interface = () => {
             )}
             {cameraMode === cameraModes.TOP && (
               <Box>
-                <Fieldset>
-                  <Label css={{ color: '$primary1' }}>Shirt</Label>
+                {/* <Fieldset>
+                  <Label css={{ color: '$primary1' }}>Arm</Label>
 
                   <Input
                     type="color"
                     css={{ width: '30px' }}
-                    value={shirtColor}
-                    onChange={(e) => setShirtColor(e.target.value)}
+                    value={armColor}
+                    onChange={(e) => setArmColor(e.target.value)}
                   />
-                </Fieldset>{' '}
+                </Fieldset>
+                <Fieldset>
+                  <Label css={{ color: '$primary1' }}>Arm Band</Label>
+
+                  <Input
+                    type="color"
+                    css={{ width: '30px' }}
+                    value={armbandColor}
+                    onChange={(e) => setArmbandColor(e.target.value)}
+                  />
+                </Fieldset>
+                <Fieldset>
+                  <Label css={{ color: '$primary1' }}>Hands</Label>
+
+                  <Input
+                    type="color"
+                    css={{ width: '30px' }}
+                    value={handColor}
+                    onChange={(e) => sethandColor(e.target.value)}
+                  />
+                </Fieldset> */}
               </Box>
             )}
             {cameraMode === cameraModes.BOTTOM && (
               <Box>
-                <Fieldset>
-                  <Label css={{ color: '$primary1' }}>Pants</Label>
+                {/* <Fieldset>
+                  <Label css={{ color: '$primary1' }}>Legs</Label>
 
                   <Input
                     type="color"
                     css={{ width: '30px' }}
-                    value={pantsColor}
-                    onChange={(e) => setPantsColor(e.target.value)}
+                    value={legsColor}
+                    onChange={(e) => setLegsColor(e.target.value)}
                   />
                 </Fieldset>
                 <Fieldset>
-                  <Label css={{ color: '$primary1' }}>Shoes</Label>
+                  <Label css={{ color: '$primary1' }}>Leg band</Label>
 
                   <Input
                     type="color"
                     css={{ width: '30px' }}
-                    value={shoesColor}
-                    onChange={(e) => setShoesColor(e.target.value)}
+                    value={legbandColor}
+                    onChange={(e) => setLegbandColor(e.target.value)}
                   />
                 </Fieldset>
                 <Fieldset>
-                  <Label css={{ color: '$primary1' }}>Laces</Label>
+                  <Label css={{ color: '$primary1' }}>Feet</Label>
 
                   <Input
                     type="color"
                     css={{ width: '30px' }}
-                    value={lacesColor}
-                    onChange={(e) => setLacesColor(e.target.value)}
+                    value={feetColor}
+                    onChange={(e) => setfeetColor(e.target.value)}
                   />
-                </Fieldset>
-                <Fieldset>
-                  <Label css={{ color: '$primary1' }}>Sole</Label>
-
-                  <Input
-                    type="color"
-                    css={{ width: '30px' }}
-                    value={soleColor}
-                    onChange={(e) => setSoleColor(e.target.value)}
-                  />
-                </Fieldset>
+                </Fieldset> */}
               </Box>
             )}
           </Overlay>
