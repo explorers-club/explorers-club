@@ -65,7 +65,7 @@ export const RoleAssignmentComponent: FC<Props> = (props) => {
               p: '$3',
               pt: '$8',
               background: 'linear-gradient(rgba(0,0,0,0), rgba(0,0,0,1))',
-              borderRadius: '$3',
+              borderRadius: '$2',
             }}
             direction="column"
             gap="2"
