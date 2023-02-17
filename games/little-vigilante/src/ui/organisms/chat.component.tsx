@@ -313,6 +313,7 @@ const Message: FC<{
   const events = useSelector(service, (state) => state.context.events);
   const prevEvent = events[index - 1];
   const isContinued = prevEvent && deepEqual(prevEvent.sender, sender);
+  const hostIds = useLittleVigilanteSelector((state) => state.hostUserIds);
 
   return (
     <Flex align="start" gap="1" css={{ mb: '$1' }}>
@@ -331,6 +332,9 @@ const Message: FC<{
           (userId ? (
             <Caption variant={colorBySlotNumber[players[userId].slotNumber]}>
               {players[userId].name}
+              <Caption variant="low_contrast" css={{ display: 'inline' }}>
+                {hostIds.includes(userId) && ' • host'}
+              </Caption>
             </Caption>
           ) : (
             <Caption>Game{isPrivate && ' • private'}</Caption>
