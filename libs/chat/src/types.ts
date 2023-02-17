@@ -43,6 +43,8 @@ export const RoleAssignMessageSchema = z
   .required();
 export const DiscussMessageSchema = z.literal('discuss');
 export const VoteMessageSchema = z.literal('vote');
+export const YouWonMessageSchema = z.literal('you_won');
+export const YouLostMessageSchema = z.literal('you_lost');
 export const WinnersMessageSchema = z
   .object({
     K: z.literal('winners'),
@@ -63,3 +65,5 @@ export type RoleAssignMessage = z.infer<typeof RoleAssignMessageSchema>;
 export type DiscussMessage = z.infer<typeof DiscussMessageSchema>;
 export type VoteMessage = z.infer<typeof VoteMessageSchema>;
 export type WinnersMessage = z.infer<typeof WinnersMessageSchema>;
+export type YouWonMessage = z.infer<typeof YouWonMessageSchema>;
+export type YouLostMessage = z.infer<typeof YouLostMessageSchema>;

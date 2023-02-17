@@ -22,7 +22,7 @@ import {
 export const CalledVote = () => {
   const send = useLittleVigilanteSend();
   const handleCallVote = useCallback(() => {
-    send({ type: 'CALL_VOTE' });
+    // send({ type: 'CALL_VOTE' });
   }, [send]);
   const myUserId = useMyUserId();
   const isVoteFailed = useLittleVigilanteSelector((state) =>

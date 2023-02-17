@@ -31,6 +31,8 @@ export const {
         discuss: 'Discuss!',
         vote: 'Vote!',
         role_assign: ({ role }) => `You are the ${role}`,
+        you_won: `You Won!`,
+        you_lost: `You Lost`,
         winners: ({
           vigilanteSlotNumber,
           vigilantePlayerName,

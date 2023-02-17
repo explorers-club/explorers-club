@@ -1,9 +1,7 @@
-import { RoleAssignMessage } from '@explorers-club/chat';
 import {
   LittleVigilanteMessageCommand,
   LittleVigilanteServerEvent,
   LittleVigilanteStateSerialized,
-  MessageCommand,
   PauseCommand,
   PressDownCommand,
   ResumeCommand,
@@ -18,7 +16,6 @@ import { createSelector } from 'reselect';
 import { ActorRefFrom, createMachine, send } from 'xstate';
 import { Role, rolesByTeam } from '../meta/little-vigilante.constants';
 import { selectPlayerOutcomes } from '../state/little-vigilante.selectors';
-import { RoleAssignmentEvent } from '../ui/organisms/chat.machine';
 // import { getTranslation } from '../i18n';
 
 export interface LittleVigilanteServerContext {
@@ -107,6 +104,9 @@ export const createLittleVigilanteServerMachine = (
     roundsToPlay: number;
   }
 ) => {
+  // todo just use context for this
+  const cacheMap = new Map();
+
   const littleVigilanteMachine = createMachine(
     {
       id: 'LittleVigilanteServerMachine',
@@ -411,14 +411,41 @@ export const createLittleVigilanteServerMachine = (
                     'sendDiscussionPhaseMessage',
                   ],
                   initial: 'Idle',
-                  onDone: 'Voting',
+                  onDone: [
+                    {
+                      target: 'Reveal',
+                      cond: 'hasCalledVoteMajorityYes',
+                    },
+                    {
+                      target: 'Voting',
+                    },
+                  ],
                   states: {
                     Idle: {
+                      entry: () => {
+                        const timeRemaining = cacheMap.get(
+                          'discussion_time_remaining'
+                        );
+                        if (timeRemaining) {
+                          cacheMap.delete('discussion_time_remaining');
+                          room.state.timeRemaining = timeRemaining;
+                        }
+                      },
                       on: {
                         CALL_VOTE: {
                           target: 'VoteCalled',
-                          actions({ room }, { sender }) {
+                          actions({ room }, { sender, targetedUserId }) {
+                            // Store the current time remaining in cache to resume from later...
+                            cacheMap.set(
+                              'discussion_time_remaining',
+                              room.state.timeRemaining
+                            );
+                            room.state.timeRemaining = 15;
+
                             const { userId } = UserSenderSchema.parse(sender);
+                            room.state.calledVoteUserId = userId;
+                            room.state.calledVoteTargetedUserId =
+                              targetedUserId;
                             room.state.calledVoteResponses.clear();
                             room.state.calledVoteResponses.set(userId, true);
                           },
@@ -478,23 +505,37 @@ export const createLittleVigilanteServerMachine = (
                       },
                     },
                     VoteCalled: {
+                      after: {
+                        1000: [
+                          {
+                            target: 'VoteCalled',
+                            actions: 'votingTimerTick',
+                          },
+                        ],
+                      },
                       always: [
                         {
                           target: 'VoteFailed',
-                          cond: ({ room }) => {
-                            const majorityNo = selectCalledVoteMajorityNo(
-                              room.state
-                            );
-                            return majorityNo;
-                          },
+                          cond: 'hasCalledVoteMajorityNo',
                         },
                         {
                           target: 'Complete',
-                          cond: ({ room }) => {
-                            const majorityYes = selectCalledVoteMajorityYes(
-                              room.state
+                          cond: 'hasCalledVoteMajorityYes',
+                          actions: () => {
+                            // All the people who voted yes,
+                            // mark their vote as the targeted person
+                            // Everybody who vote no or didn't vote won't count
+                            // when the round votes are calcualted
+                            room.state.calledVoteResponses.forEach(
+                              (response, userId) => {
+                                if (response) {
+                                  room.state.currentRoundVotes.set(
+                                    userId,
+                                    room.state.calledVoteTargetedUserId
+                                  );
+                                }
+                              }
                             );
-                            return majorityYes;
                           },
                         },
                         {
@@ -503,7 +544,9 @@ export const createLittleVigilanteServerMachine = (
                             const allPlayersVoted = selectAllPlayersVoted(
                               room.state
                             );
-                            return allPlayersVoted;
+                            return (
+                              allPlayersVoted || room.state.timeRemaining <= 0
+                            );
                           },
                         },
                       ],
@@ -535,6 +578,7 @@ export const createLittleVigilanteServerMachine = (
                     },
                     Complete: {
                       type: 'final',
+                      // todo skip the voting screen and just manually score
                     },
                   },
                 },
@@ -578,7 +622,11 @@ export const createLittleVigilanteServerMachine = (
                   },
                 },
                 Reveal: {
-                  entry: ['calcCurrentRoundPoints', 'sendRevealPhaseMessage'],
+                  entry: [
+                    'calcCurrentRoundPoints',
+                    'sendWinStatusMessage',
+                    'sendRevealPhaseMessage',
+                  ],
                   on: {
                     CONTINUE: 'Complete',
                   },
@@ -622,6 +670,10 @@ export const createLittleVigilanteServerMachine = (
         timesUp: ({ room }) => room.state.timeRemaining <= 0,
         allPlayersConnected: ({ room }, event) =>
           selectAllPlayersConnected(room.state),
+        hasCalledVoteMajorityNo: ({ room }) =>
+          selectCalledVoteMajorityNo(room.state),
+        hasCalledVoteMajorityYes: ({ room }) =>
+          selectCalledVoteMajorityYes(room.state),
       },
       actions: {
         arrestPlayer: ({ room }, event) => {
@@ -796,9 +848,7 @@ export const createLittleVigilanteServerMachine = (
           const event: ServerEvent<LittleVigilanteMessageCommand> = {
             type: 'MESSAGE',
             ts: room.state.currentTick,
-            message: {
-              text: 'Discuss!',
-            },
+            message: 'discuss',
             sender: {
               type: 'server',
               isPrivate: false,
@@ -810,14 +860,36 @@ export const createLittleVigilanteServerMachine = (
           const event: ServerEvent<LittleVigilanteMessageCommand> = {
             type: 'MESSAGE',
             ts: room.state.currentTick,
-            message: {
-              text: 'Vote now!',
-            },
+            message: 'vote',
             sender: {
               type: 'server',
             },
           };
           room.broadcast(event.type, event);
+        },
+        sendWinStatusMessage: ({ room }) => {
+          const clientsByUserId = room.clients.reduce((result, client) => {
+            if (client.userData) {
+              const userId = client.userData['userId'];
+              result[userId] = client;
+            }
+            return result;
+          }, {} as Record<string, Client>);
+
+          const playerOutcomes = selectPlayerOutcomes(getSnapshot(room.state));
+
+          playerOutcomes.forEach(({ userId, winner }) => {
+            const event: ServerEvent<LittleVigilanteMessageCommand> = {
+              type: 'MESSAGE',
+              ts: room.state.currentTick,
+              message: winner ? 'you_won' : 'you_lost',
+              sender: {
+                type: 'server',
+                isPrivate: true,
+              },
+            };
+            clientsByUserId[userId].send(event.type, event);
+          });
         },
         sendRevealPhaseMessage: ({ room }) => {
           const playerOutcomes = selectPlayerOutcomes(getSnapshot(room.state));
@@ -851,9 +923,7 @@ export const createLittleVigilanteServerMachine = (
           const event: ServerEvent<LittleVigilanteMessageCommand> = {
             type: 'MESSAGE',
             ts: room.state.currentTick,
-            message: {
-              text: 'Night phase begins.',
-            },
+            message: 'night_phase',
             sender: {
               type: 'server',
             },

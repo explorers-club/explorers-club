@@ -1,19 +1,5 @@
 import { z } from 'zod';
-
-export const RoleSchema = z.enum([
-  'detective',
-  'cop',
-  'vigilante',
-  'twin_girl',
-  'twin_boy',
-  'butler',
-  'con_artist',
-  'snitch',
-  'sidekick',
-  'monk',
-  'mayor',
-  'anarchist'
-]);
+import { RoleSchema } from '../schema';
 
 export type Role = z.infer<typeof RoleSchema>;
 

@@ -3,6 +3,7 @@ import {
   DisconnectCommand,
   JoinCommand,
   LeaveCommand,
+  LittleVigilanteCallVoteCommand,
   LittleVigilanteMessageCommand,
   LittleVigilanteServerEvent,
   LittleVigilanteTargetPlayerRoleCommand,
@@ -80,6 +81,14 @@ export const createChatMachine = (
                 context.events.push(event);
               }
             ),
+          },
+          CALL_VOTE: {
+            actions: assign<
+              ChatContext,
+              ServerEvent<LittleVigilanteCallVoteCommand>
+            >((context, event) => {
+              context.events.push(event);
+            }),
           },
           DISCONNECT: {
             actions: assign<ChatContext, ServerEvent<DisconnectCommand>>(

@@ -11,6 +11,10 @@ export default {
   component: AssigningRolesScreenComponent,
   decorators: [withCardDecorator, withLittleVigilanteContext],
   parameters: {
+    cardCSS: {
+      minHeight: '100vh',
+      p: '0',
+    },
     layout: 'fullscreen',
     viewport: {
       defaultViewport: 'mobile1',

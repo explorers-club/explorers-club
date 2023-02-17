@@ -133,3 +133,9 @@ export const selectPlayerOutcomes = (state: LittleVigilanteStateSerialized) => {
     userId,
   }));
 };
+
+export const selectIsVoteCalled = (state: LittleVigilanteStateSerialized) =>
+  state.currentStates.includes('Playing.Round.DiscussionPhase.VoteCalled');
+
+export const selectIsVoteFailed = (state: LittleVigilanteStateSerialized) =>
+  state.currentStates.includes('Playing.Round.DiscussionPhase.VoteFailed');

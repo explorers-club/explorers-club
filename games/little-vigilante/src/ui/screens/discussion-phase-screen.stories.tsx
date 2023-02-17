@@ -18,13 +18,15 @@ export default {
   },
 } as Meta;
 
-export const Primary: LittleVigilanteStory = () => {
+const Template: LittleVigilanteStory = () => {
   return (
     <Box css={{ height: '100vh' }}>
       <DiscussionPhaseScreenComponent />
     </Box>
   );
 };
+
+export const Default = Template.bind({});
 
 const players = {
   alice123: {
@@ -89,14 +91,82 @@ const players = {
       bob123: 'monk',
     },
   },
+  gina123: {
+    name: 'Gina',
+    userId: 'gina123',
+    score: 0,
+    connected: true,
+    slotNumber: 7,
+    currentRoundRoleTargets: {
+      bob123: 'monk',
+    },
+  },
+  herb123: {
+    name: 'Herb',
+    userId: 'herb123',
+    score: 0,
+    connected: true,
+    slotNumber: 8,
+    currentRoundRoleTargets: {
+      bob123: 'monk',
+    },
+  },
 };
 
-Primary.args = {
+Default.args = {
   myUserId: 'alice123',
   state: {
     timeRemaining: 57,
     roles: Array.from(rolesByPlayerCount[Object.values(players).length]),
     players,
+    calledVoteResponses: {},
     currentStates: ['Playing.Round.DiscussionPhase.Idle'],
+  },
+};
+
+export const FailedVote = Template.bind({});
+
+FailedVote.args = {
+  myUserId: 'alice123',
+  state: {
+    timeRemaining: 57,
+    roles: Array.from(rolesByPlayerCount[Object.values(players).length]),
+    players,
+    calledVoteUserId: "frank123",
+    calledVoteTargetedUserId: "bob123",
+    calledVoteResponses: {},
+    currentStates: ['Playing.Round.DiscussionPhase.VoteFailed'],
+  },
+};
+
+export const CalledVote = Template.bind({});
+
+CalledVote.args = {
+  myUserId: 'alice123',
+  state: {
+    timeRemaining: 57,
+    roles: Array.from(rolesByPlayerCount[Object.values(players).length]),
+    players,
+    calledVoteUserId: "frank123",
+    calledVoteTargetedUserId: "bob123",
+    calledVoteResponses: {},
+    currentStates: ['Playing.Round.DiscussionPhase.VoteCalled'],
+  },
+};
+
+export const SubmittedVote = Template.bind({});
+
+SubmittedVote.args = {
+  myUserId: 'alice123',
+  state: {
+    timeRemaining: 57,
+    roles: Array.from(rolesByPlayerCount[Object.values(players).length]),
+    players,
+    currentStates: ['Playing.Round.DiscussionPhase.VoteCalled'],
+    calledVoteUserId: "frank123",
+    calledVoteTargetedUserId: "bob123",
+    calledVoteResponses: {
+      alice123: true,
+    },
   },
 };

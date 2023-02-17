@@ -9,9 +9,6 @@ export const AssigningRolesScreenComponent = () => {
       <Card css={{ display: 'flex' }}>
         <RoleAssignment />
       </Card>
-      <Card css={{ flexGrow: 1, display: 'flex' }}>
-        <Chat disabled />
-      </Card>
     </Flex>
   );
 };

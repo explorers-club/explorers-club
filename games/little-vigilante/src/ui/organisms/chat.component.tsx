@@ -13,7 +13,10 @@ import {
   isTextMessage,
   isVoteMessage,
   isWinnersMessage,
+  isYouLostMessage,
+  isYouWonMessage,
   JoinCommand,
+  LittleVigilanteCallVoteCommand,
   LittleVigilanteMessage,
   LittleVigilanteMessageCommand,
   LittleVigilanteStateSerialized,
@@ -67,8 +70,11 @@ import {
   RoleAssignMessage,
   VoteMessage,
   WinnersMessage,
+  YouLostMessage,
+  YouWonMessage,
 } from '@explorers-club/chat';
 import { useTranslation } from '../../i18n';
+import { CalledVote } from './called-vote.component';
 
 interface Props {
   disabled?: boolean;
@@ -283,6 +289,8 @@ const ChatEvent: FC<{ event: LittleVigilanteChatEvent; index: number }> = ({
       return <RoleAssignmentMessage event={event} />;
     case 'TARGET_ROLE':
       return <PlayerTargetRoleMessage event={event} />;
+    case 'CALL_VOTE':
+      return <CalledVoteMessage event={event} />;
     default:
       console.warn('missing component for message type: ' + event.type);
       return null;
@@ -350,6 +358,10 @@ const MessageComponent: FC<{ message: LittleVigilanteMessage }> = ({
     return <>{t(message.K, message.P)}</>;
   } else if (isDiscussMessage(message)) {
     return <>{t(message)}</>;
+  } else if (isYouLostMessage(message)) {
+    return <>{t(message)}</>;
+  } else if (isYouWonMessage(message)) {
+    return <>{t(message)}</>;
   } else if (isWinnersMessage(message)) {
     return <>{t(message.K, message.P)}</>;
   }
@@ -363,7 +375,9 @@ export const { i18n } = declareComponentKeys<
   | VoteMessage
   | RoleAssignMessage
   | DiscussMessage
-  | (WinnersMessage & { R: JSX.Element } )
+  | (WinnersMessage & { R: JSX.Element })
+  | YouWonMessage
+  | YouLostMessage
 >()({
   MessageComponent,
 });
@@ -444,6 +458,41 @@ const DisconnectMessage: FC<{ event: ServerEvent<DisconnectCommand> }> = ({
   );
 };
 
+const CalledVoteMessage: FC<{
+  event: ServerEvent<LittleVigilanteCallVoteCommand>;
+}> = ({ event }) => {
+  const { sender, targetedUserId } = event;
+  const { userId } = UserSenderSchema.parse(sender);
+  const [name, targetedName, slotNumber, targetedSlotNumber] =
+    useLittleVigilanteSelector((state) => [
+      state.players[userId]?.name,
+      state.players[targetedUserId]?.name,
+      state.players[userId]?.slotNumber,
+      state.players[targetedUserId]?.slotNumber,
+    ]);
+  const color = colorBySlotNumber[slotNumber];
+  const targetedColor = colorBySlotNumber[targetedSlotNumber];
+
+  return (
+    <Flex align="center" gap="1">
+      <PlayerAvatar size={2} userId={userId} color={color} />
+      <Text>
+        <Text variant={color} css={{ fontWeight: 'bold', display: 'inline' }}>
+          {name}
+        </Text>{' '}
+        called a vote to identify{' '}
+        <Text
+          variant={targetedColor}
+          css={{ fontWeight: 'bold', display: 'inline' }}
+        >
+          {targetedName}
+        </Text>
+        .
+      </Text>
+    </Flex>
+  );
+};
+
 const PlayerTargetRoleMessage: FC<{
   event: ServerEvent<LittleVigilanteTargetPlayerRoleCommand>;
 }> = ({ event }) => {
@@ -469,8 +518,7 @@ const PlayerTargetRoleMessage: FC<{
 
   return (
     <Flex align="center" gap="1">
-      <PlayerAvatar userId={userId} color={color} />
-      <Text></Text>
+      <PlayerAvatar size={2} userId={userId} color={color} />
       <Text>
         <Text variant={color} css={{ fontWeight: 'bold', display: 'inline' }}>
           {name}

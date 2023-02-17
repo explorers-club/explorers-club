@@ -7,6 +7,9 @@ export default {
   decorators: [withCardDecorator],
   parameters: {
     layout: 'fullscreen',
+    cardCSS: {
+      p: '$0',
+    },
     viewport: {
       defaultViewport: 'mobile1',
     },

@@ -15,6 +15,10 @@ import {
   RoleAssignMessageSchema,
   VoteMessage,
   VoteMessageSchema,
+  YouWonMessage,
+  YouWonMessageSchema,
+  YouLostMessage,
+  YouLostMessageSchema,
   WinnersMessage,
   WinnersMessageSchema,
 } from '@explorers-club/chat';
@@ -235,6 +239,7 @@ export type CodebreakersPlayerSerialized = SerializedSchema<CodebreakersPlayer>;
 
 export type LittleVigilanteCallVoteCommand = {
   type: 'CALL_VOTE';
+  targetedUserId: string;
 };
 export type LittleVigilanteApproveVoteCommand = {
   type: 'APPROVE_VOTE';
@@ -275,8 +280,10 @@ export type LittleVigilanteMessage =
   | RoleAssignMessage
   | NightPhaseBeginsMessage
   | DiscussMessage
-  | WinnersMessage
-  | VoteMessage;
+  | VoteMessage
+  | YouLostMessage
+  | YouWonMessage
+  | WinnersMessage;
 
 export const isNightPhaseBeginsMessage = (
   obj: any
@@ -294,6 +301,12 @@ export const isWinnersMessage = (obj: any): obj is WinnersMessage =>
 
 export const isVoteMessage = (obj: any): obj is VoteMessage =>
   VoteMessageSchema.safeParse(obj).success;
+
+export const isYouWonMessage = (obj: any): obj is YouWonMessage =>
+  YouWonMessageSchema.safeParse(obj).success;
+
+export const isYouLostMessage = (obj: any): obj is YouLostMessage =>
+  YouLostMessageSchema.safeParse(obj).success;
 
 export type LittleVigilanteMessageCommand = {
   type: typeof MESSAGE;

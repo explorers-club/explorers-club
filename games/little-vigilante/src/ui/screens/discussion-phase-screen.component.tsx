@@ -1,18 +1,15 @@
-import { Avatar } from '@atoms/Avatar';
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { Box } from '@atoms/Box';
+import { Button } from '@atoms/Button';
 import { Caption } from '@atoms/Caption';
 import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
 import { Heading } from '@atoms/Heading';
+import { Text } from '@atoms/Text';
 import { LittleVigilanteStateSerialized } from '@explorers-club/room';
 import { colorBySlotNumber, styled } from '@explorers-club/styles';
 import { Slider, SliderCell } from '@molecules/Slider';
-import {
-  Cross2Icon,
-  DotsHorizontalIcon,
-  DotsVerticalIcon,
-} from '@radix-ui/react-icons';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import { Cross2Icon } from '@radix-ui/react-icons';
 import * as Popover from '@radix-ui/react-popover';
 import { KeenSliderInstance, useKeenSlider } from 'keen-slider/react';
 import {
@@ -28,7 +25,7 @@ import {
 } from 'react';
 import {
   colorByTeam,
-  getAvatarImageByRole,
+  displayNameByRole,
   Role,
   teamByRole,
 } from '../../meta/little-vigilante.constants';
@@ -38,16 +35,22 @@ import {
   useLittleVigilanteSend,
   useMyUserId,
 } from '../../state/little-vigilante.hooks';
+import {
+  selectIsVoteCalled,
+  selectIsVoteFailed,
+} from '../../state/little-vigilante.selectors';
 import { PlayerAvatar } from '../molecules/player-avatar.component';
 import { RoleAvatar } from '../molecules/role-avatar.component';
 import { RoleCard } from '../molecules/role-card.component';
 import { Chat } from '../organisms/chat.component';
-import { IconButton } from '@atoms/IconButton';
 
 export const DiscussionPhaseScreenComponent = () => {
   const roles = useLittleVigilanteSelector((state) => state.roles as Role[]);
   const initial = Math.floor(roles.length / 2);
   const currentRoleRef = useRef<Role>(roles[initial]);
+  const isVoteFailed = useLittleVigilanteSelector(selectIsVoteFailed);
+  const isVoteCalled = useLittleVigilanteSelector(selectIsVoteCalled);
+  const isVoteOngoing = isVoteFailed || isVoteCalled;
 
   return (
     <Flex direction="column" gap="1" css={{ minHeight: '100%' }}>
@@ -59,8 +62,18 @@ export const DiscussionPhaseScreenComponent = () => {
       </Card> */}
       <Card css={{ py: '$3' }}>
         <Flex direction="column" gap="2">
-          <RoleCarousel currentRoleRef={currentRoleRef} />
-          <PlayerGrid currentRoleRef={currentRoleRef} />
+          {isVoteOngoing ? (
+            isVoteCalled ? (
+              <VoteCalled />
+            ) : (
+              <VoteFailed />
+            )
+          ) : (
+            <>
+              <RoleCarousel currentRoleRef={currentRoleRef} />
+              <PlayerGrid currentRoleRef={currentRoleRef} />
+            </>
+          )}
         </Flex>
       </Card>
       <Card css={{ flexGrow: 1, display: 'flex' }}>
@@ -288,16 +301,7 @@ const RoleCell = memo(
           align="center"
           gap="2"
         >
-          <Avatar
-            size="5"
-            src={getAvatarImageByRole(role as Role)}
-            css={{
-              border: `3px ${roleTargetColor ? 'solid' : 'dashed'} $${
-                roleTargetColor ? roleTargetColor : 'neutral'
-              }9`,
-              borderRadius: '50%',
-            }}
-          />
+          <RoleAvatar size={5} roleType={role} />
           <Caption variant="contrast">{role}</Caption>
         </Flex>
       </SliderCell>
@@ -315,56 +319,17 @@ const PlayerGrid: FC<PlayerGridProps> = ({ currentRoleRef }) => {
     Object.values(state.players)
   );
 
-  const handlePressPlayer = useCallback(
-    (userId: string) => {
-      send({
-        type: 'TARGET_ROLE',
-        targetedUserId: userId,
-        role: currentRoleRef.current,
-      });
-    },
-    [send, currentRoleRef]
-  );
-
   return (
     <Box
       css={{
-        width: '100%',
-        overflowX: 'auto',
-        p: '$3',
         background: '$primary6',
       }}
     >
-      <Flex
-        css={{
-          flexFlow: 'column wrap',
-          gap: '$2',
-          width:
-            players.length >= 8
-              ? '150%'
-              : players.length >= 6
-              ? '125%'
-              : '100%',
-          height: '200px',
-          'nth-child(4n + 1)': {
-            order: 1,
-          },
-          ':nth-child(4n + 2)': {
-            order: 2,
-          },
-          ':nth-child(4n + 3)': {
-            order: 3,
-          },
-          ':nth-child(4n)': {
-            order: 4,
-          },
-        }}
-      >
+      <Flex wrap="wrap">
         {players.map(({ userId }) => (
           <PlayerGridItem
             key={userId}
             userId={userId}
-            onPress={handlePressPlayer}
             currentRoleRef={currentRoleRef}
           />
         ))}
@@ -375,13 +340,12 @@ const PlayerGrid: FC<PlayerGridProps> = ({ currentRoleRef }) => {
 
 const PlayerGridItem = ({
   userId,
-  onPress,
   currentRoleRef,
 }: {
   userId: string;
-  onPress: (userId: string) => void;
   currentRoleRef: MutableRefObject<Role>;
 }) => {
+  const send = useLittleVigilanteSend();
   const currentRole = useMemo(() => {
     return currentRoleRef.current;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -395,78 +359,107 @@ const PlayerGridItem = ({
     return roleTargets[player.userId] || [];
   });
 
-  const handlePress = useCallback(() => {
-    onPress(userId);
-  }, [userId, onPress]);
+  const handlePressMark = useCallback(() => {
+    send({
+      type: 'TARGET_ROLE',
+      targetedUserId: userId,
+      role: currentRoleRef.current,
+    });
+  }, [send, userId, currentRoleRef]);
+
+  const handleCallVote = useCallback(() => {
+    send({
+      type: 'CALL_VOTE',
+      targetedUserId: userId,
+    });
+  }, [send, userId]);
 
   return (
-    <Card
-      key={userId}
-      css={{
-        flex: 'auto',
-        px: '$1',
-        background: '$primary3',
-        position: 'relative',
-        aspectRatio: '1',
-        height: '90px',
-        minWidth: '60px',
-        cursor: 'pointer',
-      }}
-      onClick={handlePress}
-    >
-      <Flex
-        direction="column"
-        wrap="wrap"
-        css={{
-          position: 'absolute',
-          zIndex: 1,
-          left: '$1',
-          top: '$4',
-          height: '100%',
-        }}
-        gap="1"
-      >
-        {roleTargets.map(({ targetingUserId, role }, index) => (
-          <PlayerRoleTarget
-            key={index}
-            targetingUserId={targetingUserId}
-            role={role}
-          />
-        ))}
-      </Flex>
-      <Box css={{ p: '$1' }}>
-        <Flex justify={'between'}>
-          <Heading
-            css={{ fontSize: '$2' }}
-            variant={colorBySlotNumber[slotNumber]}
+    <Box css={{ flexBasis: '50%' }}>
+      <DropdownMenu.Root>
+        <DropdownMenu.Trigger asChild>
+          <Card
+            key={userId}
+            variant="interactive"
+            css={{
+              flex: 1,
+              height: '64px',
+              position: 'relative',
+            }}
           >
-            {name}
-          </Heading>
-          <DropdownMenu.Root>
-            <DropdownMenu.Trigger asChild>
-              <IconButton>
-                <DotsHorizontalIcon />
-              </IconButton>
-            </DropdownMenu.Trigger>
-            <DropdownMenu.Portal>
-              <DropdownMenu.Content>
-                <DropdownMenu.Item>{currentRole} set </DropdownMenu.Item>
-                <DropdownMenu.Item>Kick Player</DropdownMenu.Item>
-              </DropdownMenu.Content>
-            </DropdownMenu.Portal>
-          </DropdownMenu.Root>
-        </Flex>
-        <Box css={{ position: 'absolute', bottom: 0, right: 0 }}>
-          <PlayerAvatar
-            size="4"
-            userId={userId}
-            color={colorBySlotNumber[slotNumber]}
-          />
-        </Box>
-      </Box>
-    </Card>
+            <Box css={{ p: '$1' }}>
+              <Flex direction="column">
+                <Heading
+                  css={{ fontSize: '$2' }}
+                  variant={colorBySlotNumber[slotNumber]}
+                >
+                  {name}
+                </Heading>
+                <Flex>
+                  {roleTargets
+                    .slice(0, 3)
+                    .map(({ targetingUserId, role }, index) => (
+                      <PlayerRoleTarget
+                        key={index}
+                        targetingUserId={targetingUserId}
+                        role={role}
+                      />
+                    ))}
+                </Flex>
+              </Flex>
+              <Box css={{ position: 'absolute', top: 0, right: 0 }}>
+                <PlayerAvatar
+                  size="4"
+                  userId={userId}
+                  color={colorBySlotNumber[slotNumber]}
+                />
+              </Box>
+            </Box>
+          </Card>
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Portal>
+          <PlayerMenuContent className="dark-theme">
+            <Card css={{ p: '$1' }}>
+              <Flex direction="column" gap="1">
+                <Heading variant={colorBySlotNumber[slotNumber]}>
+                  {name}
+                </Heading>
+                <PlayerMenuItem onSelect={handlePressMark}>
+                  <Text>
+                    Mark as <strong>{displayNameByRole[currentRole]}</strong>
+                  </Text>
+                </PlayerMenuItem>
+                <PlayerMenuItem onSelect={handleCallVote}>
+                  <Text>
+                    <strong>Call Vote</strong> to Identify
+                  </Text>
+                </PlayerMenuItem>
+              </Flex>
+            </Card>
+          </PlayerMenuContent>
+        </DropdownMenu.Portal>
+      </DropdownMenu.Root>
+    </Box>
   );
 };
+
+const PlayerMenuContent = styled(DropdownMenu.Content, {
+  minWidth: '100px',
+  zIndex: 10,
+  p: '$2',
+});
+
+const PlayerMenuItem = styled(DropdownMenu.Item, {
+  backgroundColor: '$primary4',
+  px: '$4',
+  py: '$2',
+  borderRadius: '$2',
+  textAlign: 'center',
+
+  [`${Text}`]: {
+    fontSize: '$5',
+  },
+});
 
 const PlayerRoleTarget = ({
   targetingUserId,
@@ -519,4 +512,118 @@ const selectRoleTargetsByUserId = (state: LittleVigilanteStateSerialized) => {
     });
   });
   return roleTargetsByUserId;
+};
+
+const VoteCalled = () => {
+  const myUserId = useMyUserId();
+  const isVoteSubmitted = useLittleVigilanteSelector(
+    ({ calledVoteResponses }) => myUserId in calledVoteResponses
+  );
+
+  const [callingPlayer, targetedPlayer] = useLittleVigilanteSelector(
+    (state) => [
+      state.players[state.calledVoteUserId],
+      state.players[state.calledVoteTargetedUserId],
+    ]
+  );
+
+  const send = useLittleVigilanteSend();
+  const [voted, setVoted] = useState(false);
+
+  const onPressNo = useCallback(() => {
+    send({ type: 'REJECT_VOTE' });
+    setVoted(true);
+  }, [send, setVoted]);
+
+  const onPressYes = useCallback(() => {
+    send({ type: 'APPROVE_VOTE' });
+    setVoted(true);
+  }, [send, setVoted]);
+
+  if (isVoteSubmitted) {
+    return <VoteSubmitted />;
+  }
+
+  return (
+    <Flex direction="column" gap="2" css={{ p: '$3' }}>
+      <Heading>
+        Identify{' '}
+        <Text
+          variant={colorBySlotNumber[targetedPlayer.slotNumber]}
+          css={{ display: 'inline', fontWeight: 'bold' }}
+        >
+          {targetedPlayer.name}
+        </Text>
+        ?
+      </Heading>
+      <Text>
+        <Text
+          variant={colorBySlotNumber[callingPlayer.slotNumber]}
+          css={{ display: 'inline', fontWeight: 'bold' }}
+        >
+          {callingPlayer.name}
+        </Text>{' '}
+        called a vote to identify{' '}
+        <Text
+          variant={colorBySlotNumber[targetedPlayer.slotNumber]}
+          css={{ display: 'inline', fontWeight: 'bold' }}
+        >
+          {targetedPlayer.name}
+        </Text>{' '}
+        as a vigilante. Continue?
+      </Text>
+      <Flex css={{ width: '100%', justifyContent: 'stretch' }} gap="2">
+        <Button
+          color="primary"
+          size="3"
+          css={{ flexGrow: '1' }}
+          onClick={onPressNo}
+          disabled={voted}
+        >
+          No
+        </Button>
+        <Button
+          color="primary"
+          size="3"
+          css={{ flexGrow: '1' }}
+          onClick={onPressYes}
+          disabled={voted}
+        >
+          Yes
+        </Button>
+      </Flex>
+      <Caption css={{ lineHeight: '125%' }}>
+        Voting to identify {targetedPlayer.name} will end the round.
+        <br />A majority must say yes to proceed.
+      </Caption>
+    </Flex>
+  );
+};
+
+const VoteSubmitted = () => {
+  const numVotes = useLittleVigilanteSelector(
+    (state) => Object.values(state.calledVoteResponses).length
+  );
+  const numPlayers = useLittleVigilanteSelector(
+    (state) => Object.values(state.players).length
+  );
+
+  return (
+    <Flex direction="column" gap="2" css={{ p: '$3' }}>
+      <Caption>Waiting for results</Caption>
+      <Heading>Vote Submitted</Heading>
+      <Text>
+        <strong>{numVotes}</strong> / {numPlayers} players have voted
+      </Text>
+    </Flex>
+  );
+};
+
+const VoteFailed = () => {
+  return (
+    <Flex direction="column" gap="2" css={{ p: '$3' }}>
+      <Heading>Vote Rejected</Heading>
+      <Text>The round will continue.</Text>
+    </Flex>
+  );
 };

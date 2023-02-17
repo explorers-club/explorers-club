@@ -19,6 +19,8 @@ export class LittleVigilanteState extends Schema {
   @type('number') currentTick = 0;
   @type('string') conversationId!: string;
   @type('number') currentRound = 1;
+  @type('string') calledVoteTargetedUserId = '';
+  @type('string') calledVoteUserId = '';
 
   @type({ set: 'string' }) currentStates: SetSchema<string> = new SetSchema();
   @type({ set: 'string' }) hostUserIds: SetSchema<string> = new SetSchema();
