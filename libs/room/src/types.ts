@@ -265,6 +265,10 @@ export type LittleVigilanteSwapCommand = {
   firstUserId: string;
   secondUserId: string;
 };
+export type LittleVigilanteSetRolesCommand = {
+  type: 'SET_ROLES';
+  roles: string[];
+};
 
 export const TextMessageSchema = z
   .object({
@@ -332,7 +336,8 @@ export type LittleVigilanteCommand =
   | LittleVigilanteTargetPlayerRoleCommand
   | LittleVigilanteVoteCommand
   | LittleVigilanteArrestCommand
-  | LittleVigilanteSwapCommand;
+  | LittleVigilanteSwapCommand
+  | LittleVigilanteSetRolesCommand;
 
 export type LittleVigilanteCommandType = LittleVigilanteCommand['type'];
 

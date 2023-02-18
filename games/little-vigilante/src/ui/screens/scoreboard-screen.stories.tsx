@@ -29,6 +29,15 @@ Primary.args = {
   state: {
     players,
     currentRound: 1,
+    roles: [
+      'vigilante',
+      'sidekick',
+      'butler',
+      'twin_girl',
+      'twin_boy',
+      'detective',
+      'anarchist',
+    ],
     hostUserIds: ['alice123'],
   },
 };

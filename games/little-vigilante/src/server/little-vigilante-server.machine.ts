@@ -161,6 +161,12 @@ export const createLittleVigilanteServerMachine = (
           states: {
             AwaitingNext: {
               on: {
+                SET_ROLES: {
+                  actions: ({ room }, event) => {
+                    room.state.roles.clear();
+                    event.roles.forEach((role) => room.state.roles.push(role));
+                  },
+                },
                 CONTINUE: 'Round',
               },
             },

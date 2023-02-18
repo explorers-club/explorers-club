@@ -116,18 +116,23 @@ export const secondaryColorByRole = {
 
 export const ROLE_LIST = [
   'vigilante',
+  'sidekick',
   'butler',
   'twin_girl',
   'twin_boy',
   'detective',
   'con_artist',
   'snitch',
-  'sidekick',
   'monk',
   'cop',
-  'anarchist',
   'mayor',
+  'anarchist',
 ] as Role[];
+
+export const roleOrderIndex = ROLE_LIST.reduce((result, role, index) => {
+  result[role] = index;
+  return result;
+}, {} as Record<Role, number>);
 
 const FOUR_PLAYER_ROLES = [
   'vigilante',

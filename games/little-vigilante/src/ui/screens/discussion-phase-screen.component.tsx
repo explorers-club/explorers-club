@@ -27,6 +27,7 @@ import {
   colorByTeam,
   displayNameByRole,
   Role,
+  roleOrderIndex,
   teamByRole,
 } from '../../meta/little-vigilante.constants';
 import { LittleVigilanteContext } from '../../state/little-vigilante.context';
@@ -45,8 +46,12 @@ import { RoleCard } from '../molecules/role-card.component';
 import { Chat } from '../organisms/chat.component';
 
 export const DiscussionPhaseScreenComponent = () => {
+  const myUserId = useMyUserId();
+  const myInitialRole = useLittleVigilanteSelector(
+    (state) => state.initialCurrentRoundRoles[myUserId] as Role
+  );
   const roles = useLittleVigilanteSelector((state) => state.roles as Role[]);
-  const initial = Math.floor(roles.length / 2);
+  const initial = roles.indexOf(myInitialRole);
   const currentRoleRef = useRef<Role>(roles[initial]);
   const isVoteFailed = useLittleVigilanteSelector(selectIsVoteFailed);
   const isVoteCalled = useLittleVigilanteSelector(selectIsVoteCalled);
@@ -88,7 +93,11 @@ interface RoleCarouselProps {
 }
 
 const RoleCarousel: FC<RoleCarouselProps> = ({ currentRoleRef }) => {
-  const roles = useLittleVigilanteSelector((state) => state.roles as Role[]);
+  const roles = useLittleVigilanteSelector((state) => {
+    const roles = state.roles as Role[];
+    roles.sort((a, b) => roleOrderIndex[a] - roleOrderIndex[b]);
+    return roles;
+  });
   const roleRef = useRef<Role | null>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
 
@@ -346,10 +355,12 @@ const PlayerGridItem = ({
   currentRoleRef: MutableRefObject<Role>;
 }) => {
   const send = useLittleVigilanteSend();
-  const currentRole = useMemo(() => {
-    return currentRoleRef.current;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentRoleRef.current]);
+  const [currentRole, setCurrentRole] = useState(currentRoleRef.current);
+
+  const handleOpen = useCallback(() => {
+    // hack to fix component not-rerendering when role changes
+    setCurrentRole(currentRoleRef.current);
+  }, [setCurrentRole, currentRoleRef]);
 
   const player = useLittleVigilanteSelector((state) => state.players[userId]);
   const { name, slotNumber } = player;
@@ -376,7 +387,7 @@ const PlayerGridItem = ({
 
   return (
     <Box css={{ flexBasis: '50%' }}>
-      <DropdownMenu.Root>
+      <DropdownMenu.Root onOpenChange={handleOpen}>
         <DropdownMenu.Trigger asChild>
           <Card
             key={userId}
