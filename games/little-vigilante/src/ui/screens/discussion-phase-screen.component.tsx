@@ -437,7 +437,7 @@ const PlayerGridItem = ({
                 </Heading>
                 <PlayerMenuItem onSelect={handlePressMark}>
                   <Text>
-                    Mark as <strong>{displayNameByRole[currentRole]}</strong>
+                    Mark as <strong>{displayNameByRole[currentRole as Role]}</strong>
                   </Text>
                 </PlayerMenuItem>
                 <PlayerMenuItem onSelect={handleCallVote}>
