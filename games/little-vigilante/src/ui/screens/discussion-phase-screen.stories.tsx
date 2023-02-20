@@ -113,6 +113,10 @@ const players = {
   },
 };
 
+const initialCurrentRoundRoles = {
+  alice123: 'vigilante',
+};
+
 Default.args = {
   myUserId: 'alice123',
   state: {
@@ -120,6 +124,7 @@ Default.args = {
     roles: Array.from(rolesByPlayerCount[Object.values(players).length]),
     players,
     calledVoteResponses: {},
+    initialCurrentRoundRoles,
     currentStates: ['Playing.Round.DiscussionPhase.Idle'],
   },
 };
@@ -132,9 +137,10 @@ FailedVote.args = {
     timeRemaining: 57,
     roles: Array.from(rolesByPlayerCount[Object.values(players).length]),
     players,
-    calledVoteUserId: "frank123",
-    calledVoteTargetedUserId: "bob123",
+    calledVoteUserId: 'frank123',
+    calledVoteTargetedUserId: 'bob123',
     calledVoteResponses: {},
+    initialCurrentRoundRoles,
     currentStates: ['Playing.Round.DiscussionPhase.VoteFailed'],
   },
 };
@@ -147,8 +153,8 @@ CalledVote.args = {
     timeRemaining: 57,
     roles: Array.from(rolesByPlayerCount[Object.values(players).length]),
     players,
-    calledVoteUserId: "frank123",
-    calledVoteTargetedUserId: "bob123",
+    calledVoteUserId: 'frank123',
+    calledVoteTargetedUserId: 'bob123',
     calledVoteResponses: {},
     currentStates: ['Playing.Round.DiscussionPhase.VoteCalled'],
   },
@@ -163,8 +169,9 @@ SubmittedVote.args = {
     roles: Array.from(rolesByPlayerCount[Object.values(players).length]),
     players,
     currentStates: ['Playing.Round.DiscussionPhase.VoteCalled'],
-    calledVoteUserId: "frank123",
-    calledVoteTargetedUserId: "bob123",
+    calledVoteUserId: 'frank123',
+    calledVoteTargetedUserId: 'bob123',
+    initialCurrentRoundRoles,
     calledVoteResponses: {
       alice123: true,
     },

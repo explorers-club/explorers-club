@@ -416,6 +416,9 @@ export const createLittleVigilanteServerMachine = (
                         settings.discussionTimeSeconds),
                     'sendDiscussionPhaseMessage',
                   ],
+                  exit: () => {
+                    cacheMap.delete('discussion_time_remaining');
+                  },
                   initial: 'Idle',
                   onDone: [
                     {
