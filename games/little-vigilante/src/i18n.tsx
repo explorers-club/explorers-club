@@ -1,6 +1,8 @@
 import { createI18nApi, declareComponentKeys } from 'i18nifty';
 import { Text } from '@atoms/Text';
 import { colorBySlotNumber } from '@explorers-club/styles';
+import { displayNameByRole } from './meta/little-vigilante.constants';
+import { Role } from './schema';
 export { declareComponentKeys };
 
 //List the languages you with to support
@@ -33,6 +35,57 @@ export const {
         role_assign: ({ role }) => `You are the ${role}`,
         you_won: `You Won!`,
         you_lost: `You Lost`,
+        vigilante_ability_fallback: ({
+          unusedRole
+        }) => (
+          <Text size={1}>
+            <Text>
+              <strong>{displayNameByRole[unusedRole as Role]}</strong> is not being
+              played by another player
+            </Text>
+          </Text>
+        ),
+        vigilante_ability_primary: ({
+          sidekickPlayerName,
+          sidekickSlotNumber,
+        }) => (
+          <Text size={1}>
+            <Text
+              variant={colorBySlotNumber[sidekickSlotNumber]}
+              css={{ fontWeight: 'bold', display: 'inline' }}
+            >
+              {sidekickPlayerName}
+            </Text>{' '}
+            <>
+              is the{' '}
+              <Text
+                variant="crimson"
+                css={{ fontWeight: 'bold', display: 'inline' }}
+              >
+                Sidekick
+              </Text>
+            </>
+          </Text>
+        ),
+        sidekick_ability: ({ vigilanteSlotNumber, vigilantePlayerName }) => (
+          <Text size={1}>
+            <Text
+              variant={colorBySlotNumber[vigilanteSlotNumber]}
+              css={{ fontWeight: 'bold', display: 'inline' }}
+            >
+              {vigilantePlayerName}
+            </Text>{' '}
+            <>
+              is the{' '}
+              <Text
+                variant="crimson"
+                css={{ fontWeight: 'bold', display: 'inline' }}
+              >
+                Vigilante
+              </Text>
+            </>
+          </Text>
+        ),
         winners: ({
           vigilanteSlotNumber,
           vigilantePlayerName,

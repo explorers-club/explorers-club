@@ -10,7 +10,10 @@ import {
   isDiscussMessage,
   isNightPhaseBeginsMessage,
   isRoleAssignMessage,
+  isSidekickAbilityMessage,
   isTextMessage,
+  isVigilanteAbilityFallbackMessage,
+  isVigilanteAbilityPrimaryMessage,
   isVoteMessage,
   isWinnersMessage,
   isYouLostMessage,
@@ -67,7 +70,10 @@ import {
 import {
   DiscussMessage,
   NightPhaseBeginsMessage,
+  SidekickAbilityMessage,
   RoleAssignMessage,
+  VigilanteAbilityFallbackMessage,
+  VigilanteAbilityPrimaryMessage,
   VoteMessage,
   WinnersMessage,
   YouLostMessage,
@@ -368,6 +374,12 @@ const MessageComponent: FC<{ message: LittleVigilanteMessage }> = ({
     return <>{t(message)}</>;
   } else if (isWinnersMessage(message)) {
     return <>{t(message.K, message.P)}</>;
+  } else if (isSidekickAbilityMessage(message)) {
+    return <>{t(message.K, message.P)}</>;
+  } else if (isVigilanteAbilityFallbackMessage(message)) {
+    return <>{t(message.K, message.P)}</>;
+  } else if (isVigilanteAbilityPrimaryMessage(message)) {
+    return <>{t(message.K, message.P)}</>;
   }
 
   console.warn("couldn't find translation for message", message);
@@ -382,6 +394,9 @@ export const { i18n } = declareComponentKeys<
   | (WinnersMessage & { R: JSX.Element })
   | YouWonMessage
   | YouLostMessage
+  | (SidekickAbilityMessage & { R: JSX.Element })
+  | (VigilanteAbilityFallbackMessage & { R: JSX.Element })
+  | (VigilanteAbilityPrimaryMessage & { R: JSX.Element })
 >()({
   MessageComponent,
 });

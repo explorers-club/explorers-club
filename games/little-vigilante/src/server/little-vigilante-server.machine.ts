@@ -15,8 +15,12 @@ import { Client, Room } from 'colyseus';
 import { createSelector } from 'reselect';
 import { ActorRefFrom, createMachine, send } from 'xstate';
 import { Role, rolesByTeam } from '../meta/little-vigilante.constants';
-import { selectPlayerOutcomes } from '../state/little-vigilante.selectors';
-// import { getTranslation } from '../i18n';
+import {
+  selectPlayerOutcomes,
+  selectSidekickPlayer,
+  selectUnusedRoles,
+  selectVigilantePlayer,
+} from '../state/little-vigilante.selectors';
 
 export interface LittleVigilanteServerContext {
   room: Room<LittleVigilanteState>;
@@ -294,6 +298,7 @@ export const createLittleVigilanteServerMachine = (
                               },
                             },
                             Vigilantes: {
+                              entry: ['sendVigilantesAbilityMessage'],
                               after: {
                                 5000: 'Butler',
                               },
@@ -853,6 +858,80 @@ export const createLittleVigilanteServerMachine = (
             clientsByUserId[userId].send(event.type, event);
           });
         },
+        sendVigilantesAbilityMessage: ({ room }) => {
+          const vigilante = selectVigilantePlayer(getSnapshot(room.state));
+          const sidekick = selectSidekickPlayer(getSnapshot(room.state));
+          const clientsByUserId = getClientsByUserId(room);
+
+          if (sidekick) {
+            const sidekickEvent: ServerEvent<LittleVigilanteMessageCommand> = {
+              type: 'MESSAGE',
+              ts: room.state.currentTick,
+              message: {
+                K: 'sidekick_ability',
+                P: {
+                  vigilanteUserId: vigilante.userId,
+                  vigilantePlayerName: vigilante.name,
+                  vigilanteSlotNumber: vigilante.slotNumber,
+                },
+              },
+              sender: {
+                type: 'server',
+                isPrivate: true,
+              },
+            };
+            clientsByUserId[sidekick.userId].send(
+              sidekickEvent.type,
+              sidekickEvent
+            );
+
+            const vigilantePrimaryEvent: ServerEvent<LittleVigilanteMessageCommand> =
+              {
+                type: 'MESSAGE',
+                ts: room.state.currentTick,
+                message: {
+                  K: 'vigilante_ability_primary',
+                  P: {
+                    sidekickUserId: sidekick.userId,
+                    sidekickPlayerName: sidekick.name,
+                    sidekickSlotNumber: sidekick.slotNumber,
+                  },
+                },
+                sender: {
+                  type: 'server',
+                  isPrivate: true,
+                },
+              };
+
+            clientsByUserId[vigilante.userId].send(
+              vigilantePrimaryEvent.type,
+              vigilantePrimaryEvent
+            );
+          } else {
+            const unusedRoles = selectUnusedRoles(getSnapshot(room.state));
+            const unusedRole = shuffle(unusedRoles)[0];
+            const vigilanteFallbackEvent: ServerEvent<LittleVigilanteMessageCommand> =
+              {
+                type: 'MESSAGE',
+                ts: room.state.currentTick,
+                message: {
+                  K: 'vigilante_ability_fallback',
+                  P: {
+                    unusedRole,
+                  },
+                },
+                sender: {
+                  type: 'server',
+                  isPrivate: true,
+                },
+              };
+
+            clientsByUserId[vigilante.userId].send(
+              vigilanteFallbackEvent.type,
+              vigilanteFallbackEvent
+            );
+          }
+        },
         sendDiscussionPhaseMessage: ({ room }) => {
           const event: ServerEvent<LittleVigilanteMessageCommand> = {
             type: 'MESSAGE',
@@ -1060,4 +1139,14 @@ const selectIdlePlayers = (state: LittleVigilanteState) =>
 
 const getSnapshot = (state: LittleVigilanteState) => {
   return state.toJSON() as LittleVigilanteStateSerialized;
+};
+
+const getClientsByUserId = (room: Room<LittleVigilanteState, any>) => {
+  return room.clients.reduce((result, client) => {
+    if (client.userData) {
+      const userId = client.userData['userId'];
+      result[userId] = client;
+    }
+    return result;
+  }, {} as Record<string, Client>);
 };

@@ -21,6 +21,12 @@ import {
   YouLostMessageSchema,
   WinnersMessage,
   WinnersMessageSchema,
+  SidekickAbilityMessage,
+  VigilanteAbilityFallbackMessage,
+  VigilanteAbilityPrimaryMessage,
+  SidekickAbilityMessageSchema,
+  VigilanteAbilityPrimaryMessageSchema,
+  VigilanteAbilityFallbackMessageSchema,
 } from '@explorers-club/chat';
 import {
   CodebreakersConfig,
@@ -287,6 +293,9 @@ export type LittleVigilanteMessage =
   | VoteMessage
   | YouLostMessage
   | YouWonMessage
+  | SidekickAbilityMessage
+  | VigilanteAbilityFallbackMessage
+  | VigilanteAbilityPrimaryMessage
   | WinnersMessage;
 
 export const isNightPhaseBeginsMessage = (
@@ -311,6 +320,21 @@ export const isYouWonMessage = (obj: any): obj is YouWonMessage =>
 
 export const isYouLostMessage = (obj: any): obj is YouLostMessage =>
   YouLostMessageSchema.safeParse(obj).success;
+
+export const isSidekickAbilityMessage = (
+  obj: any
+): obj is SidekickAbilityMessage =>
+  SidekickAbilityMessageSchema.safeParse(obj).success;
+
+export const isVigilanteAbilityPrimaryMessage = (
+  obj: any
+): obj is VigilanteAbilityPrimaryMessage =>
+  VigilanteAbilityPrimaryMessageSchema.safeParse(obj).success;
+
+export const isVigilanteAbilityFallbackMessage = (
+  obj: any
+): obj is VigilanteAbilityFallbackMessage =>
+  VigilanteAbilityFallbackMessageSchema.safeParse(obj).success;
 
 export type LittleVigilanteMessageCommand = {
   type: typeof MESSAGE;

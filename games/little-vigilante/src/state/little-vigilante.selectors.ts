@@ -1,4 +1,5 @@
 import { LittleVigilanteStateSerialized } from '@explorers-club/room';
+import { createSelector } from 'reselect';
 import {
   AbilityGroup,
   abilityGroups,
@@ -6,46 +7,47 @@ import {
   Role,
 } from '../meta/little-vigilante.constants';
 
-export const selectVigilantePlayerName = (
+export const selectSidekickPlayer = (state: LittleVigilanteStateSerialized) => {
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const tuple = Object.entries(state.currentRoundRoles).find(
+    ([, role]) => role === 'sidekick'
+  );
+  return tuple ? state.players[tuple[0]] : undefined;
+};
+
+export const selectVigilantePlayer = (
   state: LittleVigilanteStateSerialized
 ) => {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const [userId] = Object.entries(state.currentRoundRoles).find(
     ([, role]) => role === 'vigilante'
   )!;
-  return state.players[userId]?.name;
+  return state.players[userId];
 };
 
-export const selectSidekickPlayerName = (
-  state: LittleVigilanteStateSerialized
-) => {
-  const tuple = Object.entries(state.currentRoundRoles).find(
-    ([, role]) => role === 'sidekick'
-  );
-  if (!tuple) {
-    return;
-  }
-  return state.players[tuple[0]]?.name;
-};
+export const selectVigilantePlayerName = createSelector(
+  selectVigilantePlayer,
+  (player) => player.name
+);
+export const selectSidekickPlayerName = createSelector(
+  selectSidekickPlayer,
+  (player) => player?.name
+);
 
-export const selectTwinBoyPlayerName = (
-  state: LittleVigilanteStateSerialized
-) => {
+export const selectTwinBoyPlayer = (state: LittleVigilanteStateSerialized) => {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const result = Object.entries(state.initialCurrentRoundRoles).find(
     ([, role]) => role === 'twin_boy'
   );
-  return result && state.players[result[0]]?.name;
+  return result && state.players[result[0]];
 };
 
-export const selectTwinGirlPlayerName = (
-  state: LittleVigilanteStateSerialized
-) => {
+export const selectTwinGirlPlayer = (state: LittleVigilanteStateSerialized) => {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const result = Object.entries(state.initialCurrentRoundRoles).find(
     ([, role]) => role === 'twin_girl'
   );
-  return result && state.players[result[0]]?.name;
+  return result && state.players[result[0]];
 };
 
 export const selectPlayers = (state: LittleVigilanteStateSerialized) => {
