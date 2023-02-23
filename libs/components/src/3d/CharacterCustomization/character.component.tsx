@@ -6,7 +6,7 @@ import { useAnimations, useGLTF } from '@react-three/drei';
 import { RefObject, useEffect } from 'react';
 import * as THREE from 'three';
 import { TypeOf } from 'zod';
-import { useCharacterCustomization } from './character-customization.context';
+import { useCharacterCustomization } from './Customization-context.component';
 import { customizationStateTypes, GLTFResult } from './character.types';
 
 interface Props {
