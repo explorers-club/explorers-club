@@ -67,7 +67,6 @@ export const RotatableCard: FC<Props> = ({ css, children }) => {
 
   const [sliderRef] = useKeenSlider<HTMLDivElement>(
     {
-      loop: true,
       selector: '.carousel__cell',
       renderMode: 'custom',
       mode: 'free-snap',
