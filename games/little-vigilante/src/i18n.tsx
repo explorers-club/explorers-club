@@ -33,15 +33,24 @@ export const {
         discuss: 'Discuss!',
         vote: 'Vote!',
         role_assign: ({ role }) => `You are the ${role}`,
+        player_role: ({ name, role, slotNumber }) => (
+          <Text>
+            <Text
+              variant={colorBySlotNumber[slotNumber]}
+              css={{ fontWeight: 'bold', display: 'inline' }}
+            >
+              {name}
+            </Text>{' '}
+            is the {displayNameByRole[role as Role]}.
+          </Text>
+        ),
         you_won: `You Won!`,
         you_lost: `You Lost`,
-        vigilante_ability_fallback: ({
-          unusedRole
-        }) => (
+        vigilante_ability_fallback: ({ unusedRole }) => (
           <Text size={1}>
             <Text>
-              <strong>{displayNameByRole[unusedRole as Role]}</strong> is not being
-              played by another player
+              <strong>{displayNameByRole[unusedRole as Role]}</strong> is not
+              being played by another player
             </Text>
           </Text>
         ),

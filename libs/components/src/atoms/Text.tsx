@@ -56,6 +56,12 @@ export const Text = styled('span', {
       warning: {
         color: '$warning9',
       },
+      success: {
+        background: '$success9',
+      },
+      error: {
+        background: '$error9',
+      },
       contrast: {
         color: '$neutral12',
       },

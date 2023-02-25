@@ -22,11 +22,13 @@ import {
   WinnersMessage,
   WinnersMessageSchema,
   SidekickAbilityMessage,
+  PlayerRoleMessage,
   VigilanteAbilityFallbackMessage,
   VigilanteAbilityPrimaryMessage,
   SidekickAbilityMessageSchema,
   VigilanteAbilityPrimaryMessageSchema,
   VigilanteAbilityFallbackMessageSchema,
+  PlayerRoleMessageSchema,
 } from '@explorers-club/chat';
 import {
   CodebreakersConfig,
@@ -266,6 +268,10 @@ export type LittleVigilanteArrestCommand = {
   type: 'ARREST';
   arrestedUserId: string;
 };
+export type LittleVigilanteSelectPlayerCommand = {
+  type: 'SELECT';
+  userId: string;
+};
 export type LittleVigilanteSwapCommand = {
   type: 'SWAP';
   firstUserId: string;
@@ -294,6 +300,7 @@ export type LittleVigilanteMessage =
   | YouLostMessage
   | YouWonMessage
   | SidekickAbilityMessage
+  | PlayerRoleMessage
   | VigilanteAbilityFallbackMessage
   | VigilanteAbilityPrimaryMessage
   | WinnersMessage;
@@ -320,6 +327,11 @@ export const isYouWonMessage = (obj: any): obj is YouWonMessage =>
 
 export const isYouLostMessage = (obj: any): obj is YouLostMessage =>
   YouLostMessageSchema.safeParse(obj).success;
+
+export const isPlayerRoleMessage = (
+  obj: any
+): obj is PlayerRoleMessage =>
+  PlayerRoleMessageSchema.safeParse(obj).success;
 
 export const isSidekickAbilityMessage = (
   obj: any
@@ -360,6 +372,7 @@ export type LittleVigilanteCommand =
   | LittleVigilanteTargetPlayerRoleCommand
   | LittleVigilanteVoteCommand
   | LittleVigilanteArrestCommand
+  | LittleVigilanteSelectPlayerCommand
   | LittleVigilanteSwapCommand
   | LittleVigilanteSetRolesCommand;
 

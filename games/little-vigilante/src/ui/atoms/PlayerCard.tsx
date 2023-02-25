@@ -1,6 +1,28 @@
-import { styled } from '../stitches.config';
+import { Heading } from '@atoms/Heading';
+import { colorBySlotNumber, styled } from '@explorers-club/styles';
+import { ComponentProps, forwardRef } from 'react';
 
-export const Card = styled('div', {
+export const PlayerCard = forwardRef<
+  any,
+  { slotNumber: number } & ComponentProps<typeof Card>
+>(({ slotNumber, ...props }, ref) => {
+  const color = colorBySlotNumber[slotNumber];
+  return <Card ref={ref} color={color} {...props} />;
+});
+
+export const PlayerName = forwardRef<
+  any,
+  { slotNumber: number } & ComponentProps<typeof Heading>
+>(({ slotNumber, ...props }, ref) => {
+  const color = colorBySlotNumber[slotNumber];
+  return <Heading ref={ref} css={{  color: `$${color}11`}} {...props} />;
+});
+
+// const PlayerAvatar = forwardRef<any, ComponentProps<typeof Heading></typeof>
+
+// todo port back to global card
+// temporarily copy-pasta'd
+const Card = styled('div', {
   appearance: 'none',
   // border: 'none',
   boxSizing: 'border-box',
@@ -23,11 +45,11 @@ export const Card = styled('div', {
   borderRadius: '$3',
 
   variants: {
-    inactive: {
-      true: {
-        opacity: 0.15,
-      },
-    },
+    //     inactive: {
+    //       true: {
+    //         opacity: 0.15,
+    //       },
+    //     },
     variant: {
       interactive: {
         border: '1px solid $border1',

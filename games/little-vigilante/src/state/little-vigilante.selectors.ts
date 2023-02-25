@@ -141,3 +141,29 @@ export const selectIsVoteCalled = (state: LittleVigilanteStateSerialized) =>
 
 export const selectIsVoteFailed = (state: LittleVigilanteStateSerialized) =>
   state.currentStates.includes('Playing.Round.DiscussionPhase.VoteFailed');
+
+export const selectIdlePlayers = (state: LittleVigilanteStateSerialized) =>
+  Object.values(state.players)
+    .filter((player) => {
+      // Not idle if current press state is down
+      if (state.currentDownState[player.userId]) {
+        return false;
+      }
+
+      // Not idle if they have a down state within the timeout window
+      const ts = state.lastDownState[player.userId];
+      const TIMEOUT_SECONDS = 10;
+      const TICK_TIMEOUT_SECONDS_AGO = state.currentTick - 60 * TIMEOUT_SECONDS;
+      if (ts && ts >= TICK_TIMEOUT_SECONDS_AGO) {
+        return false;
+      }
+
+      return true;
+    })
+    .sort(
+      (playerA, playerB) =>
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        state.lastDownState[playerA.userId]! -
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        state.lastDownState[playerB.userId]!
+    );

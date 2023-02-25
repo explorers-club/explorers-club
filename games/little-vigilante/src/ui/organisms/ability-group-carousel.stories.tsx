@@ -21,25 +21,18 @@ const players = {
   alice123: {
     name: 'Alice',
     slotNumber: 1,
-    currentRoundRoleTargets: {
-      bob123: 'twin_boy',
-      dave123: 'mayor',
-    },
   },
   bob123: {
     name: 'Bob',
     slotNumber: 2,
-    currentRoundRoleTargets: {},
   },
   charlie123: {
     name: 'Charlie',
     slotNumber: 3,
-    currentRoundRoleTargets: {},
   },
   dave123: {
     name: 'Dave',
     slotNumber: 4,
-    currentRoundRoleTargets: {},
   },
 };
 

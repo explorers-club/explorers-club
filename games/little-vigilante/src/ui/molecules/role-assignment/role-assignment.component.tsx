@@ -7,6 +7,7 @@ import { Image } from '@atoms/Image';
 import { Text } from '@atoms/Text';
 import { FC, useMemo } from 'react';
 import {
+  abilityByRole,
   colorByTeam,
   displayNameByRole,
   getFullImageByRole,
@@ -74,6 +75,7 @@ export const RoleAssignmentComponent: FC<Props> = (props) => {
               {displayNameByRole[myRole]}
             </Heading>
             <Text>{objectiveByRole[myRole]}</Text>
+            <Text>{abilityByRole[myRole]}</Text>
           </Flex>
           <Image
             css={{

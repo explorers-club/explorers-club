@@ -5,7 +5,7 @@ import { DiscussionPhaseScreen } from './discussion-phase-screen.container';
 import { NightPhaseScreen } from './night-phase-screen.container';
 import { RevealScreen } from './reveal-screen.container';
 import { ScoreboardScreen } from './scoreboard-screen.component';
-import { VotingPhaseScreen } from './voting-phase-screen.container';
+import { VotingPhaseScreen } from './voting-phase-screen.component';
 
 export const PlayScreen = () => {
   const states = useLittleVigilanteSelector((state) => state.currentStates);
@@ -20,10 +20,9 @@ export const PlayScreen = () => {
       return <NightPhaseScreen />;
     case states.includes('Playing.Round.DiscussionPhase'):
       return <DiscussionPhaseScreen />;
-    case states.includes('Playing.Round.Voting'):
+    case states.includes('Playing.Round.Voting') ||
+      states.includes('Playing.Round.Reveal'):
       return <VotingPhaseScreen />;
-    case states.includes('Playing.Round.Reveal'):
-      return <RevealScreen />;
     default:
       return null;
   }

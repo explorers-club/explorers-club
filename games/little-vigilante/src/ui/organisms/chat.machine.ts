@@ -6,11 +6,13 @@ import {
   LittleVigilanteCallVoteCommand,
   LittleVigilanteMessageCommand,
   LittleVigilanteServerEvent,
+  LittleVigilanteSwapCommand,
   LittleVigilanteTargetPlayerRoleCommand,
   PauseCommand,
   ReconnectCommand,
   ResumeCommand,
   ServerEvent,
+  UserSenderSchema,
 } from '@explorers-club/room';
 import { assign } from '@xstate/immer';
 import { Observable } from 'rxjs';
@@ -34,7 +36,8 @@ export interface ChatContext {
 }
 
 export const createChatMachine = (
-  event$: Observable<LittleVigilanteServerEvent>
+  event$: Observable<LittleVigilanteServerEvent>,
+  myUserId: string
 ) => {
   return createMachine({
     id: 'ChatMachine',
@@ -88,6 +91,17 @@ export const createChatMachine = (
               ServerEvent<LittleVigilanteCallVoteCommand>
             >((context, event) => {
               context.events.push(event);
+            }),
+          },
+          SWAP: {
+            actions: assign<
+              ChatContext,
+              ServerEvent<LittleVigilanteSwapCommand>
+            >((context, event) => {
+              const { userId } = UserSenderSchema.parse(event.sender);
+              if (userId === myUserId) {
+                context.events.push(event);
+              }
             }),
           },
           DISCONNECT: {

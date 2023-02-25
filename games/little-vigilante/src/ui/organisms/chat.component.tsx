@@ -9,6 +9,7 @@ import {
   DisconnectCommand,
   isDiscussMessage,
   isNightPhaseBeginsMessage,
+  isPlayerRoleMessage,
   isRoleAssignMessage,
   isSidekickAbilityMessage,
   isTextMessage,
@@ -24,6 +25,7 @@ import {
   LittleVigilanteMessageCommand,
   LittleVigilanteStateSerialized,
   LittleVigilanteTargetPlayerRoleCommand,
+  LittleVigilanteSwapCommand,
   MessageCommand,
   PauseCommand,
   ResumeCommand,
@@ -77,6 +79,7 @@ import {
   VoteMessage,
   WinnersMessage,
   YouLostMessage,
+  PlayerRoleMessage,
   YouWonMessage,
 } from '@explorers-club/chat';
 import { useTranslation } from '../../i18n';
@@ -295,6 +298,8 @@ const ChatEvent: FC<{ event: LittleVigilanteChatEvent; index: number }> = ({
       return <RoleAssignmentMessage event={event} />;
     case 'TARGET_ROLE':
       return <PlayerTargetRoleMessage event={event} />;
+    case 'SWAP':
+      return <SwapMessage event={event} />;
     case 'CALL_VOTE':
       return <CalledVoteMessage event={event} />;
     default:
@@ -376,6 +381,8 @@ const MessageComponent: FC<{ message: LittleVigilanteMessage }> = ({
     return <>{t(message.K, message.P)}</>;
   } else if (isSidekickAbilityMessage(message)) {
     return <>{t(message.K, message.P)}</>;
+  } else if (isPlayerRoleMessage(message)) {
+    return <>{t(message.K, message.P)}</>;
   } else if (isVigilanteAbilityFallbackMessage(message)) {
     return <>{t(message.K, message.P)}</>;
   } else if (isVigilanteAbilityPrimaryMessage(message)) {
@@ -394,6 +401,7 @@ export const { i18n } = declareComponentKeys<
   | (WinnersMessage & { R: JSX.Element })
   | YouWonMessage
   | YouLostMessage
+  | (PlayerRoleMessage & { R: JSX.Element })
   | (SidekickAbilityMessage & { R: JSX.Element })
   | (VigilanteAbilityFallbackMessage & { R: JSX.Element })
   | (VigilanteAbilityPrimaryMessage & { R: JSX.Element })
@@ -472,6 +480,63 @@ const DisconnectMessage: FC<{ event: ServerEvent<DisconnectCommand> }> = ({
           {name}
         </Text>{' '}
         disconnected.
+      </Text>
+    </Flex>
+  );
+};
+
+const SwapMessage: FC<{
+  event: ServerEvent<LittleVigilanteSwapCommand>;
+}> = ({ event }) => {
+  const { sender, firstUserId, secondUserId } = event;
+  const { userId } = UserSenderSchema.parse(sender);
+  // const [name, targetedName, slotNumber, targetedSlotNumber] =
+  //   useLittleVigilanteSelector((state) => [
+  //     state.players[firstUserId]?.name,
+  //     state.players[secondUserId]?.name,
+  //     state.players[firstUserId]?.slotNumber,
+  //     state.players[secondUserId]?.slotNumber,
+  //   ]);
+  const players = useLittleVigilanteSelector((state) => state.players);
+
+  const [
+    firstPlayerName,
+    firstPlayerColor,
+    secondPlayerName,
+    secondPlayerColor,
+  ] = useLittleVigilanteSelector(
+    (state) =>
+      [
+        userId !== firstUserId ? state.players[secondUserId].name : 'Yourself',
+        colorBySlotNumber[state.players[firstUserId].slotNumber],
+        userId !== secondUserId ? state.players[secondUserId].name : 'Yourself',
+        colorBySlotNumber[state.players[secondUserId].slotNumber],
+      ] as const
+  );
+
+  return (
+    <Flex align="center" gap="1">
+      <PlayerAvatar
+        size={2}
+        userId={userId}
+        color={colorBySlotNumber[players[userId].slotNumber]}
+      />
+      <Text>
+        You swapped{' '}
+        <Text
+          variant={firstPlayerColor}
+          css={{ fontWeight: 'bold', display: 'inline' }}
+        >
+          {firstPlayerName}
+        </Text>{' '}
+        with{' '}
+        <Text
+          variant={secondPlayerColor}
+          css={{ fontWeight: 'bold', display: 'inline' }}
+        >
+          {secondPlayerName}
+        </Text>
+        .
       </Text>
     </Flex>
   );

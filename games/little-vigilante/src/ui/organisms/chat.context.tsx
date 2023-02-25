@@ -1,6 +1,6 @@
 import { useInterpret } from '@xstate/react';
 import { createContext, FC, ReactNode, useState } from 'react';
-import { useLittleVigilanteEvent$ } from '../../state/little-vigilante.hooks';
+import { useLittleVigilanteEvent$, useMyUserId } from '../../state/little-vigilante.hooks';
 import { ChatActor, createChatMachine } from './chat.machine';
 
 export const ChatServiceContext = createContext({} as ChatActor);
@@ -10,8 +10,9 @@ interface Props {
 }
 
 export const ChatServiceProvider: FC<Props> = ({ children }) => {
+  const userId = useMyUserId();
   const events$ = useLittleVigilanteEvent$();
-  const [machine] = useState(createChatMachine(events$));
+  const [machine] = useState(createChatMachine(events$, userId));
   const service = useInterpret(machine);
 
   return (

@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import {
   useLittleVigilanteSelector,
   useLittleVigilanteSend,
-  useMyUserId
+  useMyUserId,
 } from '../../state/little-vigilante.hooks';
 import { selectPlayers } from '../../state/little-vigilante.selectors';
 import { NightPhaseCopComponent } from './night-phase-cop.component';

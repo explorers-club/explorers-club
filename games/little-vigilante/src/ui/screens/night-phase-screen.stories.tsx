@@ -92,14 +92,6 @@ const players = {
     slotNumber: 8,
     currentRoundRoleTargets: {},
   },
-  isabel123: {
-    name: 'Isabel',
-    userId: 'isabel123',
-    score: 0,
-    connected: true,
-    slotNumber: 8,
-    currentRoundRoleTargets: {},
-  },
 };
 
 const roles = Array.from(A.flat(Object.values(abilityGroups)));
@@ -114,6 +106,70 @@ const currentRoundRoles = {
 };
 
 const myUserId = 'alice123';
+
+export const Starting = Template.bind({});
+
+Starting.args = {
+  myUserId,
+  state: {
+    roles,
+    players,
+    currentTick: 9999,
+    lastDownState: {
+      alice123: 100,
+      bob123: 100,
+      charlie123: 100,
+    },
+    currentDownState: {
+      dave123: true,
+      eve123: true,
+      frank123: true,
+      grace123: true,
+      heidi123: true,
+    },
+    currentRoundRoles: {
+      ...currentRoundRoles,
+      alice123: 'cop',
+    },
+    initialCurrentRoundRoles: {
+      ...currentRoundRoles,
+      alice123: 'cop',
+    },
+    currentStates: ['Playing.Round.NightPhase.AbilityGroup.Running.Starting'],
+  },
+};
+
+export const TimedOut = Template.bind({});
+
+TimedOut.args = {
+  myUserId,
+  state: {
+    roles,
+    players,
+    currentTick: 9999,
+    lastDownState: {
+      alice123: 100,
+      bob123: 100,
+      charlie123: 100,
+    },
+    currentDownState: {
+      dave123: true,
+      eve123: true,
+      frank123: true,
+      grace123: true,
+      heidi123: true,
+    },
+    currentRoundRoles: {
+      ...currentRoundRoles,
+      alice123: 'cop',
+    },
+    initialCurrentRoundRoles: {
+      ...currentRoundRoles,
+      alice123: 'cop',
+    },
+    currentStates: ['Playing.Round.NightPhase.AbilityGroup.Running.Cop'],
+  },
+};
 
 export const CopActive = Template.bind({});
 
@@ -323,7 +379,10 @@ ConArtist.args = {
     players,
     currentStates: ['Playing.Round.NightPhase.AbilityGroup.Running.ConArtist'],
     currentTick: 100,
-    initialCurrentRoundRoles: {},
+    initialCurrentRoundRoles: {
+      ...currentRoundRoles,
+      alice123: 'con_artist',
+    },
     lastDownState: {
       [myUserId]: 0,
     },

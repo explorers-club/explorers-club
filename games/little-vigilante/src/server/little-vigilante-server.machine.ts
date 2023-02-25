@@ -14,10 +14,18 @@ import { A, pipe } from '@mobily/ts-belt';
 import { Client, Room } from 'colyseus';
 import { createSelector } from 'reselect';
 import { ActorRefFrom, createMachine, send } from 'xstate';
-import { Role, rolesByTeam } from '../meta/little-vigilante.constants';
 import {
+  abilityGroups,
+  Role,
+  rolesByTeam,
+} from '../meta/little-vigilante.constants';
+import {
+  selectAbilityGroup,
+  selectIdlePlayers,
   selectPlayerOutcomes,
   selectSidekickPlayer,
+  selectTwinBoyPlayer,
+  selectTwinGirlPlayer,
   selectUnusedRoles,
   selectVigilantePlayer,
 } from '../state/little-vigilante.selectors';
@@ -50,7 +58,7 @@ const sendPause = send<
   LittleVigilanteServerContext,
   LittleVigilanteServerEvent
 >((context, event) => {
-  const idlePlayers = selectIdlePlayers(context.room.state);
+  const idlePlayers = selectIdlePlayers(getSnapshot(context.room.state));
   const userId = idlePlayers[0]?.userId;
   // todo sort this
   return {
@@ -92,13 +100,17 @@ const hasNoButler: Guard = ({ room }) => !room.state.roles.includes('butler');
 const hasNoCopPlayer: Guard = ({ room }) => !selectInitialCopPlayer(room.state);
 const hasNoConArtistPlayer: Guard = ({ room }) =>
   !selectInitialConArtistPlayer(room.state);
+const hasNoDetectivePlayer: Guard = ({ room }) =>
+  !selectInitialDetectivePlayer(room.state);
 const hasNoSnitchPlayer: Guard = ({ room }) =>
   !selectInitialSnitchPlayer(room.state);
 
 const isSnitchArrested: Guard = ({ room }) =>
-  !selectSnitchIsArrested(room.state);
+  selectSnitchIsArrested(room.state);
 const isConArtistArrested: Guard = ({ room }) =>
-  !selectConArtistIsArrested(room.state);
+  selectConArtistIsArrested(room.state);
+const isDetectiveArrested: Guard = ({ room }) =>
+  selectDetectiveIsArrested(room.state);
 
 export const createLittleVigilanteServerMachine = (
   room: Room<LittleVigilanteState>,
@@ -271,11 +283,16 @@ export const createLittleVigilanteServerMachine = (
                             PAUSE: 'Paused',
                           },
                           onDone: 'Done',
-                          initial: 'Cop',
+                          initial: 'Starting',
                           states: {
                             History: {
                               type: 'history',
                               history: 'shallow',
+                            },
+                            Starting: {
+                              after: {
+                                5000: 'Cop',
+                              },
                             },
                             Cop: {
                               always: [
@@ -298,7 +315,7 @@ export const createLittleVigilanteServerMachine = (
                               },
                             },
                             Vigilantes: {
-                              entry: ['sendVigilantesAbilityMessage'],
+                              entry: 'sendVigilantesAbilityMessage',
                               after: {
                                 5000: 'Butler',
                               },
@@ -332,10 +349,23 @@ export const createLittleVigilanteServerMachine = (
                                   cond: hasNoDetective,
                                 },
                               ],
-                              after: {
-                                6000: {
+                              on: {
+                                SELECT: {
                                   target: 'ConArtist',
+                                  actions: ['sendDetectiveAbilityMessage'],
                                 },
+                              },
+                              after: {
+                                6000: [
+                                  {
+                                    target: 'ConArtist',
+                                    cond: hasNoDetectivePlayer,
+                                  },
+                                  {
+                                    target: 'ConArtist',
+                                    cond: isDetectiveArrested,
+                                  },
+                                ],
                               },
                             },
                             ConArtist: {
@@ -535,22 +565,25 @@ export const createLittleVigilanteServerMachine = (
                         {
                           target: 'Complete',
                           cond: 'hasCalledVoteMajorityYes',
-                          actions: () => {
-                            // All the people who voted yes,
-                            // mark their vote as the targeted person
-                            // Everybody who vote no or didn't vote won't count
-                            // when the round votes are calcualted
-                            room.state.calledVoteResponses.forEach(
-                              (response, userId) => {
-                                if (response) {
-                                  room.state.currentRoundVotes.set(
-                                    userId,
-                                    room.state.calledVoteTargetedUserId
-                                  );
+                          actions: [
+                            () => {
+                              // All the people who voted yes,
+                              // mark their vote as the targeted person
+                              // Everybody who vote no or didn't vote won't count
+                              // when the round votes are calcualted
+                              room.state.calledVoteResponses.forEach(
+                                (response, userId) => {
+                                  if (response) {
+                                    room.state.currentRoundVotes.set(
+                                      userId,
+                                      room.state.calledVoteTargetedUserId
+                                    );
+                                  }
                                 }
-                              }
-                            );
-                          },
+                              );
+                            },
+                            'sendVotePassedMessage',
+                          ],
                         },
                         {
                           target: 'VoteFailed',
@@ -586,6 +619,7 @@ export const createLittleVigilanteServerMachine = (
                       },
                     },
                     VoteFailed: {
+                      entry: ['sendVoteFailedMessage'],
                       after: {
                         5000: 'Idle',
                       },
@@ -668,7 +702,7 @@ export const createLittleVigilanteServerMachine = (
     {
       guards: {
         noPlayerIdle: ({ room }, event) => {
-          const idlePlayers = selectIdlePlayers(room.state);
+          const idlePlayers = selectIdlePlayers(getSnapshot(room.state));
           const idleUserIds = idlePlayers.map((player) => player.userId);
           if (event.type === 'PRESS_DOWN') {
             const { userId } = UserSenderSchema.parse(event.sender);
@@ -678,7 +712,7 @@ export const createLittleVigilanteServerMachine = (
           }
         },
         anyPlayerIdle: ({ room }, event) =>
-          selectIdlePlayers(room.state).length > 0,
+          selectIdlePlayers(getSnapshot(room.state)).length > 0,
         hasMoreRounds: ({ room }) =>
           room.state.currentRound + 1 <= settings.roundsToPlay,
         timesUp: ({ room }) => room.state.timeRemaining <= 0,
@@ -858,80 +892,322 @@ export const createLittleVigilanteServerMachine = (
             clientsByUserId[userId].send(event.type, event);
           });
         },
+        sendDetectiveAbilityMessage: ({ room }, event) => {
+          assertEventType(event, 'SELECT');
+          if (event.sender.type !== 'user') {
+            // todo better assert than this
+            return;
+          }
+          // todo verify this is actually the detective
+          const detectiveUserId = event.sender.userId;
+
+          const player = room.state.players.get(event.userId)!;
+          const role = room.state.currentRoundRoles.get(event.userId)!;
+          const clientsByUserId = getClientsByUserId(room);
+          const messageEvent: ServerEvent<LittleVigilanteMessageCommand> = {
+            type: 'MESSAGE',
+            ts: room.state.currentTick,
+            message: {
+              K: 'player_role',
+              P: {
+                name: player.name,
+                slotNumber: player.slotNumber,
+                role,
+              },
+            },
+            sender: {
+              type: 'server',
+              isPrivate: true,
+            },
+          };
+          clientsByUserId[detectiveUserId].send(
+            messageEvent.type,
+            messageEvent
+          );
+        },
+        sendTwinsAbilityMessage: ({ room }) => {
+          const twinBoy = selectTwinBoyPlayer(getSnapshot(room.state));
+          const twinGirl = selectTwinGirlPlayer(getSnapshot(room.state));
+          const clientsByUserId = getClientsByUserId(room);
+
+          if (twinGirl) {
+            let twinGirlEvent: ServerEvent<LittleVigilanteMessageCommand>;
+            if (twinBoy) {
+              twinGirlEvent = {
+                type: 'MESSAGE',
+                ts: room.state.currentTick,
+                message: {
+                  K: 'player_role',
+                  P: {
+                    name: twinBoy.name,
+                    role: 'twin_boy',
+                    slotNumber: twinBoy.slotNumber,
+                  },
+                },
+                sender: {
+                  type: 'server',
+                  isPrivate: true,
+                },
+              };
+            } else {
+              twinGirlEvent = {
+                type: 'MESSAGE',
+                ts: room.state.currentTick,
+                message: {
+                  text: 'You are the only twin.',
+                },
+                sender: {
+                  type: 'server',
+                  isPrivate: true,
+                },
+              };
+            }
+            clientsByUserId[twinGirl.userId].send(
+              twinGirlEvent.type,
+              twinGirlEvent
+            );
+          }
+
+          if (twinBoy) {
+            let twinBoyEvent: ServerEvent<LittleVigilanteMessageCommand>;
+            if (twinGirl) {
+              twinBoyEvent = {
+                type: 'MESSAGE',
+                ts: room.state.currentTick,
+                message: {
+                  K: 'player_role',
+                  P: {
+                    name: twinGirl.name,
+                    role: 'twin_girl',
+                    slotNumber: twinGirl.slotNumber,
+                  },
+                },
+                sender: {
+                  type: 'server',
+                  isPrivate: true,
+                },
+              };
+            } else {
+              twinBoyEvent = {
+                type: 'MESSAGE',
+                ts: room.state.currentTick,
+                message: {
+                  text: 'You are the only twin.',
+                },
+                sender: {
+                  type: 'server',
+                  isPrivate: true,
+                },
+              };
+            }
+            clientsByUserId[twinBoy.userId].send(
+              twinBoyEvent.type,
+              twinBoyEvent
+            );
+            // const twinGirlEvent: ServerEvent<LittleVigilanteMessageCommand> =
+            //   twinBoy
+            //     ? {
+            //         type: 'MESSAGE',
+            //         ts: room.state.currentTick,
+            //         message: {
+            //           K: 'player_role',
+            //           P: {
+            //             name: twinBoy.userId,
+            //             role: 'twin_boy',
+            //             slotNumber: twinBoy.slotNumber,
+            //           },
+            //         },
+            //         sender: {
+            //           type: 'server',
+            //           isPrivate: true,
+            //         },
+            //       }
+            //     : {
+            //         type: 'MESSAGE',
+            //         ts: room.state.currentTick,
+            //         message: {
+            //           text: 'Nobody is',
+            //         },
+            //       };
+            // clientsByUserId[twinGirl.userId].send(
+            //   twinGirlEvent.type,
+            //   twinGirlEvent
+            // );
+          }
+        },
         sendVigilantesAbilityMessage: ({ room }) => {
           const vigilante = selectVigilantePlayer(getSnapshot(room.state));
           const sidekick = selectSidekickPlayer(getSnapshot(room.state));
           const clientsByUserId = getClientsByUserId(room);
+          const arrestedMessageEvent = getArrestedMessage(
+            room.state.currentTick
+          );
 
           if (sidekick) {
-            const sidekickEvent: ServerEvent<LittleVigilanteMessageCommand> = {
-              type: 'MESSAGE',
-              ts: room.state.currentTick,
-              message: {
-                K: 'sidekick_ability',
-                P: {
-                  vigilanteUserId: vigilante.userId,
-                  vigilantePlayerName: vigilante.name,
-                  vigilanteSlotNumber: vigilante.slotNumber,
-                },
-              },
-              sender: {
-                type: 'server',
-                isPrivate: true,
-              },
-            };
-            clientsByUserId[sidekick.userId].send(
-              sidekickEvent.type,
-              sidekickEvent
-            );
-
-            const vigilantePrimaryEvent: ServerEvent<LittleVigilanteMessageCommand> =
-              {
-                type: 'MESSAGE',
-                ts: room.state.currentTick,
-                message: {
-                  K: 'vigilante_ability_primary',
-                  P: {
-                    sidekickUserId: sidekick.userId,
-                    sidekickPlayerName: sidekick.name,
-                    sidekickSlotNumber: sidekick.slotNumber,
+            if (sidekick.userId !== room.state.currentRoundArrestedPlayerId) {
+              const sidekickEvent: ServerEvent<LittleVigilanteMessageCommand> =
+                {
+                  type: 'MESSAGE',
+                  ts: room.state.currentTick,
+                  message: {
+                    K: 'sidekick_ability',
+                    P: {
+                      vigilanteUserId: vigilante.userId,
+                      vigilantePlayerName: vigilante.name,
+                      vigilanteSlotNumber: vigilante.slotNumber,
+                    },
                   },
-                },
-                sender: {
-                  type: 'server',
-                  isPrivate: true,
-                },
-              };
+                  sender: {
+                    type: 'server',
+                    isPrivate: true,
+                  },
+                };
+              clientsByUserId[sidekick.userId].send(
+                sidekickEvent.type,
+                sidekickEvent
+              );
+            } else {
+              clientsByUserId[sidekick.userId].send(
+                arrestedMessageEvent.type,
+                arrestedMessageEvent
+              );
+            }
 
-            clientsByUserId[vigilante.userId].send(
-              vigilantePrimaryEvent.type,
-              vigilantePrimaryEvent
-            );
+            if (vigilante.userId !== room.state.currentRoundArrestedPlayerId) {
+              const vigilantePrimaryEvent: ServerEvent<LittleVigilanteMessageCommand> =
+                {
+                  type: 'MESSAGE',
+                  ts: room.state.currentTick,
+                  message: {
+                    K: 'vigilante_ability_primary',
+                    P: {
+                      sidekickUserId: sidekick.userId,
+                      sidekickPlayerName: sidekick.name,
+                      sidekickSlotNumber: sidekick.slotNumber,
+                    },
+                  },
+                  sender: {
+                    type: 'server',
+                    isPrivate: true,
+                  },
+                };
+
+              clientsByUserId[vigilante.userId].send(
+                vigilantePrimaryEvent.type,
+                vigilantePrimaryEvent
+              );
+            } else {
+              clientsByUserId[vigilante.userId].send(
+                arrestedMessageEvent.type,
+                arrestedMessageEvent
+              );
+            }
           } else {
             const unusedRoles = selectUnusedRoles(getSnapshot(room.state));
             const unusedRole = shuffle(unusedRoles)[0];
-            const vigilanteFallbackEvent: ServerEvent<LittleVigilanteMessageCommand> =
-              {
-                type: 'MESSAGE',
-                ts: room.state.currentTick,
-                message: {
-                  K: 'vigilante_ability_fallback',
-                  P: {
-                    unusedRole,
+            if (vigilante.userId !== room.state.currentRoundArrestedPlayerId) {
+              const vigilanteFallbackEvent: ServerEvent<LittleVigilanteMessageCommand> =
+                {
+                  type: 'MESSAGE',
+                  ts: room.state.currentTick,
+                  message: {
+                    K: 'vigilante_ability_fallback',
+                    P: {
+                      unusedRole,
+                    },
                   },
-                },
-                sender: {
-                  type: 'server',
-                  isPrivate: true,
-                },
-              };
+                  sender: {
+                    type: 'server',
+                    isPrivate: true,
+                  },
+                };
 
-            clientsByUserId[vigilante.userId].send(
-              vigilanteFallbackEvent.type,
-              vigilanteFallbackEvent
-            );
+              clientsByUserId[vigilante.userId].send(
+                vigilanteFallbackEvent.type,
+                vigilanteFallbackEvent
+              );
+            } else {
+              clientsByUserId[vigilante.userId].send(
+                arrestedMessageEvent.type,
+                arrestedMessageEvent
+              );
+            }
           }
         },
+        sendVotePassedMessage: ({ room }) => {
+          const player = room.state.players.get(
+            room.state.calledVoteTargetedUserId
+          )!;
+          const event: ServerEvent<LittleVigilanteMessageCommand> = {
+            type: 'MESSAGE',
+            ts: room.state.currentTick,
+            message: {
+              text: `Vote to identify ${player.name} passes!`,
+            },
+            sender: {
+              type: 'server',
+            },
+          };
+          room.broadcast(event.type, event);
+        },
+        sendVoteFailedMessage: ({ room }) => {
+          const event: ServerEvent<LittleVigilanteMessageCommand> = {
+            type: 'MESSAGE',
+            ts: room.state.currentTick,
+            message: {
+              text: 'Vote rejected, round continues...',
+            },
+            sender: {
+              type: 'server',
+            },
+          };
+          room.broadcast(event.type, event);
+        },
+        // Removed because was causing an infinite loop, because we cant instrospect the
+        // states to get the ability group here
+        // maybeSendIsArrestedMessage: ({ room }) => {
+        //   const state = getSnapshot(room.state);
+
+        //   if (!state.currentRoundArrestedPlayerId) {
+        //     return;
+        //   }
+
+        //   const abilityGroup = selectAbilityGroup(state);
+        //   if (!abilityGroup) {
+        //     return;
+        //   }
+
+        //   const arrestedPlayerRole = state.initialCurrentRoundRoles[
+        //     state.currentRoundArrestedPlayerId
+        //   ] as Role;
+
+        //   const roles = abilityGroups[abilityGroup];
+        //   if (!roles.includes(arrestedPlayerRole)) {
+        //     return;
+        //   }
+
+        //   const event: ServerEvent<LittleVigilanteMessageCommand> = {
+        //     type: 'MESSAGE',
+        //     ts: room.state.currentTick,
+        //     message: {
+        //       text: "You've been arreested. This round your ability is skipped.",
+        //     },
+        //     sender: {
+        //       type: 'server',
+        //       isPrivate: true,
+        //     },
+        //   };
+        //   const clientsByUserId = getClientsByUserId(room);
+        //   const client =
+        //     clientsByUserId[room.state.currentRoundArrestedPlayerId];
+        //   if (client) {
+        //     client.send(event.type, event);
+        //   } else {
+        //     console.warn(
+        //       "expected cliedn't but couldn't find one when sending is arrested message"
+        //     );
+        //   }
+        // },
         sendDiscussionPhaseMessage: ({ room }) => {
           const event: ServerEvent<LittleVigilanteMessageCommand> = {
             type: 'MESSAGE',
@@ -1070,13 +1346,17 @@ const selectAllPlayersVoted = (state: LittleVigilanteState) => {
 
 const selectCalledVoteMajorityNo = (state: LittleVigilanteState) => {
   const numPlayers = state.players.size;
+  const numVotesRemaining = numPlayers - state.calledVoteResponses.size;
 
   // If we have a majority yes or no
   const majorityCount = Math.floor(numPlayers / 2) + 1;
-  const noCount = Array.from(state.calledVoteResponses.values()).filter(
-    (val) => !val
+  const yesVotes = Array.from(state.calledVoteResponses.values()).filter(
+    (val) => val
   ).length;
-  return noCount >= majorityCount;
+
+  const numVotesNeededToPass = majorityCount - yesVotes;
+
+  return numVotesNeededToPass > numVotesRemaining;
 };
 
 const createInitialPlayersInRoleSelector =
@@ -1094,11 +1374,20 @@ const createInitialPlayerInRoleSelector =
 
 const selectInitialCopPlayer = createInitialPlayerInRoleSelector('cop');
 
+const selectInitialDetectivePlayer =
+  createInitialPlayerInRoleSelector('detective');
+
 const selectInitialConArtistPlayer =
   createInitialPlayerInRoleSelector('con_artist');
 
 const selectConArtistIsArrested = createSelector(
   selectInitialConArtistPlayer,
+  selectArrestedUserId,
+  (userId, arrestedId) => userId === arrestedId
+);
+
+const selectDetectiveIsArrested = createSelector(
+  selectInitialDetectivePlayer,
   selectArrestedUserId,
   (userId, arrestedId) => userId === arrestedId
 );
@@ -1110,32 +1399,6 @@ const selectSnitchIsArrested = createSelector(
 );
 
 const selectInitialSnitchPlayer = createInitialPlayerInRoleSelector('snitch');
-
-const selectIdlePlayers = (state: LittleVigilanteState) =>
-  Array.from(state.players.values())
-    .filter((player) => {
-      // Not idle if current press state is down
-      if (state.currentDownState.get(player.userId)) {
-        return false;
-      }
-
-      // Not idle if they have a down state within the timeout window
-      const ts = state.lastDownState.get(player.userId);
-      const TIMEOUT_SECONDS = 10;
-      const TICK_TIMEOUT_SECONDS_AGO = state.currentTick - 60 * TIMEOUT_SECONDS;
-      if (ts && ts >= TICK_TIMEOUT_SECONDS_AGO) {
-        return false;
-      }
-
-      return true;
-    })
-    .sort(
-      (playerA, playerB) =>
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        state.lastDownState.get(playerA.userId)! -
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        state.lastDownState.get(playerB.userId)!
-    );
 
 const getSnapshot = (state: LittleVigilanteState) => {
   return state.toJSON() as LittleVigilanteStateSerialized;
@@ -1149,4 +1412,19 @@ const getClientsByUserId = (room: Room<LittleVigilanteState, any>) => {
     }
     return result;
   }, {} as Record<string, Client>);
+};
+
+const getArrestedMessage = (currentTick: number) => {
+  const messageEvent: ServerEvent<LittleVigilanteMessageCommand> = {
+    type: 'MESSAGE',
+    ts: currentTick,
+    message: {
+      text: "You've been arrested. Your ability is skipped.",
+    },
+    sender: {
+      type: 'server',
+      isPrivate: true,
+    },
+  };
+  return messageEvent;
 };

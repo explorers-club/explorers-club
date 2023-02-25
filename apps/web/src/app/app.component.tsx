@@ -150,7 +150,6 @@ export const AppComponent = () => {
         blocking={false}
         defaultSnap={DEFAULT_SNAP}
         snapPoints={DEFAULT_SNAP_POINTS}
-        expandOnContentDrag={true}
       >
         <Box className={darkTheme.className}>
           {isShowingModal ? (

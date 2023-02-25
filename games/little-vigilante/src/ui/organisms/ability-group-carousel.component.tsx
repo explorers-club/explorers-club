@@ -1,5 +1,6 @@
 import { Caption } from '@atoms/Caption';
 import { Flex } from '@atoms/Flex';
+import { Heading } from '@atoms/Heading';
 import { Slider, SliderCell } from '@molecules/Slider';
 import { useKeenSlider } from 'keen-slider/react';
 import { useContext } from 'react';
@@ -20,9 +21,13 @@ export const AbilityGroupCarousel = () => {
 
   const [sliderRef, instanceRef] = useKeenSlider<HTMLDivElement>({
     initial: abilityGroup
-      ? Object.keys(abilityGroups).indexOf(abilityGroup)
+      ? 1 + Object.keys(abilityGroups).indexOf(abilityGroup)
       : 0,
     mode: 'free-snap',
+    slideChanged(slider) {
+      slider.slides.forEach((slide) => slide.classList.remove('active'));
+      slider.slides[slider.track.details.rel].classList.add('active');
+    },
     created(slider) {
       slider.slides[slider.track.details.rel].classList.add('active');
 
@@ -34,28 +39,61 @@ export const AbilityGroupCarousel = () => {
         .subscribe((abilityGroup) => {
           if (abilityGroup) {
             const index = Object.keys(abilityGroups).indexOf(abilityGroup);
-            instanceRef.current?.moveToIdx(index);
+            instanceRef.current?.moveToIdx(1 + index);
           }
         });
     },
     drag: false,
     slides: {
       origin: 'center',
-      perView: 1.8,
+      perView: 2.5,
       spacing: 10,
     },
   });
   return (
     <Slider sliderRef={sliderRef}>
+      <SliderCell
+        css={{
+          background: '$primary1',
+          opacity: 0.2,
+          '&.active': {
+            opacity: 1,
+          },
+        }}
+      >
+        <Flex
+          css={{
+            position: 'absolute',
+            display: 'flex',
+            bottom: 0,
+            top: 0,
+            left: 0,
+            right: 0,
+            p: '$2',
+          }}
+          align="center"
+          justify="center"
+        >
+          <Heading>Starting</Heading>
+        </Flex>
+      </SliderCell>
       {Object.entries(abilityGroups).map(([ability, roles]) => {
         return (
-          <SliderCell key={ability}>
+          <SliderCell
+            key={ability}
+            css={{
+              opacity: 0.2,
+              '&.active': {
+                opacity: 1,
+              },
+            }}
+          >
             <Flex
               direction="column"
               align="center"
               css={{
                 p: '$1',
-                background: '$primary3',
+                background: '$primary1',
                 borderRadius: '$1',
                 mt: '$2',
               }}

@@ -45,6 +45,16 @@ export const DiscussMessageSchema = z.literal('discuss');
 export const VoteMessageSchema = z.literal('vote');
 export const YouWonMessageSchema = z.literal('you_won');
 export const YouLostMessageSchema = z.literal('you_lost');
+export const PlayerRoleMessageSchema = z
+  .object({
+    K: z.literal('player_role'),
+    P: z.object({
+      name: z.string(),
+      slotNumber: z.number(),
+      role: z.string(),
+    }),
+  })
+  .required();
 export const SidekickAbilityMessageSchema = z
   .object({
     K: z.literal('sidekick_ability'),
@@ -95,6 +105,7 @@ export type VoteMessage = z.infer<typeof VoteMessageSchema>;
 export type WinnersMessage = z.infer<typeof WinnersMessageSchema>;
 export type YouWonMessage = z.infer<typeof YouWonMessageSchema>;
 export type YouLostMessage = z.infer<typeof YouLostMessageSchema>;
+export type PlayerRoleMessage = z.infer<typeof PlayerRoleMessageSchema>;
 export type SidekickAbilityMessage = z.infer<
   typeof SidekickAbilityMessageSchema
 >;
