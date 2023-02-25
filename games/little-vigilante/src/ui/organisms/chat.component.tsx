@@ -507,7 +507,7 @@ const SwapMessage: FC<{
   ] = useLittleVigilanteSelector(
     (state) =>
       [
-        userId !== firstUserId ? state.players[secondUserId].name : 'Yourself',
+        userId !== firstUserId ? state.players[firstUserId].name : 'Yourself',
         colorBySlotNumber[state.players[firstUserId].slotNumber],
         userId !== secondUserId ? state.players[secondUserId].name : 'Yourself',
         colorBySlotNumber[state.players[secondUserId].slotNumber],
