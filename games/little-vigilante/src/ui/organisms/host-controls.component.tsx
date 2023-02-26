@@ -17,7 +17,7 @@ import {
   ThickArrowRightIcon,
 } from '@radix-ui/react-icons';
 import { useKeenSlider } from 'keen-slider/react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
   colorByTeam,
   displayNameByRole,

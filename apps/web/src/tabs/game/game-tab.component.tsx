@@ -39,6 +39,7 @@ export const GameTabComponent: FC<Props> = ({ actor }) => {
         <LittleVigilanteRoom
           store={store as LittleVigilanteStore}
           myUserId={userId}
+          gameId={gameId}
           event$={event$.pipe(filter(isLittleVigilanteEvent))}
         />
       );

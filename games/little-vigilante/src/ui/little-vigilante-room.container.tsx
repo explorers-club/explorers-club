@@ -13,11 +13,12 @@ interface Props {
   store: LittleVigilanteStore;
   myUserId: string;
   event$: Observable<ServerEvent<LittleVigilanteCommand>>;
+  gameId: string
 }
 
-export const LittleVigilanteRoom: FC<Props> = ({ store, myUserId, event$ }) => {
+export const LittleVigilanteRoom: FC<Props> = ({ store, myUserId, event$, gameId }) => {
   return (
-    <LittleVigilanteContext.Provider value={{ store, myUserId, event$ }}>
+    <LittleVigilanteContext.Provider value={{ store, myUserId, event$, gameId }}>
       <ChatServiceProvider>
         <LittleVigilanteRoomComponent />
       </ChatServiceProvider>

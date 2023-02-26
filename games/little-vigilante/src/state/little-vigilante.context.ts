@@ -11,6 +11,7 @@ export const LittleVigilanteContext = createContext({
   store: {} as LittleVigilanteStore,
   myUserId: '' as string,
   event$: {} as Observable<ServerEvent<LittleVigilanteCommand>>,
+  gameId: '' as string,
 });
 
 export type LittleVigilanteContextProps = ContextProps<

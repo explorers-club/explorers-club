@@ -1,4 +1,6 @@
 import { Badge } from '@atoms/Badge';
+import * as ScrollArea from '@radix-ui/react-scroll-area';
+
 import { Box } from '@atoms/Box';
 import { declareComponentKeys } from 'i18nifty';
 import { Caption } from '@atoms/Caption';
@@ -26,6 +28,7 @@ import {
   LittleVigilanteStateSerialized,
   LittleVigilanteTargetPlayerRoleCommand,
   LittleVigilanteSwapCommand,
+  LittleVigilanteArrestCommand,
   MessageCommand,
   PauseCommand,
   ResumeCommand,
@@ -34,7 +37,7 @@ import {
   TextMessageSchema,
   UserSenderSchema,
 } from '@explorers-club/room';
-import { colorBySlotNumber } from '@explorers-club/styles';
+import { colorBySlotNumber, styled } from '@explorers-club/styles';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { useSelector } from '@xstate/react';
 import { deepEqual } from '@explorers-club/utils';
@@ -139,6 +142,11 @@ const ChatMessageList = () => {
     if (!scrollView) {
       return;
     }
+    const observer = new ResizeObserver((entries) => {
+      console.log('observer');
+      scrollView.scrollTo(0, scrollView.scrollHeight);
+    });
+    observer.observe(scrollView);
 
     const handleScroll = (e: Event) => {
       if (!scrollView) {
@@ -175,6 +183,7 @@ const ChatMessageList = () => {
         }, 0);
       }
     });
+    scrollView.scrollTo(0, scrollView.scrollHeight);
 
     return () => {
       sub.unsubscribe();
@@ -198,30 +207,80 @@ const ChatMessageList = () => {
       }}
     >
       <Flex
-        ref={scrollViewRef}
+        // ref={scrollViewRef}
         direction="column"
         gap="1"
         css={{
           position: 'absolute',
-          p: '$3',
           top: 0,
           bottom: 0,
           left: 0,
           right: 0,
-          overflowX: 'none',
-          overflowY: 'auto',
         }}
       >
-        {events.map((event, index) => (
-          <ChatEvent key={event.ts} index={index} event={event} />
-        ))}
-        <TypingIndicator />
-        {/* Anchor from https://css-tricks.com/books/greatest-css-tricks/pin-scrolling-to-bottom/ */}
-        <Box css={{ overflowAnchor: 'auto !important', height: '1px' }} />
+        <ChatRoot>
+          <ChatViewport ref={scrollViewRef}>
+            {events.map((event, index) => (
+              <ChatEvent key={event.ts} index={index} event={event} />
+            ))}
+            <TypingIndicator />
+            {/* Anchor from https://css-tricks.com/books/greatest-css-tricks/pin-scrolling-to-bottom/ */}
+            {/* <Box css={{ overflowAnchor: 'auto !important', height: '1px' }} /> */}
+          </ChatViewport>
+          <ChatScrollbar orientation="vertical">
+            <ChatScrollThumb />
+          </ChatScrollbar>
+        </ChatRoot>
       </Flex>
     </Flex>
   );
 };
+
+const ChatScrollbar = styled(ScrollArea.ScrollAreaScrollbar, {
+  display: 'flex',
+  userSelect: 'none',
+  touchAction: 'none',
+  padding: '$1',
+  background: '$primary6',
+  width: '$2',
+  transition: 'background 160ms ease-out',
+  '&:hover': {
+    background: '$primary8',
+  },
+});
+
+const ChatScrollThumb = styled(ScrollArea.ScrollAreaThumb, {
+  flex: 1,
+  background: '$primary9',
+  borderRadius: '$1',
+  position: 'relative',
+
+  '&:before': {
+    content: '',
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: '100%',
+    height: '100%',
+    minWidth: '44px',
+    minHeight: '44px',
+  },
+});
+
+const ChatRoot = styled(ScrollArea.Root, {
+  width: '100%',
+  height: '100%',
+  overflow: 'hidden',
+  '--scrollbar-size': '10px',
+});
+
+const ChatViewport = styled(ScrollArea.Viewport, {
+  width: '100%',
+  height: '100%',
+  p: '$3',
+  boxSizing: 'border-box',
+});
 
 const TypingIndicator = () => {
   const [currentlyTyping, setCurrentlyTyping] = useState<string[]>([]);
@@ -298,6 +357,8 @@ const ChatEvent: FC<{ event: LittleVigilanteChatEvent; index: number }> = ({
       return <RoleAssignmentMessage event={event} />;
     case 'TARGET_ROLE':
       return <PlayerTargetRoleMessage event={event} />;
+    case 'ARREST':
+      return <ArrestMessage event={event} />;
     case 'SWAP':
       return <SwapMessage event={event} />;
     case 'CALL_VOTE':
@@ -480,6 +541,42 @@ const DisconnectMessage: FC<{ event: ServerEvent<DisconnectCommand> }> = ({
           {name}
         </Text>{' '}
         disconnected.
+      </Text>
+    </Flex>
+  );
+};
+
+const ArrestMessage: FC<{
+  event: ServerEvent<LittleVigilanteArrestCommand>;
+}> = ({ event }) => {
+  const { sender, arrestedUserId } = event;
+  const { userId } = UserSenderSchema.parse(sender);
+  const players = useLittleVigilanteSelector((state) => state.players);
+
+  const [arrestedPlayerName, arrestedPlayerColor] = useLittleVigilanteSelector(
+    (state) =>
+      [
+        state.players[arrestedUserId].name,
+        colorBySlotNumber[state.players[arrestedUserId].slotNumber],
+      ] as const
+  );
+
+  return (
+    <Flex align="center" gap="1">
+      <PlayerAvatar
+        size={2}
+        userId={userId}
+        color={colorBySlotNumber[players[userId].slotNumber]}
+      />
+      <Text>
+        You arrested{' '}
+        <Text
+          variant={arrestedPlayerColor}
+          css={{ fontWeight: 'bold', display: 'inline' }}
+        >
+          {arrestedPlayerName}
+        </Text>
+        .
       </Text>
     </Flex>
   );

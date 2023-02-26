@@ -3,6 +3,7 @@ import {
   DisconnectCommand,
   JoinCommand,
   LeaveCommand,
+  LittleVigilanteArrestCommand,
   LittleVigilanteCallVoteCommand,
   LittleVigilanteMessageCommand,
   LittleVigilanteServerEvent,
@@ -91,6 +92,17 @@ export const createChatMachine = (
               ServerEvent<LittleVigilanteCallVoteCommand>
             >((context, event) => {
               context.events.push(event);
+            }),
+          },
+          ARREST: {
+            actions: assign<
+              ChatContext,
+              ServerEvent<LittleVigilanteArrestCommand>
+            >((context, event) => {
+              const { userId } = UserSenderSchema.parse(event.sender);
+              if (userId === myUserId) {
+                context.events.push(event);
+              }
             }),
           },
           SWAP: {

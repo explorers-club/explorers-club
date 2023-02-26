@@ -707,17 +707,17 @@ const NightPhaseTwinGirl = () => {
   useEffect(() => {
     const twinGirl = selectTwinGirlPlayer(store.getSnapshot());
     const twinBoy = selectTwinBoyPlayer(store.getSnapshot());
-    if (twinGirl) {
-      boardActor.send({
-        type: 'REVEAL',
-        key: twinGirl.userId,
-        role: 'twin_girl',
-      });
-    } else if (twinBoy) {
+    if (twinBoy) {
       boardActor.send({
         type: 'REVEAL',
         key: twinBoy.userId,
         role: 'twin_boy',
+      });
+    } else if (twinGirl) {
+      boardActor.send({
+        type: 'REVEAL',
+        key: twinGirl.userId,
+        role: 'twin_girl',
       });
     }
 

@@ -44,7 +44,9 @@ const RoomWrapper: FC<{ roomId: string; myUserId: string }> = (props) => {
   }
 
   return (
-    <LittleVigilanteContext.Provider value={{ store, myUserId, event$ }}>
+    <LittleVigilanteContext.Provider
+      value={{ store, myUserId, event$, gameId: roomId }}
+    >
       <ChatServiceProvider>
         <Flex direction="column" css={{ width: '100%', minHeight: '100%' }}>
           <LittleVigilanteRoomComponent />
