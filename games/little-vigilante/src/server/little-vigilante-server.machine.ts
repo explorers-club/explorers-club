@@ -34,6 +34,12 @@ export interface LittleVigilanteServerContext {
   room: Room<LittleVigilanteState>;
 }
 
+type LittleVigilanteRoomSettings = {
+  votingTimeSeconds: number;
+  discussionTimeSeconds: number;
+  roundsToPlay: number;
+};
+
 type Guard = (
   context: LittleVigilanteServerContext,
   event: LittleVigilanteServerEvent
@@ -114,11 +120,7 @@ const isDetectiveArrested: Guard = ({ room }) =>
 
 export const createLittleVigilanteServerMachine = (
   room: Room<LittleVigilanteState>,
-  settings: {
-    votingTimeSeconds: number;
-    discussionTimeSeconds: number;
-    roundsToPlay: number;
-  }
+  settings: LittleVigilanteRoomSettings
 ) => {
   // todo just use context for this
   const cacheMap = new Map();
@@ -714,7 +716,7 @@ export const createLittleVigilanteServerMachine = (
         anyPlayerIdle: ({ room }, event) =>
           selectIdlePlayers(getSnapshot(room.state)).length > 0,
         hasMoreRounds: ({ room }) =>
-          room.state.currentRound + 1 <= settings.roundsToPlay,
+          room.state.currentRound + 1 <= room.state.roundsToPlay,
         timesUp: ({ room }) => room.state.timeRemaining <= 0,
         allPlayersConnected: ({ room }, event) =>
           selectAllPlayersConnected(room.state),

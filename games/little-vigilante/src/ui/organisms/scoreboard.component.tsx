@@ -13,11 +13,16 @@ export const Scoreboard = () => {
   const currentRound = useLittleVigilanteSelector(
     (state) => state.currentRound
   );
+  const roundsToPlay = useLittleVigilanteSelector(
+    (state) => state.roundsToPlay
+  );
 
   return (
     <Flex direction="column" css={{ p: '$3' }}>
       <Flex direction="column" gap="2">
-        <Caption>Round {currentRound}</Caption>
+        <Caption>
+          Round {currentRound} of {roundsToPlay}
+        </Caption>
       </Flex>
       <Flex direction="column" css={{ py: '$3' }} gap="1">
         {players

@@ -13,6 +13,7 @@ export class LittleVigilanteState extends Schema {
     @type("number") public currentTick!: number;
     @type("string") public conversationId!: string;
     @type("number") public currentRound!: number;
+    @type("number") public roundsToPlay!: number;
     @type("string") public calledVoteTargetedUserId!: string;
     @type("string") public calledVoteUserId!: string;
     @type({ set: "string" }) public currentStates: SetSchema<string> = new SetSchema<string>();
