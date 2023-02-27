@@ -94,6 +94,7 @@ export class LittleVigilanteRoom extends Room<LittleVigilanteState> {
     // initialize empty room state
     const state = new LittleVigilanteState();
     state.currentRound = 1;
+    state.roundsToPlay = roundsToPlay;
     state.currentTick = 0;
     state.lastDownState = new MapSchema<number>();
     state.chat = new ChatState();
