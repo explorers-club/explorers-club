@@ -275,7 +275,6 @@ const PlayerBoardNightStatus = () => {
 
 const NightPlayerBoardIdleStatus = () => {
   const idlePlayers = useLittleVigilanteSelector(selectIdlePlayers);
-  console.log({ idlePlayers });
   return (
     <Flex gap="1" direction="column" css={{ p: '$3' }}>
       <Caption>Idle Players</Caption>
