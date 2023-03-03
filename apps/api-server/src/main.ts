@@ -1,23 +1,39 @@
 import { apiRouter, createContext } from '@explorers-club/api';
-import * as trpcExpress from '@trpc/server/adapters/express';
-import * as express from 'express';
-import * as morgan from 'morgan';
-import * as cors from 'cors';
-
-const app = express();
-
-app.use(
-  '/api',
-  trpcExpress.createExpressMiddleware({
-    router: apiRouter,
-    createContext,
-  })
-);
-app.use(morgan());
-app.use(cors());
-
-const port = process.env.port || 3000;
-const server = app.listen(port, () => {
-  console.log(`Listening at http://localhost:${port}/api`);
+import { applyWSSHandler } from '@trpc/server/adapters/ws';
+import * as ws from 'ws';
+const wss = new ws.Server({
+  port: 3001,
 });
-server.on('error', console.error);
+const handler = applyWSSHandler({ wss, router: apiRouter, createContext });
+
+wss.on('connection', (ws) => {
+  console.log('connect!');
+  wss.once('close', (ws) => {
+    console.log('connection close');
+  });
+});
+
+console.log('✅ WebSocket Server listening on ws://localhost:3001');
+process.on('SIGTERM', () => {
+  console.log('SIGTERM');
+  handler.broadcastReconnectNotification();
+  wss.close();
+});
+
+// const app = express();
+
+// app.use(
+//   '/api',
+//   trpcExpress.createExpressMiddleware({
+//     router: apiRouter,
+//     createContext,
+//   })
+// );
+// app.use(morgan());
+// app.use(cors());
+
+// const port = process.env.port || 3000;
+// const server = app.listen(port, () => {
+//   console.log(`Listening at http://localhost:${port}/api`);
+// });
+// server.on('error', console.error);
