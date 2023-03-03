@@ -180,20 +180,19 @@ export const displayNameByRole: Record<Role, string> = {
 };
 
 export const abilityByRole: Record<Role, string> = {
-  cop: 'Has the ability to arrest one player, preventing them from using their ability.',
+  cop: 'Arrest a player to prevent them from their ability.',
   vigilante:
-    'Has the ability to see who is the sidekick. If there is no sidekick they, can see a random role not being played.',
-  twin_girl: 'Has the ability to see which player is the other twin.',
-  twin_boy: 'Has the ability to see which player is the other twin.',
-  butler: 'Has the ability to see which player is the vigilante.',
-  detective:
-    'Has the ability to investigate one player to find out their role.',
-  snitch: 'Has the ability to swap the roles of two other players.',
-  con_artist: 'Has the ability to swap their role with another player.',
-  sidekick: 'Has the ability to see who is the vigilante.',
-  monk: 'Has the ability to inspect their own role at the end of the night.',
-  mayor: 'Has the ability to have their vote count twice.',
-  anarchist: 'Has no special ability.',
+    'See who is the sidekick. If no sidekick, see a random role not being played.',
+  twin_girl: 'See who is the other twin, if there is one.',
+  twin_boy: 'See who is the other twin, if there is one.',
+  butler: 'Ee which player is the vigilante.',
+  detective: 'Investigate one player to find out their role.',
+  snitch: 'Swap the roles of two other players.',
+  con_artist: 'Swap roles with another player.',
+  sidekick: 'See who is the vigilante.',
+  monk: 'Inspects the monks role.',
+  mayor: 'Vote counts twice.',
+  anarchist: 'No special ability.',
 };
 
 const CITIZENS_OBJECTIVE =
