@@ -29,6 +29,8 @@ import {
   VigilanteAbilityPrimaryMessageSchema,
   VigilanteAbilityFallbackMessageSchema,
   PlayerRoleMessageSchema,
+  ButlerAbilityMessage,
+  ButlerAbilityMessageSchema,
 } from '@explorers-club/chat';
 import {
   CodebreakersConfig,
@@ -300,6 +302,7 @@ export type LittleVigilanteMessage =
   | YouLostMessage
   | YouWonMessage
   | SidekickAbilityMessage
+  | ButlerAbilityMessage
   | PlayerRoleMessage
   | VigilanteAbilityFallbackMessage
   | VigilanteAbilityPrimaryMessage
@@ -328,10 +331,11 @@ export const isYouWonMessage = (obj: any): obj is YouWonMessage =>
 export const isYouLostMessage = (obj: any): obj is YouLostMessage =>
   YouLostMessageSchema.safeParse(obj).success;
 
-export const isPlayerRoleMessage = (
-  obj: any
-): obj is PlayerRoleMessage =>
+export const isPlayerRoleMessage = (obj: any): obj is PlayerRoleMessage =>
   PlayerRoleMessageSchema.safeParse(obj).success;
+
+export const isButlerAbilityMessage = (obj: any): obj is ButlerAbilityMessage =>
+  ButlerAbilityMessageSchema.safeParse(obj).success;
 
 export const isSidekickAbilityMessage = (
   obj: any

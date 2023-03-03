@@ -26,6 +26,7 @@ import {
   selectSidekickPlayer,
   selectTwinBoyPlayer,
   selectTwinGirlPlayer,
+  selectButlerPlayer,
   selectUnusedRoles,
   selectVigilantePlayer,
 } from '../state/little-vigilante.selectors';
@@ -323,6 +324,7 @@ export const createLittleVigilanteServerMachine = (
                               },
                             },
                             Butler: {
+                              entry: 'sendButlerAbilityMessage',
                               always: [
                                 {
                                   target: 'Twins',
@@ -1035,6 +1037,48 @@ export const createLittleVigilanteServerMachine = (
             //   twinGirlEvent.type,
             //   twinGirlEvent
             // );
+          }
+        },
+        sendButlerAbilityMessage: ({ room }) => {
+          const butler = selectButlerPlayer(getSnapshot(room.state));
+          if (!butler) {
+            return;
+          }
+
+          const vigilante = selectVigilantePlayer(getSnapshot(room.state));
+          const sidekick = selectSidekickPlayer(getSnapshot(room.state));
+          const clientsByUserId = getClientsByUserId(room);
+
+          const arrestedMessageEvent = getArrestedMessage(
+            room.state.currentTick
+          );
+
+          if (butler.userId !== room.state.currentRoundArrestedPlayerId) {
+            const butlerEvent: ServerEvent<LittleVigilanteMessageCommand> = {
+              type: 'MESSAGE',
+              ts: room.state.currentTick,
+              message: {
+                K: 'butler_ability',
+                P: {
+                  vigilanteUserId: vigilante.userId,
+                  vigilantePlayerName: vigilante.name,
+                  vigilanteSlotNumber: vigilante.slotNumber,
+                  sidekickUserId: sidekick?.userId,
+                  sidekickPlayerName: sidekick?.name,
+                  sidekickSlotNumber: sidekick?.slotNumber,
+                },
+              },
+              sender: {
+                type: 'server',
+                isPrivate: true,
+              },
+            };
+            clientsByUserId[butler.userId].send(butlerEvent.type, butlerEvent);
+          } else {
+            clientsByUserId[butler.userId].send(
+              arrestedMessageEvent.type,
+              arrestedMessageEvent
+            );
           }
         },
         sendVigilantesAbilityMessage: ({ room }) => {

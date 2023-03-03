@@ -7,6 +7,22 @@ import {
   Role,
 } from '../meta/little-vigilante.constants';
 
+export const selectMonkPlayer = (state: LittleVigilanteStateSerialized) => {
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const tuple = Object.entries(state.currentRoundRoles).find(
+    ([, role]) => role === 'monk'
+  );
+  return tuple ? state.players[tuple[0]] : undefined;
+};
+
+export const selectButlerPlayer = (state: LittleVigilanteStateSerialized) => {
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const tuple = Object.entries(state.currentRoundRoles).find(
+    ([, role]) => role === 'butler'
+  );
+  return tuple ? state.players[tuple[0]] : undefined;
+};
+
 export const selectSidekickPlayer = (state: LittleVigilanteStateSerialized) => {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const tuple = Object.entries(state.currentRoundRoles).find(

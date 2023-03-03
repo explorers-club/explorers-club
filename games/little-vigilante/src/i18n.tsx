@@ -76,6 +76,52 @@ export const {
             </>
           </Text>
         ),
+        butler_ability: ({
+          vigilanteSlotNumber,
+          vigilantePlayerName,
+          sidekickSlotNumber,
+          sidekickPlayerName,
+        }) => (
+          <Text size={1}>
+            <Text
+              variant={colorBySlotNumber[vigilanteSlotNumber]}
+              css={{ fontWeight: 'bold', display: 'inline' }}
+            >
+              {vigilantePlayerName}
+            </Text>{' '}
+            <>
+              is the{' '}
+              <Text
+                variant="crimson"
+                css={{ fontWeight: 'bold', display: 'inline' }}
+              >
+                Vigilante
+              </Text>
+              {sidekickPlayerName && sidekickSlotNumber ? (
+                <>
+                  {' '}
+                  and{' '}
+                  <Text
+                    variant={colorBySlotNumber[sidekickSlotNumber]}
+                    css={{ fontWeight: 'bold', display: 'inline' }}
+                  >
+                    {sidekickPlayerName}
+                  </Text>{' '}
+                  is the{' '}
+                  <Text
+                    variant="crimson"
+                    css={{ fontWeight: 'bold', display: 'inline' }}
+                  >
+                    Sidekick
+                  </Text>
+                  .
+                </>
+              ) : (
+                <>.</>
+              )}
+            </>
+          </Text>
+        ),
         sidekick_ability: ({ vigilanteSlotNumber, vigilantePlayerName }) => (
           <Text size={1}>
             <Text

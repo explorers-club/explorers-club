@@ -55,6 +55,19 @@ export const PlayerRoleMessageSchema = z
     }),
   })
   .required();
+export const ButlerAbilityMessageSchema = z
+  .object({
+    K: z.literal('butler_ability'),
+    P: z.object({
+      vigilanteUserId: z.string(),
+      vigilantePlayerName: z.string(),
+      vigilanteSlotNumber: z.number(),
+      sidekickUserId: z.string().optional(),
+      sidekickPlayerName: z.string().optional(),
+      sidekickSlotNumber: z.number().optional(),
+    }),
+  })
+  .required();
 export const SidekickAbilityMessageSchema = z
   .object({
     K: z.literal('sidekick_ability'),
@@ -108,6 +121,9 @@ export type YouLostMessage = z.infer<typeof YouLostMessageSchema>;
 export type PlayerRoleMessage = z.infer<typeof PlayerRoleMessageSchema>;
 export type SidekickAbilityMessage = z.infer<
   typeof SidekickAbilityMessageSchema
+>;
+export type ButlerAbilityMessage = z.infer<
+  typeof ButlerAbilityMessageSchema
 >;
 export type VigilanteAbilityPrimaryMessage = z.infer<
   typeof VigilanteAbilityPrimaryMessageSchema
