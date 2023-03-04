@@ -1204,12 +1204,12 @@ export const createLittleVigilanteServerMachine = (
                   },
                 };
 
-              clientsByUserId[vigilante.userId].send(
+              clientsByUserId[vigilante.userId]?.send(
                 vigilanteFallbackEvent.type,
                 vigilanteFallbackEvent
               );
             } else {
-              clientsByUserId[vigilante.userId].send(
+              clientsByUserId[vigilante.userId]?.send(
                 arrestedMessageEvent.type,
                 arrestedMessageEvent
               );
