@@ -29,6 +29,7 @@ import {
   selectButlerPlayer,
   selectUnusedRoles,
   selectVigilantePlayer,
+  selectMonkPlayer,
 } from '../state/little-vigilante.selectors';
 
 export interface LittleVigilanteServerContext {
@@ -336,6 +337,7 @@ export const createLittleVigilanteServerMachine = (
                               },
                             },
                             Twins: {
+                              entry: 'sendTwinsAbilityMessage',
                               always: [
                                 {
                                   target: 'Detective',
@@ -426,6 +428,7 @@ export const createLittleVigilanteServerMachine = (
                               },
                             },
                             Monk: {
+                              entry: 'sendMonkAbilityMessage',
                               after: {
                                 5000: 'NoAbility',
                               },
@@ -924,66 +927,30 @@ export const createLittleVigilanteServerMachine = (
               isPrivate: true,
             },
           };
-          clientsByUserId[detectiveUserId].send(
+          clientsByUserId[detectiveUserId]?.send(
             messageEvent.type,
             messageEvent
           );
         },
         sendTwinsAbilityMessage: ({ room }) => {
+          console.log('twin msgs');
           const twinBoy = selectTwinBoyPlayer(getSnapshot(room.state));
           const twinGirl = selectTwinGirlPlayer(getSnapshot(room.state));
           const clientsByUserId = getClientsByUserId(room);
-
-          if (twinGirl) {
-            let twinGirlEvent: ServerEvent<LittleVigilanteMessageCommand>;
-            if (twinBoy) {
-              twinGirlEvent = {
-                type: 'MESSAGE',
-                ts: room.state.currentTick,
-                message: {
-                  K: 'player_role',
-                  P: {
-                    name: twinBoy.name,
-                    role: 'twin_boy',
-                    slotNumber: twinBoy.slotNumber,
-                  },
-                },
-                sender: {
-                  type: 'server',
-                  isPrivate: true,
-                },
-              };
-            } else {
-              twinGirlEvent = {
-                type: 'MESSAGE',
-                ts: room.state.currentTick,
-                message: {
-                  text: 'You are the only twin.',
-                },
-                sender: {
-                  type: 'server',
-                  isPrivate: true,
-                },
-              };
-            }
-            clientsByUserId[twinGirl.userId].send(
-              twinGirlEvent.type,
-              twinGirlEvent
-            );
-          }
+          const arrestedMessageEvent = getArrestedMessage(
+            room.state.currentTick
+          );
 
           if (twinBoy) {
-            let twinBoyEvent: ServerEvent<LittleVigilanteMessageCommand>;
-            if (twinGirl) {
-              twinBoyEvent = {
+            if (twinBoy.userId !== room.state.currentRoundArrestedPlayerId) {
+              const twinBoyEvent: ServerEvent<LittleVigilanteMessageCommand> = {
                 type: 'MESSAGE',
                 ts: room.state.currentTick,
                 message: {
-                  K: 'player_role',
+                  K: 'twin_boy_ability',
                   P: {
-                    name: twinGirl.name,
-                    role: 'twin_girl',
-                    slotNumber: twinGirl.slotNumber,
+                    twinGirlPlayerName: twinGirl?.name,
+                    twinGirlSlotNumber: twinGirl?.slotNumber,
                   },
                 },
                 sender: {
@@ -991,52 +958,127 @@ export const createLittleVigilanteServerMachine = (
                   isPrivate: true,
                 },
               };
+              clientsByUserId[twinBoy.userId]?.send(
+                twinBoyEvent.type,
+                twinBoyEvent
+              );
             } else {
-              twinBoyEvent = {
-                type: 'MESSAGE',
-                ts: room.state.currentTick,
-                message: {
-                  text: 'You are the only twin.',
-                },
-                sender: {
-                  type: 'server',
-                  isPrivate: true,
-                },
-              };
+              clientsByUserId[twinBoy.userId]?.send(
+                arrestedMessageEvent.type,
+                arrestedMessageEvent
+              );
             }
-            clientsByUserId[twinBoy.userId].send(
-              twinBoyEvent.type,
-              twinBoyEvent
+          }
+
+          if (twinGirl) {
+            if (twinGirl.userId !== room.state.currentRoundArrestedPlayerId) {
+              const twinGirlEvent: ServerEvent<LittleVigilanteMessageCommand> =
+                {
+                  type: 'MESSAGE',
+                  ts: room.state.currentTick,
+                  message: {
+                    K: 'twin_girl_ability',
+                    P: {
+                      twinBoyPlayerName: twinBoy?.name,
+                      twinBoySlotNumber: twinBoy?.slotNumber,
+                    },
+                  },
+                  sender: {
+                    type: 'server',
+                    isPrivate: true,
+                  },
+                };
+              clientsByUserId[twinGirl.userId]?.send(
+                twinGirlEvent.type,
+                twinGirlEvent
+              );
+            } else {
+              clientsByUserId[twinGirl.userId]?.send(
+                arrestedMessageEvent.type,
+                arrestedMessageEvent
+              );
+            }
+          }
+
+          // }
+
+          // if (twinBoy) {
+          //   let twinBoyEvent: ServerEvent<LittleVigilanteMessageCommand>;
+          //   if (twinGirl) {
+          //     twinBoyEvent = {
+          //       type: 'MESSAGE',
+          //       ts: room.state.currentTick,
+          //       message: {
+          //         K: 'player_role',
+          //         P: {
+          //           name: twinGirl.name,
+          //           role: 'twin_girl',
+          //           slotNumber: twinGirl.slotNumber,
+          //         },
+          //       },
+          //       sender: {
+          //         type: 'server',
+          //         isPrivate: true,
+          //       },
+          //     };
+          //   } else {
+          //     twinBoyEvent = {
+          //       type: 'MESSAGE',
+          //       ts: room.state.currentTick,
+          //       message: {
+          //         text: 'You are the only twin.',
+          //       },
+          //       sender: {
+          //         type: 'server',
+          //         isPrivate: true,
+          //       },
+          //     };
+          //   }
+          //   clientsByUserId[twinBoy.userId]?.send(
+          //     twinBoyEvent.type,
+          //     twinBoyEvent
+          //   );
+          // }
+        },
+        sendMonkAbilityMessage: ({ room }) => {
+          const monk = selectMonkPlayer(getSnapshot(room.state));
+          if (!monk) {
+            return;
+          }
+
+          const clientsByUserId = getClientsByUserId(room);
+
+          const arrestedMessageEvent = getArrestedMessage(
+            room.state.currentTick
+          );
+          const currentRole = room.state.currentRoundRoles.get(monk.userId);
+          if (!currentRole) {
+            console.warn("expected current role for monk but didn't find one");
+            return;
+          }
+
+          if (monk.userId !== room.state.currentRoundArrestedPlayerId) {
+            const monkEvent: ServerEvent<LittleVigilanteMessageCommand> = {
+              type: 'MESSAGE',
+              ts: room.state.currentTick,
+              message: {
+                K: 'monk_ability',
+                P: {
+                  monkSlotNumber: monk.slotNumber,
+                  monkRole: currentRole,
+                },
+              },
+              sender: {
+                type: 'server',
+                isPrivate: true,
+              },
+            };
+            clientsByUserId[monk.userId]?.send(monkEvent.type, monkEvent);
+          } else {
+            clientsByUserId[monk.userId]?.send(
+              arrestedMessageEvent.type,
+              arrestedMessageEvent
             );
-            // const twinGirlEvent: ServerEvent<LittleVigilanteMessageCommand> =
-            //   twinBoy
-            //     ? {
-            //         type: 'MESSAGE',
-            //         ts: room.state.currentTick,
-            //         message: {
-            //           K: 'player_role',
-            //           P: {
-            //             name: twinBoy.userId,
-            //             role: 'twin_boy',
-            //             slotNumber: twinBoy.slotNumber,
-            //           },
-            //         },
-            //         sender: {
-            //           type: 'server',
-            //           isPrivate: true,
-            //         },
-            //       }
-            //     : {
-            //         type: 'MESSAGE',
-            //         ts: room.state.currentTick,
-            //         message: {
-            //           text: 'Nobody is',
-            //         },
-            //       };
-            // clientsByUserId[twinGirl.userId].send(
-            //   twinGirlEvent.type,
-            //   twinGirlEvent
-            // );
           }
         },
         sendButlerAbilityMessage: ({ room }) => {
@@ -1073,9 +1115,9 @@ export const createLittleVigilanteServerMachine = (
                 isPrivate: true,
               },
             };
-            clientsByUserId[butler.userId].send(butlerEvent.type, butlerEvent);
+            clientsByUserId[butler.userId]?.send(butlerEvent.type, butlerEvent);
           } else {
-            clientsByUserId[butler.userId].send(
+            clientsByUserId[butler.userId]?.send(
               arrestedMessageEvent.type,
               arrestedMessageEvent
             );
@@ -1108,12 +1150,12 @@ export const createLittleVigilanteServerMachine = (
                     isPrivate: true,
                   },
                 };
-              clientsByUserId[sidekick.userId].send(
+              clientsByUserId[sidekick.userId]?.send(
                 sidekickEvent.type,
                 sidekickEvent
               );
             } else {
-              clientsByUserId[sidekick.userId].send(
+              clientsByUserId[sidekick.userId]?.send(
                 arrestedMessageEvent.type,
                 arrestedMessageEvent
               );
@@ -1138,12 +1180,12 @@ export const createLittleVigilanteServerMachine = (
                   },
                 };
 
-              clientsByUserId[vigilante.userId].send(
+              clientsByUserId[vigilante.userId]?.send(
                 vigilantePrimaryEvent.type,
                 vigilantePrimaryEvent
               );
             } else {
-              clientsByUserId[vigilante.userId].send(
+              clientsByUserId[vigilante.userId]?.send(
                 arrestedMessageEvent.type,
                 arrestedMessageEvent
               );
@@ -1457,7 +1499,7 @@ const getClientsByUserId = (room: Room<LittleVigilanteState, any>) => {
       result[userId] = client;
     }
     return result;
-  }, {} as Record<string, Client>);
+  }, {} as Partial<Record<string, Client>>);
 };
 
 const getArrestedMessage = (currentTick: number) => {

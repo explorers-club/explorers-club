@@ -37,6 +37,9 @@ import {
   TextMessageSchema,
   UserSenderSchema,
   isButlerAbilityMessage,
+  isMonkAbilityMessage,
+  isTwinBoyAbilityMessage,
+  isTwinGirlAbilityMessage,
 } from '@explorers-club/room';
 import { colorBySlotNumber, styled } from '@explorers-club/styles';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
@@ -86,6 +89,9 @@ import {
   PlayerRoleMessage,
   YouWonMessage,
   ButlerAbilityMessage,
+  TwinBoyAbilityMessage,
+  TwinGirlAbilityMessage,
+  MonkAbilityMessage,
 } from '@explorers-club/chat';
 import { useTranslation } from '../../i18n';
 import { CalledVote } from './called-vote.component';
@@ -442,6 +448,12 @@ const MessageComponent: FC<{ message: LittleVigilanteMessage }> = ({
     return <>{t(message)}</>;
   } else if (isWinnersMessage(message)) {
     return <>{t(message.K, message.P)}</>;
+  } else if (isTwinGirlAbilityMessage(message)) {
+    return <>{t(message.K, message.P)}</>;
+  } else if (isTwinBoyAbilityMessage(message)) {
+    return <>{t(message.K, message.P)}</>;
+  } else if (isMonkAbilityMessage(message)) {
+    return <>{t(message.K, message.P)}</>;
   } else if (isButlerAbilityMessage(message)) {
     return <>{t(message.K, message.P)}</>;
   } else if (isSidekickAbilityMessage(message)) {
@@ -468,6 +480,9 @@ export const { i18n } = declareComponentKeys<
   | YouLostMessage
   | (PlayerRoleMessage & { R: JSX.Element })
   | (ButlerAbilityMessage & { R: JSX.Element })
+  | (TwinBoyAbilityMessage & { R: JSX.Element })
+  | (TwinGirlAbilityMessage & { R: JSX.Element })
+  | (MonkAbilityMessage & { R: JSX.Element })
   | (SidekickAbilityMessage & { R: JSX.Element })
   | (VigilanteAbilityFallbackMessage & { R: JSX.Element })
   | (VigilanteAbilityPrimaryMessage & { R: JSX.Element })

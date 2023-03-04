@@ -9,7 +9,7 @@ import {
 
 export const selectMonkPlayer = (state: LittleVigilanteStateSerialized) => {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const tuple = Object.entries(state.currentRoundRoles).find(
+  const tuple = Object.entries(state.initialCurrentRoundRoles).find(
     ([, role]) => role === 'monk'
   );
   return tuple ? state.players[tuple[0]] : undefined;
@@ -17,7 +17,7 @@ export const selectMonkPlayer = (state: LittleVigilanteStateSerialized) => {
 
 export const selectButlerPlayer = (state: LittleVigilanteStateSerialized) => {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const tuple = Object.entries(state.currentRoundRoles).find(
+  const tuple = Object.entries(state.initialCurrentRoundRoles).find(
     ([, role]) => role === 'butler'
   );
   return tuple ? state.players[tuple[0]] : undefined;
@@ -25,7 +25,7 @@ export const selectButlerPlayer = (state: LittleVigilanteStateSerialized) => {
 
 export const selectSidekickPlayer = (state: LittleVigilanteStateSerialized) => {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const tuple = Object.entries(state.currentRoundRoles).find(
+  const tuple = Object.entries(state.initialCurrentRoundRoles).find(
     ([, role]) => role === 'sidekick'
   );
   return tuple ? state.players[tuple[0]] : undefined;
@@ -35,7 +35,7 @@ export const selectVigilantePlayer = (
   state: LittleVigilanteStateSerialized
 ) => {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const [userId] = Object.entries(state.currentRoundRoles).find(
+  const [userId] = Object.entries(state.initialCurrentRoundRoles).find(
     ([, role]) => role === 'vigilante'
   )!;
   return state.players[userId];

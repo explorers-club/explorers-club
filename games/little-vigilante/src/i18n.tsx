@@ -1,7 +1,12 @@
 import { createI18nApi, declareComponentKeys } from 'i18nifty';
 import { Text } from '@atoms/Text';
 import { colorBySlotNumber } from '@explorers-club/styles';
-import { displayNameByRole } from './meta/little-vigilante.constants';
+import {
+  colorByTeam,
+  displayNameByRole,
+  getTeamThemeColor,
+  teamByRole,
+} from './meta/little-vigilante.constants';
 import { Role } from './schema';
 export { declareComponentKeys };
 
@@ -32,7 +37,7 @@ export const {
         night_phase: 'Night phase begins',
         discuss: 'Discuss!',
         vote: 'Vote!',
-        role_assign: ({ role }) => `You are the ${role}`,
+        role_assign: ({ role }) => `You are the ${displayNameByRole[role]}`,
         player_role: ({ name, role, slotNumber }) => (
           <Text>
             <Text
@@ -74,6 +79,54 @@ export const {
                 Sidekick
               </Text>
             </>
+          </Text>
+        ),
+        twin_girl_ability: ({ twinBoyPlayerName, twinBoySlotNumber }) => (
+          <Text>
+            {twinBoyPlayerName && twinBoySlotNumber ? (
+              <>
+                <Text
+                  css={{ display: 'inline', fontWeight: 'bold' }}
+                  variant={colorBySlotNumber[twinBoySlotNumber]}
+                >
+                  {twinBoyPlayerName}
+                </Text>{' '}
+                is your twin.
+              </>
+            ) : (
+              <Text>You are the only twin</Text>
+            )}
+          </Text>
+        ),
+        twin_boy_ability: ({ twinGirlPlayerName, twinGirlSlotNumber }) => (
+          <Text>
+            {twinGirlPlayerName && twinGirlSlotNumber ? (
+              <>
+                <Text
+                  css={{ display: 'inline', fontWeight: 'bold' }}
+                  variant={colorBySlotNumber[twinGirlSlotNumber]}
+                >
+                  {twinGirlPlayerName}
+                </Text>{' '}
+                is your twin.
+              </>
+            ) : (
+              <Text>You are the only twin</Text>
+            )}
+          </Text>
+        ),
+        monk_ability: ({ monkRole, monkSlotNumber }) => (
+          <Text>
+            <Text
+              variant={colorBySlotNumber[monkSlotNumber]}
+              css={{ fontWeight: 'bold', display: 'inline' }}
+            >
+              You
+            </Text>{' '}
+            are the{' '}
+            <Text variant={getTeamThemeColor(teamByRole[monkRole as Role])}>
+              {displayNameByRole[monkRole as Role]}
+            </Text>
           </Text>
         ),
         butler_ability: ({

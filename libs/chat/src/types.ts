@@ -55,6 +55,33 @@ export const PlayerRoleMessageSchema = z
     }),
   })
   .required();
+export const MonkAbilityMessageSchema = z
+  .object({
+    K: z.literal('monk_ability'),
+    P: z.object({
+      monkSlotNumber: z.number(),
+      monkRole: z.string(),
+    }),
+  })
+  .required();
+export const TwinBoyAbilityMessageSchema = z
+  .object({
+    K: z.literal('twin_boy_ability'),
+    P: z.object({
+      twinGirlPlayerName: z.string().optional(),
+      twinGirlSlotNumber: z.number().optional(),
+    }),
+  })
+  .required();
+export const TwinGirlAbilityMessageSchema = z
+  .object({
+    K: z.literal('twin_girl_ability'),
+    P: z.object({
+      twinBoyPlayerName: z.string().optional(),
+      twinBoySlotNumber: z.number().optional(),
+    }),
+  })
+  .required();
 export const ButlerAbilityMessageSchema = z
   .object({
     K: z.literal('butler_ability'),
@@ -122,9 +149,10 @@ export type PlayerRoleMessage = z.infer<typeof PlayerRoleMessageSchema>;
 export type SidekickAbilityMessage = z.infer<
   typeof SidekickAbilityMessageSchema
 >;
-export type ButlerAbilityMessage = z.infer<
-  typeof ButlerAbilityMessageSchema
->;
+export type ButlerAbilityMessage = z.infer<typeof ButlerAbilityMessageSchema>;
+export type TwinBoyAbilityMessage = z.infer<typeof TwinBoyAbilityMessageSchema>;
+export type TwinGirlAbilityMessage = z.infer<typeof TwinGirlAbilityMessageSchema>;
+export type MonkAbilityMessage = z.infer<typeof MonkAbilityMessageSchema>;
 export type VigilanteAbilityPrimaryMessage = z.infer<
   typeof VigilanteAbilityPrimaryMessageSchema
 >;

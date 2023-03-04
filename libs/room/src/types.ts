@@ -31,6 +31,12 @@ import {
   PlayerRoleMessageSchema,
   ButlerAbilityMessage,
   ButlerAbilityMessageSchema,
+  TwinGirlAbilityMessageSchema,
+  TwinBoyAbilityMessageSchema,
+  MonkAbilityMessage,
+  MonkAbilityMessageSchema,
+  TwinBoyAbilityMessage,
+  TwinGirlAbilityMessage,
 } from '@explorers-club/chat';
 import {
   CodebreakersConfig,
@@ -302,6 +308,9 @@ export type LittleVigilanteMessage =
   | YouLostMessage
   | YouWonMessage
   | SidekickAbilityMessage
+  | MonkAbilityMessage
+  | TwinBoyAbilityMessage
+  | TwinGirlAbilityMessage
   | ButlerAbilityMessage
   | PlayerRoleMessage
   | VigilanteAbilityFallbackMessage
@@ -336,6 +345,19 @@ export const isPlayerRoleMessage = (obj: any): obj is PlayerRoleMessage =>
 
 export const isButlerAbilityMessage = (obj: any): obj is ButlerAbilityMessage =>
   ButlerAbilityMessageSchema.safeParse(obj).success;
+
+export const isTwinBoyAbilityMessage = (
+  obj: any
+): obj is TwinBoyAbilityMessage =>
+  TwinBoyAbilityMessageSchema.safeParse(obj).success;
+
+export const isTwinGirlAbilityMessage = (
+  obj: any
+): obj is TwinGirlAbilityMessage =>
+  TwinGirlAbilityMessageSchema.safeParse(obj).success;
+
+export const isMonkAbilityMessage = (obj: any): obj is MonkAbilityMessage =>
+  MonkAbilityMessageSchema.safeParse(obj).success;
 
 export const isSidekickAbilityMessage = (
   obj: any
