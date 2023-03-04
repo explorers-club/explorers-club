@@ -228,9 +228,11 @@ const ChatMessageList = () => {
       >
         <ChatRoot>
           <ChatViewport ref={scrollViewRef}>
-            {events.map((event, index) => (
-              <ChatEvent key={event.ts} index={index} event={event} />
-            ))}
+            <Flex direction="column" gap="2">
+              {events.map((event, index) => (
+                <ChatEvent key={event.ts} index={index} event={event} />
+              ))}
+            </Flex>
             <TypingIndicator />
             {/* Anchor from https://css-tricks.com/books/greatest-css-tricks/pin-scrolling-to-bottom/ */}
             {/* <Box css={{ overflowAnchor: 'auto !important', height: '1px' }} /> */}
