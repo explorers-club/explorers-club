@@ -869,13 +869,7 @@ export const createLittleVigilanteServerMachine = (
             ...shuffle(withoutVig).slice(0, playerCount - 1),
             'vigilante',
           ]);
-          const clientsByUserId = room.clients.reduce((result, client) => {
-            if (client.userData) {
-              const userId = client.userData['userId'];
-              result[userId] = client;
-            }
-            return result;
-          }, {} as Record<string, Client>);
+          const clientsByUserId = getClientsByUserId(room);
 
           room.state.players.forEach(({ userId }) => {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -896,7 +890,7 @@ export const createLittleVigilanteServerMachine = (
               },
             };
 
-            clientsByUserId[userId].send(event.type, event);
+            clientsByUserId[userId]?.send(event.type, event);
           });
         },
         sendDetectiveAbilityMessage: ({ room }, event) => {
@@ -1320,14 +1314,7 @@ export const createLittleVigilanteServerMachine = (
           room.broadcast(event.type, event);
         },
         sendWinStatusMessage: ({ room }) => {
-          const clientsByUserId = room.clients.reduce((result, client) => {
-            if (client.userData) {
-              const userId = client.userData['userId'];
-              result[userId] = client;
-            }
-            return result;
-          }, {} as Record<string, Client>);
-
+          const clientsByUserId = getClientsByUserId(room);
           const playerOutcomes = selectPlayerOutcomes(getSnapshot(room.state));
 
           playerOutcomes.forEach(({ userId, winner }) => {
@@ -1340,7 +1327,7 @@ export const createLittleVigilanteServerMachine = (
                 isPrivate: true,
               },
             };
-            clientsByUserId[userId].send(event.type, event);
+            clientsByUserId[userId]?.send(event.type, event);
           });
         },
         sendRevealPhaseMessage: ({ room }) => {
