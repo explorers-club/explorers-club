@@ -324,7 +324,7 @@ export const {
     fonts: {
       sans: 'Inter, -apple-system, system-ui, sans-serif',
       mono: 'Söhne Mono, menlo, monospace',
-      // add a "brand" or artistic font? and a serif one?
+      WoodChop: 'WoodChop',
     },
     shadows: {
       shadow4:

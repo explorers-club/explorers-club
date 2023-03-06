@@ -1,10 +1,18 @@
 import { Box } from '../atoms/Box';
 import { DecoratorFn } from '@storybook/react';
-import { darkTheme, theme as lightTheme } from '../stitches.config';
+import { darkTheme, globalCss, theme as lightTheme } from '../stitches.config';
+
+const globalStyles = globalCss({
+  '@font-face': {
+    fontFamily: 'WoodChop',
+    src: "url('./assets/WoodChop.woff') format('woff'), url('./assets/WoodChop.ttf') format('ttf'), url('./assets/WoodChop.otf') format('otf')",
+  },
+});
 
 export const withTheme: DecoratorFn = (StoryFn, context) => {
   const theme = context.parameters['theme'] || context.globals['theme'];
   const storyTheme = theme === 'light' ? lightTheme : darkTheme;
+  globalStyles();
 
   return (
     <Box className={storyTheme}>
