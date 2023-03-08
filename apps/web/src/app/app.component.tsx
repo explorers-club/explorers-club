@@ -1,4 +1,3 @@
-import { Treehouse } from '@3d/treehouse';
 import FSpyDataManager, {
   defaultCameraParams,
 } from '@3d/utils/FSpyDataManager';
@@ -6,6 +5,7 @@ import { Box } from '@atoms/Box';
 import { Button } from '@atoms/Button';
 import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
+import { Heading } from '@atoms/Heading';
 import { IconButton } from '@atoms/IconButton';
 import { Image } from '@atoms/Image';
 import {
@@ -30,7 +30,7 @@ import {
   useContextBridge,
 } from '@react-three/drei';
 import { Canvas, useThree } from '@react-three/fiber';
-import { useInterpret } from '@xstate/react';
+import { useInterpret, useSelector } from '@xstate/react';
 import {
   createContext,
   FC,
@@ -38,7 +38,6 @@ import {
   Suspense,
   useCallback,
   useContext,
-  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -51,7 +50,10 @@ import { fspyCameraJson } from './app.constants';
 
 type AppEvent =
   | {
-      type: 'TOGGLE_NAV';
+      type: 'CLOSE_NAV';
+    }
+  | {
+      type: 'OPEN_NAV';
     }
   | {
       type: 'START_NEW';
@@ -85,12 +87,12 @@ const appMachine = createMachine({
       states: {
         Closed: {
           on: {
-            TOGGLE_NAV: 'Open',
+            OPEN_NAV: 'Open',
           },
         },
         Open: {
           on: {
-            TOGGLE_NAV: 'Closed',
+            CLOSE_NAV: 'Closed',
           },
         },
       },
@@ -139,12 +141,33 @@ export const AppComponent = () => {
 // }
 
 const NavigationDrawer = () => {
+  const appService = useContext(AppServiceContext);
+  const isOpen = useSelector(appService, (state) =>
+    state.matches('Navigation.Open')
+  );
+
+  const handleOpenChange = useCallback(
+    (open: boolean) => {
+      if (open) {
+        appService.send('OPEN_NAV');
+      } else {
+        appService.send('CLOSE_NAV');
+      }
+    },
+    [appService]
+  );
+
   return (
-    <Dialog.Root>
+    <Dialog.Root open={isOpen} onOpenChange={handleOpenChange}>
       <Dialog.Trigger asChild>
-        <IconButton size="3">
-          <HamburgerMenuIcon />
-        </IconButton>
+        {!isOpen && (
+          <IconButton
+            size="3"
+            css={{ position: 'absolute', zIndex: 100, top: '$3', left: '$3' }}
+          >
+            <HamburgerMenuIcon color="white" />
+          </IconButton>
+        )}
       </Dialog.Trigger>
       <Dialog.Portal>
         <NavigationDrawerOverlay />
@@ -308,6 +331,7 @@ const MainContainer = styled('div', {
   right: 0,
   bottom: 0,
 
+  flexWrap: 'wrap',
   flexDirection: 'column',
 
   '@bp2': {
@@ -315,18 +339,72 @@ const MainContainer = styled('div', {
   },
 
   '& .main-screen': {
+    flex: 1,
     flexBasis: '30%',
     background: 'yellow',
   },
 
   '& .main-scene': {
+    flex: 1,
     flexBasis: '70%',
     background: 'red',
   },
 });
 
 const MainScreen = () => {
-  return <Flex className="main-screen">Main Screen</Flex>;
+  return (
+    <Flex className="main-screen" direction="column">
+      <ScrollAreaRoot css={{ background: 'red' }}>
+        <ScrollAreaViewport>
+          <Heading>Main Screen</Heading>
+          <Flex direction="column" gap="3">
+            <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
+              Hello
+            </Card>
+            <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
+              Hello
+            </Card>
+            <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
+              Hello
+            </Card>
+            <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
+              Hello
+            </Card>
+            {/* <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
+              Hello
+            </Card>
+            <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
+              Hello
+            </Card>
+            <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
+              Hello
+            </Card>
+            <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
+              Hello
+            </Card>
+            <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
+              Hello
+            </Card>
+            <Card
+              css={{
+                p: '$3',
+                minHeight: '200px',
+                position: 'sticky',
+                bottom: 0,
+              }}
+              color="success"
+              variant="interactive"
+            >
+              Start New Game
+            </Card> */}
+          </Flex>
+        </ScrollAreaViewport>
+        <ScrollAreaScrollbar orientation="vertical">
+          <ScrollAreaThumb />
+        </ScrollAreaScrollbar>
+      </ScrollAreaRoot>
+    </Flex>
+  );
 };
 
 const MainScene = () => {
@@ -341,10 +419,8 @@ const MainScene = () => {
       }}
     >
       <axesHelper />
-      {/* <Treehouse /> */}
       <FSpyCamera />
       <Environment preset="sunset" />
-      {/* <Treehouse /> */}
       <OrbitControls />
       <gridHelper />
     </Canvas>
