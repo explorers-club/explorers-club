@@ -2,6 +2,7 @@ import { transformer, trpc } from '@explorers-club/api-client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createWSClient, wsLink } from '@trpc/client';
 import { useState } from 'react';
+import { EntityStoreProvider } from '../state/entity.context';
 import { AppComponent } from './app.component';
 
 export const App = () => {
@@ -33,7 +34,9 @@ export const App = () => {
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        <AppComponent />
+        <EntityStoreProvider>
+          <AppComponent />
+        </EntityStoreProvider>
       </QueryClientProvider>
     </trpc.Provider>
   );

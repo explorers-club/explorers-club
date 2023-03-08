@@ -1,175 +1,430 @@
-import { Floor } from '@3d/floor';
-import { SunsetSky } from '@3d/sky';
 import { Treehouse } from '@3d/treehouse';
+import FSpyDataManager, {
+  defaultCameraParams,
+} from '@3d/utils/FSpyDataManager';
 import { Box } from '@atoms/Box';
-import { Logo } from '@atoms/Logo';
-import { darkTheme } from '@explorers-club/styles';
+import { Button } from '@atoms/Button';
+import { Card } from '@atoms/Card';
+import { Flex } from '@atoms/Flex';
+import { IconButton } from '@atoms/IconButton';
+import { Image } from '@atoms/Image';
 import {
-  NotificationsComponent,
-  notificationsMachine,
-} from '@organisms/notifications';
-import { createTabBarMachine, TabBar } from '@organisms/tab-bar';
+  ScrollAreaRoot,
+  ScrollAreaScrollbar,
+  ScrollAreaThumb,
+  ScrollAreaViewport,
+} from '@atoms/ScrollArea';
+import { Text } from '@atoms/Text';
+import { trpc } from '@explorers-club/api-client';
+import { styled } from '@explorers-club/styles';
+import * as Dialog from '@radix-ui/react-dialog';
+import {
+  Cross2Icon,
+  HamburgerMenuIcon,
+  OpenInNewWindowIcon,
+} from '@radix-ui/react-icons';
+import * as Tabs from '@radix-ui/react-tabs';
 import {
   Environment,
   OrbitControls,
   useContextBridge,
 } from '@react-three/drei';
-import { Canvas } from '@react-three/fiber';
-import { useInterpret, useSelector } from '@xstate/react';
-import * as Colyseus from 'colyseus.js';
-import { FC, ReactElement, Suspense, useContext, useState } from 'react';
-import { BottomSheet } from 'react-spring-bottom-sheet';
+import { Canvas, useThree } from '@react-three/fiber';
+import { useInterpret } from '@xstate/react';
 import {
-  defaultSnapProps,
-  SnapPointProps,
-} from 'react-spring-bottom-sheet/dist/types';
-import { ModalComponent, modalMachine } from '../components/organisms/modal';
-import { environment } from '../environments/environment';
-import { AppContext } from '../state/app.context';
-import { AuthContext } from '../state/auth.context';
+  createContext,
+  FC,
+  ReactElement,
+  Suspense,
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
+import { PerspectiveCamera, Vector2 } from 'three';
+import { createMachine, InterpreterFrom, StateFrom } from 'xstate';
 import { ColyseusContext } from '../state/colyseus.context';
-import { ClubTab, createClubTabMachine } from '../tabs/club';
-import { createGameTabMachine, GameTab } from '../tabs/game';
-import { createLobbyTabMachine, LobbyTab } from '../tabs/lobby';
-import { createProfileTabMachine, ProfileTab } from '../tabs/profile';
-import { getClubNameFromPath } from '../utils';
-import { NavigationHelper } from './navigation-helper.component';
+import { useEntityStoreSelector } from '../state/entity.context';
+import { fspyCameraJson } from './app.constants';
 
-const DEFAULT_SNAP_POINTS = ({ minHeight }: SnapPointProps) => [
-  minHeight /* height of child contents (will go to full screen then scroll) */,
-  // window.innerHeight * 0.4 /* almost halfway up */,
-  // 80 /* fixed height of tab bar so you can always see it */,
-];
+type AppEvent =
+  | {
+      type: 'TOGGLE_NAV';
+    }
+  | {
+      type: 'START_NEW';
+    };
 
-const DEFAULT_SNAP = ({ snapPoints }: defaultSnapProps) => snapPoints[0];
+const appMachine = createMachine({
+  id: 'AppMachine',
+  initial: 'Idle',
+  type: 'parallel',
+  schema: {
+    events: {} as AppEvent,
+  },
+  states: {
+    MainScene: {
+      initial: 'Loading',
+      states: {
+        Loading: {},
+        Loaded: {},
+      },
+    },
+    MainScreen: {
+      initial: 'Hovering',
+      states: {
+        Hidden: {},
+        Hovering: {},
+        Full: {},
+      },
+    },
+    Navigation: {
+      initial: 'Closed',
+      states: {
+        Closed: {
+          on: {
+            TOGGLE_NAV: 'Open',
+          },
+        },
+        Open: {
+          on: {
+            TOGGLE_NAV: 'Closed',
+          },
+        },
+      },
+    },
+  },
+});
+
+type AppMachine = typeof appMachine;
+type AppState = StateFrom<AppMachine>;
+type AppService = InterpreterFrom<AppMachine>;
+
+const AppServiceContext = createContext({} as AppService);
 
 export const AppComponent = () => {
-  const [colyseusClient] = useState(
-    new Colyseus.Client(environment.colyseusHost)
-  );
-  const authContext = useContext(AuthContext);
+  const [machine] = useState(appMachine);
+  const appService = useInterpret(machine);
 
-  const [lobbyTabMachine] = useState(createLobbyTabMachine(colyseusClient));
-  const lobbyTabActor = useInterpret(lobbyTabMachine);
+  const entitiesById = useEntityStoreSelector((state) => state.entitiesById);
+  const roomNameRef = useRef<HTMLInputElement>(null);
 
-  // const chatActor = useInterpret(chatMachine);
+  const trpcClient = trpc.useContext().client;
 
-  const modalActor = useInterpret(modalMachine);
-  const notificationsActor = useInterpret(notificationsMachine);
-
-  const [profileTabMachine] = useState(createProfileTabMachine(authContext));
-  const profileTabActor = useInterpret(profileTabMachine);
-
-  const [gameTabMachine] = useState(
-    createGameTabMachine(colyseusClient, authContext.userId)
-  );
-  const gameTabActor = useInterpret(gameTabMachine);
-
-  const clubName = getClubNameFromPath();
-  const [clubTabMachine] = useState(
-    createClubTabMachine(
-      colyseusClient,
-      authContext.userId,
-      notificationsActor,
-      clubName
-    )
-  );
-  const clubTabActor = useInterpret(clubTabMachine);
-
-  const [machine] = useState(
-    createTabBarMachine({
-      Game: {
-        actor: gameTabActor,
-        name: 'Game',
-        Component: <GameTab />,
-      },
-      Club: {
-        actor: clubTabActor,
-        name: 'Club',
-        Component: <ClubTab />,
-      },
-      Lobby: {
-        actor: lobbyTabActor,
-        name: 'Lobby',
-        Component: <LobbyTab />,
-      },
-      Profile: {
-        actor: profileTabActor,
-        name: 'Profile',
-        Component: <ProfileTab />,
-      },
-    })
-  );
-
-  const tabBarActor = useInterpret(machine);
-
-  const isShowingModal = useSelector(modalActor, (state) =>
-    state.matches('Mounted')
-  );
+  const handlePressSubmit = useCallback(() => {
+    trpcClient.actor.create.mutate({
+      actorType: 'staging_room',
+      name: 'hello',
+    });
+  }, [trpcClient]);
 
   return (
-    <AppContext.Provider
-      value={{
-        tabBarActor,
-        profileTabActor,
-        gameTabActor,
-        clubTabActor,
-        lobbyTabActor,
-        notificationsActor,
-        modalActor,
+    <AppServiceContext.Provider value={appService}>
+      <NavigationDrawer />
+      {/* <NavigationContainer /> */}
+      <MainContainer>
+        <MainScene />
+        <MainScreen />
+      </MainContainer>
+    </AppServiceContext.Provider>
+  );
+};
+
+// const MainScreenDrawer = () => {
+//   return (
+
+//   )
+// }
+
+const NavigationDrawer = () => {
+  return (
+    <Dialog.Root>
+      <Dialog.Trigger asChild>
+        <IconButton size="3">
+          <HamburgerMenuIcon />
+        </IconButton>
+      </Dialog.Trigger>
+      <Dialog.Portal>
+        <NavigationDrawerOverlay />
+        <NavigationDrawerContent />
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
+  return <Text>Navigation</Text>;
+};
+
+const StyledDialogContent = styled(Dialog.Content, {
+  position: 'fixed',
+  left: 0,
+  top: 0,
+  bottom: 0,
+  width: '100%',
+  backgroundColor: '$primary3',
+  '@bp2': {
+    maxWidth: '50%',
+  },
+  '@bp3': {
+    maxWidth: '30%',
+  },
+  '@bp4': {
+    maxWidth: '20%',
+  },
+});
+
+const TabButton = styled(Button, {
+  "&[data-state='active']": {
+    background: '$primary4',
+  },
+});
+// .TabsTrigger[data-state='active'] {
+//   color: var(--violet11);
+//   box-shadow: inset 0 -1px 0 0 currentColor, 0 1px 0 0 currentColor;
+// }
+
+const NavigationDrawerContent = () => {
+  const appService = useContext(AppServiceContext);
+  const handlePressStart = useCallback(() => {
+    appService.send('START_NEW');
+  }, [appService]);
+
+  return (
+    <StyledDialogContent>
+      <Tabs.Root defaultValue="play" style={{ height: '100%' }}>
+        <Flex direction="column" gap="3" style={{ height: '100%' }}>
+          <Flex justify={'between'} css={{ p: '$3' }}>
+            <Tabs.List>
+              <Tabs.Trigger value="play" asChild>
+                <TabButton ghost size="3">
+                  Play
+                </TabButton>
+              </Tabs.Trigger>
+              <Tabs.Trigger value="shop" asChild>
+                <TabButton ghost size="3">
+                  Shop
+                </TabButton>
+              </Tabs.Trigger>
+              <Tabs.Trigger value="account" asChild>
+                <TabButton ghost size="3">
+                  Account
+                </TabButton>
+              </Tabs.Trigger>
+            </Tabs.List>
+            <Dialog.Close asChild>
+              <IconButton size="3">
+                <Cross2Icon />
+              </IconButton>
+            </Dialog.Close>
+          </Flex>
+          <ScrollAreaRoot css={{ background: 'red' }}>
+            <ScrollAreaViewport>
+              <Tabs.Content value="play">
+                <Flex direction="column" gap="3">
+                  <Card
+                    css={{ p: '$3', minHeight: '200px' }}
+                    variant="interactive"
+                  >
+                    Hello
+                  </Card>
+                  <Card
+                    css={{ p: '$3', minHeight: '200px' }}
+                    variant="interactive"
+                  >
+                    Hello
+                  </Card>
+                  <Card
+                    css={{
+                      p: '$3',
+                      minHeight: '200px',
+                      position: 'sticky',
+                      bottom: 0,
+                    }}
+                    color="success"
+                    variant="interactive"
+                    onClick={handlePressStart}
+                  >
+                    Start New Game
+                  </Card>
+                </Flex>
+              </Tabs.Content>
+              <Tabs.Content value="shop">
+                <Flex direction="column" gap="3">
+                  <Card
+                    css={{
+                      background: `linear-gradient($primary4, $primary7)`,
+                      border: '2px solid $primary6',
+                    }}
+                  >
+                    <Image
+                      css={{ aspectRatio: 1, width: '100%' }}
+                      src="https://cdn.discordapp.com/attachments/1039255735390978120/1082663770159071272/pigment-dyed-cap-black-stone-front-640601d4ccad3.png"
+                    />
+                  </Card>
+                  <a href="https://merch.explorers.club" target="_blank">
+                    <Card
+                      css={{ p: '$3', minHeight: '200px' }}
+                      variant="interactive"
+                    >
+                      <Text>
+                        Open Merch Store <OpenInNewWindowIcon />
+                      </Text>
+                    </Card>
+                  </a>
+                </Flex>
+              </Tabs.Content>
+              <Tabs.Content value="account">
+                <Card
+                  css={{ p: '$3', minHeight: '200px' }}
+                  variant="interactive"
+                >
+                  Create Account
+                </Card>
+              </Tabs.Content>
+            </ScrollAreaViewport>
+            <ScrollAreaScrollbar orientation="vertical">
+              <ScrollAreaThumb />
+            </ScrollAreaScrollbar>
+          </ScrollAreaRoot>
+        </Flex>
+      </Tabs.Root>
+    </StyledDialogContent>
+  );
+};
+
+const NavigationDrawerOverlay = styled(Dialog.Overlay, {
+  position: 'fixed',
+  inset: 0,
+  backgroundColor: 'rgba(0,0,0,.7)',
+});
+
+// animateable div
+const MainContainer = styled('div', {
+  display: 'flex',
+  position: 'absolute',
+
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+
+  flexDirection: 'column',
+
+  '@bp2': {
+    flexDirection: 'row',
+  },
+
+  '& .main-screen': {
+    flexBasis: '30%',
+    background: 'yellow',
+  },
+
+  '& .main-scene': {
+    flexBasis: '70%',
+    background: 'red',
+  },
+});
+
+const MainScreen = () => {
+  return <Flex className="main-screen">Main Screen</Flex>;
+};
+
+const MainScene = () => {
+  return (
+    <Canvas
+      className="main-scene"
+      style={{
+        backgroundImage: `url('${SCENE_URL}')`,
+        backgroundSize: 'cover',
+        backgroundPositionX: 'center',
+        backgroundPositionY: 'center',
       }}
     >
-      <NavigationHelper />
-      <Box
-        css={{
-          position: 'absolute',
-          top: 0,
-          left: '50%',
-          zIndex: 1,
-          width: '120px',
-          marginLeft: '-60px',
-          pt: '$2',
-        }}
-      >
-        <Logo />
-      </Box>
-      <Box
-        css={{
-          maxWidth: 400,
-          background: 'black',
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          zIndex: 100,
-        }}
-      >
-        <NotificationsComponent actor={notificationsActor} />
-      </Box>
-      <BottomSheet
-        open={true}
-        blocking={false}
-        defaultSnap={DEFAULT_SNAP}
-        snapPoints={DEFAULT_SNAP_POINTS}
-      >
-        <Box className={darkTheme.className}>
-          {isShowingModal ? (
-            <ModalComponent actor={modalActor} />
-          ) : (
-            <TabBar actor={tabBarActor} />
-          )}
-        </Box>
-      </BottomSheet>
-      <SceneContainer>
-        <>
-          <OrbitControls maxDistance={80} />
-          <Environment preset="sunset" />
-          <SunsetSky />
-          <Treehouse rotation={[0, -Math.PI / 4, 0]} />
-          <Floor />
-        </>
-      </SceneContainer>
-    </AppContext.Provider>
+      <axesHelper />
+      {/* <Treehouse /> */}
+      <FSpyCamera />
+      <Environment preset="sunset" />
+      {/* <Treehouse /> */}
+      <OrbitControls />
+      <gridHelper />
+    </Canvas>
   );
+};
+
+const FSpyCamera = () => {
+  const [targetCanvasSize] = useState(new Vector2());
+  const [dataManager] = useState(() => {
+    const dataManager = new FSpyDataManager();
+    dataManager.setData(fspyCameraJson);
+    return dataManager;
+  });
+
+  const three = useThree();
+
+  const onResize = useCallback(() => {
+    const camera = three.camera as unknown as PerspectiveCamera;
+    const fSpyImageRatio: number = dataManager.imageRatio;
+
+    targetCanvasSize.setX(three.size.width);
+    targetCanvasSize.setY(three.size.height);
+
+    if (targetCanvasSize.x / targetCanvasSize.y <= fSpyImageRatio) {
+      camera.aspect = targetCanvasSize.x / targetCanvasSize.y;
+      camera.zoom = defaultCameraParams.zoom;
+    } else {
+      camera.aspect = targetCanvasSize.x / targetCanvasSize.y;
+      camera.zoom = targetCanvasSize.x / targetCanvasSize.y / fSpyImageRatio;
+    }
+
+    camera.updateProjectionMatrix();
+  }, [dataManager, three, targetCanvasSize]);
+
+  useLayoutEffect(() => {
+    const camera = three.camera as unknown as PerspectiveCamera;
+
+    // set fov
+    camera.fov = dataManager.cameraFov;
+
+    // set aspect
+    // if (this.targetCanvasSize != null) {
+    //   this.camera.aspect = this.targetCanvasSize.x / this.targetCanvasSize.y;
+    // } else {
+    //   this.camera.aspect = this.dataManager.imageRatio;
+    // }
+    camera.aspect = dataManager.imageRatio;
+
+    // set position
+    camera.position.set(
+      dataManager.cameraPosition.x,
+      dataManager.cameraPosition.y,
+      dataManager.cameraPosition.z
+    );
+
+    camera.updateProjectionMatrix();
+
+    // set rotation
+    camera.setRotationFromMatrix(dataManager.cameraMatrix);
+
+    onResize();
+  }, [three, dataManager, onResize]);
+
+  // if (
+  //   this.targetCanvasSize.x / this.targetCanvasSize.y <=
+  //   fSpyImageRatio
+  // ) {
+  //   this.camera.aspect =
+  //     this.targetCanvasSize.x / this.targetCanvasSize.y;
+  //   this.camera.zoom = defaultCameraParams.zoom;
+  // } else {
+  //   this.camera.aspect =
+  //     this.targetCanvasSize.x / this.targetCanvasSize.y;
+  //   this.camera.zoom =
+  //     this.targetCanvasSize.x / this.targetCanvasSize.y / fSpyImageRatio;
+  // }
+
+  // this.onResize();
+
+  return null;
 };
 
 interface SceneContainerProps {
@@ -194,3 +449,6 @@ const SceneContainer: FC<SceneContainerProps> = ({ children }) => {
     </Box>
   );
 };
+
+const SCENE_URL =
+  'https://media.discordapp.net/attachments/1039255735390978120/1082021840878321774/InspectorT_line_art_deck_of_an_outdoorsy_social_club_in_2023_ov_ed9d3f35-fc97-4202-ad03-214ca6ecd9db.png';

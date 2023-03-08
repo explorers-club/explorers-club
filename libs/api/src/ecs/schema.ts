@@ -1,8 +1,5 @@
-import { ArchetypeBucket, World } from 'miniplex';
-import { z } from 'zod';
-// import type { StateValue } from 'xstate';
-import { O } from '@mobily/ts-belt';
 import { StateValue } from 'xstate';
+import { z } from 'zod';
 
 export const SnowflakeIdSchema = z.string();
 export type SnowflakeId = z.infer<typeof SnowflakeIdSchema>;
@@ -41,43 +38,22 @@ export type RoomEntity = z.infer<typeof RoomSchema>;
 
 type GameInstanceEntity = z.infer<typeof RoomSchema>;
 
-// TODO if we want to type this all we can create separate actors and union them
-// like we do with Entity.
-export const ActorTypeSchema = z.enum([
-  'little_vigilante_server',
-  'codebreakers_server',
+const PlayerTypeLiteral = z.literal('player');
+const StagingRoomTypeLiteral = z.literal('staging_room');
+const LittleVigilanteRoomTypeLiteral = z.literal('little_vigilante_room');
+
+export const ActorTypeSchema = z.union([
+  StagingRoomTypeLiteral,
+  LittleVigilanteRoomTypeLiteral,
 ]);
 export type ActorType = z.infer<typeof ActorTypeSchema>;
 
 const ActorIdSchema = SnowflakeIdSchema;
-const ActorStatesSchema = z.array(z.string());
-type ActorStates = z.infer<typeof ActorStatesSchema>;
-
-// const StateValueSchema = z.union([z.string(), z.lazy(() => StateValueMapSchema.array())]);
-// const StateValueMapSchema = z.record(StateValueSchema);
-
-const BaseStateValueSchema = z.string();
-
-// const StateValueMap
-
-// const StateValueSchema = z.union([z.string(), z.record(z.string())])
 
 const StateValueSchema: z.ZodType<StateValue> = z.union([
   z.string(),
   z.record(z.lazy(() => StateValueSchema)),
 ]);
-
-// const StateValueSchema: z.ZodType
-
-export const ActorSchema = z.object({
-  id: ActorIdSchema,
-  actorType: ActorTypeSchema,
-  flushedAt: ECEpochTimestampSchema,
-  context: z.unknown(),
-  states: StateValueSchema.optional(),
-});
-export type ActorId = z.infer<typeof ActorIdSchema>;
-export type ActorEntity = z.infer<typeof ActorSchema>;
 
 export const EntitySchemaSchema = z.enum(['actor', 'room']);
 export type EntitySchema = z.infer<typeof EntitySchemaSchema>;
@@ -85,17 +61,80 @@ export type EntitySchema = z.infer<typeof EntitySchemaSchema>;
 export const EntityPolicySchema = z.string();
 export type EntityPolicy = z.infer<typeof EntityPolicySchema>;
 
-// const LittleVigilanteActorSchema = z.object({
-//   id: ActorIdSchema,
-//   type: z.literal("little_vigilante_server"),
-//   states: ActorStatesSchema,
-//   context: z.object({
+const EntityBaseSchema = z.object({
+  id: SnowflakeIdSchema,
+  schema: EntitySchemaSchema,
+  children: z.array(SnowflakeIdSchema),
+});
 
-//   })
-// })
+const SharedEntitySchema = EntityBaseSchema.extend({
+  flushedAt: ECEpochTimestampSchema,
+  policy: EntityPolicySchema,
+});
+
+const ActorBaseSchema = SharedEntitySchema.extend({
+  states: StateValueSchema.optional(),
+});
+
+const NameSchema = z.string();
+
+const RoomNameSchema = NameSchema;
+
+const StagingRoomContextSchema = z.object({
+  name: RoomNameSchema,
+});
+
+const StagingRoomOptionsSchema = z.object({
+  actorType: StagingRoomTypeLiteral,
+  name: RoomNameSchema,
+});
+
+const StagingRoomSchema = ActorBaseSchema.extend({
+  actorType: StagingRoomTypeLiteral,
+  context: StagingRoomContextSchema,
+});
+
+const PlayerContextSchema = z.object({
+  name: NameSchema,
+});
+
+const PlayerOptionsSchema = z.object({
+  actorType: PlayerTypeLiteral,
+  name: NameSchema,
+});
+
+const PlayerSchema = ActorBaseSchema.extend({
+  actorType: PlayerTypeLiteral,
+  context: PlayerContextSchema,
+});
+
+const LittleVigilanteRoomContextSchema = z.object({
+  name: RoomNameSchema,
+});
+
+const LittleVigilanteRoomSchema = ActorBaseSchema.extend({
+  actorType: LittleVigilanteRoomTypeLiteral,
+  context: LittleVigilanteRoomContextSchema,
+});
+
+const LittleVigilanteRoomOptionsSchema = z.object({
+  actorType: LittleVigilanteRoomTypeLiteral,
+  name: RoomNameSchema,
+});
+
+export const ActorSchema = z.union([
+  StagingRoomSchema,
+  LittleVigilanteRoomSchema,
+  PlayerSchema,
+]);
+
+export const ActorOptionsSchema = z.union([
+  StagingRoomOptionsSchema,
+  PlayerOptionsSchema,
+  LittleVigilanteRoomOptionsSchema,
+]);
+
+export type ActorId = z.infer<typeof ActorIdSchema>;
+export type ActorEntity = z.infer<typeof ActorSchema>;
 
 export type Entity = RoomEntity | UserEntity | GameInstanceEntity | ActorEntity;
-
-// type FromZobObject<T extends ZodObject<any>> = T extends ZodObject<infer U>
-//   ? U
-//   : never;

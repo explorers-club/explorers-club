@@ -12,6 +12,7 @@ import { z } from 'zod';
 import {
   ActorEntity,
   ActorId,
+  ActorOptionsSchema,
   ActorSchema,
   ActorType,
   ActorTypeSchema,
@@ -128,13 +129,13 @@ export const actorRouter = router({
     });
   }),
   create: publicProcedure
-    .input(z.object({ actorType: ActorTypeSchema, context: z.unknown() }))
-    .mutation(({ input: { actorType, context } }) => {
+    .input(ActorOptionsSchema)
+    .mutation(({ input: { actorType, ...options } }) => {
+      console.log(options);
       const actorEntity = {
         id: generateSnowflakeId(),
         flushedAt: getCurrentTimestamp(),
         actorType,
-        context: context || {},
       };
       return world.add(actorEntity);
     }),

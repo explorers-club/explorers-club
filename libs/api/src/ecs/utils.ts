@@ -1,14 +1,13 @@
 import { ArchetypeBucket } from 'miniplex';
-import { z } from 'zod';
 import { Observable } from 'rxjs';
 import { TICK_RATE } from '../constants';
-import { FromArchetype } from './archetypes';
-import {
-  ECEpochTimestamp,
-  EntitySchema,
-  SnowflakeId,
-  SnowflakeIdSchema,
-} from './schema';
+import { ECEpochTimestamp, SnowflakeId } from './schema';
+
+export type FromArchetype<T extends ArchetypeBucket<any>> = T extends ArchetypeBucket<
+  infer U
+>
+  ? U
+  : never;
 
 export const getCurrentTimestamp = () => {
   return 1111111;
@@ -52,6 +51,7 @@ export function isArchetypeChangeEvent<T>(
 export function isArchetypeEntityEvent<T>(
   event: ArchetypeEvent<T>
 ): event is ArchetypeAddEvent<T> {
+  // todo this is wrong
   return (
     event.type === 'ADD' || event.type === 'CHANGE' || event.type === 'REMOVE'
   );
@@ -71,11 +71,16 @@ export function isArchetypeRemoveEvent<T>(
 
 export function isArchetypeListEvent<T>(
   event: ArchetypeEvent<T>
-): event is ArchetypeAddEvent<T> {
+): event is ArchetypeListEvent<T> {
   return (
     event.type === 'REMOVE' || event.type === 'ADD' || event.type === 'INIT'
   );
 }
+
+type ArchetypeListEvent<T> =
+  | ArchetypeInitEvent<T>
+  | ArchetypeAddEvent<T>
+  | ArchetypeRemoveEvent<T>;
 
 type ArchetypeEvent<T> =
   | ArchetypeInitEvent<T>
