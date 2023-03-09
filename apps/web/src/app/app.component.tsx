@@ -50,6 +50,7 @@ import { useEntityStoreSelector } from '../state/entity.context';
 import { fspyCameraJson } from './app.constants';
 import { inspect } from '@xstate/inspect';
 import { Logo } from '@atoms/Logo';
+import { SnowflakeId } from 'libs/api/src/ecs/schema';
 
 // inspect({
 //   // options
@@ -103,7 +104,7 @@ const appMachine = createMachine({
         MainScreen: {
           on: {
             FOCUS_NAV: 'Navigation',
-            FOCUS_SCENE: "MainScene",
+            FOCUS_SCENE: 'MainScene',
           },
         },
       },
@@ -178,7 +179,7 @@ export const AppComponent = () => {
             background: 'yellow',
             flexGrow: isFocusMainScreen ? 0 : 1,
             position: 'relative',
-            transition: "flex-grow 150ms",
+            transition: 'flex-grow 150ms',
 
             '@bp2': {
               flexGrow: 1,
@@ -194,13 +195,20 @@ export const AppComponent = () => {
             width: '100%',
             flexShrink: 3,
             flexGrow: isFocusMainScreen ? 1 : 0,
-            transition: "flex-grow 150ms",
-            // transition: "height 1000ms",
 
             '@bp2': {
-              height: '100%',
-              flexBasis: '30%',
-              flexGrow: 1,
+              ...(!isFocusMainScreen
+                ? {
+                    position: 'absolute',
+                    right: '$3',
+                    bottom: '$3',
+                    maxWidth: '30%',
+                  }
+                : {
+                    height: '100%',
+                    flexBasis: '30%',
+                    flexGrow: 1,
+                  }),
             },
           }}
         >
@@ -251,19 +259,54 @@ const NavigationContainer = () => {
 //   );
 // };
 
+const lobbyService = createMachine({
+  id: 'LobbyService',
+  schema: {
+    events: {} as
+      | { type: 'CREATE_ROOM' }
+      | { type: 'JOIN_GAME'; roomId: SnowflakeId },
+  },
+  states: {
+    Idle: {
+      on: {
+        CREATE_ROOM: 'Configuring',
+        JOIN_GAME: 'Joining,',
+      },
+    },
+    Configuring: {},
+    Creating: {},
+    Joining: {},
+  },
+});
+
+const roomService = createMachine({
+  id: 'RoomService',
+});
+
 const MainScreenContainer = () => {
   const appService = useContext(AppServiceContext);
+  const isMainScreenFocused = useAppSelector((state) =>
+    state.matches('Focus.MainScreen')
+  );
   return (
-    <Flex direction="column">
+    <Flex
+      direction="column"
+      css={{
+        p: '$3',
+        ...(isMainScreenFocused ? { height: '100vh', paddingTop: '76px' } : {}),
+      }}
+    >
       <Card
         onClick={() => {
-          appService.send('FOCUS_SCREEN');
+          // lobbyService.send("")
+          // appService.send("")
+          // appService.send('FOCUS_SCREEN');
         }}
-        css={{ height: '200px' }}
       >
-        Hello
+        <Button size="3" fullWidth>
+          New Game Room
+        </Button>
       </Card>
-      <Card css={{ height: '200px' }}>Hello</Card>
     </Flex>
   );
   // return (
@@ -531,33 +574,33 @@ const MainScreen = () => {
           <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
             Hello
           </Card>
-          {/* <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
-              Hello
-            </Card>
-            <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
-              Hello
-            </Card>
-            <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
-              Hello
-            </Card>
-            <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
-              Hello
-            </Card>
-            <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
-              Hello
-            </Card>
-            <Card
-              css={{
-                p: '$3',
-                minHeight: '200px',
-                position: 'sticky',
-                bottom: 0,
-              }}
-              color="success"
-              variant="interactive"
-            >
-              Start New Game
-            </Card> */}
+          <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
+            Hello
+          </Card>
+          <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
+            Hello
+          </Card>
+          <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
+            Hello
+          </Card>
+          <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
+            Hello
+          </Card>
+          <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
+            Hello
+          </Card>
+          <Card
+            css={{
+              p: '$3',
+              minHeight: '200px',
+              position: 'sticky',
+              bottom: 0,
+            }}
+            color="success"
+            variant="interactive"
+          >
+            Start New Game
+          </Card>
         </Flex>
       </ScrollAreaViewport>
       <ScrollAreaScrollbar orientation="vertical">
