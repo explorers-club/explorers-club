@@ -16,6 +16,13 @@ export const actorMachines: Record<ActorType, AnyStateMachine> = {
       Idle: {},
     },
   }),
+  player: createMachine({
+    id: 'Player',
+    initial: 'Idle',
+    states: {
+      Idle: {},
+    },
+  }),
   // lobby_room: createMachine({
   //   id: 'LobbyRoom',
   //   initial: 'Idle',

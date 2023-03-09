@@ -22,6 +22,7 @@ import {
   Cross2Icon,
   HamburgerMenuIcon,
   OpenInNewWindowIcon,
+  PersonIcon,
 } from '@radix-ui/react-icons';
 import * as Tabs from '@radix-ui/react-tabs';
 import {
@@ -47,8 +48,25 @@ import { createMachine, InterpreterFrom, StateFrom } from 'xstate';
 import { ColyseusContext } from '../state/colyseus.context';
 import { useEntityStoreSelector } from '../state/entity.context';
 import { fspyCameraJson } from './app.constants';
+import { inspect } from '@xstate/inspect';
+import { Logo } from '@atoms/Logo';
+
+// inspect({
+//   // options
+//   // url: 'https://stately.ai/viz?inspect', // (default)
+//   iframe: false, // open in new window
+// });
 
 type AppEvent =
+  | {
+      type: 'FOCUS_SCENE';
+    }
+  | {
+      type: 'FOCUS_SCREEN';
+    }
+  | {
+      type: 'FOCUS_NAV';
+    }
   | {
       type: 'CLOSE_NAV';
     }
@@ -67,6 +85,26 @@ const appMachine = createMachine({
     events: {} as AppEvent,
   },
   states: {
+    Focus: {
+      initial: 'MainScene',
+      states: {
+        Navigation: {
+          on: {
+            CLOSE_NAV: 'MainScene',
+          },
+        },
+        MainScene: {
+          on: {
+            FOCUS_NAV: 'Navigation',
+          },
+        },
+        MainScreen: {
+          on: {
+            FOCUS_NAV: 'Navigation',
+          },
+        },
+      },
+    },
     MainScene: {
       initial: 'Loading',
       states: {
@@ -75,24 +113,13 @@ const appMachine = createMachine({
       },
     },
     MainScreen: {
-      initial: 'Hovering',
+      type: 'parallel',
       states: {
-        Hidden: {},
-        Hovering: {},
-        Full: {},
-      },
-    },
-    Navigation: {
-      initial: 'Closed',
-      states: {
-        Closed: {
-          on: {
-            OPEN_NAV: 'Open',
-          },
-        },
-        Open: {
-          on: {
-            CLOSE_NAV: 'Closed',
+        Layout: {
+          initial: 'Docked',
+          states: {
+            Docked: {},
+            Overlay: {},
           },
         },
       },
@@ -108,7 +135,7 @@ const AppServiceContext = createContext({} as AppService);
 
 export const AppComponent = () => {
   const [machine] = useState(appMachine);
-  const appService = useInterpret(machine);
+  const appService = useInterpret(machine, { devTools: true });
 
   const entitiesById = useEntityStoreSelector((state) => state.entitiesById);
   const roomNameRef = useRef<HTMLInputElement>(null);
@@ -124,13 +151,151 @@ export const AppComponent = () => {
 
   return (
     <AppServiceContext.Provider value={appService}>
-      <NavigationDrawer />
-      {/* <NavigationContainer /> */}
-      <MainContainer>
-        <MainScene />
-        <MainScreen />
-      </MainContainer>
+      <Flex
+        css={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          flexDirection: 'column',
+
+          '@bp2': {
+            flexDirection: 'row',
+          },
+        }}
+      >
+        <Box
+          css={{
+            background: 'yellow',
+            flexGrow: 1,
+            position: 'relative',
+
+            '@bp2': {
+              flexBasis: '70%',
+              flexGrow: 1,
+            },
+          }}
+        >
+          <MainSceneContainer />
+        </Box>
+        <Box
+          css={{
+            background: 'blue',
+            width: '100%',
+            flexShrink: 3,
+
+            '@bp2': {
+              height: '100%',
+              flexBasis: '30%',
+              flexGrow: 1,
+            },
+          }}
+        >
+          <Card css={{ height: '200px' }}>Hello</Card>
+          <Card css={{ height: '200px' }}>Hello</Card>
+        </Box>
+      </Flex>
+      {/* <NavigationDrawer /> */}
+      {/* <MainContainer>
+        <NavigationContainer />
+        <MainSceneContainer />
+        <MainScreenContainer />
+      </MainContainer> */}
     </AppServiceContext.Provider>
+  );
+};
+
+const NavigationContainer = () => {
+  const navIsOpen = useAppSelector(selectNavIsOpen);
+
+  return (
+    <Flex css={{ flexBasis: navIsOpen ? '35%' : '5%', background: 'oragne' }}>
+      <Navigation />
+    </Flex>
+  );
+};
+
+// const MainSceneContainer = () => {
+//   return (
+//     <Flex
+//       css={{
+//         background: 'blue',
+//         '@bp0': {
+//           width: '100%',
+//         },
+//         '@bp1': {
+//           width: '100%',
+//         },
+//         '@bp2': {
+//           flexBasis: '65%',
+//         },
+//       }}
+//     >
+//       <Flex css={{ aspectRatio: 3 / 2, width: '100%' }}>
+//         <FloatingHeader />
+//         <MainScene />
+//       </Flex>
+//     </Flex>
+//   );
+// };
+
+const MainScreenContainer = () => {
+  return (
+    <Flex
+      css={{
+        background: 'yellow',
+        '@bp0': {
+          width: '100%',
+        },
+        '@bp1': {
+          width: '100%',
+        },
+        '@bp2': {
+          flexBasis: '30%',
+        },
+      }}
+    >
+      <MainScreen />
+    </Flex>
+  );
+};
+
+const FloatingHeader = () => {
+  const appService = useContext(AppServiceContext);
+  const navIsOpen = useSelector(appService, (state) => {
+    console.log(state, 'hi');
+    return state.matches('Focus.Navigation');
+  });
+
+  const handlePressMenu = useCallback(() => {
+    if (navIsOpen) {
+      appService.send('CLOSE_NAV');
+    } else {
+      appService.send('FOCUS_NAV');
+    }
+  }, [appService, navIsOpen]);
+
+  return (
+    <Flex
+      justify="between"
+      align="center"
+      css={{
+        position: 'absolute',
+        top: '$2',
+        left: '$2',
+        right: '$2',
+        zIndex: 30,
+      }}
+    >
+      <IconButton variant="raised" size="3" onClick={handlePressMenu}>
+        <HamburgerMenuIcon />
+      </IconButton>
+      <Logo />
+      <IconButton variant="raised" size="3">
+        <PersonIcon />
+      </IconButton>
+    </Flex>
   );
 };
 
@@ -140,17 +305,16 @@ export const AppComponent = () => {
 //   )
 // }
 
-const NavigationDrawer = () => {
+const Navigation = () => {
   const appService = useContext(AppServiceContext);
   const isOpen = useSelector(appService, (state) =>
-    state.matches('Navigation.Open')
+    state.matches('Focus.Navigation')
   );
 
   const handleOpenChange = useCallback(
     (open: boolean) => {
-      if (open) {
-        appService.send('OPEN_NAV');
-      } else {
+      console.log({ open });
+      if (!open) {
         appService.send('CLOSE_NAV');
       }
     },
@@ -159,23 +323,12 @@ const NavigationDrawer = () => {
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={handleOpenChange}>
-      <Dialog.Trigger asChild>
-        {!isOpen && (
-          <IconButton
-            size="3"
-            css={{ position: 'absolute', zIndex: 100, top: '$3', left: '$3' }}
-          >
-            <HamburgerMenuIcon color="white" />
-          </IconButton>
-        )}
-      </Dialog.Trigger>
       <Dialog.Portal>
         <NavigationDrawerOverlay />
         <NavigationDrawerContent />
       </Dialog.Portal>
     </Dialog.Root>
   );
-  return <Text>Navigation</Text>;
 };
 
 const StyledDialogContent = styled(Dialog.Content, {
@@ -324,7 +477,7 @@ const NavigationDrawerOverlay = styled(Dialog.Overlay, {
 // animateable div
 const MainContainer = styled('div', {
   display: 'flex',
-  position: 'absolute',
+  position: 'fixed',
 
   top: 0,
   left: 0,
@@ -332,45 +485,28 @@ const MainContainer = styled('div', {
   bottom: 0,
 
   flexWrap: 'wrap',
-  flexDirection: 'column',
-
-  '@bp2': {
-    flexDirection: 'row',
-  },
-
-  '& .main-screen': {
-    flex: 1,
-    flexBasis: '30%',
-    background: 'yellow',
-  },
-
-  '& .main-scene': {
-    flex: 1,
-    flexBasis: '70%',
-    background: 'red',
-  },
+  flexDirection: 'row',
 });
 
 const MainScreen = () => {
   return (
-    <Flex className="main-screen" direction="column">
-      <ScrollAreaRoot css={{ background: 'red' }}>
-        <ScrollAreaViewport>
-          <Heading>Main Screen</Heading>
-          <Flex direction="column" gap="3">
-            <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
-              Hello
-            </Card>
-            <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
-              Hello
-            </Card>
-            <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
-              Hello
-            </Card>
-            <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
-              Hello
-            </Card>
-            {/* <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
+    <ScrollAreaRoot css={{ background: 'red', width: '100%' }}>
+      <ScrollAreaViewport>
+        <Heading>Main Screen</Heading>
+        <Flex direction="column" gap="3">
+          <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
+            Hello
+          </Card>
+          <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
+            Hello
+          </Card>
+          <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
+            Hello
+          </Card>
+          <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
+            Hello
+          </Card>
+          {/* <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
               Hello
             </Card>
             <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
@@ -397,12 +533,51 @@ const MainScreen = () => {
             >
               Start New Game
             </Card> */}
-          </Flex>
-        </ScrollAreaViewport>
-        <ScrollAreaScrollbar orientation="vertical">
-          <ScrollAreaThumb />
-        </ScrollAreaScrollbar>
-      </ScrollAreaRoot>
+        </Flex>
+      </ScrollAreaViewport>
+      <ScrollAreaScrollbar orientation="vertical">
+        <ScrollAreaThumb />
+      </ScrollAreaScrollbar>
+    </ScrollAreaRoot>
+  );
+};
+
+const MainSceneContainer = () => {
+  return (
+    <Flex
+      justify="center"
+      align="center"
+      css={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        // background: 'pink',
+        // backgroundImage: `url(${SCENE_URL})`,
+        // backgroundSize: 'cover',
+        // backgroundPosition: 'center bottom',
+        // width: '100%',
+        // aspectRatio: 5 / 4,
+        // position: 'relative',
+
+        // '@bp1': {
+        //   aspectRatio: 3 / 2,
+        // },
+      }}
+    >
+      <FloatingHeader />
+      {/* <Box css={{ paddingTop: '66.67%', background: 'orange' }}> */}
+      {/* <Box
+        css={{
+          minHeight: '100%',
+          minWidth: '100%',
+          aspectRatio: 3 / 2,
+          background: 'yellow',
+        }}
+      ></Box> */}
+      <MainScene />
+      {/* </Box> */}
     </Flex>
   );
 };
@@ -412,6 +587,12 @@ const MainScene = () => {
     <Canvas
       className="main-scene"
       style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        // background: 'green',
         backgroundImage: `url('${SCENE_URL}')`,
         backgroundSize: 'cover',
         backgroundPositionX: 'center',
@@ -503,28 +684,35 @@ const FSpyCamera = () => {
   return null;
 };
 
-interface SceneContainerProps {
-  children: ReactElement;
-}
+// interface SceneContainerProps {
+//   children: ReactElement;
+// }
 
-const SceneContainer: FC<SceneContainerProps> = ({ children }) => {
-  // const state = useSelector(actor, (state) => state);
-  const ContextBridge = useContextBridge(ColyseusContext);
+// const SceneContainer: FC<SceneContainerProps> = ({ children }) => {
+//   // const state = useSelector(actor, (state) => state);
+//   const ContextBridge = useContextBridge(ColyseusContext);
 
-  return (
-    <Box css={{ background: '$primary1', height: '100vh' }}>
-      <Canvas
-        gl={{ physicallyCorrectLights: true }}
-        camera={{ position: [-9, 5, 24] }}
-      >
-        <color attach="background" args={['#000']} />
-        <ContextBridge>
-          <Suspense fallback={null}>{children}</Suspense>
-        </ContextBridge>
-      </Canvas>
-    </Box>
-  );
-};
+//   return (
+//     <Box css={{ background: '$primary1', height: '100vh' }}>
+//       <Canvas
+//         gl={{ physicallyCorrectLights: true }}
+//         camera={{ position: [-9, 5, 24] }}
+//       >
+//         <color attach="background" args={['#000']} />
+//         <ContextBridge>
+//           <Suspense fallback={null}>{children}</Suspense>
+//         </ContextBridge>
+//       </Canvas>
+//     </Box>
+//   );
+// };
 
 const SCENE_URL =
   'https://media.discordapp.net/attachments/1039255735390978120/1082021840878321774/InspectorT_line_art_deck_of_an_outdoorsy_social_club_in_2023_ov_ed9d3f35-fc97-4202-ad03-214ca6ecd9db.png';
+
+const useAppSelector = <T,>(selector: (state: AppState) => T) => {
+  const appService = useContext(AppServiceContext);
+  return useSelector(appService, selector);
+};
+
+const selectNavIsOpen = (state: AppState) => state.matches('Focus.Navigation');

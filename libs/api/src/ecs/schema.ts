@@ -45,6 +45,7 @@ const LittleVigilanteRoomTypeLiteral = z.literal('little_vigilante_room');
 export const ActorTypeSchema = z.union([
   StagingRoomTypeLiteral,
   LittleVigilanteRoomTypeLiteral,
+  PlayerTypeLiteral,
 ]);
 export type ActorType = z.infer<typeof ActorTypeSchema>;
 

@@ -160,7 +160,7 @@
     "@types/use-sync-external-store": "^0.0.3",
     "@typescript-eslint/eslint-plugin": "^5.29.0",
     "@typescript-eslint/parser": "^5.29.0",
-    "@xstate/inspect": "^0.7.0",
+    "@xstate/inspect": "^0.7.1",
     "@xstate/react": "^3.0.1",
     "babel-jest": "27.5.1",
     "babel-loader": "8.1.0",
