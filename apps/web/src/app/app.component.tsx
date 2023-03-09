@@ -91,16 +91,19 @@ const appMachine = createMachine({
         Navigation: {
           on: {
             CLOSE_NAV: 'MainScene',
+            FOCUS_SCREEN: 'MainScreen',
           },
         },
         MainScene: {
           on: {
             FOCUS_NAV: 'Navigation',
+            FOCUS_SCREEN: 'MainScreen',
           },
         },
         MainScreen: {
           on: {
             FOCUS_NAV: 'Navigation',
+            FOCUS_SCENE: "MainScene",
           },
         },
       },
@@ -149,6 +152,10 @@ export const AppComponent = () => {
     });
   }, [trpcClient]);
 
+  const isFocusMainScreen = useSelector(appService, (state) =>
+    state.matches('Focus.MainScreen')
+  );
+
   return (
     <AppServiceContext.Provider value={appService}>
       <Flex
@@ -165,15 +172,17 @@ export const AppComponent = () => {
           },
         }}
       >
+        <Navigation />
         <Box
           css={{
             background: 'yellow',
-            flexGrow: 1,
+            flexGrow: isFocusMainScreen ? 0 : 1,
             position: 'relative',
+            transition: "flex-grow 150ms",
 
             '@bp2': {
-              flexBasis: '70%',
               flexGrow: 1,
+              flexBasis: '70%',
             },
           }}
         >
@@ -184,6 +193,9 @@ export const AppComponent = () => {
             background: 'blue',
             width: '100%',
             flexShrink: 3,
+            flexGrow: isFocusMainScreen ? 1 : 0,
+            transition: "flex-grow 150ms",
+            // transition: "height 1000ms",
 
             '@bp2': {
               height: '100%',
@@ -192,8 +204,7 @@ export const AppComponent = () => {
             },
           }}
         >
-          <Card css={{ height: '200px' }}>Hello</Card>
-          <Card css={{ height: '200px' }}>Hello</Card>
+          <MainScreenContainer />
         </Box>
       </Flex>
       {/* <NavigationDrawer /> */}
@@ -241,24 +252,38 @@ const NavigationContainer = () => {
 // };
 
 const MainScreenContainer = () => {
+  const appService = useContext(AppServiceContext);
   return (
-    <Flex
-      css={{
-        background: 'yellow',
-        '@bp0': {
-          width: '100%',
-        },
-        '@bp1': {
-          width: '100%',
-        },
-        '@bp2': {
-          flexBasis: '30%',
-        },
-      }}
-    >
-      <MainScreen />
+    <Flex direction="column">
+      <Card
+        onClick={() => {
+          appService.send('FOCUS_SCREEN');
+        }}
+        css={{ height: '200px' }}
+      >
+        Hello
+      </Card>
+      <Card css={{ height: '200px' }}>Hello</Card>
     </Flex>
   );
+  // return (
+  //   <Flex
+  //     css={{
+  //       background: 'yellow',
+  //       '@bp0': {
+  //         width: '100%',
+  //       },
+  //       '@bp1': {
+  //         width: '100%',
+  //       },
+  //       '@bp2': {
+  //         flexBasis: '30%',
+  //       },
+  //     }}
+  //   >
+  //     <MainScreen />
+  //   </Flex>
+  // );
 };
 
 const FloatingHeader = () => {
