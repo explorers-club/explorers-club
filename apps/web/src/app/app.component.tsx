@@ -43,7 +43,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { PerspectiveCamera, Vector2 } from 'three';
+import { PerspectiveCamera, Vector2, Vector3 } from 'three';
 import { createMachine, InterpreterFrom, StateFrom } from 'xstate';
 import { ColyseusContext } from '../state/colyseus.context';
 import { useEntityStoreSelector } from '../state/entity.context';
@@ -51,6 +51,7 @@ import { fspyCameraJson } from './app.constants';
 import { inspect } from '@xstate/inspect';
 import { Logo } from '@atoms/Logo';
 import { SnowflakeId } from 'libs/api/src/ecs/schema';
+import { CharacterComponent } from '../components/3d/coconut-model/character-main';
 
 // inspect({
 //   // options
@@ -644,7 +645,22 @@ const MainSceneContainer = () => {
           background: 'yellow',
         }}
       ></Box> */}
-      <MainScene />
+      <Box
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          // background: 'green',
+          backgroundImage: `url('${SCENE_URL}')`,
+          backgroundSize: 'cover',
+          backgroundPositionX: 'center',
+          backgroundPositionY: 'bottom',
+        }}
+      >
+        <MainScene />
+      </Box>
       {/* </Box> */}
     </Flex>
   );
@@ -656,15 +672,21 @@ const MainScene = () => {
       className="main-scene"
       style={{
         position: 'absolute',
-        top: 0,
+        // top: '60%',
         left: 0,
         right: 0,
-        bottom: 0,
+        bottom: '-45%',
+        margin: 'auto',
+        height: '100%',
+        width: '100%',
+        maxWidth: '500',
+
+        // opacity: '50%',
         // background: 'green',
-        backgroundImage: `url('${SCENE_URL}')`,
-        backgroundSize: 'cover',
-        backgroundPositionX: 'center',
-        backgroundPositionY: 'center',
+        // backgroundImage: `url('${SCENE_URL}')`,
+        // backgroundSize: 'cover',
+        // backgroundPositionX: 'center',
+        // backgroundPositionY: 'bottom',
       }}
     >
       <axesHelper />
@@ -672,6 +694,7 @@ const MainScene = () => {
       <Environment preset="sunset" />
       <OrbitControls />
       <gridHelper />
+      <CharacterComponent />
     </Canvas>
   );
 };
@@ -721,8 +744,8 @@ const FSpyCamera = () => {
     // set position
     camera.position.set(
       dataManager.cameraPosition.x,
-      dataManager.cameraPosition.y,
-      dataManager.cameraPosition.z
+      dataManager.cameraPosition.y + 5,
+      dataManager.cameraPosition.z - 25
     );
 
     camera.updateProjectionMatrix();

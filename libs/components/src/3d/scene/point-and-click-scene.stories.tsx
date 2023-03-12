@@ -32,8 +32,7 @@ export const Primary: ComponentStory<typeof PointAndClickScene> = (args) => {
         rotation: rotation,
       }}
     >
-      <PointAndClickScene {...args} />;
-      {/* <gridHelper /> */}
+      <PointAndClickScene {...args} />;{/* <gridHelper /> */}
       <axesHelper />
       <OrbitControls />
     </Canvas>
