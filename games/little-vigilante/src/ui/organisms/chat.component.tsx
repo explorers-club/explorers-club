@@ -813,6 +813,7 @@ const ChatInput: FC<{ disabled: boolean }> = ({ disabled }) => {
           placeholder={!disabled ? 'Enter message' : 'Messages disabled'}
           onChange={handleChange}
           onFocus={handleFocus}
+          autoComplete="off"
         />
       </form>
     </Flex>
