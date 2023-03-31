@@ -73,15 +73,16 @@ const SessionProvider: FC<{
     client.connection.initialize
       .mutate({ authTokens, initialLocation: window.location.href })
       .then((data) => {
-        localStorage.setItem('refreshToken', data.session.refresh_token);
-        localStorage.setItem('accessToken', data.session.access_token);
+        localStorage.setItem('refreshToken', data.authTokens.refreshToken);
+        localStorage.setItem('accessToken', data.authTokens.accessToken);
+        localStorage.setItem('deviceId', data.entity.deviceId);
 
         window.addEventListener('popstate', () => {
-          client.session.navigate.mutate({ location: window.location.href });
+          client.connection.navigate.mutate({ location: window.location.href });
         });
 
         timer = setInterval(() => {
-          client.session.heartbeat.mutate().then(noop);
+          client.connection.heartbeat.mutate(undefined).then(noop);
         }, 100);
       });
     return () => {

@@ -22,13 +22,12 @@ const [sessionEntityIndex] = createArchetypeIndex(
 );
 
 export const connectionRouter = router({
-  heartbeat: protectedProcedure
-    .input(z.object({ location: z.string().url() }))
-    .mutation(async ({ ctx, input }) => {
-      ctx.connectionService.send({
-        type: 'HEARTBEAT',
-      });
-    }),
+  heartbeat: protectedProcedure.mutation(async ({ ctx }) => {
+    ctx.connectionService.send({
+      type: 'HEARTBEAT',
+    });
+  }),
+
   navigate: protectedProcedure
     .input(z.object({ location: z.string().url() }))
     .mutation(async ({ ctx, input }) => {
@@ -68,6 +67,15 @@ export const connectionRouter = router({
         });
       }
 
-      return state.context.entity;
+      const { entity } = state.context;
+      const session = state.context.supabaseSession;
+
+      return {
+        entity,
+        authTokens: {
+          accessToken: session.access_token,
+          refreshToken: session.refresh_token,
+        },
+      };
     }),
 });

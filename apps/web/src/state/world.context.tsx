@@ -112,8 +112,9 @@ export const WorldProvider: FC<{ children: ReactNode }> = ({ children }) => {
     connection: world.with<ConnectionEntity>(
       'id',
       'schema',
-      'sessionId',
+      'location',
       'deviceId'
+      // 'sessionId',
     ),
     player: world.with<PlayerEntity>(
       'id',
