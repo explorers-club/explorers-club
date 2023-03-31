@@ -1,4 +1,5 @@
 import { apiRouter, createContext } from '@explorers-club/api';
+import { environment } from './environments/environment';
 import { applyWSSHandler } from '@trpc/server/adapters/ws';
 import * as ws from 'ws';
 const wss = new ws.Server({
@@ -6,9 +7,9 @@ const wss = new ws.Server({
 });
 const handler = applyWSSHandler({ wss, router: apiRouter, createContext });
 
-wss.on('connection', (ws) => {
+wss.on('connection', () => {
   console.log('connect!');
-  wss.once('close', (ws) => {
+  wss.once('close', () => {
     console.log('connection close');
   });
 });

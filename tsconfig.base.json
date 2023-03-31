@@ -45,6 +45,7 @@
         "games/diffusionary/src/state/index.ts"
       ],
       "@explorers-club/diffusionary/ui": ["games/diffusionary/src/ui/index.ts"],
+      "@explorers-club/ecs": ["libs/ecs/src/index.ts"],
       "@explorers-club/little-vigilante/i18n/*": [
         "games/little-vigilante/i18n/*"
       ],
