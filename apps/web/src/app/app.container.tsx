@@ -1,8 +1,16 @@
 import { transformer, trpc } from '@explorers-club/api-client';
+import { SnowflakeId } from '@explorers-club/schema';
 import { noop } from '@explorers-club/utils';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createWSClient, wsLink } from '@trpc/client';
-import { FC, ReactNode, useEffect, useLayoutEffect, useState } from 'react';
+import {
+  createContext,
+  FC,
+  ReactNode,
+  useEffect,
+  useLayoutEffect,
+  useState,
+} from 'react';
 import { Subject } from 'rxjs';
 import { ServicesProvider } from '../services';
 import { WorldProvider } from '../state/world.context';
@@ -44,38 +52,44 @@ export const App = () => {
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        <SessionProvider>
-          <WorldProvider>
+        <WorldProvider>
+          <ConnectionProvider>
             <ServicesProvider>
               <AppComponent />
             </ServicesProvider>
-          </WorldProvider>
-        </SessionProvider>
+          </ConnectionProvider>
+        </WorldProvider>
       </QueryClientProvider>
     </trpc.Provider>
   );
 };
 
-const SessionProvider: FC<{
+const ConnectionContext = createContext({} as { connectionId: SnowflakeId });
+
+const ConnectionProvider: FC<{
   children: ReactNode;
 }> = ({ children }) => {
   const { client } = trpc.useContext();
+  // const [myConnctionId, setMyConnectionId] = useState<
+  //   SnowflakeId | undefined
+  // >();
 
   useLayoutEffect(() => {
     let timer: NodeJS.Timeout;
     // todo use encrypted storage
     const refreshToken = localStorage.getItem('refreshToken') || undefined;
     const accessToken = localStorage.getItem('accessToken') || undefined;
+    const deviceId = localStorage.getItem('deviceId') || undefined;
 
     const authTokens =
       refreshToken && accessToken ? { refreshToken, accessToken } : undefined;
 
     client.connection.initialize
-      .mutate({ authTokens, initialLocation: window.location.href })
+      .mutate({ deviceId, authTokens, initialLocation: window.location.href })
       .then((data) => {
         localStorage.setItem('refreshToken', data.authTokens.refreshToken);
         localStorage.setItem('accessToken', data.authTokens.accessToken);
-        localStorage.setItem('deviceId', data.entity.deviceId);
+        localStorage.setItem('deviceId', data.deviceId);
 
         window.addEventListener('popstate', () => {
           client.connection.navigate.mutate({ location: window.location.href });
@@ -84,6 +98,11 @@ const SessionProvider: FC<{
         timer = setInterval(() => {
           client.connection.heartbeat.mutate(undefined).then(noop);
         }, 100);
+
+        // const connectionId = data.entity.id;
+        // console.log({ connectionId });
+
+        // setMyConnectionId(connectionId);
       });
     return () => {
       clearInterval(timer);

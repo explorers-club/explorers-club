@@ -1,8 +1,10 @@
-import { generateSnowflakeId } from '@explorers-club/ecs';
+import { generateSnowflakeId } from '../ecs';
 import {
+  Entity,
   SessionContext,
   SessionEntity,
-  SessionEvent,
+  SessionCommand,
+  SessionStateSchema,
   SessionTypeState,
 } from '@explorers-club/schema';
 import { assertEventType } from '@explorers-club/utils';
@@ -24,43 +26,31 @@ if (
   throw new Error('missing supabase configuration');
 }
 
-export const createSessionMachine = ({ world }: { world: World }) => {
-  return createMachine<SessionContext, SessionEvent, SessionTypeState>({
+export const createSessionMachine = ({
+  world,
+}: {
+  world: World;
+  entity: Entity;
+}) => {
+  return createMachine<SessionContext, SessionCommand, SessionTypeState>({
     id: 'SessionMachine',
     context: {
-      entity: undefined,
+      foo: undefined,
     },
+    type: 'parallel',
     states: {
-      Unitialized: {
-        on: {
-          INITIALIZE: 'Initializing',
+      Connected: {
+        initial: 'No',
+        states: {
+          Yes: {},
+          No: {},
         },
       },
-      Initializing: {
-        invoke: {
-          onDone: {
-            target: 'Initialized',
-            actions: assign({
-              entity: (_, event) => event.data,
-            }),
-          },
-          onError: 'Error',
-          src: async (context, event) => {
-            assertEventType(event, 'INITIALIZE');
-
-            const entity: SessionEntity = {
-              id: event.id || generateSnowflakeId(),
-              schema: 'session',
-              userId: event.userId,
-              connectionIds: [event.connectionId],
-              startedAt: new Date(),
-            };
-            world.add(entity);
-
-            return entity;
-          },
-        },
-      },
+      // Unitialized: {
+      //   on: {
+      //     INITIALIZE: 'Initializing',
+      //   },
+      // },
       Initialized: {},
       Error: {},
     },

@@ -1,170 +1,270 @@
+// import { createArchetypeIndex, TICK_RATE } from '../../ecs';
 import {
-  ArchetypeListEvent,
-  createArchetypeIndex,
-  generateSnowflakeId,
-} from '@explorers-club/ecs';
-import {
+  ConnectionEntity,
   Entity,
-  EntityEventSchema,
-  SchemaLiteralsSchema,
   SnowflakeId,
   SnowflakeIdSchema,
 } from '@explorers-club/schema';
 import { TRPCError } from '@trpc/server';
 import { observable } from '@trpc/server/observable';
-import { AnyInterpreter, interpret } from 'xstate';
-import { waitFor } from 'xstate/lib/waitFor';
+import { from, interval } from 'rxjs';
 import { z } from 'zod';
-import { getEntityService, registerEntityService } from '../../entities';
-import { machineMap } from '../../machines';
+import { TICK_RATE } from '../../ecs.constants';
+import { createArchetypeIndex } from '../../indices';
 import { protectedProcedure, publicProcedure, router } from '../../trpc';
 import { world } from '../../world';
 
-const [_, entity$] = createArchetypeIndex(world.with('id'), 'id');
+const [baseEntityIndex, baseEntityIndex$] = createArchetypeIndex(
+  world.with('id', 'schema'),
+  'id'
+);
+
+type EntityChangeEvent = { changes: Partial<Entity> };
+type EntityListEvent = { addedEntities: Entity[]; removedEntities: Entity[] };
+
+const hasAccess = (entity: Entity, connectionEntity: ConnectionEntity) => {
+  // todo implement access checks here
+  // ie (if room === "public") return true
+  // each entity schema can have it's own function for implement access control
+  return true;
+};
 
 export const entityRouter = router({
   list: publicProcedure.subscription(({ ctx }) => {
-    return observable<ArchetypeListEvent<Entity>>((emit) => {
-      // todo listen for changes on the connection state
+    // Track if entities get removed
+    const myEntities = new Map<SnowflakeId, Entity>();
+    const addedIds = new Set<SnowflakeId>();
+    const removedIds = new Set<SnowflakeId>();
 
-      // TODO apply policy filtering to control access
-      // as a pipe in the index
-      // this will allow user-level control of things
-      // if the user isnt logged in, user won't have access to things
-      const sub = entity$.subscribe(emit.next);
+    baseEntityIndex$.subscribe((event) => {
+      console.log(event);
+      if (event.type === 'INIT') {
+        for (const entity of event.data) {
+          if (hasAccess(entity, ctx.connectionEntity)) {
+            myEntities.set(entity.id, entity);
+            addedIds.add(entity.id);
+          }
+        }
+      } else {
+        const entity = event.data;
+
+        const previousHasAccess = myEntities.has(entity.id);
+        const nowHasAccess = hasAccess(entity, ctx.connectionEntity);
+
+        if (nowHasAccess) {
+          myEntities.set(entity.id, entity);
+        } else {
+          myEntities.delete(entity.id);
+        }
+
+        if (previousHasAccess && !nowHasAccess) {
+          removedIds.add(entity.id);
+        } else if (!previousHasAccess && nowHasAccess) {
+          addedIds.add(entity.id);
+        }
+      }
+    });
+
+    return observable<EntityListEvent>((emit) => {
+      // Every tick, check to see if entities were added or removed
+      // If they were, flush them, then clear out the sets for tracking
+      const event$ = from(interval(1000 / TICK_RATE)).subscribe(() => {
+        if (addedIds.size || removedIds.size) {
+          console.log({ addedIds, removedIds });
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const addedEntities = Array.from(addedIds).map(
+            (id) => myEntities.get(id)!
+          );
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const removedEntities = Array.from(removedIds).map(
+            (id) => myEntities.get(id)!
+          );
+
+          // TODO we only want to send the data props over, excluding entity methods
+          // how do we do that? do we need to?
+          emit.next({
+            addedEntities,
+            removedEntities,
+          });
+
+          addedIds.clear();
+          removedIds.clear();
+        }
+      });
 
       return () => {
-        if (!sub.closed) {
-          sub.unsubscribe();
-        }
+        event$.unsubscribe();
       };
     });
   }),
-  create: protectedProcedure
-    .input(
-      z.object({
-        schema: SchemaLiteralsSchema,
-      })
-    )
-    .mutation(async ({ input }) => {
-      const { schema } = input;
 
-      const machine = machineMap[schema]({ world, schema });
-      const service = interpret(machine);
-
-      registerEntityService(service);
-      service.send({
-        type: 'INITIALIZE',
-        id: generateSnowflakeId(),
-      });
-
-      try {
-        await waitFor(service, (state) => state.matches('Initialized'));
-      } catch (ex) {
-        throw new TRPCError({
-          code: 'TIMEOUT',
-          message: 'Timed out waiting for initialize',
-          cause: ex,
-        });
-      }
-
-      const state = service.getSnapshot();
-      if (!state.matches('Initialized')) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to initialize entity',
-        });
-      }
-
-      // todo make the types on this better..
-      if (!state.context.entity) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message:
-            'No entity found in context. Service not initialized correctly',
-        });
-      }
-
-      return state.context.entity;
-    }),
-  events: protectedProcedure
-    .input(
-      z.object({
-        id: SnowflakeIdSchema,
-      })
-    )
-    .subscription(async ({ input }) => {
-      const service = await getEntityServiceWithErrors(input.id);
-
-      return observable((emit) => {
-        const sub = service.subscribe((state) => {
-          emit.next(state.event);
-        });
-
-        return () => {
-          sub.unsubscribe();
-        };
-      });
-    }),
   changes: protectedProcedure
     .input(
       z.object({
         id: SnowflakeIdSchema,
       })
     )
-    .subscription(async ({ input }) => {
-      const service = await getEntityServiceWithErrors(input.id);
-
-      return observable<
-        { type: 'INIT'; data: Entity } | { type: 'CHANGE'; data: Entity }
-      >((emit) => {
-        emit.next({ type: 'INIT', data: service.getSnapshot().context.entity });
-        const sub = service.subscribe((state) => {
-          if (state.context.entity) {
-            // todo only do this if there's a change so clients dont process it
-            emit.next({ type: 'CHANGE', data: state.context.entity });
-          } else {
-            emit.complete();
-            sub.unsubscribe();
-          }
+    .subscription(async ({ ctx, input }) => {
+      const entity = baseEntityIndex.get(input.id);
+      if (!entity) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: `Entity ${input.id} not found`,
         });
+      }
 
-        return () => {
-          sub.unsubscribe();
-        };
+      if (!hasAccess(entity, ctx.connectionEntity)) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: `Forbidden access to entity {input.id}`,
+        });
+      }
+
+      return observable<EntityChangeEvent>((emit) => {
+        // Every tick, check to see if entities were added or removed
+        // If they were, flush them, then clear out the sets for tracking
+        const event$ = from(interval(1000 / TICK_RATE)).subscribe(() => {
+          // if (addedIds.size || removedIds.size) {
+          //   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          //   const addedEntities = Array.from(addedIds).map(
+          //     (id) => myEntities.get(id)!
+          //   );
+          //   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          //   const removedEntities = Array.from(removedIds).map(
+          //     (id) => myEntities.get(id)!
+          //   );
+          //   emit.next({
+          //     addedEntities,
+          //     removedEntities,
+          //   });
+          //   addedIds.clear();
+          //   removedIds.clear();
+          // }
+        });
       });
     }),
-  send: protectedProcedure
-    .input(
-      z.object({
-        id: SnowflakeIdSchema,
-        event: EntityEventSchema,
-      })
-    )
-    .mutation(async ({ input }) => {
-      const service = await getEntityServiceWithErrors(input.id);
-      service.send(event);
-    }),
 });
+// send: protectedProcedure
+//   .input(
+//     z.object({
+//       id: SnowflakeIdSchema,
+//       event: EntityEventSchema,
+//     })
+//   )
+//   .mutation(async ({ input }) => {
+//     const store = await getEntityStore(input.id);
+//     store.send(event);
+//   }),
 
-const getEntityServiceWithErrors = async (id: SnowflakeId) => {
-  let service: AnyInterpreter | undefined;
-  try {
-    service = await getEntityService(id);
-  } catch (ex) {
-    throw new TRPCError({
-      code: 'INTERNAL_SERVER_ERROR',
-      message: 'Error when getting entity service',
-      cause: ex,
-    });
-  }
+// type TStore<TEntity extends Entity, TEvent extends { type: string }> = {
+//   id: SnowflakeId;
+//   send: (event: TEvent) => void;
+//   getSnapshot: () => TEntity | undefined;
+//   subscribe: (callback: (entity: Entity) => void) => void;
+// };
+// const storeMap = new Map<SnowflakeId, TStore<any, any>>();
 
-  if (!service) {
-    throw new TRPCError({
-      code: 'BAD_REQUEST',
-      message: "Couldn't find entity service",
-    });
-  }
+// todo: make this isomorphic to be able to run on client as well
+// maybe here you inject the a declaraative config
+// some things to consider
+// - add a storeRef propt ot he entity
+// - define the name of that prop
+// - add machine to that entity
+// - define the name of that machine
+// this is the builder/composition part of it
+// we are building up pieces
+// so effectively it's adding a component maybe?
+// thats the idea, but lets not call it that. let's call it what it is
+// a storeRef
+//
+//
+// `storeRef`
+//
+//  Entity service refs
+//    is a store and a service the same thing? Effecitively, yes.
+// .   the difference between a store and a service si that a service
+// .   has a state machine associated with it
+// That get's defined
 
-  return service;
-};
+// const getEntityStore = (<TEntity extends Entity, TEvent extends { type: string }>(id: SnowflakeId) => {
+//   type Store = TStore<TEntity, TEvent>;
+
+//   const store = storeMap.get(id);
+//   if (store) {
+//     return store as Store;
+//   }
+
+//   const send = <TEvent>(event: TEvent) => {
+//     console.log(event);
+//   }
+
+//   const getSnapshot = <TEntity>() => {
+//     return {} as TEntity | undefined;
+//   }
+
+//   const subscribe = (callback: (entity: TEntity) => void) => {
+//     return;
+//   }
+
+//   const newStore = {
+//     id,
+//     send,
+//     getSnapshot,
+//     subscribe
+//   } satisfies Store;
+//   storeMap.set(id, newStore)
+
+//   return newStore;
+// }
+
+// const getEntityServiceWithErrors = async (id: SnowflakeId) => {
+//   let service: AnyInterpreter | undefined;
+//   try {
+//     service = await getEntityService(id);
+//   } catch (ex) {
+//     throw new TRPCError({
+//       code: 'INTERNAL_SERVER_ERROR',
+//       message: 'Error when getting entity service',
+//       cause: ex,
+//     });
+//   }
+
+//   if (!service) {
+//     throw new TRPCError({
+//       code: 'BAD_REQUEST',
+//       message: "Couldn't find entity service",
+//     });
+//   }
+
+//   return service;
+// };
+
+// {
+//   "rules": {
+//     "<<path>>": {
+//     // Allow the request if the condition for each method is true.
+//       ".read": <<condition>>,
+//       ".write": <<condition>>
+//     }
+//   }
+// }
+
+// const [_, entity$] = createArchetypeIndex(world.with('id'), 'id');
+
+// const selectUserData = () => {
+//   return {
+//     hello: 'there',
+//   } as const;
+// };
+
+// // Define the hasAccess function
+// async function hasAccess(entity: Entity, userEntity: UserEntity | null) {
+//   // Implement the logic to determine if the user has access to the entity.
+//   // If userEntity is null, the entity is publicly accessible.
+//   // ...
+//   return true;
+// }
+
+// const selectAccess = (entityState: AnyState) => {
+//   return {};
+// };

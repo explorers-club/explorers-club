@@ -1,12 +1,5 @@
-import {
-  ArchetypeEvent,
-  createArchetypeIndex,
-} from '@explorers-club/ecs';
 // import { ActorSchema, StagingRoomSchema } from '@explorers-club/schema';
-import { ObservableProps } from '@explorers-club/utils';
-import { filter } from 'rxjs';
 import { assign, createMachine, StateFrom } from 'xstate';
-import { z } from 'zod';
 import { AppContext, AppEvent, AppServiceOptions } from '../schema';
 
 export const createAppMachine = ({
@@ -24,7 +17,6 @@ export const createAppMachine = ({
   // );
   // const actorEntitiesEvent$ = createArchetypeEvent$(actorArchetype);
   // type ActorEntityEvent = ObservableProps<typeof actorEntitiesEvent$>;
-  type Event = AppEvent;
 
   // const roomArchetype = world.with(
   //   'id',
@@ -34,7 +26,6 @@ export const createAppMachine = ({
   // );
 
   // const room$ = createArchetypeEvent$(roomArchetype);
-
 
   // type ActorArchetype = z.infer<typeof ActorSchema>;
   // type ActorArchetype = FromArchetype<typeof actorArchetype>;
@@ -64,9 +55,24 @@ export const createAppMachine = ({
     },
     schema: {
       context: {} as AppContext,
-      events: {} as Event,
+      events: {} as AppEvent,
     },
     states: {
+      Login: {
+        initial: 'Closed',
+        states: {
+          Closed: {
+            on: {
+              OPEN_LOGIN: 'Open',
+            },
+          },
+          Open: {
+            on: {
+              CLOSE_LOGIN: 'Closed',
+            },
+          },
+        },
+      },
       Navigation: {
         initial: 'Closed',
         states: {

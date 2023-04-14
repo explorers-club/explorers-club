@@ -1,11 +1,6 @@
 import { initTRPC, TRPCError } from '@trpc/server';
-// import { JwtPayload } from 'jsonwebtoken';
 import superjson from 'superjson';
 import { type Context } from './context';
-
-// export interface SessionTokenJwtPayload extends JwtPayload {
-//   sessionId: string;
-// }
 
 const t = initTRPC.context<Context>().create({
   transformer: superjson,
@@ -14,10 +9,9 @@ const t = initTRPC.context<Context>().create({
   },
 });
 
-const isAuthed = t.middleware(
-  async ({ ctx: { connectionService, ...ctx }, next }) => {
-    const connectionState = connectionService.getSnapshot();
-    if (!connectionState.matches("Initialized")) {
+const isInitialized = t.middleware(
+  async ({ ctx: { connectionEntity, ...ctx }, next }) => {
+    if (connectionEntity.states.Initialized !== 'True') {
       throw new TRPCError({
         code: 'UNAUTHORIZED',
         message: 'Connection not yet initialized',
@@ -27,7 +21,7 @@ const isAuthed = t.middleware(
     return next({
       ctx: {
         ...ctx,
-        connectionState,
+        connectionEntity,
       },
     });
   }
@@ -35,4 +29,4 @@ const isAuthed = t.middleware(
 
 export const router = t.router;
 export const publicProcedure = t.procedure;
-export const protectedProcedure = t.procedure.use(isAuthed);
+export const protectedProcedure = t.procedure.use(isInitialized);

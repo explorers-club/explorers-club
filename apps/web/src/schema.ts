@@ -6,6 +6,8 @@ import { z } from 'zod';
 import {
   CloseNavEventSchema,
   JoinRoomEventSchema,
+  OpenLoginEventSchema,
+  CloseLoginEventSchema,
   OpenNavEventSchema,
   StartRoomEventSchema,
 } from './events';
@@ -36,6 +38,8 @@ export const AppEventSchema = z.union([
   OpenNavEventSchema,
   CloseNavEventSchema,
   JoinRoomEventSchema,
+  OpenLoginEventSchema,
+  CloseLoginEventSchema,
 ]);
 export type AppEvent = z.infer<typeof AppEventSchema>;
 

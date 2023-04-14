@@ -1,29 +1,14 @@
-import { createArchetypeIndex } from '@explorers-club/ecs';
-import { ConnectionInitializeInputSchema } from '@explorers-club/schema';
-import { TRPCError } from '@trpc/server';
-import { waitFor } from 'xstate/lib/waitFor';
+import {
+  ConnectionInitializeInputSchema,
+  InitializedConnectionEntity,
+} from '@explorers-club/schema';
 import { z } from 'zod';
 import { protectedProcedure, publicProcedure, router } from '../../trpc';
-import { world } from '../../world';
-
-// const [deviceEntityIndex] = createArchetypeIndex(
-//   world.with('id', 'schema', 'supabaseSessionId'),
-//   'supabaseSessionId'
-// );
-const [sessionEntityIndex] = createArchetypeIndex(
-  world.with(
-    'id',
-    'sessionId',
-    'lastHeartbeatAt',
-    'connected',
-    'currentLocation'
-  ),
-  'sessionId'
-);
+import { waitFor } from '../../utils';
 
 export const connectionRouter = router({
   heartbeat: protectedProcedure.mutation(async ({ ctx }) => {
-    ctx.connectionService.send({
+    ctx.connectionEntity.send({
       type: 'HEARTBEAT',
     });
   }),
@@ -31,51 +16,29 @@ export const connectionRouter = router({
   navigate: protectedProcedure
     .input(z.object({ location: z.string().url() }))
     .mutation(async ({ ctx, input }) => {
-      ctx.connectionService.send({
+      ctx.connectionEntity.send({
         type: 'NAVIGATE',
         location: input.location,
       });
-      // const session = sessionEntityIndex.get(ctx.authState.sessionId);
-      // if (!session) {
-      //   throw new TRPCError({
-      //     code: 'BAD_REQUEST',
-      //     message: "Couldn't find session",
-      //   });
-      // }
-
-      // session.currentLocation = input.location;
-      // return session;
     }),
 
   initialize: publicProcedure
     .input(ConnectionInitializeInputSchema)
     .mutation(async ({ ctx, input }) => {
-      ctx.connectionService.send({
+      ctx.connectionEntity.send({
         type: 'INITIALIZE',
         ...input,
       });
 
-      await waitFor(ctx.connectionService, (state) =>
-        state.matches('Initialized')
-      );
+      const entity = (await waitFor(ctx.connectionEntity, (entity) => {
+        return entity.states.Initialized === 'True';
+      })) as InitializedConnectionEntity;
 
-      const state = ctx.connectionService.getSnapshot();
-      if (!state.matches('Initialized')) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Connection in unexpected state',
-        });
-      }
-
-      const { entity } = state.context;
-      const session = state.context.supabaseSession;
+      const { deviceId, authTokens } = entity;
 
       return {
-        entity,
-        authTokens: {
-          accessToken: session.access_token,
-          refreshToken: session.refresh_token,
-        },
+        deviceId,
+        authTokens,
       };
     }),
 });

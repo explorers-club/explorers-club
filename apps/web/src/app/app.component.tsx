@@ -1,31 +1,15 @@
 import { Box } from '@atoms/Box';
-import { Button } from '@atoms/Button';
-import { Card } from '@atoms/Card';
 import { Flex } from '@atoms/Flex';
 import { IconButton } from '@atoms/IconButton';
-import { Image } from '@atoms/Image';
 import { Logo } from '@atoms/Logo';
-import {
-  ScrollAreaRoot,
-  ScrollAreaScrollbar,
-  ScrollAreaThumb,
-  ScrollAreaViewport,
-} from '@atoms/ScrollArea';
-import { Text } from '@atoms/Text';
-import { styled } from '@explorers-club/styles';
-import * as Dialog from '@radix-ui/react-dialog';
-import {
-  Cross2Icon,
-  HamburgerMenuIcon,
-  OpenInNewWindowIcon,
-  PersonIcon,
-} from '@radix-ui/react-icons';
-import * as Tabs from '@radix-ui/react-tabs';
+import { HamburgerMenuIcon, PersonIcon } from '@radix-ui/react-icons';
 import { useCallback } from 'react';
 import { MainScene } from '../scenes/main-scene.component';
 import { MainScreen } from '../screens/main-screen.component';
 import { useAppSend, useServiceSelector } from '../services';
 import { AppState } from '../state/app.machine';
+import { selectLoginIsOpen, selectNavIsOpen } from './app.selectors';
+import { Login } from './login.component';
 import { Navigation } from './navigation.component';
 
 // inspect({
@@ -103,6 +87,8 @@ const MainScreenContainer = () => {
   const isMainScreenFocused = useServiceSelector('appService', (state) =>
     state.matches('Focus.MainScreen')
   );
+  const loginIsOpen = useServiceSelector('appService', selectLoginIsOpen);
+
   return (
     <Flex
       direction="column"
@@ -111,7 +97,7 @@ const MainScreenContainer = () => {
         ...(isMainScreenFocused ? { height: '100vh', paddingTop: '76px' } : {}),
       }}
     >
-      <MainScreen />
+      {!loginIsOpen ? <MainScreen /> : <Login />}
     </Flex>
   );
 };
@@ -257,5 +243,3 @@ const MainSceneContainer = () => {
     </Flex>
   );
 };
-
-const selectNavIsOpen = (state: AppState) => state.matches('Navigation.Open');

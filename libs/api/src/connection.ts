@@ -1,168 +1,283 @@
-import { Database } from "@explorers-club/database";
-import { generateSnowflakeId } from "@explorers-club/ecs";
-import { ConnectionContext, ConnectionEntity, ConnectionEvent, ConnectionTypeState, SessionInterpreter, SnowflakeId, UserId } from "@explorers-club/schema";
-import { assertEventType, generateRandomString } from "@explorers-club/utils";
-import { createClient, Session } from "@supabase/supabase-js";
-import { TRPCError } from "@trpc/server";
-import { World } from "miniplex";
-import { assign, createMachine, interpret } from "xstate";
-import { createSessionMachine } from "./session";
+// import { Database } from '@explorers-club/database';
+// import {
+//   createArchetypeIndex,
+//   createEntity,
+//   generateSnowflakeId,
+// } from '@explorers-club/ecs';
+// import {
+//   ConnectionContext,
+//   ConnectionCommand,
+//   ConnectionTypeState,
+//   Entity,
+//   InitializedConnectionContext,
+//   SnowflakeId,
+//   UserContext,
+//   UserEntity,
+//   UserCommand,
+//   UserTypeState,
+// } from '@explorers-club/schema';
+// import { assertEventType } from '@explorers-club/utils';
+// import { createClient } from '@supabase/supabase-js';
+// import { TRPCError } from '@trpc/server';
+// import { assign } from '@xstate/immer';
+// import { World } from 'miniplex';
+// import {
+//   ActorRefFrom,
+//   createMachine,
+//   DoneInvokeEvent,
+//   interpret,
+//   InterpreterFrom,
+//   StateMachine,
+//   StateNode,
+//   StateSchema,
+// } from 'xstate';
+// import { createUserMachine } from './entities/user';
+// import { world } from './world';
 
-const supabaseUrl = process.env['SUPABASE_URL'];
-const supabaseJwtSecret = process.env['SUPABASE_JWT_SECRET'];
-const supabaseAnonKey = process.env['SUPABASE_ANON_KEY'];
-const supabaseServiceKey = process.env['SUPABASE_SERVICE_KEY'];
+// const supabaseUrl = process.env['SUPABASE_URL'];
+// const supabaseJwtSecret = process.env['SUPABASE_JWT_SECRET'];
+// const supabaseAnonKey = process.env['SUPABASE_ANON_KEY'];
+// const supabaseServiceKey = process.env['SUPABASE_SERVICE_KEY'];
 
-// todo: switch to using zod for parsing
-if (
-  !supabaseUrl ||
-  !supabaseJwtSecret ||
-  !supabaseAnonKey ||
-  !supabaseServiceKey
-) {
-  throw new Error('missing supabase configuration');
-}
+// // todo: switch to using zod for parsing
+// if (
+//   !supabaseUrl ||
+//   !supabaseJwtSecret ||
+//   !supabaseAnonKey ||
+//   !supabaseServiceKey
+// ) {
+//   throw new Error('missing supabase configuration');
+// }
 
-const sessionsServicesByUserId = new Map<UserId, SessionInterpreter>();
+// const [entityByUserId, userEntity$] = createArchetypeIndex(
+//   world.with(
+//     'id',
+//     'schema',
+//     'userId',
+//     'name',
+//     'discriminiator',
+//     'position',
+//     'session',
+//     'connections'
+//   ),
+//   'userId'
+// );
 
-export const createConnectionMachine = ({
-  world,
-}: {
-  world: World;
-}) => {
-  // const { id } = entity;
-  const supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      persistSession: false,
-    },
-  });
+// // const createUserEntity = () => {
+// //   const userMachine = createUserMachine({ world });
+// //   const userService = interpret(userMachine);
+// //   userService.start();
+// //   const state = userService.getSnapshot()!;
+// //   const now = new Date();
 
-  const connectionMachine = createMachine<
-    ConnectionContext,
-    ConnectionEvent,
-    ConnectionTypeState
-  >({
-    id: "ConnectionMachine",
-    context: {
-      supabaseClient,
-      // deviceService: undefined,
-      // sessionService: undefined,
-      // playerService: undefined,
-    },
-    states: {
-      Unitialized: {
-        on: {
-          INITIALIZE: {
-            target: 'Initializing',
-          },
-        },
-      },
-      Initializing: {
-        invoke: {
-          onDone: {
-            target: 'Initialized',
-            actions: assign({
-              entity: (_, event) => event.data.entity,
-              supabaseSession: (_, event) => event.data.supabaseSession,
-              location: (_, event) => event.data.location,
-            })
-          },
-          onError: 'Error',
-          src: async (context, event) => {
-            const id = generateSnowflakeId();
-            assertEventType(event, "INITIALIZE");
-            const { deviceId, authTokens, initialLocation: location } = event;
-            let supabaseSession: Session;
+// //   return createEntity({
+// //     id: generateSnowflakeId(),
+// //     userId: undefined,
+// //     schema: 'user',
+// //     name: undefined,
+// //     discriminator: 0,
+// //     state: state.value,
+// //     session: {
+// //       id: generateSnowflakeId(),
+// //       createdAt: now,
+// //     },
+// //     connections: [
+// //       {
+// //         id: generateSnowflakeId(),
+// //         createdAt: now,
+// //         connected: true,
+// //       },
+// //     ],
+// //   } as UserEntity);
+// // };
 
-            // Get our user from supabase using the auth tokens
-            if (authTokens) {
-              const { data, error } = await supabaseClient.auth.setSession({
-                access_token: authTokens.accessToken,
-                refresh_token: authTokens.refreshToken,
-              });
+// export function createUserMachine(props: {
+//   world: World;
+//   entity: Entity;
+// }): UserStateMachine {
+//   // console.log(world, entity);
+//   // return '';
+//   return createMachine({
+//     id: "UserMachine"
+//   })
+// }
 
-              if (error) {
-                throw new TRPCError({
-                  code: 'BAD_REQUEST',
-                  message: error.message,
-                  cause: error,
-                });
-              }
+// type Interpreter = InterpreterFrom<UserStateMachine>;
+// const i = {} as Interpreter;
 
-              if (!data.session) {
-                throw new TRPCError({
-                  code: 'BAD_REQUEST',
-                  message: 'Unable to start session',
-                });
-              }
+// i.start()
+// const state = i.getSnapshot();
+// state.matches("Initialized")
 
-              supabaseSession = data.session;
-            } else {
-              const { data, error } = await supabaseClient.auth.signUp({
-                email: `anon-${generateRandomString()}@explorers.club`,
-                password: `${generateRandomString()}33330`,
-              });
-              if (error) {
-                throw new TRPCError({
-                  code: 'INTERNAL_SERVER_ERROR',
-                  message: error.message,
-                  cause: error,
-                });
-              }
 
-              if (!data.session) {
-                throw new TRPCError({
-                  code: 'INTERNAL_SERVER_ERROR',
-                  message: 'Expected session but was missing',
-                });
-              }
-              supabaseSession = data.session;
-              await supabaseClient.auth.setSession({
-                access_token: data.session.access_token,
-                refresh_token: data.session.refresh_token,
-              });
-            }
 
-            const userId = supabaseSession.user.id;
 
-            // Find or create session for this user
-            let sessionService = sessionsServicesByUserId.get(userId) satisfies SessionInterpreter | undefined;
-            let sessionId: SnowflakeId | undefined;
-            if (!sessionService) {
-              sessionService = interpret(
-                createSessionMachine({ world })
-              );
-              sessionService.start();
-              sessionService.send({
-                type: "INITIALIZE",
-                userId: supabaseSession.user.id,
-                connectionId: id
-              })
-              sessionsServicesByUserId.set(userId, sessionService);
-            } else {
-              sessionService.send({ type: "ADD_CONNECTION", connectionId: id })
-              sessionId = sessionService.id;
-            }
 
-            const entity: ConnectionEntity = {
-              id,
-              schema: "connection",
-              location,
-              deviceId: deviceId || generateSnowflakeId(),
-              // sessionId
-            }
-            world.add(entity);
 
-            return {
-              entity,
-              supabaseSession,
-            };
-          },
-        },
-      },
-      Initialized: {},
-      Error: {},
-    },
-  });
-  return connectionMachine;
-};
+// export const createConnectionMachine2 = ({
+//   world,
+// }: {
+//   world: World;
+//   entity: Entity;
+// }) => {
+//   // const { id } = entity;
+//   const supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+//     auth: {
+//       persistSession: false,
+//     },
+//   });
+
+//   const connectionMachine = createMachine<
+//     ConnectionContext,
+//     ConnectionCommand,
+//     ConnectionTypeState
+//   >({
+//     id: 'ConnectionMachine',
+//     initial: 'Unitialized',
+//     states: {
+//       Unitialized: {
+//         on: {
+//           INITIALIZE: {
+//             target: 'Initializing',
+//           },
+//         },
+//       },
+//       Initializing: {
+//         invoke: {
+//           onDone: {
+//             target: 'Initialized',
+//             actions: assign<
+//               ConnectionContext,
+//               DoneInvokeEvent<InitializedConnectionContext>
+//             >((context, event) => {
+//               context = event.data;
+//             }),
+//           },
+//           onError: 'Error',
+//           src: async (context, event) => {
+//             assertEventType(event, 'INITIALIZE');
+
+//             const { authTokens, deviceId, initialLocation } = event;
+
+//             let userId: SnowflakeId | undefined = undefined;
+//             if (authTokens) {
+//               const { data, error } = await supabaseClient.auth.setSession({
+//                 access_token: authTokens.accessToken,
+//                 refresh_token: authTokens.refreshToken,
+//               });
+
+//               if (error) {
+//                 throw new TRPCError({
+//                   code: 'INTERNAL_SERVER_ERROR',
+//                   message: error.message,
+//                   cause: error,
+//                 });
+//               }
+//               if (!data.user) {
+//                 throw new TRPCError({
+//                   code: 'UNAUTHORIZED',
+//                   message: 'Not able to fetch user with authTokens',
+//                 });
+//               }
+
+//               userId = data.user.id;
+//             }
+
+//             const connectionId = generateSnowflakeId();
+//             const now = new Date();
+
+//             const userMachine = createUserMachine({ world });
+//             const userService = interpret(userMachine);
+//             userService.start();
+//             const state = userService.getSnapshot()!;
+
+//             const [userEntity, userEntity$] = createEntity<UserEntity>({
+//               // id: generateSnowflakeId(),
+//               userId: undefined,
+//               schema: 'user',
+//               name: undefined,
+//               discriminator: 0,
+//               state: state.value,
+//               sessionId: generateSnowflakeId(),
+//               connections: [
+//                 {
+//                   id: generateSnowflakeId(),
+//                   createdAt: now,
+//                   connected: true,
+//                 },
+//               ],
+//             });
+
+//             // const userEntity: UserEntity = {
+//             //   id: generateSnowflakeId(),
+//             //   userId: undefined,
+//             //   schema: 'user',
+//             //   name: undefined,
+//             //   discriminator: 0,
+//             //   session: {
+//             //     id: generateSnowflakeId(),
+//             //     createdAt: now,
+//             //   },
+//             //   connections: [
+//             //     {
+//             //       id: generateSnowflakeId(),
+//             //       createdAt: now,
+//             //       connected: true,
+//             //     },
+//             //   ],
+//             // };
+//             world.add(userEntity);
+
+//             return {
+//               id: connectionId,
+//               deviceId: deviceId || generateSnowflakeId(),
+//               userId,
+//               location: initialLocation,
+//               mainConnectionId: connectionId,
+//               connectionIds: [connectionId],
+//               userEntity,
+//             } as InitializedConnectionContext;
+
+//             // const userId = supabaseSession.user.id;
+
+//             // // Find or create session for this user
+//             // let sessionService = sessionsServicesByUserId.get(userId) satisfies SessionInterpreter | undefined;
+//             // let sessionId: SnowflakeId | undefined;
+//             // if (!sessionService) {
+//             //   sessionService = interpret(
+//             //     createSessionMachine({ world })
+//             //   );
+//             //   sessionService.start();
+//             //   sessionService.send({
+//             //     type: "INITIALIZE",
+//             //     userId: supabaseSession.user.id,
+//             //     connectionId: id
+//             //   })
+//             //   sessionsServicesByUserId.set(userId, sessionService);
+//             // } else {
+//             //   sessionService.send({ type: "ADD_CONNECTION", connectionId: id })
+//             //   sessionId = sessionService.id;
+//             // }
+
+//             // const entity: ConnectionEntity = {
+//             //   id,
+//             //   schema: "connection",
+//             //   location,
+//             //   deviceId: deviceId || generateSnowflakeId(),
+//             //   // sessionId
+//             // }
+//             // world.add(entity);
+
+//             // return {
+//             //   entity,
+//             //   supabaseSession,
+//             // };
+//           },
+//         },
+//       },
+//       Initialized: {},
+//       Error: {},
+//     },
+//   });
+//   return connectionMachine;
+// };

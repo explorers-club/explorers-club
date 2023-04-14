@@ -1,12 +1,11 @@
+import {
+  ConnectionEntitySchema,
+  LoginInputSchema,
+} from '@explorers-club/schema';
 import { TRPCError } from '@trpc/server';
 import { waitFor } from 'xstate/lib/waitFor';
 import { z } from 'zod';
 import { protectedProcedure, publicProcedure, router } from '../../trpc';
-
-const LoginInputSchema = z.object({
-  email: z.string().email(),
-  password: z.string(),
-});
 
 export const authRouter = router({
   register: protectedProcedure
@@ -27,14 +26,19 @@ export const authRouter = router({
   login: protectedProcedure
     .input(LoginInputSchema)
     .mutation(async ({ ctx, input }) => {
-      const state = ctx.connectionService.getSnapshot();
+      // const state = ctx.connectionEntity.matches({ Initialized: 'True' });
+      // ctx.connectionEntity.matches()
+      // f.matches({ Initi})
+      // f.send({})
+      // f.states.Initialized === "True"
 
       // ctx.connectionService.send("LOGIN")
-      const isInitialized = state.matches('Initialized');
-      if (isInitialized) {
-        const userId = state.context.supabaseSession.user.id;
-      } else {
-      }
+      // const isInitialized = state.matches('Initialized');
+      // if (isInitialized) {
+      //   const userId = state.context.supabaseSession.user.id;
+      // } else {
+      // ctx.con
+      // }
 
       // const { supabaseClient } = ctx.sessionService.getSnapshot().context;
       // const { email, password } = input;

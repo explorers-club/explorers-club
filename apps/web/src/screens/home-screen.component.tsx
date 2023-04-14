@@ -1,5 +1,6 @@
 import { Button } from '@atoms/Button';
 import { Card } from '@atoms/Card';
+import { Text } from '@atoms/Text';
 import { Label } from '@atoms/Label';
 import { TextField } from '@atoms/TextField';
 import { useMachine } from '@xstate/react';
@@ -36,6 +37,10 @@ export const HomeScreen = () => {
 
   const nameRef = useRef<HTMLInputElement>(null);
 
+  const handlePressLogin = useCallback(() => {
+    appSend({ type: 'OPEN_LOGIN' });
+  }, [appSend]);
+
   const handleSubmitName: FormEventHandler = useCallback(
     (event) => {
       event.preventDefault();
@@ -58,13 +63,19 @@ export const HomeScreen = () => {
         </Button>
       )}
       {state.matches('EnteringInfo') && (
-        <form onSubmit={handleSubmitName}>
-          <Label htmlFor="name">Name</Label>
-          <TextField name="name" type="text" ref={nameRef} />
-          <Button size="3" fullWidth>
-            Submit
-          </Button>
-        </form>
+        <>
+          <Text>
+            Already have an account?{' '}
+            <Button onClick={handlePressLogin}>Login</Button>
+          </Text>
+          <form onSubmit={handleSubmitName}>
+            <Label htmlFor="name">Name</Label>
+            <TextField name="name" type="text" ref={nameRef} />
+            <Button size="3" fullWidth>
+              Submit
+            </Button>
+          </form>
+        </>
       )}
     </Card>
   );

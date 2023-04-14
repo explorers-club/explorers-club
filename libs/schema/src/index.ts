@@ -1,8 +1,14 @@
-import { Database } from '@explorers-club/database';
-import { MakeRequired } from '@explorers-club/utils';
-import { Session, SupabaseClient } from '@supabase/supabase-js';
-import { InterpreterFrom, StateMachine, StateValue } from 'xstate';
-import { z } from 'zod';
+/* eslint-disable @typescript-eslint/ban-types */
+import { IndexByType, MakeRequired } from '@explorers-club/utils';
+import {
+  AnyEventObject,
+  InterpreterFrom,
+  StateFrom,
+  StateMachine,
+  StateSchema,
+  StateValue,
+} from 'xstate';
+import { z, ZodRawShape } from 'zod';
 import { CodebreakersState } from '../@types/generated/CodebreakersState';
 import { DiffusionaryState } from '../@types/generated/DiffusionaryState';
 import { LittleVigilanteState } from '../@types/generated/LittleVigilanteState';
@@ -106,23 +112,6 @@ export type UserId = z.infer<typeof UserIdSchema>;
 export const ECEpochTimestampSchema = z.number();
 export type ECEpochTimestamp = z.infer<typeof ECEpochTimestampSchema>;
 
-// const AnonymousRoleLiteralType = z.literal('anonymous');
-// const AuthenticatedRoleLiteralType = z.literal('authenticated');
-
-// const RolesSchema = z.union([
-//   AnonymousRoleLiteralType,
-//   AuthenticatedRoleLiteralType,
-// ]);
-
-// const GroupsSchema = z.enum(['anonymous', 'authenticated']);
-
-// const UserSchema = z.object({
-//   id: UserIdSchema,
-//   schema: z.literal('user'),
-//   groups: GroupsSchema,
-//   roles: z.array(z.string()),
-// });
-
 export const ClubNameSchema = z.string();
 
 export const PlayerNameSchema = z.string();
@@ -143,6 +132,7 @@ const StateValueSchema: z.ZodType<StateValue> = z.union([
   z.string(),
   z.record(z.lazy(() => StateValueSchema)),
 ]);
+export type AnyStateValue = z.infer<typeof StateValueSchema>;
 
 const StagingRoomSchemaTypeLiteral = z.literal('staging_room');
 const LittleVigilanteRoomSchemaTypeLiteral = z.literal('little_vigilante_room');
@@ -150,111 +140,248 @@ const UserSchemaTypeLiteral = z.literal('user');
 const PlayerSchemaTypeLiteral = z.literal('player');
 const SessionSchemaTypeLiteral = z.literal('session');
 const ConnectionSchemaTypeLiteral = z.literal('connection');
+const RoomSchemaTypeLiteral = z.literal('room');
 const DeviceSchemaTypeLiteral = z.literal('device');
 
+export const LoginInputSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(5),
+});
+
 export const SchemaLiteralsSchema = z.union([
-  StagingRoomSchemaTypeLiteral,
-  PlayerSchemaTypeLiteral,
-  LittleVigilanteRoomSchemaTypeLiteral,
+  UserSchemaTypeLiteral,
+  RoomSchemaTypeLiteral,
+  SessionSchemaTypeLiteral,
   ConnectionSchemaTypeLiteral,
+  // StagingRoomSchemaTypeLiteral,
+  // LittleVigilanteRoomSchemaTypeLiteral,
   // UserSchemaTypeLiteral,
   // SessionSchemaTypeLiteral,
   // DeviceSchemaTypeLiteral,
 ]);
 export type SchemaType = z.infer<typeof SchemaLiteralsSchema>;
 
-const EntityBaseSchema = z.object({
-  id: SnowflakeIdSchema,
-  states: z.array(z.string()).optional(),
-  schema: SchemaLiteralsSchema,
-  children: z.array(SnowflakeIdSchema).optional(),
-});
-export type EntityBase = z.infer<typeof EntityBaseSchema>;
+// Define a generic schema for the store
+const StoreSchema = <State, Event extends { type: string }>(
+  stateSchema: z.ZodSchema<State>,
+  eventSchema: z.ZodSchema<Event>
+) => {
+  return z.object({
+    id: z.string(),
+    subscribe: z
+      .function()
+      .args(z.function().args().returns(z.void()))
+      .returns(z.function().returns(z.void())),
+    send: z.function().args(eventSchema).returns(z.void()),
+    getSnapshot: z.function().returns(stateSchema),
+  });
+};
 
-export const StagingRoomEntitySchema = EntityBaseSchema.extend({
-  indexKey: z.literal('roomName'),
-  roomName: ClubNameSchema,
-  schema: StagingRoomSchemaTypeLiteral,
-  playersIds: z.array(z.string()),
-});
-export type StagingRoomEntity = z.infer<typeof StagingRoomEntitySchema>;
+// Define separate Zod schemas for each event type
+const DisconnectEventSchema = z.object({ type: z.literal('DISCONNECT') });
+const ReconnectEventSchema = z.object({ type: z.literal('RECONNECT') });
 
-export const LittleVigilanteRoomEntitySchema = EntityBaseSchema.extend({
-  roomName: ClubNameSchema,
-  schema: LittleVigilanteRoomSchemaTypeLiteral,
-  playersIds: z.array(z.string()),
-});
-
-const RoomEntitySchema = z.union([
-  StagingRoomEntitySchema,
-  LittleVigilanteRoomEntitySchema,
+// Create a union schema that combines the event schemas
+const ConnectionEventSchema = z.union([
+  DisconnectEventSchema,
+  ReconnectEventSchema,
 ]);
-export type RoomEntity = z.infer<typeof RoomEntitySchema>;
 
-const DeviceSchema = z.object({
-  deviceId: z.string(),
-  lastHeartbeatAt: z.date(),
-  currentLocation: z.string().url(),
-  connected: z.boolean(),
-  supabaseSessionId: z.string(),
+// Define the base Event type with a "type" string parameter
+// export const EventBaseSchema = z.object({
+//   type: z.string(),
+// });
+// export type EventBase = z.infer<typeof EventBaseSchema>;
+
+// Define a custom Zod schema for the send function
+// const SendFunctionSchema = z.lazy(() =>
+//   z.function().args(EventBaseSchema).returns(z.void())
+// );
+
+// const SubscribeFunctionSchema = z
+//   .function()
+//   .args(z.function().args().returns(z.void()))
+//   .returns(z.function().args().returns(z.void()));
+
+// const ConnectionStoreSchema = StoreSchema(
+//   ConnectionStateSchema,
+//   ConnectionEventSchema
+// );
+
+// const EntityBaseSchema = z.object({
+//   id: SnowflakeIdSchema,
+//   states: z.array(z.string()).optional(),
+//   schema: SchemaLiteralsSchema,
+//   children: z.array(SnowflakeIdSchema).optional(),
+//   send: SendFunctionSchema,
+//   subscribe: SubscribeFunctionSchema,
+// });
+// export type EntityBase = z.infer<typeof EntityBaseSchema>;
+
+// Define a custom Zod schema for the send function
+const SendFunctionSchema = <TEvent extends AnyEventObject>(
+  eventSchema: z.ZodSchema<TEvent>
+) => z.function().args(eventSchema).returns(z.void());
+
+const CallbackFunctionSchema = <TCommand extends AnyEventObject>(
+  commandSchema: z.ZodSchema<TCommand>
+) => z.function().args(EntityEventSchema(commandSchema)).returns(z.void());
+
+const EntityBaseSchema = <
+  TEntity extends ZodRawShape,
+  TCommand extends AnyEventObject,
+  TContext,
+  TStateSchema
+>(
+  entitySchema: z.ZodObject<TEntity>,
+  commandSchema: z.ZodSchema<TCommand>,
+  contextSchema: z.ZodSchema<TContext>,
+  stateValueSchema: z.ZodSchema<TStateSchema>
+) =>
+  entitySchema.merge(
+    z.object({
+      id: SnowflakeIdSchema,
+      children: z.array(SnowflakeIdSchema).optional(),
+      send: SendFunctionSchema(commandSchema),
+      states: stateValueSchema,
+      context: contextSchema,
+      command: commandSchema,
+      subscribe: z
+        .function()
+        .args(CallbackFunctionSchema(commandSchema))
+        .returns(z.function().returns(z.void())), // The subscribe function returns an unsubscribe function
+    })
+  );
+// z.object({
+//   id: SnowflakeIdSchema,
+//   states: z.array(z.string()).optional(),
+//   children: z.array(SnowflakeIdSchema).optional(),
+//   send: SendFunctionSchema(commandSchema),
+//   context: contextSchema,
+//   command: commandSchema,
+//   subscribe: z
+//     .function()
+//     .args(CallbackFunctionSchema(commandSchema))
+//     .returns(z.function().returns(z.void())), // The subscribe function returns an unsubscribe function
+// });
+
+// const StagingRoomContextSchema = z.object({
+//   foo: z.string(),
+// });
+
+// // Define event schemas for each entity type
+// const StagingRoomCommandSchema = z.object({
+//   type: z.literal('STAGING_ROOM_EVENT'),
+//   data: z.string(),
+// });
+// type StagingRoomCommand = z.infer<typeof StagingRoomCommandSchema>;
+
+// const LittleVigilanteRoomContextSchema = z.object({
+//   foo: z.string(),
+// });
+
+// const LittleVigilanteRoomCommandSchema = z.object({
+//   type: z.literal('LITTLE_VIGILANTE_ROOM_EVENT'),
+//   data: z.string(),
+// });
+// type LittleVigilanteRoomCommand = z.infer<
+//   typeof LittleVigilanteRoomCommandSchema
+// >;
+
+// Update entity schema definitions
+// export const StagingRoomEntitySchema = EntityBaseSchema(
+//   z.object({
+//     indexKey: z.literal('roomName'),
+//     roomName: ClubNameSchema,
+//     schema: StagingRoomSchemaTypeLiteral,
+//     playersIds: z.array(z.string()),
+//   }),
+//   StagingRoomCommandSchema,
+//   StagingRoomContextSchema
+// );
+
+// export type StagingRoomEntity = z.infer<typeof StagingRoomEntitySchema>;
+
+// export const LittleVigilanteRoomEntitySchema = EntityBaseSchema(
+//   z.object({
+//     roomName: ClubNameSchema,
+//     schema: LittleVigilanteRoomSchemaTypeLiteral,
+//     playersIds: z.array(z.string()),
+//   }),
+//   LittleVigilanteRoomCommandSchema,
+//   LittleVigilanteRoomContextSchema
+// );
+
+// const DeviceSchema = z.object({
+//   deviceId: z.string(),
+//   lastHeartbeatAt: z.date(),
+//   currentLocation: z.string().url(),
+//   connected: z.boolean(),
+//   supabaseSessionId: z.string(),
+// });
+
+const DeviceIdSchema = z.string().uuid();
+
+const AuthTokensSchema = z.object({
+  accessToken: z.string(),
+  refreshToken: z.string(),
 });
+export type AuthTokens = z.infer<typeof AuthTokensSchema>;
 
-const DeviceIdSchema = z.string();
+// const ConnectionIdSchema = z.string();
+// const SessionIdSchema = z.string();
 
-const ConnectionIdSchema = z.string();
-const SessionIdSchema = z.string();
+// const ConnectionEntitySchema = EntityBaseSchema.extend({
+//   schema: ConnectionSchemaTypeLiteral,
+//   location: z.string().url(),
+//   deviceId: DeviceIdSchema,
+//   // sessionId: SessionIdSchema.optional(),
+// });
+// export type ConnectionEntity = z.infer<typeof ConnectionEntitySchema>;
 
-const ConnectionEntitySchema = EntityBaseSchema.extend({
-  schema: ConnectionSchemaTypeLiteral,
-  location: z.string().url(),
-  deviceId: DeviceIdSchema,
-  // sessionId: SessionIdSchema.optional(),
-});
-export type ConnectionEntity = z.infer<typeof ConnectionEntitySchema>;
+// const DeviceEntitySchema = EntityBaseSchema.extend({
+//   schema: DeviceSchemaTypeLiteral,
+//   supabaseSessionId: z.string(),
+//   connectedAt: z.date(),
+// });
+// export type DeviceEntity = z.infer<typeof DeviceEntitySchema>;
 
-const DeviceEntitySchema = EntityBaseSchema.extend({
-  schema: DeviceSchemaTypeLiteral,
-  supabaseSessionId: z.string(),
-  connectedAt: z.date(),
-});
-export type DeviceEntity = z.infer<typeof DeviceEntitySchema>;
+// const InitializeTypeLiteral = z.literal('INITIALIZE');
 
-const InitializeTypeLiteral = z.literal('INITIALIZE');
+// const NavigateEventSchema = z.object({
+//   type: z.literal('NAVIGATE'),
+//   location: z.string().url(),
+// });
+// type NavigateEvent = z.infer<typeof NavigateEventSchema>;
 
-const NavigateEventSchema = z.object({
-  type: z.literal('NAVIGATE'),
-  location: z.string().url(),
-});
-type NavigateEvent = z.infer<typeof NavigateEventSchema>;
+// const HeartbeatEventSchema = z.object({
+//   type: z.literal('HEARTBEAT'),
+// });
+// type HeartbeatEvent = z.infer<typeof HeartbeatEventSchema>;
 
-const HeartbeatEventSchema = z.object({
-  type: z.literal('HEARTBEAT'),
-});
-type HeartbeatEvent = z.infer<typeof HeartbeatEventSchema>;
+// const InitializeEventBaseSchema = z.object({
+//   type: InitializeTypeLiteral,
+//   id: SnowflakeIdSchema.optional(),
+// });
+// type InitializeEntityEvent = z.infer<typeof InitializeEventBaseSchema>;
 
-const InitializeEventBaseSchema = z.object({
-  type: InitializeTypeLiteral,
-  id: SnowflakeIdSchema.optional(),
-});
-type InitializeEntityEvent = z.infer<typeof InitializeEventBaseSchema>;
+// export type DeviceMachine = StateMachine<
+//   { entity: DeviceEntity },
+//   any,
+//   InitializeEntityEvent,
+//   any
+// >;
+// export type DeviceInterpreter = InterpreterFrom<DeviceMachine>;
 
-export type DeviceMachine = StateMachine<
-  { entity: DeviceEntity },
-  any,
-  InitializeEntityEvent,
-  any
->;
-export type DeviceInterpreter = InterpreterFrom<DeviceMachine>;
+// const SessionEntitySchema = EntityBaseSchema.extend({
+//   schema: SessionSchemaTypeLiteral,
+//   connectionIds: z.array(ConnectionIdSchema),
+//   userId: SnowflakeIdSchema,
+//   startedAt: z.date(),
+// });
+// export type SessionEntity = z.infer<typeof SessionEntitySchema>;
 
-const SessionEntitySchema = EntityBaseSchema.extend({
-  schema: SessionSchemaTypeLiteral,
-  connectionIds: z.array(ConnectionIdSchema),
-  userId: SnowflakeIdSchema,
-  startedAt: z.date(),
-});
-export type SessionEntity = z.infer<typeof SessionEntitySchema>;
-
-type DeviceId = string;
+// type DeviceId = string;
 
 // export const SessionContextSchema = z.object({
 //   supabaseClient: SessionEntitySchema,
@@ -266,135 +393,209 @@ type DeviceId = string;
 // });
 
 export type ConnectionContext = {
-  supabaseClient: SupabaseClient<Database>;
-  entity?: ConnectionEntity;
-  supabaseSession?: Session;
-  sessionService?: SessionInterpreter;
-  deviceService?: DeviceInterpreter;
   location?: string;
+  deviceId?: SnowflakeId;
+  authTokens?: AuthTokens;
 };
 
-export type ConnectionTypeState = {
-  value: 'Initialized';
-  context: MakeRequired<
-    ConnectionContext,
-    | 'entity'
-    | 'sessionService'
-    | 'deviceService'
-    | 'location'
-    | 'supabaseSession'
-  >;
-};
+export type InitializedConnectionContext = MakeRequired<
+  ConnectionContext,
+  'deviceId' | 'authTokens' | 'location'
+>;
+
+export type InitializedConnectionEntity = ConnectionEntity &
+  InitializedConnectionContext;
+
+// CONNECTION ENTITY
+export type ConnectionTypeState =
+  | {
+      value: 'Initialized';
+      context: InitializedConnectionContext;
+    }
+  | {
+      value: 'Unitialized';
+      context: ConnectionContext;
+    };
 
 export const ConnectionInitializeInputSchema = z.object({
   deviceId: SnowflakeIdSchema.optional(),
   initialLocation: z.string(),
-  authTokens: z
-    .object({
-      accessToken: z.string(),
-      refreshToken: z.string(),
-    })
-    .optional(),
+  authTokens: AuthTokensSchema.optional(),
 });
 
-export const InitializeConnectionEventSchema = InitializeEventBaseSchema.merge(
-  ConnectionInitializeInputSchema
-);
+const ConnectionStateValueSchema = z.object({
+  Initialized: z.enum(['True', 'False']),
+});
 
-type InitializeConnectionEvent = z.infer<
-  typeof InitializeConnectionEventSchema
->;
+type ConnectionStateValue = z.infer<typeof ConnectionStateValueSchema>;
 
-export type ConnectionEvent =
-  | InitializeConnectionEvent
-  | NavigateEvent
-  | HeartbeatEvent;
+export interface ConnectionStateSchema extends StateSchema {
+  states: {
+    Initialized: {
+      states: {
+        [K in ConnectionStateValue['Initialized']]: {};
+      };
+    };
+  };
+}
+
+const ConnectionInitializeCommandSchema =
+  ConnectionInitializeInputSchema.extend({
+    type: z.literal('INITIALIZE'),
+  });
 
 // export type SessionMachineSchema = MachineSchema<SessionContext, SessionEvent>;
 export type ConnectionMachine = StateMachine<
   ConnectionContext,
-  any,
-  ConnectionEvent,
-  ConnectionTypeState
+  ConnectionStateSchema,
+  ConnectionCommand
 >;
+export type ConnectionState = StateFrom<ConnectionMachine>;
 export type ConnectionInterpreter = InterpreterFrom<ConnectionMachine>;
 
-type InitializeSessionEntityEvent = InitializeEntityEvent & {
-  userId: SnowflakeId;
-  connectionId: SnowflakeId;
-};
-
-type AddConnectionEvent = { type: 'ADD_CONNECTION'; connectionId: SnowflakeId };
-
-export type SessionEvent = InitializeSessionEntityEvent | AddConnectionEvent;
-
 export type SessionContext = {
-  entity?: SessionEntity;
+  foo?: string;
 };
 
 export type SessionTypeState = {
-  value: 'Initialized';
-  context: MakeRequired<SessionContext, 'entity'>;
+  value: 'Active';
+  context: MakeRequired<SessionContext, 'foo'>;
 };
-
 export type SessionMachine = StateMachine<
   SessionContext,
-  any,
-  SessionEvent,
-  SessionTypeState
+  SessionStateSchema,
+  SessionCommand
 >;
-export type SessionInterpreter = InterpreterFrom<SessionMachine>;
+const EntityChangeDeltaSchema = z.object({
+  property: z.string(),
+  value: z.any(),
+  prevValue: z.any(),
+});
 
-export const UserEntitySchema = EntityBaseSchema.extend({
+// Define the EntityChangeEvent schema with a type parameter TEntitySchema
+const EntityChangeEventSchema = z.object({
+  type: z.literal('CHANGE'),
+  delta: EntityChangeDeltaSchema,
+});
+
+const EntitySendTriggerEventSchema = <TEvent extends AnyEventObject>(
+  commandSchema: z.ZodSchema<TEvent>
+) =>
+  z.object({
+    type: z.literal('SEND_TRIGGER'),
+    command: commandSchema,
+  });
+
+const EntitySendErrorEventSchema = <TEvent extends AnyEventObject>(
+  commandSchema: z.ZodSchema<TEvent>
+) =>
+  z.object({
+    type: z.literal('SEND_ERROR'),
+    command: commandSchema,
+  });
+
+const EntitySendCompleteEventSchema = <TEvent extends AnyEventObject>(
+  commandSchema: z.ZodSchema<TEvent>
+) =>
+  z.object({
+    type: z.literal('SEND_COMPLETE'),
+    command: commandSchema,
+  });
+
+const EntityTransitionStateEventSchema = z.object({
+  type: z.literal('TRANSITION'),
+});
+
+const EntityEventSchema = <TEvent extends AnyEventObject>(
+  commandSchema: z.ZodSchema<TEvent>
+) =>
+  z.union([
+    EntitySendCompleteEventSchema(commandSchema),
+    EntitySendErrorEventSchema(commandSchema),
+    EntitySendTriggerEventSchema(commandSchema),
+    EntityChangeEventSchema,
+    EntityTransitionStateEventSchema,
+  ]);
+
+// ------------ User Entity Definition ------------
+const UserContextSchema = z.object({
+  foo: z.string(),
+});
+
+export const UserInitializePropsSchema = z.object({
+  connectionId: SnowflakeIdSchema,
+  userId: SnowflakeIdSchema,
+});
+
+const UserEntityPropsSchema = z.object({
   schema: UserSchemaTypeLiteral,
-  userId: SnowflakeIdSchema,
+  userId: SnowflakeIdSchema.optional(),
   name: PlayerNameSchema.optional(),
-  discriminator: z.string().optional(),
-  sessions: z.array(SnowflakeIdSchema),
-});
-export type UserEntity = z.infer<typeof UserEntitySchema>;
-
-export const PlayerEntitySchema = EntityBaseSchema.extend({
-  schema: PlayerSchemaTypeLiteral,
-  userId: SnowflakeIdSchema,
-  name: PlayerNameSchema.optional(),
-  position: z.object({
-    x: z.number().default(0),
-    y: z.number().default(0),
-  }),
-});
-export type PlayerEntity = z.infer<typeof PlayerEntitySchema>;
-
-const Vector2DSchema = z.object({
-  x: z.number(),
-  y: z.number(),
+  discriminator: z.number().default(0),
+  sessionId: SnowflakeIdSchema,
+  connections: z.array(
+    z.object({
+      id: SnowflakeIdSchema,
+      createdAt: z.date(),
+      connected: z.boolean(),
+    })
+  ),
 });
 
-const PlayerEventSchema = z.union([
-  z.object({
-    type: z.literal('SET_NAME'),
-  }),
-  z.object({
-    type: z.literal('MOVE'),
-    velocity: Vector2DSchema,
-  }),
-]);
+export type UserContext = {
+  foo: string;
+};
 
-export const EntitySchema = z.union([
-  ConnectionEntitySchema,
-  RoomEntitySchema,
-  PlayerEntitySchema,
-]);
-
-export function isEntity(entity: unknown): entity is Entity {
-  return EntitySchema.safeParse(entity).success;
+export interface UserStateSchema extends StateSchema<UserContext> {
+  states: {
+    Online: {
+      states: {
+        [K in UserStateValue['Online']]: {};
+      };
+    };
+  };
 }
 
-export type Entity = z.infer<typeof EntitySchema>;
+const UserCommandSchema = z.object({
+  type: z.literal('ADD_CONNECTION'),
+  connectionId: SnowflakeIdSchema,
+});
+export type UserCommand = z.infer<typeof UserCommandSchema>;
 
-export type EntityService = ConnectionInterpreter | SessionInterpreter;
+export type UserMachine = StateMachine<
+  UserContext,
+  UserStateSchema,
+  UserCommand
+>;
+export type UserInterpreter = InterpreterFrom<UserMachine>;
 
-const RoomEventSchema = z.union([
+const UserStateValueSchema = z.object({
+  Online: z.enum(['True', 'False']),
+});
+
+type UserStateValue = z.infer<typeof UserStateValueSchema>;
+
+export const UserEntitySchema = EntityBaseSchema(
+  UserEntityPropsSchema,
+  UserCommandSchema,
+  UserContextSchema,
+  UserStateValueSchema
+);
+export type UserEntity = z.infer<typeof UserEntitySchema>;
+
+// ------------ Room Entity ------------
+const RoomContextSchema = z.object({
+  foo: z.string(),
+});
+export type RoomContext = z.infer<typeof RoomContextSchema>;
+
+const RoomEntityPropsSchema = z.object({
+  schema: RoomSchemaTypeLiteral,
+  ownerHostId: SnowflakeIdSchema,
+  url: z.string().url(),
+});
+
+const RoomCommandSchema = z.union([
   z.object({
     type: z.literal('JOIN'),
   }),
@@ -403,7 +604,49 @@ const RoomEventSchema = z.union([
   }),
 ]);
 
-const ConnectionEventSchema = z.union([
+type RoomCommand = z.infer<typeof RoomCommandSchema>;
+
+const RoomStateValueSchema = z.object({
+  Empty: z.enum(['True', 'False']),
+});
+
+export interface RoomStateSchema extends StateSchema<UserContext> {
+  states: {
+    Empty: {
+      states: {
+        [K in RoomStateValue['Empty']]: {};
+      };
+    };
+  };
+}
+
+type RoomStateValue = z.infer<typeof RoomStateValueSchema>;
+
+export const RoomEntitySchema = EntityBaseSchema(
+  RoomEntityPropsSchema,
+  RoomCommandSchema,
+  RoomContextSchema,
+  RoomStateValueSchema
+);
+export type RoomMachine = StateMachine<
+  RoomContext,
+  RoomStateSchema,
+  RoomCommand
+>;
+export type RoomEntity = z.infer<typeof RoomEntitySchema>;
+
+// ------------ Session Entity ------------
+const SessionContextSchema = z.object({
+  foo: z.string(),
+});
+
+const SessionEntityPropsSchema = z.object({
+  schema: SessionSchemaTypeLiteral,
+  userId: SnowflakeIdSchema.optional(),
+  connectionsIds: z.array(SnowflakeIdSchema),
+});
+
+const SessionCommandSchema = z.union([
   z.object({
     type: z.literal('RECONNECT'),
   }),
@@ -411,9 +654,201 @@ const ConnectionEventSchema = z.union([
     type: z.literal('DISCONNECT'),
   }),
 ]);
+export type SessionCommand = z.infer<typeof SessionCommandSchema>;
 
-export const EntityEventSchema = z.union([
-  ConnectionEventSchema,
-  RoomEventSchema,
-  PlayerEventSchema,
+const SessionStateValueSchema = z.object({
+  Active: z.enum(['True', 'False']),
+});
+type SessionStateValue = z.infer<typeof SessionStateValueSchema>;
+
+export const SessionEntitySchema = EntityBaseSchema(
+  SessionEntityPropsSchema,
+  SessionCommandSchema,
+  SessionContextSchema,
+  SessionStateValueSchema
+);
+
+export interface SessionStateSchema extends StateSchema<SessionContext> {
+  states: {
+    Active: {
+      states: {
+        [K in SessionStateValue['Active']]: {};
+      };
+    };
+  };
+}
+
+export type SessionStateMachine = StateMachine<
+  SessionContext,
+  SessionStateSchema,
+  SessionCommand
+>;
+
+export type SessionEntity = z.infer<typeof SessionEntitySchema>;
+
+// ------------ Connection Entity ------------
+const ConnectionContextSchema = z.object({
+  authTokens: AuthTokensSchema.optional(),
+  deviceId: SnowflakeIdSchema.optional(),
+});
+
+const ConnectionEntityPropsSchema = z.object({
+  schema: ConnectionSchemaTypeLiteral,
+  sessionId: SnowflakeIdSchema.optional(),
+  instanceId: z.string().uuid(),
+});
+export type ConnectionEntityProps = z.infer<typeof ConnectionEntityPropsSchema>;
+
+const ConnectionHeartbeatCommandSchema = z.object({
+  type: z.literal('HEARTBEAT'),
+});
+
+const ConnectionNavigateCommandSchema = z.object({
+  type: z.literal('NAVIGATE'),
+  location: z.string().url(),
+});
+
+const ConnectionCommandSchema = z.union([
+  ConnectionInitializeCommandSchema,
+  ConnectionHeartbeatCommandSchema,
+  ConnectionNavigateCommandSchema,
 ]);
+export type ConnectionCommand = z.infer<typeof ConnectionCommandSchema>;
+
+export type ConnectionStateMachine = StateMachine<
+  ConnectionContext,
+  ConnectionStateSchema,
+  ConnectionCommand
+>;
+
+export const ConnectionEntitySchema = EntityBaseSchema(
+  ConnectionEntityPropsSchema,
+  ConnectionCommandSchema,
+  ConnectionContextSchema,
+  ConnectionStateValueSchema
+);
+export type ConnectionEntity = z.infer<typeof ConnectionEntitySchema>;
+
+export const EntitySchema = z.union([
+  RoomEntitySchema,
+  UserEntitySchema,
+  SessionEntitySchema,
+  ConnectionEntitySchema,
+]);
+export type Entity = z.infer<typeof EntitySchema>;
+
+export const EntitySchemas = {
+  user: UserEntitySchema,
+  room: RoomEntitySchema,
+  session: SessionEntitySchema,
+  connection: ConnectionEntitySchema,
+};
+
+export function isEntity(entity: unknown): entity is Entity {
+  return EntitySchema.safeParse(entity).success;
+}
+
+export const AllCommandsSchema = z.union([
+  RoomCommandSchema,
+  UserCommandSchema,
+]);
+
+type EntityChangeDelta<TEntity extends Entity> = {
+  property: keyof TEntity;
+  value: TEntity[keyof TEntity];
+  prevValue: TEntity[keyof TEntity];
+};
+
+// const EntityChangeEventSchema = z.object({
+//   type: z.literal('CHANGE'),
+//   data: EntitySchema,
+//   delta: z.object({
+//     property: z.string(),
+//     value: z.any(),
+//     prevValue: z.any(),
+//   }),
+// });
+
+// export interface EntityChangeEvent<TEntity extends Entity> {
+//   type: 'CHANGE';
+//   data: TEntity;
+//   delta: EntityChangeDelta<TEntity>;
+// }
+
+// export type EntitiesInitEvent<TEntity extends Entity> = {
+//   type: 'INIT';
+//   data: TEntity[];
+// };
+
+// export type EntityAddEvent<TEntity extends Entity> = {
+//   type: 'ADD';
+//   data: TEntity;
+// };
+
+// export type EntityRemoveEvent<TEntity extends Entity> = {
+//   type: 'REMOVE';
+//   data: TEntity;
+// };
+
+// export type EntityListEvent<TEntity extends Entity> =
+//   | EntitiesInitEvent<TEntity>
+//   | EntityAddEvent<TEntity>
+//   | EntityRemoveEvent<TEntity>;
+
+// export type EntityEvent<TEntity extends Entity> =
+//   | EntitiesInitEvent<TEntity>
+//   | EntityChangeEvent<TEntity>
+//   | EntityAddEvent<TEntity>
+//   | EntityRemoveEvent<TEntity>;
+
+// export function isEntityChangeEvent<TEntity extends Entity>(
+//   event: EntityEvent<TEntity>
+// ): event is EntityChangeEvent<TEntity> {
+//   return event.type === 'CHANGE';
+// }
+
+// export function isEntitiesInitEvent<TEntity extends Entity>(
+//   event: EntityEvent<TEntity>
+// ): event is EntitiesInitEvent<TEntity> {
+//   return event.type === 'INIT';
+// }
+
+// export function isEntityAddEvent<TEntity extends Entity>(
+//   event: EntityEvent<TEntity>
+// ): event is EntityAddEvent<TEntity> {
+//   return event.type === 'ADD';
+// }
+
+// export function isEntityRemoveEvent<TEntity extends Entity>(
+//   event: EntityEvent<TEntity>
+// ): event is EntityRemoveEvent<TEntity> {
+//   return event.type === 'REMOVE';
+// }
+
+// export function isEntityListEvent<TEntity extends Entity>(
+//   event: EntityEvent<TEntity>
+// ): event is EntityListEvent<TEntity> {
+//   return (
+//     event.type === 'INIT' || event.type === 'ADD' || event.type === 'REMOVE'
+//   );
+// }
+
+export type EntityMachine =
+  | {
+      type: 'connection';
+      machine: ConnectionMachine;
+    }
+  | {
+      type: 'user';
+      machine: UserMachine;
+    }
+  | {
+      type: 'room';
+      machine: RoomMachine;
+    }
+  | {
+      type: 'session';
+      machine: SessionMachine;
+    };
+
+export type EntityMachineMap = IndexByType<EntityMachine>;

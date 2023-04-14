@@ -22,6 +22,7 @@ import { AppState } from '../state/app.machine';
 import { WorldContext } from '../state/world.context';
 import { useSubscription } from 'observable-hooks';
 import { Caption } from '@atoms/Caption';
+import { selectNavIsOpen } from './app.selectors';
 
 export const Navigation = () => {
   const send = useAppSend();
@@ -171,10 +172,10 @@ const GamesTabContent = () => {
     send({ type: 'START_ROOM' });
   }, [send]);
 
-  const { world, archetypes } = useContext(WorldContext);
+  // const { world, archetypes } = useContext(WorldContext);
 
-  const entities = useEntities(archetypes.room);
-  console.log({ entities });
+  // const entities = useEntities(archetypes.room);
+  // console.log({ entities });
   // const entities = useEntities('room');
 
   return (
@@ -209,5 +210,3 @@ const NavigationDrawerOverlay = styled(Dialog.Overlay, {
   inset: 0,
   backgroundColor: 'rgba(0,0,0,.7)',
 });
-
-const selectNavIsOpen = (state: AppState) => state.matches('Navigation.Open');

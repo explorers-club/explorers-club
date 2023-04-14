@@ -37,13 +37,18 @@ export const useSelector = <T>(selector: (state: ServiceState) => T) => {
   );
 };
 
+export const useService = <T extends RequiredServices, S>(
+  serviceKey: T,
+) => {
+  const { services } = useContext(ServicesContext);
+  return services[serviceKey];
+};
+
 export const useServiceSelector = <T extends RequiredServices, S>(
   serviceKey: T,
   selector: (state: ReturnType<ServiceMap[T]['getSnapshot']>) => S
 ) => {
-  const { services } = useContext(ServicesContext);
-  const service = services[serviceKey];
-
+  const service = useService(serviceKey);
   return useXstateSelector(service, selector);
 };
 

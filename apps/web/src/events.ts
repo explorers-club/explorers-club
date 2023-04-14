@@ -9,6 +9,14 @@ export const LoginEventSchema = z.object({
   email: z.string().email(),
 });
 
+export const CloseLoginEventSchema = z.object({
+  type: z.literal('CLOSE_LOGIN'),
+});
+
+export const OpenLoginEventSchema = z.object({
+  type: z.literal('OPEN_LOGIN'),
+});
+
 export const OpenNavEventSchema = z.object({
   type: z.literal('OPEN_NAV'),
 });

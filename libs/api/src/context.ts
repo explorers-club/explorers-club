@@ -1,27 +1,18 @@
 // See explanation at https://trpc.io/docs/context#inner-and-outer-context
 // Inner context is context which doesn't depend on the request (e.g. DB)
 import { Database } from '@explorers-club/database';
-import { createArchetypeIndex } from '@explorers-club/ecs';
-import { ConnectionInterpreter, SnowflakeId } from '@explorers-club/schema';
+import { ConnectionEntity, SnowflakeId } from '@explorers-club/schema';
 import { createClient } from '@supabase/supabase-js';
 import { type inferAsyncReturnType } from '@trpc/server';
-import { Request } from 'express';
 import { IncomingMessage } from 'http';
 import { v4 as uuidv4 } from 'uuid';
-import { interpret } from 'xstate';
-import { createConnectionMachine } from './connection';
-import { registerEntityService } from './entities';
-import { world } from './world';
+import { createEntity } from './ecs';
 
 const supabaseUrl = process.env['SUPABASE_URL'];
 const supabaseJwtSecret = process.env['SUPABASE_JWT_SECRET'];
 const supabaseAnonKey = process.env['SUPABASE_ANON_KEY'];
 const supabaseServiceKey = process.env['SUPABASE_SERVICE_KEY'];
-
-const [sessionsByUserId] = createArchetypeIndex(
-  world.with('connectionIds', 'userId'),
-  'userId'
-);
+console.log('hi', createEntity);
 
 const instanceId = uuidv4();
 
@@ -49,9 +40,8 @@ supabaseAdminClient
 
 type CreateContextOptions = {
   socket: WebSocket;
-  connectionService: ConnectionInterpreter;
+  connectionEntity: ConnectionEntity;
   instanceId: SnowflakeId;
-  // registerDevice: z.infer<typeof RegisterDeviceInputSchema>;
 };
 
 /** Use this helper for:
@@ -67,15 +57,19 @@ export const createContextInner = async (ctx: CreateContextOptions) => {
  * This is the actual context you'll use in your router
  * @link https://trpc.io/docs/context
  **/
-export const createContext = async (opts: { req: IncomingMessage; res: WebSocket }) => {
+export const createContext = async (opts: {
+  req: IncomingMessage;
+  res: WebSocket;
+}) => {
   const socket = opts.res;
 
-  const connectionService = interpret(createConnectionMachine({ world }));
-  registerEntityService(connectionService);
-  connectionService.start();
+  const connectionEntity = createEntity<ConnectionEntity>({
+    schema: 'connection',
+    instanceId,
+  });
 
   const contextInner = await createContextInner({
-    connectionService,
+    connectionEntity,
     socket,
     instanceId,
   });

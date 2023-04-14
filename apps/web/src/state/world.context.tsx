@@ -1,33 +1,21 @@
-import {
-  EntityChangeEvent,
-  EntityListEvent,
-  trpc,
-} from '@explorers-club/api-client';
-import {
-  ConnectionEntity,
-  Entity,
-  EntitySchema,
-  PlayerEntity,
-  RoomEntity,
-  SnowflakeId,
-} from '@explorers-club/schema';
-import { ArchetypeBucket, World } from 'miniplex';
-import { useObservableState, useSubscription } from 'observable-hooks';
+import { EntityListEvent, trpc } from '@explorers-club/api-client';
+import { Entity, EntitySchema, SnowflakeId } from '@explorers-club/schema';
+import { World } from 'miniplex';
 import { createContext, FC, ReactNode, useEffect, useState } from 'react';
 import { Observable, Subject } from 'rxjs';
 
-type Archetypes = {
-  room: ArchetypeBucket<RoomEntity>;
-  connection: ArchetypeBucket<ConnectionEntity>;
-  player: ArchetypeBucket<PlayerEntity>;
-};
+// type Archetypes = {
+//   room: ArchetypeBucket<RoomEntity>;
+//   connection: ArchetypeBucket<ConnectionEntity>;
+//   player: ArchetypeBucket<PlayerEntity>;
+// };
 
 export const WorldContext = createContext(
   {} as {
     world: World<Entity>;
     entitiesById: Map<SnowflakeId, Entity>;
     entities$: Observable<EntityListEvent>;
-    archetypes: Archetypes;
+    // archetypes: Archetypes;
     useEntity$: (id: SnowflakeId) => Observable<Entity>;
   }
 );
@@ -62,7 +50,7 @@ export const WorldProvider: FC<{ children: ReactNode }> = ({ children }) => {
         { id },
         {
           onData(value) {
-            subject.next(value.data);
+            // subject.next(entitiesById.get(id));
           },
           onComplete() {
             subject.complete();
@@ -75,55 +63,62 @@ export const WorldProvider: FC<{ children: ReactNode }> = ({ children }) => {
       entity$map.set(id, entity$);
     }
 
+    entities$.subscribe((event) => {
+      // if (event.type === "ADD") {
+      //   // event.data.
+      // }
+    });
+
     return entity$;
   };
 
   useEffect(() => {
     const sub = client.entity.list.subscribe(undefined, {
       onData(event) {
-        if (event.type === 'INIT') {
-          for (const data of event.data) {
-            const entity = EntitySchema.parse(data);
-            entitiesById.set(entity.id, entity);
-            world.add(entity);
-          }
-        }
-        if (event.type === 'ADD') {
-          const entity = EntitySchema.parse(event.data);
-          world.remove(entity);
-          entitiesById.set(event.data.id, entity);
-        }
-        if (event.type === 'REMOVE') {
-          const entity = entitiesById.get(event.data.id);
-          if (entity) {
-            world.remove(entity);
-            entitiesById.delete(event.data.id);
-          }
-        }
-        entities$.next(event);
+        console.log(event);
+        // if (event.type === 'INIT') {
+        //   for (const data of event.data) {
+        //     const entity = EntitySchema.parse(data);
+        //     entitiesById.set(entity.id, entity);
+        //     world.add(entity);
+        //   }
+        // }
+        // if (event.type === 'ADD') {
+        //   const entity = EntitySchema.parse(event.data);
+        //   world.remove(entity);
+        //   entitiesById.set(event.data.id, entity);
+        // }
+        // if (event.type === 'REMOVE') {
+        //   const entity = entitiesById.get(event.data.id);
+        //   if (entity) {
+        //     world.remove(entity);
+        //     entitiesById.delete(event.data.id);
+        //   }
+        // }
+        // entities$.next(event);
       },
     });
 
     return sub.unsubscribe;
   }, [client, world, entities$, entitiesById]);
 
-  const archetypes: Archetypes = {
-    room: world.with<RoomEntity>('id', 'schema', 'roomName'),
-    connection: world.with<ConnectionEntity>(
-      'id',
-      'schema',
-      'location',
-      'deviceId'
-      // 'sessionId',
-    ),
-    player: world.with<PlayerEntity>(
-      'id',
-      'schema',
-      'userId',
-      'name',
-      'position'
-    ),
-  };
+  // const archetypes: Archetypes = {
+  //   room: world.with<RoomEntity>('id', 'schema', 'roomName'),
+  //   connection: world.with<ConnectionEntity>(
+  //     'id',
+  //     'schema',
+  //     'location',
+  //     'deviceId'
+  //     // 'sessionId',
+  //   ),
+  //   player: world.with<PlayerEntity>(
+  //     'id',
+  //     'schema',
+  //     'userId',
+  //     'name',
+  //     'position'
+  //   ),
+  // };
 
   return (
     <WorldContext.Provider
@@ -131,7 +126,7 @@ export const WorldProvider: FC<{ children: ReactNode }> = ({ children }) => {
         world,
         entitiesById,
         entities$,
-        archetypes,
+        // archetypes,
         useEntity$,
         // useEntity,
         // waitForEntity: (query) => {

@@ -1,38 +1,45 @@
-import { Entity, SchemaType } from '@explorers-club/schema';
+import {
+  ConnectionMachine,
+  Entity,
+  EntityMachine,
+  RoomMachine,
+  SchemaType,
+  SessionMachine,
+  UserMachine,
+} from '@explorers-club/schema';
 import { World } from 'miniplex';
-import { AnyStateMachine, createMachine } from 'xstate';
-import { createConnectionMachine } from './connection';
+import { createConnectionMachine } from './entities/connection';
+import { createRoomMachine } from './entities/room';
+import { createSessionMachine } from './entities/session';
+import { createUserMachine } from './entities/user';
 
-type CreateMachineMap = Record<
-  Entity['schema'],
-  <TProps extends { world: World<Entity>; schema: SchemaType }>(
-    props: TProps
-  ) => AnyStateMachine
->;
-
-const createPlayerMachine = () => {
-  return createMachine({
-    id: 'PlayerMachine',
-    initial: 'Idle',
-    states: {
-      Idle: {},
-    },
-  });
+export type EntityMachineCreators = {
+  [TSchemaType in EntityMachine['type']]: (props: {
+    world: World<Entity>;
+    entity: Entity;
+  }) => Extract<EntityMachine, { type: TSchemaType }>['machine'];
 };
 
-const createRoomMachine = () => {
-  return createMachine({
-    id: 'RoomMachine',
-    initial: 'Idle',
-    states: {
-      Idle: {},
-    },
-  });
-};
-
-export const machineMap: CreateMachineMap = {
+export const machineMap = {
   connection: createConnectionMachine,
-  staging_room: createRoomMachine,
-  little_vigilante_room: createRoomMachine,
-  player: createPlayerMachine,
+  session: createSessionMachine,
+  user: createUserMachine,
+  room: createRoomMachine,
+} as EntityMachineCreators;
+
+export const createEntityMachine = (
+  schema: SchemaType,
+  props: { world: World<Entity>; entity: Entity }
+) => {
+  if (schema === 'connection') {
+    return createConnectionMachine(props) as ConnectionMachine;
+  } else if (schema === 'session') {
+    return createSessionMachine(props) as SessionMachine;
+  } else if (schema === 'room') {
+    return createRoomMachine(props) as RoomMachine;
+  } else if (schema === 'user') {
+    return createUserMachine(props) as UserMachine;
+  } else {
+    throw new Error('Unimplemented schema type ' + schema);
+  }
 };

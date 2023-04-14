@@ -83,10 +83,7 @@ export const useRoomScreenMachine = () => {
   );
 
   const { client } = trpc.useContext();
-  // const {
-  //     archetypes,
-  //   },
-  // waitForEntity = useContext(WorldContext);
+  // const { get } = useContext(WorldContext);
 
   // Algo here:
   // 1. Get list of all entities
