@@ -30,11 +30,12 @@ export const connectionRouter = router({
         ...input,
       });
 
-      const entity = (await waitFor(ctx.connectionEntity, (entity) => {
+      const entity = await waitFor(ctx.connectionEntity, (entity) => {
+        console.log(entity.states);
         return entity.states.Initialized === 'True';
-      })) as InitializedConnectionEntity;
+      });
 
-      const { deviceId, authTokens } = entity;
+      const { authTokens, deviceId } = entity.context;
 
       return {
         deviceId,

@@ -7,12 +7,13 @@ import {
   Entity,
   InitializedConnectionContext,
 } from '@explorers-club/schema';
-import { assertEventType } from '@explorers-club/utils';
-import { createClient } from '@supabase/supabase-js';
+import { assertEventType, generateRandomString } from '@explorers-club/utils';
+import { createClient, Session } from '@supabase/supabase-js';
 import { TRPCError } from '@trpc/server';
 import { assign } from '@xstate/immer';
 import { World } from 'miniplex';
 import { createMachine, DoneInvokeEvent } from 'xstate';
+import { createEntity, generateSnowflakeId } from '../ecs';
 import { createSchemaIndex } from '../indices';
 import { world } from '../world';
 
@@ -78,16 +79,19 @@ export const createConnectionMachine = ({
                 actions: assign<
                   ConnectionContext,
                   DoneInvokeEvent<InitializedConnectionContext>
-                >((context, event) => {
-                  context = event.data;
+                >((context, { data }) => {
+                  context.authTokens = data.authTokens;
+                  context.location = data.location;
+                  context.deviceId = data.deviceId;
                 }),
               },
               onError: 'False',
               src: async (context, event) => {
                 assertEventType(event, 'INITIALIZE');
 
-                const { authTokens, deviceId, initialLocation } = event;
+                const { authTokens, initialLocation } = event;
 
+                let supabaseSession: Session;
                 if (authTokens) {
                   const { data, error } = await supabaseClient.auth.setSession({
                     access_token: authTokens.accessToken,
@@ -101,36 +105,62 @@ export const createConnectionMachine = ({
                       cause: error,
                     });
                   }
-                  if (!data.user) {
+                  if (!data.session) {
                     throw new TRPCError({
                       code: 'UNAUTHORIZED',
-                      message: 'Not able to fetch user with authTokens',
+                      message:
+                        'Not able to get supabase session with authTokens',
                     });
                   }
-                  const userId = data.user.id;
-                  const session = sessionByUserId.get(userId);
-                  if (session) {
-                    connectionEntity.sessionId = session.id;
+                  supabaseSession = data.session;
+                } else {
+                  const { data, error } = await supabaseClient.auth.signUp({
+                    email: `anon-${generateRandomString()}@explorers.club`,
+                    password: `${generateRandomString()}33330`,
+                  });
+                  if (error) {
+                    throw new TRPCError({
+                      code: 'INTERNAL_SERVER_ERROR',
+                      message: error.message,
+                      cause: error,
+                    });
                   }
+
+                  if (!data.session) {
+                    throw new TRPCError({
+                      code: 'INTERNAL_SERVER_ERROR',
+                      message: 'Expected session but was missing',
+                    });
+                  }
+                  supabaseSession = data.session;
+                  await supabaseClient.auth.setSession({
+                    access_token: data.session.access_token,
+                    refresh_token: data.session.refresh_token,
+                  });
                 }
 
-                if (!connectionEntity.sessionId) {
+                const userId = supabaseSession.user.id;
+                let sessionEntity = sessionByUserId.get(userId);
+                if (sessionEntity) {
+                  connectionEntity.sessionId = sessionEntity.id;
+                } else {
                   const { createEntity } = await import('../ecs');
-                  const sessionEntity = createEntity({
+                  sessionEntity = createEntity({
                     schema: 'session',
                   });
-                  world.add(sessionEntity);
                   connectionEntity.sessionId = sessionEntity.id;
                 }
 
-                const result = {
-                  ...context,
-                  authTokens,
+                const deviceId = event.deviceId || generateSnowflakeId();
+
+                return {
+                  authTokens: {
+                    accessToken: supabaseSession.access_token,
+                    refreshToken: supabaseSession.refresh_token,
+                  },
                   deviceId,
                   location: initialLocation,
-                } as InitializedConnectionContext;
-                console.log(result);
-                return result;
+                } satisfies InitializedConnectionContext;
               },
             },
           },
