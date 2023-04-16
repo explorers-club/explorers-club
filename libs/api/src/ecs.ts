@@ -158,12 +158,10 @@ export const createEntity = <TEntity extends Entity>(
   const service = interpret(machine as any) as unknown as TInterpreter;
   service.start();
   service.onTransition(() => {
-    // entity.states = state.value as any;
     next({
       type: 'TRANSITION',
     });
   });
-  // proxy.states = service.getSnapshot().value as TStateValue;
 
   entitiesById.set(entity.id, proxy);
   return proxy;

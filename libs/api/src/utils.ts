@@ -30,7 +30,7 @@ export const waitFor = <TEntity extends Entity>(
       );
     }, timeoutMs);
     const unsub = entity.subscribe((event) => {
-      console.log(event.type, entity);
+      console.log(event.type, entity.states);
       if (condition(entity)) {
         resolve(entity);
         unsub();

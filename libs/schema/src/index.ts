@@ -403,8 +403,9 @@ export type InitializedConnectionContext = MakeRequired<
   'deviceId' | 'authTokens' | 'location'
 >;
 
-export type InitializedConnectionEntity = ConnectionEntity &
-  InitializedConnectionContext;
+export type InitializedConnectionEntity = ConnectionEntity & {
+  context: InitializedConnectionContext;
+};
 
 // CONNECTION ENTITY
 export type ConnectionTypeState =
