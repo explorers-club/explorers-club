@@ -403,7 +403,10 @@ export type InitializedConnectionContext = MakeRequired<
   'deviceId' | 'authTokens' | 'location'
 >;
 
-export type InitializedConnectionEntity = ConnectionEntity & {
+export type InitializedConnectionEntity = MakeRequired<
+  ConnectionEntity,
+  'sessionId'
+> & {
   context: InitializedConnectionContext;
 };
 
@@ -643,8 +646,7 @@ const SessionContextSchema = z.object({
 
 const SessionEntityPropsSchema = z.object({
   schema: SessionSchemaTypeLiteral,
-  userId: SnowflakeIdSchema.optional(),
-  connectionsIds: z.array(SnowflakeIdSchema),
+  userId: UserIdSchema,
 });
 
 const SessionCommandSchema = z.union([

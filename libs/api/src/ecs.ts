@@ -54,6 +54,7 @@ const READONLY_ENTITY_PROPS = new Set<string | symbol>([
   'send',
 ]);
 
+// TODO update this to infer TEntity from
 export const createEntity = <TEntity extends Entity>(
   entityProps: EntityProps<TEntity>
 ) => {
@@ -62,7 +63,7 @@ export const createEntity = <TEntity extends Entity>(
   type TEvent = Parameters<TCallback>[0];
   type TMachine = EntityMachineMap[typeof entityProps.schema]['machine'];
   type TInterpreter = InterpreterFrom<TMachine>;
-  type TStateValue = TEntity['states'];
+  // type TStateValue = TEntity['states'];
   type TCommand = Parameters<TEntity['send']>[0];
 
   const subscriptions = new Set<TCallback>();

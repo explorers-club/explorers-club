@@ -6,14 +6,15 @@ import {
   ConnectionTypeState,
   Entity,
   InitializedConnectionContext,
+  SessionEntity,
 } from '@explorers-club/schema';
 import { assertEventType, generateRandomString } from '@explorers-club/utils';
-import { createClient, Session } from '@supabase/supabase-js';
+import { Session, createClient } from '@supabase/supabase-js';
 import { TRPCError } from '@trpc/server';
 import { assign } from '@xstate/immer';
 import { World } from 'miniplex';
-import { createMachine, DoneInvokeEvent } from 'xstate';
-import { createEntity, generateSnowflakeId } from '../ecs';
+import { DoneInvokeEvent, createMachine } from 'xstate';
+import { generateSnowflakeId } from '../ecs';
 import { createSchemaIndex } from '../indices';
 import { world } from '../world';
 
@@ -32,7 +33,7 @@ if (
   throw new Error('missing supabase configuration');
 }
 
-const [sessionByUserId] = createSchemaIndex(world, 'session', 'userId');
+const [sessionsByUserId] = createSchemaIndex(world, 'session', 'userId');
 
 export const createConnectionMachine = ({
   world,
@@ -140,15 +141,17 @@ export const createConnectionMachine = ({
                 }
 
                 const userId = supabaseSession.user.id;
-                let sessionEntity = sessionByUserId.get(userId);
+                let sessionEntity = sessionsByUserId.get(userId);
                 if (sessionEntity) {
                   connectionEntity.sessionId = sessionEntity.id;
                 } else {
                   const { createEntity } = await import('../ecs');
-                  sessionEntity = createEntity({
+                  sessionEntity = createEntity<SessionEntity>({
                     schema: 'session',
+                    userId,
                   });
                   connectionEntity.sessionId = sessionEntity.id;
+                  world.add(sessionEntity);
                 }
 
                 const deviceId = event.deviceId || generateSnowflakeId();

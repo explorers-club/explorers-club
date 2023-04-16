@@ -12,7 +12,6 @@ const supabaseUrl = process.env['SUPABASE_URL'];
 const supabaseJwtSecret = process.env['SUPABASE_JWT_SECRET'];
 const supabaseAnonKey = process.env['SUPABASE_ANON_KEY'];
 const supabaseServiceKey = process.env['SUPABASE_SERVICE_KEY'];
-console.log('hi', createEntity);
 
 const instanceId = uuidv4();
 
