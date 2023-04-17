@@ -20,7 +20,12 @@ export const waitFor = <TEntity extends Entity>(
   timeoutMs = 10000
 ) =>
   new Promise<TEntity>((resolve, reject) => {
-    setTimeout(() => {
+    if (condition(entity)) {
+      resolve(entity);
+      return;
+    }
+
+    const timer = setTimeout(() => {
       unsub();
       reject(
         new TRPCError({
@@ -29,8 +34,12 @@ export const waitFor = <TEntity extends Entity>(
         })
       );
     }, timeoutMs);
-    const unsub = entity.subscribe(() => {
+    clearTimeout(timer);
+    // console.log('SET UP TIMEOUT', timeout);
+    const unsub = entity.subscribe((s) => {
+      // console.log('EVENT!', s, condition(entity));
       if (condition(entity)) {
+        clearTimeout(timer);
         resolve(entity);
         unsub();
         return true;

@@ -7,6 +7,7 @@ import { type inferAsyncReturnType } from '@trpc/server';
 import { IncomingMessage } from 'http';
 import { v4 as uuidv4 } from 'uuid';
 import { createEntity } from './ecs';
+import { world } from './world';
 
 const supabaseUrl = process.env['SUPABASE_URL'];
 const supabaseJwtSecret = process.env['SUPABASE_JWT_SECRET'];
@@ -66,6 +67,7 @@ export const createContext = async (opts: {
     schema: 'connection',
     instanceId,
   });
+  world.add(connectionEntity);
 
   const contextInner = await createContextInner({
     connectionEntity,

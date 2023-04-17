@@ -1,3 +1,4 @@
+import { InitializedConnectionEntity } from '@explorers-club/schema';
 import { initTRPC, TRPCError } from '@trpc/server';
 import superjson from 'superjson';
 import { type Context } from './context';
@@ -21,7 +22,7 @@ const isInitialized = t.middleware(
     return next({
       ctx: {
         ...ctx,
-        connectionEntity,
+        connectionEntity: connectionEntity as InitializedConnectionEntity,
       },
     });
   }

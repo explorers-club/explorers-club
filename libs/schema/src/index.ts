@@ -13,6 +13,8 @@ import { CodebreakersState } from '../@types/generated/CodebreakersState';
 import { DiffusionaryState } from '../@types/generated/DiffusionaryState';
 import { LittleVigilanteState } from '../@types/generated/LittleVigilanteState';
 import { TriviaJamState } from '../@types/generated/TriviaJamState';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { Database } from '@explorers-club/database';
 
 export const ClubRoomIdSchema = z.custom<`club-${string}`>((val) => {
   return /^club-\w+$/.test(val as string);
@@ -252,18 +254,6 @@ const EntityBaseSchema = <
         .returns(z.function().returns(z.void())), // The subscribe function returns an unsubscribe function
     })
   );
-// z.object({
-//   id: SnowflakeIdSchema,
-//   states: z.array(z.string()).optional(),
-//   children: z.array(SnowflakeIdSchema).optional(),
-//   send: SendFunctionSchema(commandSchema),
-//   context: contextSchema,
-//   command: commandSchema,
-//   subscribe: z
-//     .function()
-//     .args(CallbackFunctionSchema(commandSchema))
-//     .returns(z.function().returns(z.void())), // The subscribe function returns an unsubscribe function
-// });
 
 // const StagingRoomContextSchema = z.object({
 //   foo: z.string(),
@@ -396,16 +386,17 @@ export type ConnectionContext = {
   location?: string;
   deviceId?: SnowflakeId;
   authTokens?: AuthTokens;
+  supabaseClient?: SupabaseClient<Database>;
 };
 
 export type InitializedConnectionContext = MakeRequired<
   ConnectionContext,
-  'deviceId' | 'authTokens' | 'location'
+  'deviceId' | 'authTokens' | 'location' | 'supabaseClient'
 >;
 
 export type InitializedConnectionEntity = MakeRequired<
   ConnectionEntity,
-  'sessionId'
+  'sessionId' | 'userId'
 > & {
   context: InitializedConnectionContext;
 };
@@ -698,6 +689,7 @@ const ConnectionContextSchema = z.object({
 const ConnectionEntityPropsSchema = z.object({
   schema: ConnectionSchemaTypeLiteral,
   sessionId: SnowflakeIdSchema.optional(),
+  userId: SnowflakeIdSchema.optional(),
   instanceId: z.string().uuid(),
 });
 export type ConnectionEntityProps = z.infer<typeof ConnectionEntityPropsSchema>;

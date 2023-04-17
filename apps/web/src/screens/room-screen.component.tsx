@@ -21,7 +21,6 @@ const RoomServiceContext = createContext({} as RoomScreenService);
 export const RoomScreen = () => {
   const machine = useRoomScreenMachine();
   const service = useInterpret(machine);
-  console.log(service.getSnapshot().value);
 
   // What are the different things we need to render?
   // If you're in a room, we might want to render.....
@@ -83,29 +82,8 @@ export const useRoomScreenMachine = () => {
   );
 
   const { client } = trpc.useContext();
-  // const { get } = useContext(WorldContext);
-
-  // Algo here:
-  // 1. Get list of all entities
-  // 2. "deposit" all the entities in to our own local world store.
-  // `actor` is the actor.
-  // 3. this state machine then gets all thoes entities, and can then set up their own
-  //      entity subscription
-  // you get the initial state basically.
-  //
-  // This technique is going to work for both "slow" services as well as "fast" ones.
-  // is there any reason to.... sync more data in the room router
 
   const [roomScreenMachine] = useState(() => {
-    // const stagingRoom = archetypes.stagingRoom;
-    // const query = stagingRoom.where((entity) => entity.stagingRoom === name);
-    // for (const entity of query) {
-    //   console.log(entity);
-    // }
-    // archetypes.stagingRoom.subscribe((entity) => {
-    //   console.log(entity);
-    // });
-
     return createMachine({
       id: 'RoomMachine',
       type: 'parallel',
@@ -116,30 +94,7 @@ export const useRoomScreenMachine = () => {
         context: {} as { name: string },
         events: {} as { type: 'JOIN' },
       },
-      states: {
-        Connection: {
-          initial: 'Connecting',
-          states: {
-            Connecting: {
-              invoke: {
-                src: async () => {
-                  // waitForEntity((entity) => {
-                  // });
-                  // waitForEntity('stagingRoom', (entity: Entity) => {
-                  //   console.log(entity);
-                  //   return false;
-                  // });
-                },
-                onDone: {
-                  target: 'Connected',
-                },
-              },
-            },
-            Connected: {},
-            Disconnected: {},
-          },
-        },
-      },
+      states: {},
     });
   });
 

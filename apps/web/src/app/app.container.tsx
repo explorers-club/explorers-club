@@ -1,5 +1,5 @@
 import { transformer, trpc } from '@explorers-club/api-client';
-import { SnowflakeId } from '@explorers-club/schema';
+import { ConnectionEntity, SnowflakeId } from '@explorers-club/schema';
 import { noop } from '@explorers-club/utils';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createWSClient, wsLink } from '@trpc/client';
@@ -64,15 +64,15 @@ export const App = () => {
   );
 };
 
-const ConnectionContext = createContext({} as { connectionId: SnowflakeId });
+const ConnectionContext = createContext({} as { myConnectionId: SnowflakeId });
 
 const ConnectionProvider: FC<{
   children: ReactNode;
 }> = ({ children }) => {
   const { client } = trpc.useContext();
-  // const [myConnctionId, setMyConnectionId] = useState<
-  //   SnowflakeId | undefined
-  // >();
+  const [myConnectionId, setMyConnectionId] = useState<
+    SnowflakeId | undefined
+  >();
 
   useLayoutEffect(() => {
     let timer: NodeJS.Timeout;
@@ -99,15 +99,21 @@ const ConnectionProvider: FC<{
           client.connection.heartbeat.mutate(undefined).then(noop);
         }, 100);
 
-        // const connectionId = data.entity.id;
-        // console.log({ connectionId });
+        const { connectionId } = data;
+        // Wait for it show up in the entity store...
 
-        // setMyConnectionId(connectionId);
+        setMyConnectionId(connectionId);
       });
     return () => {
       clearInterval(timer);
     };
   }, [client]);
+
+  return (
+    <ConnectionContext.Provider
+      value={{ myConnectionId }}
+    ></ConnectionContext.Provider>
+  );
 
   return <>{children}</>;
 };

@@ -38,6 +38,7 @@ export const connectionRouter = router({
       const { authTokens, deviceId } = entity.context;
 
       return {
+        connectionId: entity.id,
         deviceId,
         authTokens,
       };

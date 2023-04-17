@@ -1,8 +1,9 @@
 import { Entity, EntityMachineMap, SnowflakeId } from '@explorers-club/schema';
-import { interpret, InterpreterFrom } from 'xstate';
+import { InterpreterFrom, StateValue, interpret } from 'xstate';
 import { EPOCH, TICK_RATE } from './ecs.constants';
 import { machineMap } from './machines';
 import { world } from './world';
+import { EntitySchemas } from '@explorers-club/schema';
 
 export function getCurrentTick(): number {
   const now = new Date();
@@ -55,6 +56,12 @@ const READONLY_ENTITY_PROPS = new Set<string | symbol>([
 ]);
 
 // TODO update this to infer TEntity from
+/**
+ * Isomorphic function for creating an entity.
+ * We need to dynamically register the machines on the client.
+ * @param entityProps
+ * @returns
+ */
 export const createEntity = <TEntity extends Entity>(
   entityProps: EntityProps<TEntity>
 ) => {
@@ -63,7 +70,7 @@ export const createEntity = <TEntity extends Entity>(
   type TEvent = Parameters<TCallback>[0];
   type TMachine = EntityMachineMap[typeof entityProps.schema]['machine'];
   type TInterpreter = InterpreterFrom<TMachine>;
-  // type TStateValue = TEntity['states'];
+  type TStateValue = TEntity['states'];
   type TCommand = Parameters<TEntity['send']>[0];
 
   const subscriptions = new Set<TCallback>();
@@ -126,8 +133,6 @@ export const createEntity = <TEntity extends Entity>(
 
     entity.command = command;
     service.send(command);
-    // entity.states = service.getSnapshot().value as TStateValue;
-    // console.log(entity);
 
     next({
       type: 'SEND_COMPLETE',
@@ -158,7 +163,8 @@ export const createEntity = <TEntity extends Entity>(
   // todo fix types
   const service = interpret(machine as any) as unknown as TInterpreter;
   service.start();
-  service.onTransition(() => {
+  service.onTransition((state) => {
+    proxy.states = state.value as TStateValue;
     next({
       type: 'TRANSITION',
     });
