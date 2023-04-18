@@ -20,11 +20,12 @@ const [baseEntityIndex, baseEntityIndex$] = createArchetypeIndex(
   'id'
 );
 
-type EntityChangeEvent = { changes: Partial<Entity> };
+type ChangedEntityProps = Partial<EntityProps<Entity>> & { id: SnowflakeId };
+
 type EntityListEvent = {
   addedEntities: Entity[];
   removedEntities: Entity[];
-  changedEntities: Partial<EntityProps<Entity>>[]; // tood Omit schema?
+  changedEntities: ChangedEntityProps[]; // tood Omit schema?
 };
 
 const hasAccess = (entity: Entity, connectionEntity: ConnectionEntity) => {
@@ -104,7 +105,10 @@ export const entityRouter = router({
           const changedPropsSet = changedProps.get(id)!;
           const entity = myEntities.get(id)!;
 
-          return D.filterWithKey(entity, (key) => changedPropsSet.has(key));
+          return D.filterWithKey(
+            entity,
+            (key) => changedPropsSet.has(key) || key === 'id'
+          );
         });
 
         // TODO we only want to send the data props over, excluding entity methods
@@ -112,7 +116,7 @@ export const entityRouter = router({
         emit.next({
           addedEntities,
           removedEntities,
-          changedEntities,
+          changedEntities: changedEntities as ChangedEntityProps[],
         });
 
         addedIds.clear();
