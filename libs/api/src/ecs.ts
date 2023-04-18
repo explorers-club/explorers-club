@@ -1,4 +1,4 @@
-import { Entity, EntityMachineMap, SnowflakeId } from '@explorers-club/schema';
+import { Entity, EntityMachineMap, EntityProps, SnowflakeId } from '@explorers-club/schema';
 import { InterpreterFrom, StateValue, interpret } from 'xstate';
 import { EPOCH, TICK_RATE } from './ecs.constants';
 import { machineMap } from './machines';
@@ -43,11 +43,6 @@ export function generateSnowflakeId(): string {
 }
 
 export const entitiesById = new Map<SnowflakeId, Entity>();
-
-type EntityProps<TEntity extends Entity> = Omit<
-  TEntity,
-  'id' | 'subscribe' | 'send' | 'states' | 'command' | 'context' | 'children'
->;
 
 const READONLY_ENTITY_PROPS = new Set<string | symbol>([
   'id',

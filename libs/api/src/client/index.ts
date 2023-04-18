@@ -16,6 +16,6 @@ export type ApiOutputs = inferRouterOutputs<ApiRouter>;
 type ObservableProps<T> = T extends Observable<infer U, unknown> ? U : T;
 
 export type EntityListEvent = ObservableProps<ApiOutputs['entity']['list']>;
-export type EntityChangeEvent = ObservableProps<
-  ApiOutputs['entity']['changes']
->;
+// export type EntityChangeEvent = ObservableProps<
+//   ApiOutputs['entity']['changes']
+// >;

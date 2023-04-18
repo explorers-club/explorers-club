@@ -64,7 +64,7 @@ export const App = () => {
   );
 };
 
-const ConnectionContext = createContext({} as { myConnectionId: SnowflakeId });
+const ConnectionContext = createContext({} as { myConnectionId?: SnowflakeId });
 
 const ConnectionProvider: FC<{
   children: ReactNode;
@@ -100,7 +100,6 @@ const ConnectionProvider: FC<{
         }, 100);
 
         const { connectionId } = data;
-        // Wait for it show up in the entity store...
 
         setMyConnectionId(connectionId);
       });
@@ -110,10 +109,8 @@ const ConnectionProvider: FC<{
   }, [client]);
 
   return (
-    <ConnectionContext.Provider
-      value={{ myConnectionId }}
-    ></ConnectionContext.Provider>
+    <ConnectionContext.Provider value={{ myConnectionId }}>
+      {children}
+    </ConnectionContext.Provider>
   );
-
-  return <>{children}</>;
 };

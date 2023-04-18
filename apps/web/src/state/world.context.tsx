@@ -46,18 +46,18 @@ export const WorldProvider: FC<{ children: ReactNode }> = ({ children }) => {
       const subject = new Subject<Entity>();
       // What to do about children?
 
-      client.entity.changes.subscribe(
-        { id },
-        {
-          onData(value) {
-            // subject.next(entitiesById.get(id));
-          },
-          onComplete() {
-            subject.complete();
-            entity$map.delete(id);
-          },
-        }
-      );
+      // client.entity.changes.subscribe(
+      //   { id },
+      //   {
+      //     onData(value) {
+      //       // subject.next(entitiesById.get(id));
+      //     },
+      //     onComplete() {
+      //       subject.complete();
+      //       entity$map.delete(id);
+      //     },
+      //   }
+      // );
 
       entity$ = subject;
       entity$map.set(id, entity$);
@@ -75,7 +75,7 @@ export const WorldProvider: FC<{ children: ReactNode }> = ({ children }) => {
   useEffect(() => {
     const sub = client.entity.list.subscribe(undefined, {
       onData(event) {
-        console.log(event);
+        console.log('event', event);
         // if (event.type === 'INIT') {
         //   for (const data of event.data) {
         //     const entity = EntitySchema.parse(data);
