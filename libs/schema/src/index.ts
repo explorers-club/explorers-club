@@ -229,12 +229,17 @@ const CallbackFunctionSchema = <TCommand extends AnyEventObject>(
   commandSchema: z.ZodSchema<TCommand>
 ) => z.function().args(EntityEventSchema(commandSchema)).returns(z.void());
 
-export type EntityProps<TEntity extends Entity> = Omit<
+export type InitialEntityProps<TEntity extends Entity> = Omit<
   TEntity,
   'id' | 'subscribe' | 'send' | 'states' | 'command' | 'context' | 'children'
 >;
 
-export type EntityDataKey = Omit<keyof EntityProps<Entity>, 'schema'>;
+export type SyncedEntityProps<TEntity extends Entity> = Omit<
+  TEntity,
+  'subscribe' | 'send' | 'context'
+>;
+
+export type EntityDataKey = Omit<keyof InitialEntityProps<Entity>, 'schema'>;
 
 const EntityBaseSchema = <
   TEntity extends ZodRawShape,
@@ -250,7 +255,7 @@ const EntityBaseSchema = <
   entitySchema.merge(
     z.object({
       id: SnowflakeIdSchema,
-      children: z.array(SnowflakeIdSchema).optional(),
+      // children: z.array(SnowflakeIdSchema).optional(),
       send: SendFunctionSchema(commandSchema),
       states: stateValueSchema,
       context: contextSchema,

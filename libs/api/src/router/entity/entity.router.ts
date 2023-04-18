@@ -3,28 +3,28 @@ import {
   ConnectionEntity,
   Entity,
   EntityDataKey,
-  EntityProps,
   SnowflakeId,
+  SyncedEntityProps
 } from '@explorers-club/schema';
 import { AnyFunction } from '@explorers-club/utils';
+import { D } from '@mobily/ts-belt';
 import { Observer, observable } from '@trpc/server/observable';
 import { from, interval } from 'rxjs';
 import { TICK_RATE } from '../../ecs.constants';
 import { createArchetypeIndex } from '../../indices';
 import { publicProcedure, router } from '../../trpc';
 import { world } from '../../world';
-import { D } from '@mobily/ts-belt';
 
 const [baseEntityIndex, baseEntityIndex$] = createArchetypeIndex(
   world.with('id', 'schema'),
   'id'
 );
 
-type ChangedEntityProps = Partial<EntityProps<Entity>> & { id: SnowflakeId };
+type ChangedEntityProps = Partial<SyncedEntityProps<Entity>> & { id: SnowflakeId };
 
 type EntityListEvent = {
-  addedEntities: Entity[];
-  removedEntities: Entity[];
+  addedEntities: SyncedEntityProps<Entity>[];
+  removedEntities: SyncedEntityProps<Entity>[];
   changedEntities: ChangedEntityProps[]; // tood Omit schema?
 };
 

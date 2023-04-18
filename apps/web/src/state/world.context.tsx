@@ -76,26 +76,15 @@ export const WorldProvider: FC<{ children: ReactNode }> = ({ children }) => {
     const sub = client.entity.list.subscribe(undefined, {
       onData(event) {
         console.log('event', event);
-        // if (event.type === 'INIT') {
-        //   for (const data of event.data) {
-        //     const entity = EntitySchema.parse(data);
-        //     entitiesById.set(entity.id, entity);
-        //     world.add(entity);
-        //   }
-        // }
-        // if (event.type === 'ADD') {
-        //   const entity = EntitySchema.parse(event.data);
-        //   world.remove(entity);
-        //   entitiesById.set(event.data.id, entity);
-        // }
-        // if (event.type === 'REMOVE') {
-        //   const entity = entitiesById.get(event.data.id);
-        //   if (entity) {
-        //     world.remove(entity);
-        //     entitiesById.delete(event.data.id);
-        //   }
-        // }
-        // entities$.next(event);
+        for (const entityProps of event.addedEntities) {
+          console.log('added', entityProps);
+        }
+        for (const entityProps of event.removedEntities) {
+          console.log('removed', entityProps);
+        }
+        for (const entityProps of event.changedEntities) {
+          console.log('changed', entityProps);
+        }
       },
     });
 

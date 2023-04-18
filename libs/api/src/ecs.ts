@@ -1,4 +1,4 @@
-import { Entity, EntityMachineMap, EntityProps, SnowflakeId } from '@explorers-club/schema';
+import { Entity, EntityMachineMap, InitialEntityProps, SnowflakeId } from '@explorers-club/schema';
 import { InterpreterFrom, StateValue, interpret } from 'xstate';
 import { EPOCH, TICK_RATE } from './ecs.constants';
 import { machineMap } from './machines';
@@ -58,7 +58,7 @@ const READONLY_ENTITY_PROPS = new Set<string | symbol>([
  * @returns
  */
 export const createEntity = <TEntity extends Entity>(
-  entityProps: EntityProps<TEntity>
+  entityProps: InitialEntityProps<TEntity>
 ) => {
   type PropNames = keyof TEntity;
   type TCallback = Parameters<TEntity['subscribe']>[0];
