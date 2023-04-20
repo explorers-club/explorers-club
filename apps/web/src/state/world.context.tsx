@@ -14,9 +14,9 @@ export const WorldContext = createContext(
   {} as {
     world: World<Entity>;
     entitiesById: Map<SnowflakeId, Entity>;
-    entities$: Observable<EntityListEvent>;
+    // entities$: Observable<EntityListEvent>;
     // archetypes: Archetypes;
-    useEntity$: (id: SnowflakeId) => Observable<Entity>;
+    // useEntity$: (id: SnowflakeId) => Observable<Entity>;
   }
 );
 
@@ -32,7 +32,7 @@ export const WorldProvider: FC<{ children: ReactNode }> = ({ children }) => {
   window.$WORLD = world;
   const [entitiesById] = useState(new Map<SnowflakeId, Entity>()); // todo probably don't need, World tracks it's on id mapping
   const [entities$] = useState(new Subject<EntityListEvent>());
-  const [entity$map] = useState(new Map<SnowflakeId, Observable<Entity>>());
+  // const [entity$map] = useState(new Map<SnowflakeId, Observable<Entity>>());
 
   // const useEntity = (id: SnowflakeId) => {
   //   const entity$ = useEntity$(id);
@@ -40,40 +40,44 @@ export const WorldProvider: FC<{ children: ReactNode }> = ({ children }) => {
   //   return ref;
   // };
 
-  const useEntity$ = (id: SnowflakeId) => {
-    let entity$ = entity$map.get(id);
-    if (!entity$) {
-      const subject = new Subject<Entity>();
-      // What to do about children?
+  // const useEntity$ = (id: SnowflakeId) => {
+  //   let entity$ = entity$map.get(id);
+  //   if (!entity$) {
+  //     const subject = new Subject<Entity>();
+  //     // What to do about children?
 
-      // client.entity.changes.subscribe(
-      //   { id },
-      //   {
-      //     onData(value) {
-      //       // subject.next(entitiesById.get(id));
-      //     },
-      //     onComplete() {
-      //       subject.complete();
-      //       entity$map.delete(id);
-      //     },
-      //   }
-      // );
+  //     // client.entity.changes.subscribe(
+  //     //   { id },
+  //     //   {
+  //     //     onData(value) {
+  //     //       // subject.next(entitiesById.get(id));
+  //     //     },
+  //     //     onComplete() {
+  //     //       subject.complete();
+  //     //       entity$map.delete(id);
+  //     //     },
+  //     //   }
+  //     // );
 
-      entity$ = subject;
-      entity$map.set(id, entity$);
-    }
+  //     entity$ = subject;
+  //     entity$map.set(id, entity$);
+  //   }
 
-    entities$.subscribe((event) => {
-      // if (event.type === "ADD") {
-      //   // event.data.
-      // }
-    });
+  //   entities$.subscribe((event) => {
+  //     // if (event.type === "ADD") {
+  //     //   // event.data.
+  //     // }
+  //   });
 
-    return entity$;
-  };
+  //   return entity$;
+  // };
 
+  console.log('subsciribn');
   useEffect(() => {
     const sub = client.entity.list.subscribe(undefined, {
+      onError(err) {
+        console.error(err);
+      },
       onData(event) {
         console.log('event', event);
         for (const entityProps of event.addedEntities) {
@@ -81,6 +85,7 @@ export const WorldProvider: FC<{ children: ReactNode }> = ({ children }) => {
         }
         for (const entityProps of event.removedEntities) {
           console.log('removed', entityProps);
+          // world.remove()
         }
         for (const entityProps of event.changedEntities) {
           console.log('changed', entityProps);
@@ -114,9 +119,9 @@ export const WorldProvider: FC<{ children: ReactNode }> = ({ children }) => {
       value={{
         world,
         entitiesById,
-        entities$,
+        // entities$,
         // archetypes,
-        useEntity$,
+        // useEntity$,
         // useEntity,
         // waitForEntity: (query) => {
         //   const findEntity = () => {

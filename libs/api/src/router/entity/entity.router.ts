@@ -3,29 +3,56 @@ import {
   ConnectionEntity,
   Entity,
   EntityDataKey,
+  EntityDelta,
   SnowflakeId,
-  SyncedEntityProps
+  SyncedEntityProps,
 } from '@explorers-club/schema';
 import { AnyFunction } from '@explorers-club/utils';
 import { D } from '@mobily/ts-belt';
 import { Observer, observable } from '@trpc/server/observable';
 import { from, interval } from 'rxjs';
 import { TICK_RATE } from '../../ecs.constants';
-import { createArchetypeIndex } from '../../indices';
+// import { createArchetypeIndex } from '../../indices';
 import { publicProcedure, router } from '../../trpc';
 import { world } from '../../world';
 
-const [baseEntityIndex, baseEntityIndex$] = createArchetypeIndex(
-  world.with('id', 'schema'),
-  'id'
-);
+type NonFunctionKeys<T> = {
+  [K in keyof T]: T[K] extends (...args: any[]) => any ? never : K;
+}[keyof T];
 
-type ChangedEntityProps = Partial<SyncedEntityProps<Entity>> & { id: SnowflakeId };
+type OmitFunctions<T> = Pick<T, NonFunctionKeys<T>>;
+
+function isNonFunctionKey<T>(key: keyof T, obj: T): key is NonFunctionKeys<T> {
+  return typeof obj[key] !== 'function';
+}
+
+function removeFunctions<T>(obj: T): OmitFunctions<T> {
+  const result = {} as OmitFunctions<T>;
+
+  for (const key in obj) {
+    console.log(key);
+    console.log(obj[key]);
+    if (isNonFunctionKey(key, obj)) {
+      result[key] = obj[key];
+    }
+  }
+
+  return result;
+}
+
+// const [baseEntityIndex, baseEntityIndex$] = createArchetypeIndex(
+//   world.with('id', 'schema'),
+//   'id'
+// );
+
+type ChangedEntityProps = Partial<SyncedEntityProps<Entity>> & {
+  id: SnowflakeId;
+};
 
 type EntityListEvent = {
   addedEntities: SyncedEntityProps<Entity>[];
   removedEntities: SyncedEntityProps<Entity>[];
-  changedEntities: ChangedEntityProps[]; // tood Omit schema?
+  changedEntities: { id: SnowflakeId; deltas: EntityDelta[] }[];
 };
 
 const hasAccess = (entity: Entity, connectionEntity: ConnectionEntity) => {
@@ -43,7 +70,8 @@ export const entityRouter = router({
     const addedIds = new Set<SnowflakeId>();
     const changedIds = new Set<SnowflakeId>();
     const removedIds = new Set<SnowflakeId>();
-    const changedProps = new Map<SnowflakeId, Set<EntityDataKey>>();
+    const entityDeltas = new Map<SnowflakeId, EntityDelta[]>();
+    // const changedProps = new Map<SnowflakeId, Set<EntityDataKey>>();
 
     for (const entity of world.entities) {
       if (hasAccess(entity, ctx.connectionEntity)) {
@@ -52,48 +80,94 @@ export const entityRouter = router({
       }
     }
 
-    baseEntityIndex$.subscribe((event) => {
-      if (event.type === 'ADD' || event.type === 'REMOVE') {
-        const entity = event.data;
+    const unsubscribeOnAdd = world.onEntityAdded.add((entity) => {
+      const nowHasAccess = hasAccess(entity, ctx.connectionEntity);
+      if (nowHasAccess) {
+        myEntities.set(entity.id, entity);
+        addedIds.add(entity.id);
+      }
 
-        const previousHasAccess = myEntities.has(entity.id);
-        const nowHasAccess = hasAccess(entity, ctx.connectionEntity);
-
-        if (nowHasAccess) {
-          myEntities.set(entity.id, entity);
-        } else {
-          myEntities.delete(entity.id);
-        }
-
-        if (previousHasAccess && !nowHasAccess) {
-          removedIds.add(entity.id);
-
-          // Unsubscribe from updates
-          const sub = myEntitySubscriptions.get(entity.id);
-          if (sub) {
-            sub();
+      // TODO cleanup these subscriptions
+      const unsub = entity.subscribe((event) => {
+        if (event.type === 'CHANGE') {
+          const previousHasAccess = myEntities.has(entity.id);
+          const nowHasAccess = hasAccess(entity, ctx.connectionEntity);
+          if (!previousHasAccess && nowHasAccess) {
+            myEntities.set(entity.id, entity);
+            addedIds.add(entity.id);
+            removedIds.delete(entity.id); // in case case we previously removed it but it wasnt flushed
+          } else if (previousHasAccess && !nowHasAccess) {
+            myEntities.delete(entity.id);
+            removedIds.add(entity.id);
+            addedIds.delete(entity.id); // in case case we previously removed it but it wasnt flushed
           }
-        } else if (!previousHasAccess && nowHasAccess) {
-          addedIds.add(entity.id);
-        }
-      } else if (event.type === 'CHANGE') {
-        const entityId = event.data.id;
 
-        if (myEntities.has(entityId)) {
-          let changedPropsSet = changedProps.get(entityId);
-          if (!changedPropsSet) {
-            changedPropsSet = new Set();
-            changedProps.set(entityId, changedPropsSet);
+          let deltas = entityDeltas.get(entity.id);
+          if (!deltas) {
+            deltas = [];
+            entityDeltas.set(entity.id, deltas);
           }
-          changedPropsSet.add(event.delta.property);
-          changedIds.add(entityId);
+          deltas.push(event.delta);
+          changedIds.add(entity.id);
         }
+      });
+      myEntitySubscriptions.set(entity.id, unsub);
+    });
+
+    const unsubscribeOnRemove = world.onEntityRemoved.add((entity) => {
+      const previousHasAccess = myEntities.has(entity.id);
+      if (previousHasAccess) {
+        removedIds.add(entity.id);
+      }
+
+      const unsub = myEntitySubscriptions.get(entity.id);
+      if (unsub) {
+        unsub();
       }
     });
 
+    // baseEntityIndex$.subscribe((event) => {
+    //   if (event.type === 'ADD' || event.type === 'REMOVE') {
+    //     const entity = event.data;
+
+    //     const previousHasAccess = myEntities.has(entity.id);
+    //     const nowHasAccess = hasAccess(entity, ctx.connectionEntity);
+
+    //     if (nowHasAccess) {
+    //       myEntities.set(entity.id, entity);
+    //     } else {
+    //       myEntities.delete(entity.id);
+    //     }
+
+    //     if (previousHasAccess && !nowHasAccess) {
+    //       removedIds.add(entity.id);
+
+    //       // Unsubscribe from updates
+    //       const sub = myEntitySubscriptions.get(entity.id);
+    //       if (sub) {
+    //         sub();
+    //       }
+    //     } else if (!previousHasAccess && nowHasAccess) {
+    //       addedIds.add(entity.id);
+    //     }
+    //   } else if (event.type === 'CHANGE') {
+    //     const entityId = event.data.id;
+
+    //     if (myEntities.has(entityId)) {
+    //       let changedPropsSet = changedProps.get(entityId);
+    //       if (!changedPropsSet) {
+    //         changedPropsSet = new Set();
+    //         changedProps.set(entityId, changedPropsSet);
+    //       }
+    //       // TODO store the full delta
+    //       changedPropsSet.add(event.delta.property);
+    //       changedIds.add(entityId);
+    //     }
+    //   }
+    // });
+
     const flush = (emit: Observer<EntityListEvent, unknown>) => {
       if (addedIds.size || removedIds.size || changedIds.size) {
-        console.log({ addedIds, removedIds, changedIds });
         const addedEntities = Array.from(addedIds).map(
           (id) => myEntities.get(id)!
         );
@@ -102,28 +176,24 @@ export const entityRouter = router({
         );
 
         const changedEntities = Array.from(changedIds).map((id) => {
-          const changedPropsSet = changedProps.get(id)!;
-          const entity = myEntities.get(id)!;
-
-          return D.filterWithKey(
-            entity,
-            (key) => changedPropsSet.has(key) || key === 'id'
-          );
+          const deltas = entityDeltas.get(id)!;
+          return {
+            id,
+            deltas,
+          };
         });
 
-        // TODO we only want to send the data props over, excluding entity methods
-        // how do we do that? do we need to?
         emit.next({
-          addedEntities,
-          removedEntities,
-          changedEntities: changedEntities as ChangedEntityProps[],
+          addedEntities: addedEntities.map(removeFunctions),
+          removedEntities: removedEntities.map(removeFunctions),
+          changedEntities,
         });
 
         addedIds.clear();
         removedIds.clear();
 
         for (const id in changedIds) {
-          changedProps.get(id)?.clear();
+          entityDeltas.get(id)!.length = 0;
         }
         changedIds.clear();
       }
@@ -141,6 +211,8 @@ export const entityRouter = router({
 
       return () => {
         event$.unsubscribe();
+        unsubscribeOnAdd();
+        unsubscribeOnRemove();
       };
     });
   }),

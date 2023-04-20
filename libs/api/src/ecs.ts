@@ -1,9 +1,13 @@
-import { Entity, EntityMachineMap, InitialEntityProps, SnowflakeId } from '@explorers-club/schema';
-import { InterpreterFrom, StateValue, interpret } from 'xstate';
+import {
+  Entity,
+  EntityMachineMap,
+  InitialEntityProps,
+  SnowflakeId,
+} from '@explorers-club/schema';
+import { InterpreterFrom, interpret } from 'xstate';
 import { EPOCH, TICK_RATE } from './ecs.constants';
 import { machineMap } from './machines';
 import { world } from './world';
-import { EntitySchemas } from '@explorers-club/schema';
 
 export function getCurrentTick(): number {
   const now = new Date();
@@ -83,6 +87,10 @@ export const createEntity = <TEntity extends Entity>(
     }
   };
 
+  // We wrap each non-primitive value in a proxy when it is accessed
+  // and then store it in this map.
+  const propertyProxyMap = new Map();
+
   const handler: ProxyHandler<TEntity> = {
     get(target, property) {
       if (property === 'context') {
@@ -93,7 +101,100 @@ export const createEntity = <TEntity extends Entity>(
         return service.getSnapshot().value;
       }
 
-      return target[property as PropNames];
+      // If there is already a proxy created for this property, use it
+      const targetProxy = propertyProxyMap.get(property);
+      if (targetProxy) {
+        return targetProxy;
+      }
+
+      let value = target[property as PropNames];
+      if (Array.isArray(value)) {
+        value = new Proxy(value, {
+          get(target, p: any) {
+            switch (p) {
+              case 'push':
+                return (...args: any[]) => {
+                  args.forEach((arg) => {
+                    const index = target.length;
+
+                    next({
+                      type: 'CHANGE',
+                      delta: {
+                        type: 'ARRAY_ADD',
+                        index: index,
+                        value: arg,
+                      },
+                    } as TEvent);
+
+                    Array.prototype.push.call(target, arg);
+                  });
+
+                  return target.length;
+                };
+
+              case 'pop':
+                return () => {
+                  if (target.length === 0) return undefined;
+
+                  const index = target.length - 1;
+                  const removedElement = target[index];
+
+                  next({
+                    type: 'CHANGE',
+                    delta: {
+                      type: 'ARRAY_REMOVE',
+                      index: index,
+                      value: removedElement,
+                    },
+                  } as TEvent);
+
+                  return Array.prototype.pop.call(target);
+                };
+
+              case 'shift':
+                return () => {
+                  if (target.length === 0) return undefined;
+
+                  const removedElement = target[0];
+
+                  next({
+                    type: 'CHANGE',
+                    delta: {
+                      type: 'ARRAY_REMOVE',
+                      index: 0,
+                      value: removedElement,
+                    },
+                  } as TEvent);
+
+                  return Array.prototype.shift.call(target);
+                };
+
+              case 'unshift':
+                return (...args: any[]) => {
+                  args.forEach((arg, i) => {
+                    next({
+                      type: 'CHANGE',
+                      delta: {
+                        type: 'ARRAY_ADD',
+                        index: i,
+                        value: arg,
+                      },
+                    } as TEvent);
+                  });
+
+                  return Array.prototype.unshift.apply(target, args);
+                };
+
+              default:
+                return target[p];
+            }
+          },
+        });
+        targetProxy.set(property, value);
+      }
+      // TODO also handle creating proxies for objects that can be mutated
+
+      return value;
     },
     set: (target, property, value) => {
       if (READONLY_ENTITY_PROPS.has(property)) {
@@ -110,12 +211,15 @@ export const createEntity = <TEntity extends Entity>(
         next({
           type: 'CHANGE',
           delta: {
-            property: property as PropNames,
+            type: 'SET',
+            property,
             value,
             prevValue,
           },
         } as TEvent);
+        propertyProxyMap.delete(property);
       }
+
       return true; // Indicate that the assignment was successful
     },
   };
@@ -142,7 +246,7 @@ export const createEntity = <TEntity extends Entity>(
     id: generateSnowflakeId(),
     send,
     subscribe,
-    children: [],
+    // children: [],
   };
 
   const entity: TEntity = {
@@ -168,3 +272,116 @@ export const createEntity = <TEntity extends Entity>(
   entitiesById.set(entity.id, proxy);
   return proxy;
 };
+
+// function createProxy<T extends object>(
+//   entity: T,
+//   callback: (event: ModificationEvent) => void
+// ): T {
+//   const handler: ProxyHandler<T> = {
+//     get(target, prop, receiver) {
+//       const val = Reflect.get(target, prop, receiver);
+//       if (typeof val === 'function') {
+//         return function (...args: any[]) {
+//           if (Array.isArray(target) && prop === 'push') {
+//             const index = target.length;
+//             const value = args[0];
+//             callback({ type: 'ARRAY_ADD', property: prop, index, value });
+//           } else if (Array.isArray(target) && prop === 'pop') {
+//             const index = target.length - 1;
+//             const value = target[index];
+//             callback({ type: 'ARRAY_REMOVE', property: prop, index, value });
+//           } else if (target instanceof Set && prop === 'add') {
+//             const value = args[0];
+//             callback({ type: 'SET_ADD', property: prop, value });
+//           } else if (target instanceof Set && prop === 'delete') {
+//             const value = args[0];
+//             callback({ type: 'SET_DELETE', property: prop, value });
+//           } else if (target instanceof Map && prop === 'set') {
+//             const key = args[0];
+//             const value = args[1];
+//             callback({ type: 'MAP_SET', property: prop, key, value });
+//           } else if (target instanceof Map && prop === 'delete') {
+//             const key = args[0];
+//             callback({ type: 'MAP_DELETE', property: prop, key });
+//           }
+//           return Reflect.apply(val, target, args);
+//         };
+//       }
+//       return val;
+//     },
+//     set(target, prop, value, receiver) {
+//       callback({ type: 'OBJECT_SET', property: prop, value });
+//       return Reflect.set(target, prop, value, receiver);
+//     },
+//     deleteProperty(target, prop) {
+//       callback({ type: 'OBJECT_DELETE', property: prop });
+//       return Reflect.deleteProperty(target, prop);
+//     },
+//   };
+//   return new Proxy(entity, handler);
+// }
+
+// type EventCallback<T> = (event: T) => void;
+
+// Define the createProxy function
+// function createProxy<TEntityProps extends z.ZodRawShape>(
+//   entity: TEntityProps,
+//   entityPropsSchema: z.ZodObject<TEntityProps>,
+//   callback: EventCallback<z.infer<ReturnType<typeof EntityPropChangeDeltaSchema>>>,
+// ): TEntityProps {
+//   // Create the schema for the events
+//   const eventSchema = EntityPropChangeDeltaSchema(entityPropsSchema);
+
+//   const handler: ProxyHandler<TEntityProps> = {
+//     get(target, prop, receiver) {
+//       const val = Reflect.get(target, prop, receiver);
+//       if (typeof val === 'function') {
+//         return function (...args: any[]) {
+//           // Generate events based on the operation and use the eventSchema to validate them
+//           if (Array.isArray(target) && prop === 'push') {
+//             const index = target.length;
+//             const value = args[0];
+//             const event = eventSchema.parse({ type: 'ARRAY_ADD', property: prop, index, value });
+//             callback(event);
+//           } else if (Array.isArray(target) && prop === 'pop') {
+//             const index = target.length - 1;
+//             const value = target[index];
+//             const event = eventSchema.parse({ type: 'ARRAY_REMOVE', property: prop, index, value });
+//             callback(event);
+//           } else if (target instanceof Set && prop === 'add') {
+//             const value = args[0];
+//             const event = eventSchema.parse({ type: 'SET_ADD', property: prop, value });
+//             callback(event);
+//           } else if (target instanceof Set && prop === 'delete') {
+//             const value = args[0];
+//             const event = eventSchema.parse({ type: 'SET_DELETE', property: prop, value });
+//             callback(event);
+//           } else if (target instanceof Map && prop === 'set') {
+//             const key = args[0];
+//             const value = args[1];
+//             const event = eventSchema.parse({ type: 'MAP_SET', property: prop, key, value });
+//             callback(event);
+//           } else if (target instanceof Map && prop === 'delete') {
+//             const key = args[0];
+//             const event = eventSchema.parse({ type: 'MAP_DELETE', property: prop, key });
+//             callback(event);
+//           }
+//           return Reflect.apply(val, target, args);
+//         };
+//       }
+//       return val;
+//     },
+//     set(target, prop, value, receiver) {
+//       const prevValue = target[prop];
+//       const event = eventSchema.parse({ type: 'SET', property: prop, value, prevValue });
+//       callback(event);
+//       return Reflect.set(target, prop, value, receiver);
+//     },
+//     deleteProperty(target, prop) {
+//       const event = eventSchema.parse({ type: 'OBJECT_DELETE', property: prop });
+//       callback(event);
+//       return Reflect.deleteProperty(target, prop);
+//     },
+//   };
+//   return new Proxy(entity, handler);
+// }

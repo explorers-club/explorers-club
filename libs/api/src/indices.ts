@@ -3,6 +3,7 @@ import {
   EntitySchemas,
   SchemaType,
   SnowflakeId,
+  UserEntityDeltaSchema,
 } from '@explorers-club/schema';
 import { FromArchetype, FromSubject } from '@explorers-club/utils';
 import { ArchetypeBucket, World } from 'miniplex';
@@ -111,78 +112,78 @@ export const createSchemaIndex = <TKey extends IndexKey>(
  * @param indexKey
  * @returns
  */
-export const createArchetypeIndex = <TEntity extends Entity>(
-  bucket: ArchetypeBucket<TEntity>,
-  indexKey: keyof TEntity | ((data: TEntity) => string)
-) => {
-  type BucketEntity = FromArchetype<typeof bucket>;
-  const index = new Map<string, BucketEntity>();
-  const subject = new Subject<EntityIndexEvent<TEntity>>();
+// export const createArchetypeIndex = <TEntity extends Entity>(
+//   bucket: ArchetypeBucket<TEntity>,
+//   indexKey: keyof TEntity | ((data: TEntity) => string)
+// ) => {
+//   type BucketEntity = FromArchetype<typeof bucket>;
+//   const index = new Map<string, BucketEntity>();
+//   const subject = new Subject<EntityIndexEvent<TEntity>>();
 
-  const getKey = (entity: TEntity) => {
-    if (typeof indexKey === 'function') {
-      return indexKey(entity) as string;
-    } else {
-      return entity[indexKey] as string;
-    }
-  };
+//   const getKey = (entity: TEntity) => {
+//     if (typeof indexKey === 'function') {
+//       return indexKey(entity) as string;
+//     } else {
+//       return entity[indexKey] as string;
+//     }
+//   };
 
-  for (const entity of bucket) {
-    const key = getKey(entity);
-    index.set(key, entity);
-  }
+//   for (const entity of bucket) {
+//     const key = getKey(entity);
+//     index.set(key, entity);
+//   }
 
-  subject.next({
-    type: 'INIT',
-    data: bucket.entities,
-  });
+//   subject.next({
+//     type: 'INIT',
+//     data: bucket.entities,
+//   });
 
-  const entitySubscriptionsMap = new Map<SnowflakeId, AnyFunction>();
+//   const entitySubscriptionsMap = new Map<SnowflakeId, AnyFunction>();
 
-  bucket.onEntityAdded.add((entity) => {
-    const key = getKey(entity);
-    if (index.has(key)) {
-      console.warn('index received duplicate key. igorning', key);
-    }
+//   bucket.onEntityAdded.add((entity) => {
+//     const key = getKey(entity);
+//     if (index.has(key)) {
+//       console.warn('index received duplicate key. igorning', key);
+//     }
 
-    index.set(key, entity);
-    subject.next({
-      type: 'ADD',
-      data: entity,
-    });
+//     index.set(key, entity);
+//     subject.next({
+//       type: 'ADD',
+//       data: entity,
+//     });
 
-    const entitySubscription = entity.subscribe((event) => {
-      if (event.type === 'CHANGE') {
-        subject.next({
-          type: 'CHANGE',
-          data: entity,
-          delta: event.delta as EntityChangeDelta<TEntity>,
-        });
-      }
-    });
+//     const entitySubscription = entity.subscribe((event) => {
+//       if (event.type === 'CHANGE') {
+//         subject.next({
+//           type: 'CHANGE',
+//           data: entity,
+//           delta: event.delta as EntityChangeDelta<TEntity>,
+//         });
+//       }
+//     });
 
-    entitySubscriptionsMap.set(entity.id, entitySubscription);
-  });
+//     entitySubscriptionsMap.set(entity.id, entitySubscription);
+//   });
 
-  bucket.onEntityRemoved.add((entity) => {
-    const key = getKey(entity);
-    index.delete(key);
+//   bucket.onEntityRemoved.add((entity) => {
+//     const key = getKey(entity);
+//     index.delete(key);
 
-    const entitySubscription = entitySubscriptionsMap.get(entity.id);
-    if (entitySubscription) {
-      entitySubscription(); //
-    } else {
-      console.warn(
-        "expected entity subscritption but didn't find one for ",
-        entity.id
-      );
-    }
+//     const entitySubscription = entitySubscriptionsMap.get(entity.id);
+//     if (entitySubscription) {
+//       entitySubscription(); //
+//     } else {
+//       console.warn(
+//         "expected entity subscritption but didn't find one for ",
+//         entity.id
+//       );
+//     }
 
-    subject.next({
-      type: 'REMOVE',
-      data: entity,
-    });
-  });
+//     subject.next({
+//       type: 'REMOVE',
+//       data: entity,
+//     });
+//   });
 
-  return [index, subject as Observable<FromSubject<typeof subject>>] as const;
-};
+//   return [index, subject as Observable<FromSubject<typeof subject>>] as const;
+// };

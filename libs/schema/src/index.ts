@@ -8,7 +8,7 @@ import {
   StateSchema,
   StateValue,
 } from 'xstate';
-import { z, ZodRawShape } from 'zod';
+import { z } from 'zod';
 import { CodebreakersState } from '../@types/generated/CodebreakersState';
 import { DiffusionaryState } from '../@types/generated/DiffusionaryState';
 import { LittleVigilanteState } from '../@types/generated/LittleVigilanteState';
@@ -225,9 +225,17 @@ const SendFunctionSchema = <TEvent extends AnyEventObject>(
   eventSchema: z.ZodSchema<TEvent>
 ) => z.function().args(eventSchema).returns(z.void());
 
-const CallbackFunctionSchema = <TCommand extends AnyEventObject>(
+const CallbackFunctionSchema = <
+  TEntity extends z.ZodRawShape,
+  TCommand extends AnyEventObject
+>(
+  entitySchema: z.ZodObject<TEntity>,
   commandSchema: z.ZodSchema<TCommand>
-) => z.function().args(EntityEventSchema(commandSchema)).returns(z.void());
+) =>
+  z
+    .function()
+    .args(EntityEventSchema(entitySchema, commandSchema))
+    .returns(z.void());
 
 export type InitialEntityProps<TEntity extends Entity> = Omit<
   TEntity,
@@ -242,17 +250,17 @@ export type SyncedEntityProps<TEntity extends Entity> = Omit<
 export type EntityDataKey = Omit<keyof InitialEntityProps<Entity>, 'schema'>;
 
 const EntityBaseSchema = <
-  TEntity extends ZodRawShape,
+  TEntityProps extends z.ZodRawShape,
   TCommand extends AnyEventObject,
   TContext,
   TStateSchema
 >(
-  entitySchema: z.ZodObject<TEntity>,
+  entityPropsSchema: z.ZodObject<TEntityProps>,
   commandSchema: z.ZodSchema<TCommand>,
   contextSchema: z.ZodSchema<TContext>,
   stateValueSchema: z.ZodSchema<TStateSchema>
 ) =>
-  entitySchema.merge(
+  entityPropsSchema.merge(
     z.object({
       id: SnowflakeIdSchema,
       // children: z.array(SnowflakeIdSchema).optional(),
@@ -262,65 +270,10 @@ const EntityBaseSchema = <
       command: commandSchema,
       subscribe: z
         .function()
-        .args(CallbackFunctionSchema(commandSchema))
+        .args(CallbackFunctionSchema(entityPropsSchema, commandSchema))
         .returns(z.function().returns(z.void())), // The subscribe function returns an unsubscribe function
     })
   );
-
-// const StagingRoomContextSchema = z.object({
-//   foo: z.string(),
-// });
-
-// // Define event schemas for each entity type
-// const StagingRoomCommandSchema = z.object({
-//   type: z.literal('STAGING_ROOM_EVENT'),
-//   data: z.string(),
-// });
-// type StagingRoomCommand = z.infer<typeof StagingRoomCommandSchema>;
-
-// const LittleVigilanteRoomContextSchema = z.object({
-//   foo: z.string(),
-// });
-
-// const LittleVigilanteRoomCommandSchema = z.object({
-//   type: z.literal('LITTLE_VIGILANTE_ROOM_EVENT'),
-//   data: z.string(),
-// });
-// type LittleVigilanteRoomCommand = z.infer<
-//   typeof LittleVigilanteRoomCommandSchema
-// >;
-
-// Update entity schema definitions
-// export const StagingRoomEntitySchema = EntityBaseSchema(
-//   z.object({
-//     indexKey: z.literal('roomName'),
-//     roomName: ClubNameSchema,
-//     schema: StagingRoomSchemaTypeLiteral,
-//     playersIds: z.array(z.string()),
-//   }),
-//   StagingRoomCommandSchema,
-//   StagingRoomContextSchema
-// );
-
-// export type StagingRoomEntity = z.infer<typeof StagingRoomEntitySchema>;
-
-// export const LittleVigilanteRoomEntitySchema = EntityBaseSchema(
-//   z.object({
-//     roomName: ClubNameSchema,
-//     schema: LittleVigilanteRoomSchemaTypeLiteral,
-//     playersIds: z.array(z.string()),
-//   }),
-//   LittleVigilanteRoomCommandSchema,
-//   LittleVigilanteRoomContextSchema
-// );
-
-// const DeviceSchema = z.object({
-//   deviceId: z.string(),
-//   lastHeartbeatAt: z.date(),
-//   currentLocation: z.string().url(),
-//   connected: z.boolean(),
-//   supabaseSessionId: z.string(),
-// });
 
 const DeviceIdSchema = z.string().uuid();
 
@@ -329,70 +282,6 @@ const AuthTokensSchema = z.object({
   refreshToken: z.string(),
 });
 export type AuthTokens = z.infer<typeof AuthTokensSchema>;
-
-// const ConnectionIdSchema = z.string();
-// const SessionIdSchema = z.string();
-
-// const ConnectionEntitySchema = EntityBaseSchema.extend({
-//   schema: ConnectionSchemaTypeLiteral,
-//   location: z.string().url(),
-//   deviceId: DeviceIdSchema,
-//   // sessionId: SessionIdSchema.optional(),
-// });
-// export type ConnectionEntity = z.infer<typeof ConnectionEntitySchema>;
-
-// const DeviceEntitySchema = EntityBaseSchema.extend({
-//   schema: DeviceSchemaTypeLiteral,
-//   supabaseSessionId: z.string(),
-//   connectedAt: z.date(),
-// });
-// export type DeviceEntity = z.infer<typeof DeviceEntitySchema>;
-
-// const InitializeTypeLiteral = z.literal('INITIALIZE');
-
-// const NavigateEventSchema = z.object({
-//   type: z.literal('NAVIGATE'),
-//   location: z.string().url(),
-// });
-// type NavigateEvent = z.infer<typeof NavigateEventSchema>;
-
-// const HeartbeatEventSchema = z.object({
-//   type: z.literal('HEARTBEAT'),
-// });
-// type HeartbeatEvent = z.infer<typeof HeartbeatEventSchema>;
-
-// const InitializeEventBaseSchema = z.object({
-//   type: InitializeTypeLiteral,
-//   id: SnowflakeIdSchema.optional(),
-// });
-// type InitializeEntityEvent = z.infer<typeof InitializeEventBaseSchema>;
-
-// export type DeviceMachine = StateMachine<
-//   { entity: DeviceEntity },
-//   any,
-//   InitializeEntityEvent,
-//   any
-// >;
-// export type DeviceInterpreter = InterpreterFrom<DeviceMachine>;
-
-// const SessionEntitySchema = EntityBaseSchema.extend({
-//   schema: SessionSchemaTypeLiteral,
-//   connectionIds: z.array(ConnectionIdSchema),
-//   userId: SnowflakeIdSchema,
-//   startedAt: z.date(),
-// });
-// export type SessionEntity = z.infer<typeof SessionEntitySchema>;
-
-// type DeviceId = string;
-
-// export const SessionContextSchema = z.object({
-//   supabaseClient: SessionEntitySchema,
-// });
-// export type SessionContext = z.infer<typeof SessionContextSchema>;
-
-// export const SessionEventSchema = z.object({
-//   type: z.literal('HEARTBEAT'),
-// });
 
 export type ConnectionContext = {
   location?: string;
@@ -473,17 +362,145 @@ export type SessionMachine = StateMachine<
   SessionStateSchema,
   SessionCommand
 >;
-const EntityChangeDeltaSchema = z.object({
-  property: z.string(),
-  value: z.any(),
-  prevValue: z.any(),
-});
 
-// Define the EntityChangeEvent schema with a type parameter TEntitySchema
-const EntityChangeEventSchema = z.object({
-  type: z.literal('CHANGE'),
-  delta: EntityChangeDeltaSchema,
-});
+// type ModificationEvent =
+//   | { type: 'ARRAY_ADD'; index: number; value: any }
+//   | { type: 'ARRAY_REMOVE'; index: number; value: any }
+//   | { type: 'SET_ADD'; value: any }
+//   | { type: 'SET_DELETE'; value: any }
+//   | { type: 'MAP_SET'; key: any; value: any }
+//   | { type: 'MAP_DELETE'; key: any }
+//   | { type: 'OBJECT_SET'; key: PropertyKey; value: any }
+//   | { type: 'OBJECT_DELETE'; key: PropertyKey };
+
+const EntityPrimitiveValueDeltaSchema = <TEntity extends z.ZodRawShape>(
+  entityPropsSchema: z.ZodObject<TEntity>
+) =>
+  z.object({
+    type: z.literal('SET'),
+    property: entityPropsSchema.keyof(), // todo filter to only keys that are arrays
+    value: z.any(),
+    prevValue: z.any(),
+  });
+
+const EntityArrayAddDeltaSchema = <TEntityProps extends z.ZodRawShape>(
+  entitySchema: z.ZodObject<TEntityProps>
+) =>
+  z.object({
+    type: z.literal('ARRAY_ADD'),
+    property: entitySchema.keyof(), // todo filter to only keys that are arrays
+    index: z.number(),
+    value: z.any(),
+  });
+
+const EntityArrayRemoveDeltaSchema = <TEntityProps extends z.ZodRawShape>(
+  entityPropsSchema: z.ZodObject<TEntityProps>
+) =>
+  z.object({
+    type: z.literal('ARRAY_REMOVE'),
+    property: entityPropsSchema.keyof(), // todo filter to only keys that are arrays
+    index: z.number(),
+    value: z.any(),
+  });
+
+const EntitySetAddDeltaSchema = <TEntityProps extends z.ZodRawShape>(
+  entityPropsSchema: z.ZodObject<TEntityProps>
+) =>
+  z.object({
+    type: z.literal('SET_ADD'),
+    property: entityPropsSchema.keyof(), // todo filter to only keys that are arrays
+    value: z.any(),
+  });
+
+const EntitySetDeleteDeltaSchema = <TEntityProps extends z.ZodRawShape>(
+  entityPropsSchema: z.ZodObject<TEntityProps>
+) =>
+  z.object({
+    type: z.literal('SET_DELETE'),
+    property: entityPropsSchema.keyof(), // todo filter to only keys that are arrays
+    value: z.any(),
+  });
+
+const EntityMapSetDeltaSchema = <TEntityProps extends z.ZodRawShape>(
+  entityPropsSchema: z.ZodObject<TEntityProps>
+) =>
+  z.object({
+    type: z.literal('MAP_SET'),
+    property: entityPropsSchema.keyof(), // todo filter props
+    key: z.any(),
+    value: z.any(),
+  });
+
+const EntityMapDeleteDeltaSchema = <TEntityProps extends z.ZodRawShape>(
+  entityPropsSchema: z.ZodObject<TEntityProps>
+) =>
+  z.object({
+    type: z.literal('MAP_DELETE'),
+    property: entityPropsSchema.keyof(), // todo filter props
+    key: z.any(),
+    value: z.any(),
+  });
+
+const EntityPropChangeDeltaSchema = <TEntityProps extends z.ZodRawShape>(
+  entityPropsSchema: z.ZodObject<TEntityProps>
+) =>
+  z.union([
+    EntityPrimitiveValueDeltaSchema(entityPropsSchema),
+    EntityArrayAddDeltaSchema(entityPropsSchema),
+    EntityArrayRemoveDeltaSchema(entityPropsSchema),
+    EntitySetAddDeltaSchema(entityPropsSchema),
+    EntitySetDeleteDeltaSchema(entityPropsSchema),
+    EntityMapSetDeltaSchema(entityPropsSchema),
+    EntityMapDeleteDeltaSchema(entityPropsSchema),
+  ]);
+
+const EntityPropChangeEventSchema = <TEntityProps extends z.ZodRawShape>(
+  entityPropsSchema: z.ZodObject<TEntityProps>
+) =>
+  z.object({
+    type: z.literal('CHANGE'),
+    delta: EntityPropChangeDeltaSchema(entityPropsSchema),
+  });
+// z.union([
+//   z.object({
+//     type: z.literal('CHANGE'),
+//     property: entitySchema.keyof(),
+//     value: z.any(),
+//     prevValue: z.any(),
+//   }),
+// EntityPropArrayAddEventSchema(entitySchema),
+// EntityPropArrayRemoveEventSchema(entitySchema),
+// EntityPropSetAddEventSchema(entitySchema),
+// EntityPropSetDeleteEventSchema(entitySchema),
+// EntityPropMapSetEventSchema(entitySchema),
+// EntityPropMapDeleteEventSchema(entitySchema),
+// EntityPropObjectSetEventSchema(entitySchema),
+// EntityPropObjectDeleteEventSchema(entitySchema),
+// ]);
+
+// EntityPropArrayAddEventSchema(entitySchema),
+// EntityPropArrayRemoveEventSchema(entitySchema),
+// EntityPropSetAddEventSchema(entitySchema),
+// EntityPropSetDeleteEventSchema(entitySchema),
+// EntityPropMapSetEventSchema(entitySchema),
+// EntityPropMapDeleteEventSchema(entitySchema),
+// EntityPropObjectSetEventSchema(entitySchema),
+// EntityPropObjectDeleteEventSchema(entitySchema),
+
+// export type EntityPropChangeDelta<TEntity extends Entity> = {
+//   property: keyof TEntity;
+//   value: TEntity[keyof TEntity];
+//   prevValue: TEntity[keyof TEntity];
+// };
+
+// type EntityPropArrayAddEvent<TEntity> = {
+//   [K in keyof TEntity]: TEntity[K] extends Array<infer TElement> ? {
+//     type: 'ARRAY_ADD';
+//     prop: K;
+//     index: number;
+//     value: TElement;
+//   } : never;
+// }[keyof TEntity];
 
 const EntitySendTriggerEventSchema = <TEvent extends AnyEventObject>(
   commandSchema: z.ZodSchema<TEvent>
@@ -513,14 +530,18 @@ const EntityTransitionStateEventSchema = z.object({
   type: z.literal('TRANSITION'),
 });
 
-const EntityEventSchema = <TEvent extends AnyEventObject>(
+const EntityEventSchema = <
+  TEntity extends z.ZodRawShape,
+  TEvent extends AnyEventObject
+>(
+  entitySchema: z.ZodObject<TEntity>,
   commandSchema: z.ZodSchema<TEvent>
 ) =>
   z.union([
     EntitySendCompleteEventSchema(commandSchema),
     EntitySendErrorEventSchema(commandSchema),
     EntitySendTriggerEventSchema(commandSchema),
-    EntityChangeEventSchema,
+    EntityPropChangeEventSchema(entitySchema),
     EntityTransitionStateEventSchema,
   ]);
 
@@ -760,85 +781,55 @@ export const AllCommandsSchema = z.union([
   UserCommandSchema,
 ]);
 
-type EntityChangeDelta<TEntity extends Entity> = {
-  property: keyof TEntity;
-  value: TEntity[keyof TEntity];
-  prevValue: TEntity[keyof TEntity];
-};
+const ConnectionEntityDeltaSchema = EntityPropChangeDeltaSchema(
+  ConnectionEntityPropsSchema
+);
+const RoomEntityDeltaSchema = EntityPropChangeDeltaSchema(
+  RoomEntityPropsSchema
+);
+const SessionEntityDeltaSchema = EntityPropChangeDeltaSchema(
+  SessionEntityPropsSchema
+);
+export const UserEntityDeltaSchema = EntityPropChangeDeltaSchema(
+  UserEntityPropsSchema
+);
 
-// const EntityChangeEventSchema = z.object({
-//   type: z.literal('CHANGE'),
-//   data: EntitySchema,
-//   delta: z.object({
-//     property: z.string(),
-//     value: z.any(),
-//     prevValue: z.any(),
-//   }),
-// });
+type ConnectionEntityDelta = z.infer<typeof ConnectionEntityDeltaSchema>;
+type UserEntityDelta = z.infer<typeof UserEntityDeltaSchema>;
+type RoomEntityDelta = z.infer<typeof RoomEntityDeltaSchema>;
+type SessionEntityDelta = z.infer<typeof SessionEntityDeltaSchema>;
 
-// export interface EntityChangeEvent<TEntity extends Entity> {
-//   type: 'CHANGE';
-//   data: TEntity;
-//   delta: EntityChangeDelta<TEntity>;
-// }
+export type EntityDelta =
+  | ConnectionEntityDelta
+  | UserEntityDelta
+  | RoomEntityDelta
+  | SessionEntityDelta;
 
-// export type EntitiesInitEvent<TEntity extends Entity> = {
-//   type: 'INIT';
-//   data: TEntity[];
+// export type EntityDelta =
+//   | {
+//       type: 'session';
+//       delta: SessionEntityDelta;
+//     }
+//   | {
+//       type: 'room';
+//       delta: RoomEntityDelta;
+//     }
+//   | {
+//       type: 'connection';
+//       delta: ConnectionEntityDelta;
+//     }
+//   | {
+//       type: 'user';
+//       delta: UserEntityDelta;
+//     };
+
+// export type EntityDeltaMap = IndexByType<EntityDelta>;
+
+// type EntityChangeDelta<TEntity extends Entity> = {
+//   property: keyof TEntity;
+//   value: TEntity[keyof TEntity];
+//   prevValue: TEntity[keyof TEntity];
 // };
-
-// export type EntityAddEvent<TEntity extends Entity> = {
-//   type: 'ADD';
-//   data: TEntity;
-// };
-
-// export type EntityRemoveEvent<TEntity extends Entity> = {
-//   type: 'REMOVE';
-//   data: TEntity;
-// };
-
-// export type EntityListEvent<TEntity extends Entity> =
-//   | EntitiesInitEvent<TEntity>
-//   | EntityAddEvent<TEntity>
-//   | EntityRemoveEvent<TEntity>;
-
-// export type EntityEvent<TEntity extends Entity> =
-//   | EntitiesInitEvent<TEntity>
-//   | EntityChangeEvent<TEntity>
-//   | EntityAddEvent<TEntity>
-//   | EntityRemoveEvent<TEntity>;
-
-// export function isEntityChangeEvent<TEntity extends Entity>(
-//   event: EntityEvent<TEntity>
-// ): event is EntityChangeEvent<TEntity> {
-//   return event.type === 'CHANGE';
-// }
-
-// export function isEntitiesInitEvent<TEntity extends Entity>(
-//   event: EntityEvent<TEntity>
-// ): event is EntitiesInitEvent<TEntity> {
-//   return event.type === 'INIT';
-// }
-
-// export function isEntityAddEvent<TEntity extends Entity>(
-//   event: EntityEvent<TEntity>
-// ): event is EntityAddEvent<TEntity> {
-//   return event.type === 'ADD';
-// }
-
-// export function isEntityRemoveEvent<TEntity extends Entity>(
-//   event: EntityEvent<TEntity>
-// ): event is EntityRemoveEvent<TEntity> {
-//   return event.type === 'REMOVE';
-// }
-
-// export function isEntityListEvent<TEntity extends Entity>(
-//   event: EntityEvent<TEntity>
-// ): event is EntityListEvent<TEntity> {
-//   return (
-//     event.type === 'INIT' || event.type === 'ADD' || event.type === 'REMOVE'
-//   );
-// }
 
 export type EntityMachine =
   | {

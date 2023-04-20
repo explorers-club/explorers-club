@@ -1,4 +1,4 @@
-import { Entity } from "@explorers-club/schema";
+import { Entity } from '@explorers-club/schema';
 
 export type EntityChangeDelta<TEntity extends Entity> = {
   property: keyof TEntity;
