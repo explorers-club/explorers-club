@@ -1,13 +1,21 @@
 import { Unarray } from '@explorers-club/utils';
 import { createTRPCReact } from '@trpc/react-query';
 import { inferRouterOutputs } from '@trpc/server';
+import { Observable } from '@trpc/server/observable';
 import type { ApiRouter } from '../router';
 
-export const trpc = createTRPCReact<ApiRouter>();
 export * from '../transformer';
+export * from '../world';
+
+export const trpc = createTRPCReact<ApiRouter>();
 
 // type ReactQueryOptions = inferReactQueryProcedureOptions<ApiRouter>;
 // type ApiInputs = inferRouterInputs<ApiRouter>;
-type ApiOutputs = inferRouterOutputs<ApiRouter>;
+export type ApiOutputs = inferRouterOutputs<ApiRouter>;
 
-export type Tile = Unarray<ApiOutputs['tile']['byIndex']['tiles']>;
+type ObservableProps<T> = T extends Observable<infer U, unknown> ? U : T;
+
+export type EntityListEvent = ObservableProps<ApiOutputs['entity']['list']>;
+// export type EntityChangeEvent = ObservableProps<
+//   ApiOutputs['entity']['changes']
+// >;

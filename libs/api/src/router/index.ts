@@ -1,11 +1,20 @@
 import { router } from '../trpc';
-import { actorRouter } from './actor';
+// import { actorRouter } from './actor';
+import { authRouter } from './auth';
+import { profileRouter } from './profile';
 import { entityRouter } from './entity';
-import { tileRouter } from './tiles';
+// import { sessionRouter } from './session';
+import { roomRouter } from './room';
+import { connectionRouter } from './connection';
 
 export const apiRouter = router({
-  tile: tileRouter,
-  actor: actorRouter,
+  connection: connectionRouter,
+  // tile: tileRouter,
+  // actor: actorRouter,
+  room: roomRouter,
+  profile: profileRouter,
+  auth: authRouter,
+  // session: sessionRouter,
   entity: entityRouter,
 });
 

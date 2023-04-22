@@ -28,6 +28,12 @@ export const Card = styled('div', {
         opacity: 0.15,
       },
     },
+    color: {
+      success: {
+        background: '$success9',
+        color: 'white',
+      },
+    },
     variant: {
       interactive: {
         border: '1px solid $border1',

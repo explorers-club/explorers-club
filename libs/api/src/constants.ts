@@ -1,1 +1,1 @@
-export const TICK_RATE = 60;
+export const SESSION_SECRET = 'my-session-secret';

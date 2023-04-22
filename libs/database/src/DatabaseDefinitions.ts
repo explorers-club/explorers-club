@@ -75,6 +75,52 @@ export interface Database {
           created_at?: string
         }
       }
+      rooms: {
+        Row: {
+          id: string
+          name: string
+          context: Json
+          created_by: string
+          created_session_id: string
+          created_at: string
+          states: string[]
+          server_instance_id: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          context: Json
+          created_by: string
+          created_session_id: string
+          created_at?: string
+          states: string[]
+          server_instance_id?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          context?: Json
+          created_by?: string
+          created_session_id?: string
+          created_at?: string
+          states?: string[]
+          server_instance_id?: string | null
+        }
+      }
+      server_instances: {
+        Row: {
+          id: string
+          created_at: string | null
+        }
+        Insert: {
+          id: string
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          created_at?: string | null
+        }
+      }
     }
     Views: {
       [_ in never]: never

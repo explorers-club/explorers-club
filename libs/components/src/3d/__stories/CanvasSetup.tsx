@@ -13,6 +13,7 @@ type Props = React.PropsWithChildren<
   CanvasProps & {
     cameraFov?: number;
     cameraPosition?: Vector3;
+    cameraRotation?: Vector3;
     controls?: boolean;
     lights?: boolean;
   }
@@ -39,7 +40,11 @@ export const CanvasSetup = ({
       <Canvas
         style={{ height: '100vh' }}
         shadows
-        camera={{ position: cameraPosition, fov: cameraFov, far: 250000 }}
+        camera={{
+          position: cameraPosition,
+          fov: cameraFov,
+          far: 250000,
+        }}
         {...restProps}
       >
         <Fragment>

@@ -1,196 +1,245 @@
-import { Floor } from '@3d/floor';
-import { SunsetSky } from '@3d/sky';
-import { Treehouse } from '@3d/treehouse';
 import { Box } from '@atoms/Box';
+import { Flex } from '@atoms/Flex';
+import { IconButton } from '@atoms/IconButton';
 import { Logo } from '@atoms/Logo';
-import { darkTheme } from '@explorers-club/styles';
-import {
-  NotificationsComponent,
-  notificationsMachine,
-} from '@organisms/notifications';
-import { createTabBarMachine, TabBar } from '@organisms/tab-bar';
-import {
-  Environment,
-  OrbitControls,
-  useContextBridge,
-} from '@react-three/drei';
-import { Canvas } from '@react-three/fiber';
-import { useInterpret, useSelector } from '@xstate/react';
-import * as Colyseus from 'colyseus.js';
-import { FC, ReactElement, Suspense, useContext, useState } from 'react';
-import { BottomSheet } from 'react-spring-bottom-sheet';
-import {
-  defaultSnapProps,
-  SnapPointProps,
-} from 'react-spring-bottom-sheet/dist/types';
-import { ModalComponent, modalMachine } from '../components/organisms/modal';
-import { environment } from '../environments/environment';
-import { AppContext } from '../state/app.context';
-import { AuthContext } from '../state/auth.context';
-import { ColyseusContext } from '../state/colyseus.context';
-import { ClubTab, createClubTabMachine } from '../tabs/club';
-import { createGameTabMachine, GameTab } from '../tabs/game';
-import { createLobbyTabMachine, LobbyTab } from '../tabs/lobby';
-import { createProfileTabMachine, ProfileTab } from '../tabs/profile';
-import { getClubNameFromPath } from '../utils';
-import { NavigationHelper } from './navigation-helper.component';
+import { HamburgerMenuIcon, PersonIcon } from '@radix-ui/react-icons';
+import { useCallback } from 'react';
+import { MainScene } from '../scenes/main-scene.component';
+import { MainScreen } from '../screens/main-screen.component';
+import { useAppSend, useServiceSelector } from '../services';
+import { AppState } from '../state/app.machine';
+import { selectLoginIsOpen, selectNavIsOpen } from './app.selectors';
+import { Login } from './login.component';
+import { Navigation } from './navigation.component';
 
-const DEFAULT_SNAP_POINTS = ({ minHeight }: SnapPointProps) => [
-  minHeight /* height of child contents (will go to full screen then scroll) */,
-  // window.innerHeight * 0.4 /* almost halfway up */,
-  // 80 /* fixed height of tab bar so you can always see it */,
-];
-
-const DEFAULT_SNAP = ({ snapPoints }: defaultSnapProps) => snapPoints[0];
+// inspect({
+//   // options
+//   // url: 'https://stately.ai/viz?inspect', // (default)
+//   iframe: false, // open in new window
+// });
 
 export const AppComponent = () => {
-  const [colyseusClient] = useState(
-    new Colyseus.Client(environment.colyseusHost)
-  );
-  const authContext = useContext(AuthContext);
-
-  const [lobbyTabMachine] = useState(createLobbyTabMachine(colyseusClient));
-  const lobbyTabActor = useInterpret(lobbyTabMachine);
-
-  // const chatActor = useInterpret(chatMachine);
-
-  const modalActor = useInterpret(modalMachine);
-  const notificationsActor = useInterpret(notificationsMachine);
-
-  const [profileTabMachine] = useState(createProfileTabMachine(authContext));
-  const profileTabActor = useInterpret(profileTabMachine);
-
-  const [gameTabMachine] = useState(
-    createGameTabMachine(colyseusClient, authContext.userId)
-  );
-  const gameTabActor = useInterpret(gameTabMachine);
-
-  const clubName = getClubNameFromPath();
-  const [clubTabMachine] = useState(
-    createClubTabMachine(
-      colyseusClient,
-      authContext.userId,
-      notificationsActor,
-      clubName
-    )
-  );
-  const clubTabActor = useInterpret(clubTabMachine);
-
-  const [machine] = useState(
-    createTabBarMachine({
-      Game: {
-        actor: gameTabActor,
-        name: 'Game',
-        Component: <GameTab />,
-      },
-      Club: {
-        actor: clubTabActor,
-        name: 'Club',
-        Component: <ClubTab />,
-      },
-      Lobby: {
-        actor: lobbyTabActor,
-        name: 'Lobby',
-        Component: <LobbyTab />,
-      },
-      Profile: {
-        actor: profileTabActor,
-        name: 'Profile',
-        Component: <ProfileTab />,
-      },
-    })
-  );
-
-  const tabBarActor = useInterpret(machine);
-
-  const isShowingModal = useSelector(modalActor, (state) =>
-    state.matches('Mounted')
+  const isFocusMainScreen = useServiceSelector('appService', (state) =>
+    state.matches('Focus.MainScreen')
   );
 
   return (
-    <AppContext.Provider
-      value={{
-        tabBarActor,
-        profileTabActor,
-        gameTabActor,
-        clubTabActor,
-        lobbyTabActor,
-        notificationsActor,
-        modalActor,
+    <Flex
+      css={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        flexDirection: 'column',
+
+        '@bp2': {
+          flexDirection: 'row',
+        },
       }}
     >
-      <NavigationHelper />
+      <Navigation />
       <Box
         css={{
-          position: 'absolute',
-          top: 0,
-          left: '50%',
-          zIndex: 1,
-          width: '120px',
-          marginLeft: '-60px',
-          pt: '$2',
+          background: 'yellow',
+          flexGrow: isFocusMainScreen ? 0 : 1,
+          position: 'relative',
+          transition: 'flex-grow 150ms',
+
+          '@bp2': {
+            flexGrow: 1,
+            flexBasis: '70%',
+          },
         }}
       >
-        <Logo />
+        <MainSceneContainer />
       </Box>
       <Box
         css={{
-          maxWidth: 400,
-          background: 'black',
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          zIndex: 100,
+          background: 'blue',
+          width: '100%',
+          flexShrink: 3,
+          flexGrow: isFocusMainScreen ? 1 : 0,
+
+          '@bp2': {
+            ...(!isFocusMainScreen
+              ? {
+                  position: 'absolute',
+                  right: '$3',
+                  bottom: '$3',
+                  maxWidth: '30%',
+                }
+              : {
+                  height: '100%',
+                  flexBasis: '30%',
+                  flexGrow: 1,
+                }),
+          },
         }}
       >
-        <NotificationsComponent actor={notificationsActor} />
+        <MainScreenContainer />
       </Box>
-      <BottomSheet
-        open={true}
-        blocking={false}
-        defaultSnap={DEFAULT_SNAP}
-        snapPoints={DEFAULT_SNAP_POINTS}
-      >
-        <Box className={darkTheme.className}>
-          {isShowingModal ? (
-            <ModalComponent actor={modalActor} />
-          ) : (
-            <TabBar actor={tabBarActor} />
-          )}
-        </Box>
-      </BottomSheet>
-      <SceneContainer>
-        <>
-          <OrbitControls maxDistance={80} />
-          <Environment preset="sunset" />
-          <SunsetSky />
-          <Treehouse rotation={[0, -Math.PI / 4, 0]} />
-          <Floor />
-        </>
-      </SceneContainer>
-    </AppContext.Provider>
+    </Flex>
   );
 };
 
-interface SceneContainerProps {
-  children: ReactElement;
-}
-
-const SceneContainer: FC<SceneContainerProps> = ({ children }) => {
-  // const state = useSelector(actor, (state) => state);
-  const ContextBridge = useContextBridge(ColyseusContext);
+const MainScreenContainer = () => {
+  const isMainScreenFocused = useServiceSelector('appService', (state) =>
+    state.matches('Focus.MainScreen')
+  );
+  const loginIsOpen = useServiceSelector('appService', selectLoginIsOpen);
 
   return (
-    <Box css={{ background: '$primary1', height: '100vh' }}>
-      <Canvas
-        gl={{ physicallyCorrectLights: true }}
-        camera={{ position: [-9, 5, 24] }}
-      >
-        <color attach="background" args={['#000']} />
-        <ContextBridge>
-          <Suspense fallback={null}>{children}</Suspense>
-        </ContextBridge>
-      </Canvas>
-    </Box>
+    <Flex
+      direction="column"
+      css={{
+        p: '$3',
+        ...(isMainScreenFocused ? { height: '100vh', paddingTop: '76px' } : {}),
+      }}
+    >
+      {!loginIsOpen ? <MainScreen /> : <Login />}
+    </Flex>
+  );
+};
+
+const FloatingHeader = () => {
+  const send = useAppSend();
+  const navIsOpen = useServiceSelector('appService', selectNavIsOpen);
+
+  const handlePressMenu = useCallback(() => {
+    if (navIsOpen) {
+      send({ type: 'CLOSE_NAV' });
+    } else {
+      send({ type: 'OPEN_NAV' });
+    }
+  }, [send, navIsOpen]);
+
+  return (
+    <Flex
+      justify="between"
+      align="center"
+      css={{
+        position: 'absolute',
+        top: '$2',
+        left: '$2',
+        right: '$2',
+        zIndex: 30,
+      }}
+    >
+      <IconButton variant="raised" size="3" onClick={handlePressMenu}>
+        <HamburgerMenuIcon />
+      </IconButton>
+      <Logo />
+      <IconButton variant="raised" size="3" css={{ visibility: 'hidden' }}>
+        <PersonIcon />
+      </IconButton>
+    </Flex>
+  );
+};
+
+// const Navigation = () => {
+//   const send = useSend();
+//   const isOpen = useServiceSelector('appService', selectNavIsOpen);
+
+//   const handleOpenChange = useCallback(
+//     (open: boolean) => {
+//       if (!open) {
+//         send({ type: 'CLOSE_NAV' });
+//       }
+//     },
+//     [send]
+//   );
+
+//   return (
+//     <Dialog.Root open={isOpen} onOpenChange={handleOpenChange}>
+//       <Dialog.Portal>
+//         <NavigationDrawerOverlay />
+//         <NavigationDrawerContent />
+//       </Dialog.Portal>
+//     </Dialog.Root>
+//   );
+// };
+
+// .TabsTrigger[data-state='active'] {
+//   color: var(--violet11);
+//   box-shadow: inset 0 -1px 0 0 currentColor, 0 1px 0 0 currentColor;
+// }
+
+// const MainScreen = () => {
+//   const send = useSend();
+//   const handleStartNew = useCallback(() => {
+//     send({ type: 'START_ROOM' });
+//   }, [send]);
+
+//   return (
+//     <ScrollAreaRoot css={{ background: 'red', width: '100%' }}>
+//       <ScrollAreaViewport>
+//         <Heading>Main Screen</Heading>
+//         <Flex direction="column" gap="3">
+//           <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
+//             Hello
+//           </Card>
+//           <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
+//             Hello
+//           </Card>
+//           <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
+//             Hello
+//           </Card>
+//           <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
+//             Hello
+//           </Card>
+//           <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
+//             Hello
+//           </Card>
+//           <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
+//             Hello
+//           </Card>
+//           <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
+//             Hello
+//           </Card>
+//           <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
+//             Hello
+//           </Card>
+//           <Card css={{ p: '$3', minHeight: '200px' }} variant="interactive">
+//             Hello
+//           </Card>
+//           <Card
+//             css={{
+//               p: '$3',
+//               minHeight: '200px',
+//               position: 'sticky',
+//               bottom: 0,
+//             }}
+//             color="success"
+//             variant="interactive"
+//             onClick={handleStartNew}
+//           >
+//             Start New Game
+//           </Card>
+//         </Flex>
+//       </ScrollAreaViewport>
+//       <ScrollAreaScrollbar orientation="vertical">
+//         <ScrollAreaThumb />
+//       </ScrollAreaScrollbar>
+//     </ScrollAreaRoot>
+//   );
+// };
+
+const MainSceneContainer = () => {
+  return (
+    <Flex
+      justify="center"
+      align="center"
+      css={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+      }}
+    >
+      <FloatingHeader />
+      <MainScene />
+    </Flex>
   );
 };
