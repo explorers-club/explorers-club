@@ -2,6 +2,7 @@
 import { IndexByType, MakeRequired } from '@explorers-club/utils';
 import {
   AnyEventObject,
+  AnyStateMachine,
   InterpreterFrom,
   StateFrom,
   StateMachine,
@@ -268,6 +269,8 @@ const EntityBaseSchema = <
       states: stateValueSchema,
       context: contextSchema,
       command: commandSchema,
+      queue: z.array(commandSchema),
+      machine: z.any() as z.ZodType<AnyStateMachine>,
       subscribe: z
         .function()
         .args(CallbackFunctionSchema(entityPropsSchema, commandSchema))
