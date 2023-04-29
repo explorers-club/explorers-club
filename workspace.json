@@ -2,7 +2,6 @@
   "$schema": "./node_modules/nx/schemas/workspace-schema.json",
   "version": 2,
   "projects": {
-    "infra": "infra",
     "api": "libs/api",
     "api-server": "apps/api-server",
     "chat": "libs/chat",
@@ -11,6 +10,9 @@
     "contentful": "libs/contentful",
     "database": "libs/database",
     "diffusionary": "games/diffusionary",
+    "explorers-cafe-web": "apps/explorers-cafe-web",
+    "explorers-cafe-web-e2e": "apps/explorers-cafe-web-e2e",
+    "infra": "infra",
     "little-vigilante": "games/little-vigilante",
     "local-generator-plugin": "tools/local-generator-plugin",
     "room": "libs/room",

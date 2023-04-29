@@ -15,7 +15,7 @@
     "default": {
       "runner": "@nrwl/nx-cloud",
       "options": {
-        "cacheableOperations": ["build", "lint", "test", "e2e"],
+        "cacheableOperations": ["build", "lint", "test", "e2e", "check"],
         "accessToken": "YzY0NTVmYzktZGNlNy00OTcwLWI5ZDMtZDQ1MzEwYjc4NTJhfHJlYWQtd3JpdGU="
       }
     }
@@ -45,5 +45,6 @@
         "linter": "eslint"
       }
     }
-  }
+  },
+  "plugins": ["@nxtensions/astro"]
 }
