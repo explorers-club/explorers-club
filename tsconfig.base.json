@@ -18,6 +18,7 @@
     "paths": {
       "@3d/*": ["libs/components/src/3d/*"],
       "@atoms/*": ["libs/components/src/atoms/*"],
+      "@context/*": ["libs/components/src/context/*"],
       "@games/sailors": ["games/sailors/src/index.ts"],
       "@explorers-club/api": ["libs/api/src/index.ts"],
       "@explorers-club/api-client": ["libs/api/src/client"],
